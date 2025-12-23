@@ -1,0 +1,50 @@
+=== ENHANCED STORAGE INFORMATION ===
+Block Devices:
+NAME   SIZE FSTYPE MOUNTPOINT       LABEL UUID
+sda  388.4M ext4                          
+sdb    186M ext4                          
+sdc     16G swap   [SWAP]                 64c48562-de53-44ba-89d4-cdaeb3abd7cd
+sdd      1T ext4   /mnt/wslg/distro       872d1b79-13c0-4943-aa4c-d232862ab34d
+
+Filesystem Usage:
+Filesystem      Size  Used Avail Use% Mounted on
+none             32G     0   32G   0% /usr/lib/modules/6.6.87.2-microsoft-standard-WSL2
+none             32G  4.0K   32G   1% /mnt/wsl
+drivers         7.3T  515G  6.8T   7% /usr/lib/wsl/drivers
+/dev/sdd       1007G   20G  937G   2% /
+none             32G  100K   32G   1% /mnt/wslg
+none             32G     0   32G   0% /usr/lib/wsl/lib
+rootfs           32G  2.7M   32G   1% /init
+none             32G  968K   32G   1% /run
+none             32G     0   32G   0% /run/lock
+none             32G  1.1M   32G   1% /run/shm
+none             32G   96K   32G   1% /mnt/wslg/versions.txt
+none             32G   96K   32G   1% /mnt/wslg/doc
+C:\             7.3T  515G  6.8T   7% /mnt/c
+snapfuse        105M  105M     0 100% /snap/core/17212
+snapfuse        1.0M  1.0M     0 100% /snap/lsd/62
+snapfuse         74M   74M     0 100% /snap/core22/2045
+snapfuse         50M   50M     0 100% /snap/snapd/24792
+overlay        1007G   20G  937G   2% /var/lib/docker/overlay2/60522a7dd23eb901b13875f5f9cd05f09ea34405dd489b227948b35b320b7254/merged
+tmpfs            32G   16K   32G   1% /run/user/1000
+
+RAID Status:
+No RAID arrays found
+
+Disk I/O Statistics:
+Linux 6.6.87.2-microsoft-standard-WSL2 (aftrs-main) 	07/13/25 	_x86_64_	(16 CPU)
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           0.17    0.00    0.22    0.01    0.00   99.60
+
+Device            r/s     rkB/s   rrqm/s  %rrqm r_await rareq-sz     w/s     wkB/s   wrqm/s  %wrqm w_await wareq-sz     d/s     dkB/s   drqm/s  %drqm d_await dareq-sz     f/s f_await  aqu-sz  %util
+sda              0.09      5.98     0.03  25.86    0.20    64.32    0.00      0.00     0.00   0.00    0.00     0.00    0.00      0.00     0.00   0.00    0.00     0.00    0.00    0.00    0.00   0.00
+sdb              0.01      0.64     0.01  27.78    0.19    46.86    0.00      0.00     0.00   0.00    0.00     0.00    0.00      0.00     0.00   0.00    0.00     0.00    0.00    0.00    0.00   0.00
+sdc              0.01      0.17     0.00   0.00    0.05    22.73    0.00      0.00     0.00   0.00    1.00     2.00    0.00      0.00     0.00   0.00    0.00     0.00    0.00    1.00    0.00   0.00
+sdd              8.44    254.38     2.18  20.50    0.16    30.12    2.84    264.94     9.15  76.31    0.96    93.30    0.25    223.05     0.01   4.82    0.09   905.78    0.90    0.36    0.00   0.66
+
+Smart Drive Information:
+=== /dev/sda ===
+=== /dev/sdb ===
+=== /dev/sdc ===
+=== /dev/sdd ===

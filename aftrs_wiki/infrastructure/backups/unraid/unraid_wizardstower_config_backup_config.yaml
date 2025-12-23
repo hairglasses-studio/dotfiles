@@ -1,0 +1,113 @@
+# Unraid Backup Configuration
+# Customize backup behavior and analysis settings
+
+backup:
+  # Backup directory (relative to script location)
+  directory: "backups"
+  
+  # Include/exclude patterns for files
+  include_patterns:
+    - "*.conf"
+    - "*.ini"
+    - "*.xml"
+    - "*.yml"
+    - "*.yaml"
+    - "docker-compose.*"
+  
+  exclude_patterns:
+    - "*.log"
+    - "*.tmp"
+    - "*.cache"
+    - "*.pid"
+    - "__pycache__"
+    - "node_modules"
+  
+  # Sensitive files to exclude from git backups
+  sensitive_files:
+    - "users.ini"
+    - "state.ini"
+    - "var.ini"
+    - "passwd"
+    - "shadow"
+    - "*.key"
+    - "*.pem"
+    - "*.crt"
+
+analysis:
+  # Performance thresholds for recommendations
+  thresholds:
+    storage_warning: 80  # Percentage
+    storage_critical: 90 # Percentage
+    memory_warning: 80   # Percentage
+    memory_critical: 90  # Percentage
+    load_warning: 1.0    # Load average per core
+    load_critical: 2.0   # Load average per core
+  
+  # Docker analysis settings
+  docker:
+    max_containers_warning: 20
+    cleanup_stopped_containers: true
+    analyze_resource_usage: true
+  
+  # Storage analysis settings
+  storage:
+    check_array_health: true
+    analyze_iops: true
+    check_fragmentation: false
+  
+  # Network analysis settings
+  network:
+    check_redundancy: true
+    analyze_bandwidth: false
+    monitor_interfaces: true
+
+performance:
+  # Data collection settings
+  collection:
+    cpu_samples: 3
+    memory_samples: 3
+    disk_samples: 3
+    network_samples: 3
+  
+  # Log collection settings
+  logs:
+    system_lines: 1000
+    docker_lines: 100
+    vm_lines: 50
+
+output:
+  # Report formats
+  formats:
+    - "text"
+    - "json"
+    - "html"
+  
+  # Email notifications (optional)
+  email:
+    enabled: false
+    smtp_server: ""
+    smtp_port: 587
+    username: ""
+    password: ""
+    recipients: []
+
+# Advanced settings
+advanced:
+  # Parallel processing
+  parallel_backup: true
+  max_workers: 4
+  
+  # Compression
+  compress_backups: true
+  compression_level: 6
+  
+  # Retention policy
+  retention:
+    days: 30
+    max_backups: 10
+  
+  # Monitoring
+  monitoring:
+    enabled: true
+    check_interval: 3600  # seconds
+    alert_on_failure: true 

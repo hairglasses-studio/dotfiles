@@ -1,0 +1,20 @@
+=== ENHANCED MEMORY INFORMATION ===
+               total        used        free      shared  buff/cache   available
+Mem:            62Gi       1.7Gi        60Gi        17Mi       659Mi        60Gi
+Swap:           16Gi          0B        16Gi
+MemTotal:       65607828 kB
+MemFree:        63714796 kB
+MemAvailable:   63773660 kB
+Buffers:           15372 kB
+Cached:           518144 kB
+SwapCached:            0 kB
+Active:           177232 kB
+Inactive:        1141736 kB
+Active(anon):       5664 kB
+Inactive(anon):   797604 kB
+Active(file):     171568 kB
+Inactive(file):   344132 kB
+SwapTotal:      16777216 kB
+SwapFree:       16777216 kB
+Memory NUMA Info:
+NUMA not available
