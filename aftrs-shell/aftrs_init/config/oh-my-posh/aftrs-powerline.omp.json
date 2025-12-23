@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "final_space": true,
+  "version": 2,
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        { "type": "session", "style": "powerline", "foreground": "#1e222a", "background": "#61afef", "properties": { "display_host": true } },
+        { "type": "path", "style": "powerline", "powerline_symbol": "\uE0B0", "foreground": "#1e222a", "background": "#98c379", "properties": { "style": "folder", "max_depth": 3, "enable_hyperlink": true } },
+        { "type": "git", "style": "powerline", "foreground": "#1e222a", "background": "#e5c07b", "properties": { "branch_icon": "\ue725 ", "display_stash_count": true, "display_status": true } },
+        { "type": "executiontime", "style": "powerline", "foreground": "#1e222a", "background": "#c678dd", "properties": { "threshold": 100 } }
+      ]
+    },
+    {
+      "type": "rprompt",
+      "segments": [
+        { "type": "shell", "style": "plain", "foreground": "#61afef", "properties": { "map": { "zsh": "zsh", "bash": "bash", "fish": "fish" } } }
+      ]
+    }
+  ],
+  "transient_prompt": { "background": "transparent", "foreground": "#98c379", "template": "\u276f " },
+  "secondary_prompt": { "background": "transparent", "foreground": "#61afef", "template": "\u276f " }
+}
+
+

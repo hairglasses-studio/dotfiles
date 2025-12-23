@@ -1,0 +1,57 @@
+Chain INPUT (policy ACCEPT 279K packets, 943M bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+ 279K  943M ts-input   0    --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ts-forward  0    --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 DOCKER-USER  0    --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 DOCKER-FORWARD  0    --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain DOCKER (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DROP       0    --  !docker0 docker0  0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-BRIDGE (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DOCKER     0    --  *      docker0  0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-CT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     0    --  *      docker0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+
+Chain DOCKER-FORWARD (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DOCKER-CT  0    --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 DOCKER-ISOLATION-STAGE-1  0    --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 DOCKER-BRIDGE  0    --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     0    --  docker0 *       0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-ISOLATION-STAGE-1 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DOCKER-ISOLATION-STAGE-2  0    --  docker0 !docker0  0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-ISOLATION-STAGE-2 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DROP       0    --  *      docker0  0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-USER (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain ts-forward (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 MARK       0    --  tailscale0 *       0.0.0.0/0            0.0.0.0/0            MARK xset 0x40000/0xff0000
+    0     0 ACCEPT     0    --  *      *       0.0.0.0/0            0.0.0.0/0            mark match 0x40000/0xff0000
+    0     0 DROP       0    --  *      tailscale0  100.64.0.0/10        0.0.0.0/0           
+    0     0 ACCEPT     0    --  *      tailscale0  0.0.0.0/0            0.0.0.0/0           
+
+Chain ts-input (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     0    --  lo     *       100.127.84.102       0.0.0.0/0           
+    0     0 RETURN     0    --  !tailscale0 *       100.115.92.0/23      0.0.0.0/0           
+    0     0 DROP       0    --  !tailscale0 *       100.64.0.0/10        0.0.0.0/0           
+   42  5390 ACCEPT     0    --  tailscale0 *       0.0.0.0/0            0.0.0.0/0           
+   88  5280 ACCEPT     17   --  *      *       0.0.0.0/0            0.0.0.0/0            udp dpt:41641

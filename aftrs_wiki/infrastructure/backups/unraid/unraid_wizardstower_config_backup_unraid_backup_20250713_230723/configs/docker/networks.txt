@@ -1,0 +1,4 @@
+NETWORK ID     NAME      DRIVER    SCOPE
+a33dc089fe9a   bridge    bridge    local
+815943dfb9e2   host      host      local
+d209c63181b7   none      null      local
