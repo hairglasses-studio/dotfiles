@@ -1,0 +1,29 @@
+ollama	active	fork	2025-08-23T05:15:41Z	2025-08-23T05:15:37Z	Get up and running with Llama 3.3, DeepSeek-R1, Phi-4, Gemma 3, Mistral Small 3.1 and other large language models.	https://ollama.com
+ComfyUI	active	fork	2025-08-02T22:26:07Z	2025-08-02T19:09:27Z	The most powerful and modular diffusion model GUI, api and backend with a graph/nodes interface.	https://www.comfy.org/
+vllm	active	fork	2025-08-02T22:00:44Z	2025-08-02T17:00:45Z	A high-throughput and memory-efficient inference and serving engine for LLMs	https://docs.vllm.ai
+docs	active	fork	2025-08-02T22:24:13Z	2025-08-02T16:47:46Z	Documentation for ComfyUI	https://docs.comfy.org
+langfuse	active	fork	2025-08-02T22:14:48Z	2025-08-02T09:50:02Z	🪢 Open source LLM engineering platform: LLM Observability, metrics, evals, prompt management, playground, datasets. Integrates with OpenTelemetry, Langchain, OpenAI SDK, LiteLLM, and more. 🍊YC W23 	https://langfuse.com/docs
+comfy-cli	active	fork	2025-08-02T22:23:48Z	2025-08-02T08:12:52Z	Command Line Interface for Managing ComfyUI	https://docs.comfy.org/comfy-cli/getting-started
+pinecone-cli	active	fork	2025-08-02T22:04:47Z	2025-08-02T02:30:04Z	Work seamlessly with Pinecone from the command line	
+desktop	active	fork	2025-08-02T22:23:05Z	2025-08-02T01:39:49Z	The desktop app for ComfyUI (Windows & macOS)	https://comfy.org/download
+phoenix	active	fork	2025-08-02T22:15:09Z	2025-08-02T01:23:22Z	AI Observability & Evaluation	https://arize.com/docs/phoenix
+ComfyUI-Manager	active	fork	2025-08-02T22:22:31Z	2025-08-01T23:03:31Z	ComfyUI-Manager is an extension designed to enhance the usability of ComfyUI. It offers management functions to install, remove, disable, and enable various custom nodes of ComfyUI. Furthermore, this extension provides a hub feature and convenience functions to access a wide range of information within ComfyUI.	
+registry-web	active	fork	2025-08-02T22:27:40Z	2025-08-01T17:47:52Z	React App for Comfy Registry	https://registry.comfy.org
+nvidia-rag	active	fork	2025-08-02T22:05:17Z	2025-08-01T00:52:23Z	This NVIDIA RAG blueprint serves as a reference solution for a foundational Retrieval Augmented Generation (RAG) pipeline.	https://build.nvidia.com/nvidia/build-an-enterprise-rag-pipeline
+llm-inference-handbook	active	fork	2025-08-02T22:18:11Z	2025-07-31T03:03:55Z	Everything you need to know about LLM inference	http://www.bentoml.com/llm
+BentoML	active	fork	2025-08-02T22:15:58Z	2025-07-30T07:05:13Z	The easiest way to serve AI apps and models - Build Model Inference APIs, Job queues, LLM apps, Multi-model pipelines, and more!	https://bentoml.com
+OpenLLM	active	fork	2025-08-02T22:16:30Z	2025-07-29T19:26:00Z	Run any open-source LLMs, such as DeepSeek and Llama, as OpenAI compatible API endpoint in the cloud.	https://bentoml.com
+deploystack	active	fork	2025-08-02T21:56:15Z	2025-07-29T18:48:07Z	Solving MCP complexity for every team size. Eliminate credential management, reduce onboarding friction, and gain organizational visibility - from individual developers to enterprise AI operations.	https://deploystack.io/
+comfyui-embedded-docs	active	fork	2025-08-02T22:28:17Z	2025-07-25T17:15:00Z	ComfyUI help pages	https://pypi.org/project/comfyui-embedded-docs/
+comfy-pack	active	fork	2025-08-02T22:21:59Z	2025-07-23T04:11:18Z	A comprehensive toolkit for reliably locking, packing and deploying environments for ComfyUI workflows.	
+pinecone-examples	active	fork	2025-08-02T22:06:17Z	2025-07-18T07:43:07Z	Jupyter Notebooks to help you get hands-on with Pinecone vector databases	
+pinecone-python-client	active	fork	2025-08-02T22:07:21Z	2025-06-27T20:03:53Z	The Pinecone Python client 	https://www.pinecone.io/docs
+pinecone-mcp	active	fork	2025-08-02T22:08:49Z	2025-06-24T17:20:02Z	Connect your Pinecone projects to Cursor, Claude, and other AI assistants	
+awesome-mcp-server	active	fork	2025-08-02T21:57:47Z	2025-06-16T16:18:14Z	⚡ Awesome MCP Server - Transform MCP server configurations into deployable cloud infrastructure. Automated CI/CD pipeline from community contributions to production deployment.	https://deploystack.io/mcp
+awesome-local-llms	active	fork	2025-08-02T21:59:21Z	2025-05-12T04:04:44Z	Compare open-source local LLM inference projects by their metrics to assess popularity and activeness.	https://vinlam.com/posts/local-llm-options/
+comfy-action	active	fork	2025-08-02T22:27:25Z	2025-05-07T00:52:58Z	Sets up ComfyUI on MacOS/Linux/Windows and runs a workflow json.	
+BentoDiffusion	active	fork	2025-08-02T22:17:31Z	2025-04-29T16:42:13Z	BentoDiffusion: A collection of diffusion models served with BentoML	https://bentoml.com
+comfyui-registry-backend	active	fork	2025-08-02T22:24:53Z	2025-02-08T01:31:03Z	Backend API for Comfy Registry + CI Dashboard	https://registry.comfy.org
+shell-pilot	active	fork	2025-08-02T22:13:04Z	2025-01-28T01:52:46Z	A simple, lightweight shell script to interact with OpenAI or Ollama or Mistral AI or LocalAI or ZhipuAI from the terminal, and enhancing intelligent system management without any dependencies(pure shell).	
+code-collator	active	fork	2025-08-02T22:13:14Z	2024-10-09T18:34:32Z		
+Yatai	active	fork	2025-08-02T22:17:17Z	2024-05-08T12:51:22Z	Model Deployment at Scale on Kubernetes 🦄️	https://bentoml.com
