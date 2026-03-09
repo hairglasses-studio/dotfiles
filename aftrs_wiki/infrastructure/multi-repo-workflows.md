@@ -28,14 +28,14 @@
 ### Directory-based Identity Mapping
 ```bash
 ~/Docs/aftrs-void/     → hairglasses <mixellburk@gmail.com>
-~/rungalileo/          → hairglasses <mitch@galileo.ai>
+~/acmecorp/          → hairglasses <mitch@acme.ai>
 Global fallback        → hairglasses <mixellburk@gmail.com>
 ```
 
 ### Key Features
 - **Automatic Setup**: `aftrs.sh git identity setup`
 - **Verification**: `aftrs.sh git identity verify`
-- **Organization Cloning**: `aftrs.sh git clone org rungalileo`
+- **Organization Cloning**: `aftrs.sh git clone org acmecorp`
 - **Credential Management**: OAuth-based with `git-credential-oauth`
 
 ### Benefits

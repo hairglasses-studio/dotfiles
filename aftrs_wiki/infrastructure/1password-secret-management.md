@@ -24,10 +24,10 @@ The AFTRS infrastructure now includes comprehensive 1Password CLI integration fo
 - **Location**: `/Users/mitch/Docs/aftrs-void/aftrs_cli`
 - **Status**: ✅ Fully operational
 
-**Galileo CLI** (Work Account)
-- **Account**: `mitch@galileo.ai` 
-- **Vault**: `Galileo-Secrets`
-- **Location**: `/Users/mitch/rungalileo/galileo_cli_internal`
+**Acme CLI** (Work Account)
+- **Account**: `mitch@acme.ai` 
+- **Vault**: `Acme-Secrets`
+- **Location**: `/Users/mitch/acmecorp/acme_cli_internal`
 - **Status**: ✅ Plugin system integrated
 
 ## 🔑 **Verified API Keys Storage**
