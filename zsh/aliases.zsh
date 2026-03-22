@@ -1,0 +1,391 @@
+#!/usr/bin/env zsh
+# Cross-platform aliases optimized for LLM agents
+# Compatible with both macOS and Linux
+
+# Helper function to check if command exists
+function cmd_exists() {
+    command -v "$1" > /dev/null 2>&1
+}
+
+# Cross-platform ls configuration
+if cmd_exists eza; then
+    alias ls='eza --color=always --group-directories-first --icons'
+    alias ll='eza -l --color=always --group-directories-first --icons'
+    alias la='eza -la --color=always --group-directories-first --icons'
+    alias lt='eza -T --color=always --group-directories-first --icons'
+elif cmd_exists exa; then
+    alias ls='exa --color=always --group-directories-first --icons'
+    alias ll='exa -l --color=always --group-directories-first --icons'
+    alias la='exa -la --color=always --group-directories-first --icons'
+    alias lt='exa -T --color=always --group-directories-first --icons'
+elif cmd_exists lsd; then
+    alias ls='lsd --color=always --group-dirs first'
+    alias ll='lsd -l --color=always --group-dirs first'
+    alias la='lsd -la --color=always --group-dirs first'
+    alias lt='lsd --tree --color=always --group-dirs first'
+else
+    # Fallback to standard ls with cross-platform options
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        alias ls='ls -G'
+        alias ll='ls -lG'
+        alias la='ls -laG'
+    else
+        alias ls='ls --color=auto --group-directories-first'
+        alias ll='ls -l --color=auto --group-directories-first'
+        alias la='ls -la --color=auto --group-directories-first'
+    fi
+    alias lt='ls -ltrh'
+fi
+
+# File and directory navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ~='cd ~'
+alias -- -='cd -'
+
+# File operations (cross-platform)
+alias mkdir='mkdir -pv'
+alias cp='cp -iv'
+alias mv='mv -iv'
+alias rm='rm -iv'
+alias ln='ln -iv'
+
+# Search and grep
+alias grep='grep --color=auto'
+alias grepi='grep -i --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+# Text processing
+if cmd_exists bat; then
+    alias cat='bat --paging=never'
+    alias less='bat --paging=always'
+elif cmd_exists batcat; then
+    alias cat='batcat --paging=never'
+    alias less='batcat --paging=always'
+fi
+
+# Editor aliases
+alias vim='nvim'
+alias vi='nvim'
+alias nano='nvim'
+alias edit='nvim'
+
+# Git aliases (LLM-friendly)
+alias g='git'
+alias ga='git add'
+alias gaa='git add --all'
+alias gap='git add --patch'
+alias gb='git branch'
+alias gba='git branch --all'
+alias gbd='git branch --delete'
+alias gbD='git branch --delete --force'
+alias gc='git commit'
+alias gcm='git commit --message'
+alias gca='git commit --all'
+alias gcam='git commit --all --message'
+alias gco='git checkout'
+alias gcb='git checkout -b'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gf='git fetch'
+alias gfa='git fetch --all'
+alias gl='git log --oneline --graph --decorate'
+alias gla='git log --oneline --graph --decorate --all'
+alias gll='git log --graph --pretty=format:"%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset" --abbrev-commit'
+alias gp='git push'
+alias gpo='git push origin'
+alias gpl='git pull'
+alias gr='git remote'
+alias grv='git remote --verbose'
+alias gs='git status'
+alias gss='git status --short'
+alias gst='git stash'
+alias gsta='git stash apply'
+alias gstd='git stash drop'
+alias gstl='git stash list'
+alias gstp='git stash pop'
+alias gsts='git stash show --text'
+alias gsu='git stash && git pull && git stash pop'
+alias gw='git show'
+alias gwt='git worktree'
+
+# Docker aliases (LLM-friendly)
+if cmd_exists docker; then
+    alias d='docker'
+    alias dc='docker-compose'
+    alias dcu='docker-compose up'
+    alias dcd='docker-compose down'
+    alias dcl='docker-compose logs'
+    alias dps='docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"'
+    alias dpsa='docker ps --all --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"'
+    alias di='docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"'
+    alias dv='docker volume ls'
+    alias dn='docker network ls'
+    alias dlogs='docker logs --follow'
+    alias dexec='docker exec --interactive --tty'
+    alias dclean='docker system prune --all --force'
+    alias dstop='docker stop $(docker ps -q)'
+    alias drm='docker rm $(docker ps -aq)'
+    alias drmi='docker rmi $(docker images -q)'
+fi
+
+# Kubernetes aliases (LLM-friendly)
+if cmd_exists kubectl; then
+    alias k='kubectl'
+    alias kaf='kubectl apply --filename'
+    alias kca='kubectl config current-context'
+    alias kccc='kubectl config get-contexts'
+    alias kcdc='kubectl config delete-context'
+    alias kcsc='kubectl config set-context'
+    alias kcuc='kubectl config use-context'
+    alias kdel='kubectl delete'
+    alias kdf='kubectl delete --filename'
+    alias kdesc='kubectl describe'
+    alias ke='kubectl exec --stdin --tty'
+    alias kg='kubectl get'
+    alias kga='kubectl get all'
+    alias kgd='kubectl get deployment'
+    alias kgi='kubectl get ingress'
+    alias kgn='kubectl get nodes'
+    alias kgp='kubectl get pods'
+    alias kgr='kubectl get replicaset'
+    alias kgs='kubectl get service'
+    alias kl='kubectl logs'
+    alias klf='kubectl logs --follow'
+    alias kp='kubectl proxy'
+    alias kpf='kubectl port-forward'
+    alias kr='kubectl rollout'
+    alias krs='kubectl rollout status'
+    alias kru='kubectl rollout undo'
+fi
+
+# Python aliases (cross-platform)
+if cmd_exists python3; then
+    alias python='python3'
+    alias pip='pip3'
+fi
+alias pv='python --version'
+alias py='python'
+alias serve='python -m http.server'
+alias venv='python -m venv'
+alias activate='source ./venv/bin/activate'
+
+# Node.js aliases
+if cmd_exists node; then
+    alias nv='node --version'
+    alias npmg='npm list --global --depth=0'
+    alias npml='npm list --depth=0'
+    alias npms='npm start'
+    alias npmt='npm test'
+    alias npmr='npm run'
+    alias npmi='npm install'
+    alias npmu='npm update'
+fi
+
+# System information (cross-platform)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias top='top -o cpu'
+    alias mem='memory_pressure'
+    alias cpu='top -l 1 | grep "CPU usage"'
+else
+    alias mem='free -h'
+    alias cpu='grep "cpu " /proc/stat | awk "{usage=(\$2+\$4)*100/(\$2+\$3+\$4+\$5)} END {print usage \"%\"}"'
+fi
+
+# Network utilities (cross-platform)
+alias ports='netstat -tuln'
+alias myip='curl -s https://ipinfo.io/ip'
+alias localip='hostname -I | cut -d" " -f1'
+alias ping='ping -c 5'
+alias fastping='ping -c 100 -s.2'
+
+# Archive operations (cross-platform)
+alias tarx='tar -xvf'
+alias tarc='tar -cvf'
+alias tarz='tar -czvf'
+alias tarj='tar -cjvf'
+
+# LLM-friendly development aliases
+alias serve8000='python -m http.server 8000'
+alias serve3000='python -m http.server 3000'
+alias jsonpp='python -m json.tool'
+alias urlencode='python -c "import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))"'
+alias urldecode='python -c "import sys, urllib.parse as ul; print(ul.unquote_plus(sys.argv[1]))"'
+
+# Process management
+alias psg='ps aux | grep'
+alias psk='ps aux | grep'
+alias killall='pkill'
+
+# Quick directory access
+alias dot='cd $HOME/dotfiles'
+alias proj='cd $HOME/Projects'
+alias docs='cd $HOME/Documents'
+alias dl='cd $HOME/Downloads'
+alias dt='cd $HOME/Desktop'
+
+# Configuration file shortcuts
+alias zshconfig='nvim ~/.zshrc'
+alias zshreload='source ~/.zshrc'
+alias aliasconfig='nvim ~/dotfiles/zsh/aliases.zsh'
+alias nvimconfig='nvim ~/.config/nvim/init.vim'
+alias gitconfig='nvim ~/.gitconfig'
+
+# System utilities
+alias h='history'
+alias j='jobs'
+alias path='echo -e ${PATH//:/\\n}'
+alias now='date +"%T"'
+alias nowtime='date +"%d-%m-%Y %T"'
+alias nowdate='date +"%d-%m-%Y"'
+
+# File finding and searching
+alias ff='find . -type f -name'
+alias fdd='find . -type d -name'
+if cmd_exists rg; then
+    alias search='rg --smart-case --follow --hidden'
+elif cmd_exists ag; then
+    alias search='ag --smart-case --follow --hidden'
+else
+    alias search='grep -r --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.env'
+fi
+
+# Clean up functions
+alias cleanup='find . -type f -name "*.DS_Store" -ls -delete'
+alias emptytrash='rm -rf ~/.Trash/*'
+
+# Terraform aliases (if available)
+if cmd_exists terraform; then
+    alias tf='terraform'
+    alias tfi='terraform init'
+    alias tfp='terraform plan'
+    alias tfa='terraform apply'
+    alias tfd='terraform destroy'
+    alias tfv='terraform validate'
+    alias tff='terraform fmt'
+    alias tfs='terraform state'
+    alias tfo='terraform output'
+fi
+
+# Terragrunt aliases (if available)
+if cmd_exists terragrunt; then
+    alias tg='terragrunt'
+    alias tgi='terragrunt init'
+    alias tgp='terragrunt plan'
+    alias tga='terragrunt apply'
+    alias tgd='terragrunt destroy'
+    alias tgv='terragrunt validate'
+    alias tgf='terragrunt hclfmt'
+fi
+
+# AWS CLI aliases (if available)
+if cmd_exists aws; then
+    alias aws='aws --no-cli-pager'
+    alias awswho='aws sts get-caller-identity'
+    alias awsregion='aws configure get region'
+fi
+
+# tldr aliases (if available)
+if cmd_exists tldr; then
+    alias tldr='tldr --theme=base16'
+    alias help='tldr'
+fi
+
+# Enhanced z with fzf integration
+if cmd_exists fzf && [[ -n "$_Z_CMD" ]]; then
+    unalias z 2> /dev/null
+    z() {
+        [ $# -gt 0 ] && _z "$*" && return
+        cd "$(_z -l 2>&1 | fzf --height 40% --nth 2.. --reverse --inline-info +s --tac --query "${*##-* }" | sed 's/^[0-9,.]* *//')" || return
+    }
+fi
+
+# Custom functions for LLM agents
+llm_help() {
+    echo "=== LLM-Friendly Commands ==="
+    echo "llm_context - Show current directory context"
+    echo "search <pattern> - Smart search across files"
+    echo "serve <port> - Start HTTP server (default: 8000)"
+    echo "myip - Show external IP address"
+    echo "localip - Show local IP address"
+    echo "ports - Show listening ports"
+    echo "jsonpp - Pretty print JSON from stdin"
+    echo "cleanup - Remove .DS_Store and temp files"
+    echo "=== Git Shortcuts ==="
+    echo "gs - git status"
+    echo "ga - git add"
+    echo "gc - git commit"
+    echo "gp - git push"
+    echo "gl - git log (pretty)"
+    echo "gd - git diff"
+    echo "=== Docker/K8s ==="
+    echo "dps - docker ps (formatted)"
+    echo "k - kubectl"
+    echo "kgp - kubectl get pods"
+    echo "=== Development ==="
+    echo "py - python"
+    echo "venv - create virtual environment"
+    echo "activate - activate venv"
+}
+
+# Function to show file/directory information
+info() {
+    if [[ -f "$1" ]]; then
+        echo "File: $1"
+        file "$1"
+        ls -lah "$1"
+        if cmd_exists bat; then
+            echo "--- Content Preview ---"
+            bat --line-range=1:20 "$1"
+        fi
+    elif [[ -d "$1" ]]; then
+        echo "Directory: $1"
+        ls -lah "$1"
+        echo "--- Contents ---"
+        ls -la "$1"
+    else
+        echo "Path does not exist: $1"
+    fi
+}
+
+# Quick backup function
+backup() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: backup <file_or_directory>"
+        return 1
+    fi
+    cp -r "$1" "$1.backup.$(date +%Y%m%d_%H%M%S)"
+    echo "Backup created: $1.backup.$(date +%Y%m%d_%H%M%S)"
+}
+
+# Extract function for various archive formats
+extract() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: extract <archive>"
+        return 1
+    fi
+    if [[ -f "$1" ]]; then
+        case "$1" in
+            *.tar.bz2) tar xjf "$1" ;;
+            *.tar.gz) tar xzf "$1" ;;
+            *.bz2) bunzip2 "$1" ;;
+            *.rar) unrar x "$1" ;;
+            *.gz) gunzip "$1" ;;
+            *.tar) tar xf "$1" ;;
+            *.tbz2) tar xjf "$1" ;;
+            *.tgz) tar xzf "$1" ;;
+            *.zip) unzip "$1" ;;
+            *.Z) uncompress "$1" ;;
+            *.7z) 7z x "$1" ;;
+            *) echo "'$1' cannot be extracted via extract()" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+    fi
+}
+
+# Load local aliases if they exist
+[[ -f "$HOME/.aliases.local" ]] && source "$HOME/.aliases.local"
