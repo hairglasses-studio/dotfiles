@@ -65,7 +65,7 @@ install_homebrew() {
 install_brew_packages() {
     if command -v brew &>/dev/null && [[ -f "$DOTFILES_DIR/Brewfile" ]]; then
         log_info "Installing Homebrew packages from Brewfile..."
-        brew bundle --file="$DOTFILES_DIR/Brewfile" --no-lock 2>&1 | while read -r line; do
+        brew bundle --file="$DOTFILES_DIR/Brewfile" 2>&1 | while read -r line; do
             log_info "  $line"
         done
     fi
@@ -84,21 +84,23 @@ install_omz() {
 install_omz_plugins() {
     local ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
-    declare -A plugins=(
-        ["fast-syntax-highlighting"]="https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
-        ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions.git"
-        ["zsh-completions"]="https://github.com/zsh-users/zsh-completions.git"
-        ["you-should-use"]="https://github.com/MichaelAquilina/zsh-you-should-use.git"
-        ["fzf-tab"]="https://github.com/Aloxaf/fzf-tab.git"
+    local plugin_list=(
+        "fast-syntax-highlighting|https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
+        "zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions.git"
+        "zsh-completions|https://github.com/zsh-users/zsh-completions.git"
+        "you-should-use|https://github.com/MichaelAquilina/zsh-you-should-use.git"
+        "fzf-tab|https://github.com/Aloxaf/fzf-tab.git"
     )
 
-    for name in "${!plugins[@]}"; do
+    for entry in "${plugin_list[@]}"; do
+        local name="${entry%%|*}"
+        local url="${entry##*|}"
         local dir="$ZSH_CUSTOM/plugins/$name"
         if [[ -d "$dir" ]]; then
             log_success "Plugin already installed: $name"
         else
             log_info "Installing plugin: $name"
-            git clone --depth=1 "${plugins[$name]}" "$dir" 2>/dev/null
+            git clone --depth=1 "$url" "$dir" 2>/dev/null
         fi
     done
 
