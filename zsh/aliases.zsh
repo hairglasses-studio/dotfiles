@@ -460,14 +460,14 @@ alias viz='cava'
 alias md='glow'
 
 # ── Hacker aesthetic / fun ───────────────────
-if cmd_exists pipes-sh;  then alias pipes='pipes-sh'; fi
+if cmd_exists pipes.sh;  then alias pipes='pipes.sh'; fi
 if cmd_exists cbonsai;   then alias bonsai='cbonsai -l -t 0.02'; fi
 if cmd_exists tty-clock; then alias clock='tty-clock -s -c -C 4 -b'; fi
 if cmd_exists cmatrix;   then alias matrix='cmatrix -ab -C cyan'; fi
 if cmd_exists figlet;    then alias banner='figlet -f slant'; fi
 if cmd_exists lolcat;    then alias rainbow='lolcat'; fi
 if cmd_exists onefetch;  then alias gitfetch='onefetch'; fi
-alias screensaver='pipes-sh -t 2 -R -r 0 -p 5'
+alias screensaver='pipes.sh -t 2 -R -r 0 -p 5'
 alias weather='curl -s "wttr.in?format=3"'
 alias forecast='curl -s wttr.in'
 cheat() { curl -s "cht.sh/$1"; }
