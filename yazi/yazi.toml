@@ -1,0 +1,24 @@
+[manager]
+sort_by = "natural"
+sort_sensitive = false
+sort_reverse = false
+sort_dir_first = true
+show_hidden = true
+show_symlink = true
+linemode = "size"
+
+[opener]
+edit = [
+    { run = 'nvim "$@"', block = true, for = "unix" },
+]
+open = [
+    { run = 'open "$@"', for = "macos" },
+]
+
+[preview]
+max_width = 600
+max_height = 900
+
+[plugin]
+prepend_previewers = []
+prepend_preloaders = []

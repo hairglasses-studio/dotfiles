@@ -1,0 +1,25 @@
+# cava — Snazzy audio visualizer
+
+[general]
+framerate = 60
+bars = 0
+bar_width = 2
+bar_spacing = 1
+
+[input]
+method = coreaudio
+source = auto
+
+[output]
+method = ncurses
+
+[color]
+gradient = 1
+gradient_count = 4
+gradient_color_1 = '#57c7ff'
+gradient_color_2 = '#ff6ac1'
+gradient_color_3 = '#5af78e'
+gradient_color_4 = '#f3f99d'
+
+[smoothing]
+noise_reduction = 77

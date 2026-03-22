@@ -32,7 +32,7 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'} " Completion engine
 Plug 'sheerun/vim-polyglot'         " Language pack
 
 " Syntax highlighting and themes
-Plug 'morhetz/gruvbox'              " Gruvbox color scheme
+Plug 'connorholyday/vim-snazzy'     " Snazzy color scheme
 Plug 'vim-airline/vim-airline'      " Status line
 Plug 'vim-airline/vim-airline-themes' " Airline themes
 
@@ -125,13 +125,14 @@ set wildignore+=*/.git/*,*/node_modules/*,*/__pycache__/*
 " Color scheme
 set termguicolors                   " Enable true color
 set background=dark
-colorscheme gruvbox
+let g:SnazzyTransparent = 1
+colorscheme snazzy
 
 " Airline configuration
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'
-let g:airline_theme = 'gruvbox'
+let g:airline_theme = 'base16_snazzy'
 
 " Show whitespace characters
 set list

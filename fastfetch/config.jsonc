@@ -3,8 +3,8 @@
   "logo": {
     "type": "small",
     "color": {
-      "1": "cyan",
-      "2": "white"
+      "1": "#57c7ff",
+      "2": "#ff6ac1"
     },
     "padding": {
       "top": 1,
@@ -14,8 +14,8 @@
   "display": {
     "separator": "  ",
     "color": {
-      "keys": "cyan",
-      "title": "magenta"
+      "keys": "#57c7ff",
+      "title": "#ff6ac1"
     }
   },
   "modules": [
@@ -48,16 +48,41 @@
       "key": "  font"
     },
     {
+      "type": "wm",
+      "key": " 󰖯 wm"
+    },
+    {
+      "type": "display",
+      "key": " 󰍹 display"
+    },
+    {
       "type": "cpu",
       "key": " 󰘚 cpu"
+    },
+    {
+      "type": "gpu",
+      "key": " 󰢮 gpu"
     },
     {
       "type": "memory",
       "key": " 󰍛 mem"
     },
     {
+      "type": "disk",
+      "key": " 󰋊 disk",
+      "folders": "/"
+    },
+    {
+      "type": "battery",
+      "key": " 󰂄 bat"
+    },
+    {
       "type": "uptime",
       "key": " 󰅐 up"
+    },
+    {
+      "type": "packages",
+      "key": " 󰏗 pkgs"
     },
     {
       "type": "separator",
