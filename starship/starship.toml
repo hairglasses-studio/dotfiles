@@ -16,17 +16,21 @@ $nodejs\
 $python\
 $rust\
 $terraform\
+$helm\
 $docker_context\
+$container\
 $kubernetes\
 $aws\
 $gcloud\
 $env_var\
 $cmd_duration\
 $jobs\
+$fill\
+$time\
 $line_break\
 $character"""
 
-right_format = """$time"""
+right_format = ""
 
 # ── Prompt ──────────────────────────────────────
 [character]
@@ -151,11 +155,31 @@ symbol = "+"
 style = "#f3f99d"
 threshold = 1
 
+[fill]
+symbol = " "
+
 [time]
 disabled = false
 style = "#686868"
 format = "[$time]($style)"
 time_format = "%H:%M"
+
+[helm]
+symbol = "⎈ "
+style = "bold #57c7ff"
+format = "[$symbol$version]($style) "
+
+[container]
+symbol = "⬡ "
+style = "#57c7ff"
+format = "[$symbol$name]($style) "
+
+[env_var.MCP_SERVER]
+symbol = "⚡"
+style = "bold #ff6ac1"
+format = "[$symbol $env_value]($style) "
+variable = "MCP_SERVER"
+default = ""
 
 [env_var.VIRTUAL_ENV]
 symbol = "🐍 "

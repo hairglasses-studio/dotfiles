@@ -152,6 +152,10 @@ create_symlinks() {
     link_file "$DOTFILES_DIR/git/ignore" "$HOME/.config/git/ignore"
     link_file "$DOTFILES_DIR/gh"         "$HOME/.config/gh"
     link_file "$DOTFILES_DIR/k9s"        "$HOME/.config/k9s"
+    link_file "$DOTFILES_DIR/lazygit"   "$HOME/.config/lazygit"
+
+    # Individual file symlinks (non-XDG)
+    link_file "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
 }
 
 # ── Main ────────────────────────────────────────

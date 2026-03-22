@@ -294,14 +294,7 @@ if cmd_exists tldr; then
     alias help='tldr'
 fi
 
-# Enhanced z with fzf integration
-if cmd_exists fzf && [[ -n "$_Z_CMD" ]]; then
-    unalias z 2> /dev/null
-    z() {
-        [ $# -gt 0 ] && _z "$*" && return
-        cd "$(_z -l 2>&1 | fzf --height 40% --nth 2.. --reverse --inline-info +s --tac --query "${*##-* }" | sed 's/^[0-9,.]* *//')" || return
-    }
-fi
+# Note: z/zoxide integration handled in zshrc via `eval "$(zoxide init zsh)"`
 
 # Custom functions for LLM agents
 llm_help() {
@@ -385,6 +378,94 @@ extract() {
     else
         echo "'$1' is not a valid file"
     fi
+}
+
+# ── Go development ─────────────────────────────
+if cmd_exists go; then
+    alias gorun='go run .'
+    alias gobuild='go build -v ./...'
+    alias gotest='go test -v ./...'
+    alias gorace='go test -race -v ./...'
+    alias gocover='go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out'
+    alias golint='golangci-lint run ./...'
+    alias gomod='go mod tidy && go mod verify'
+    alias govet='go vet ./...'
+    alias gogen='go generate ./...'
+    alias gowork='go work sync'
+fi
+
+# ── Protobuf / gRPC ───────────────────────────
+if cmd_exists protoc; then
+    alias protogen='protoc --go_out=. --go-grpc_out=. *.proto'
+fi
+if cmd_exists grpcurl; then
+    alias grpcls='grpcurl -plaintext localhost:50051 list'
+    alias grpcdesc='grpcurl -plaintext localhost:50051 describe'
+fi
+
+# ── Enhanced AWS ───────────────────────────────
+if cmd_exists aws; then
+    alias ecsl='aws ecs list-clusters --output table'
+    alias ecss='aws ecs list-services --output table --cluster'
+    alias ecst='aws ecs list-tasks --output table --cluster'
+    alias s3ls='aws s3 ls'
+    alias lamls='aws lambda list-functions --output table'
+    alias ssmsh='aws ssm start-session --target'
+    alias ddbls='aws dynamodb list-tables --output table'
+    alias cfnls='aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE --output table'
+fi
+
+# ── Helm ───────────────────────────────────────
+if cmd_exists helm; then
+    alias hls='helm list --all-namespaces'
+    alias hup='helm upgrade --install'
+    alias hdel='helm uninstall'
+    alias hrepo='helm repo update'
+    alias hval='helm template . --debug'
+fi
+
+# ── Container inspection ──────────────────────
+if cmd_exists dive; then
+    alias ddive='dive'
+fi
+if cmd_exists lazydocker; then
+    alias lzd='lazydocker'
+fi
+if cmd_exists stern; then
+    alias klog='stern'
+fi
+if cmd_exists kubectx; then
+    alias kctx='kubectx'
+    alias kns='kubens'
+fi
+
+# ── K8s extras ─────────────────────────────────
+if cmd_exists kubectl; then
+    alias kev='kubectl get events --sort-by=".lastTimestamp"'
+    alias ktop='kubectl top pods --sort-by=cpu'
+    alias knodetop='kubectl top nodes --sort-by=cpu'
+    alias ksec='kubectl get secrets'
+    alias kcm='kubectl get configmaps'
+    alias kingress='kubectl get ingress --all-namespaces'
+fi
+
+# ── MCP / Ralph ────────────────────────────────
+alias hgs='cd ~/hairglasses-studio'
+alias mcplog='tail -f /tmp/mcp-*.log 2>/dev/null || echo "No MCP logs found"'
+
+# ── Ghostty shader switching ──────────────────
+alias shader-bloom='sed -i "" "s|custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/bloom.glsl|" ~/.config/ghostty/config'
+alias shader-crt='sed -i "" "s|custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/green-crt.glsl|" ~/.config/ghostty/config'
+alias shader-amber='sed -i "" "s|custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/amber-crt.glsl|" ~/.config/ghostty/config'
+alias shader-none='sed -i "" "s|custom-shader = .*|# custom-shader = disabled|" ~/.config/ghostty/config'
+
+# Random shader (called from zshrc on each new shell)
+shader-random() {
+  local dir="$HOME/.config/ghostty/shaders"
+  local shaders=("$dir"/*.glsl(N))
+  (( ${#shaders} == 0 )) && return
+  local pick="${shaders[RANDOM % ${#shaders} + 1]}"
+  sed -i "" "s|custom-shader = .*|custom-shader = $pick|" ~/.config/ghostty/config 2>/dev/null
 }
 
 # Load local aliases if they exist
