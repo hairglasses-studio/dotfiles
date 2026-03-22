@@ -1,9 +1,0 @@
-REPOSITORY                      TAG               IMAGE ID       SIZE      CREATED AT
-ghcr.io/hairglasses/cr8_cli     latest            3411d608f51f   873MB     2025-07-11 13:00:37 -0700 PDT
-ghcr.io/hairglasses/cr8_cli     v1.0.2            3411d608f51f   873MB     2025-07-11 13:00:37 -0700 PDT
-ghcr.io/hairglasses/cr8_cli     <none>            8530de871b3b   873MB     2025-07-11 11:19:22 -0700 PDT
-ghcr.io/hairglasses/cr8_cli     <none>            36137c3e2410   873MB     2025-07-11 09:39:59 -0700 PDT
-ghcr.io/hairglasses/cr8_cli     v1.0.0            907fd0f5aa99   873MB     2025-07-11 09:15:33 -0700 PDT
-<none>                          <none>            4cf95ed4ba6d   864MB     2025-07-11 07:07:01 -0700 PDT
-ghcr.io/open-webui/open-webui   ollama            ec1fbf9d2b2e   7.66GB    2025-07-05 10:10:12 -0700 PDT
-moby/buildkit                   buildx-stable-1   72a94020693f   216MB     2025-05-21 05:21:12 -0700 PDT

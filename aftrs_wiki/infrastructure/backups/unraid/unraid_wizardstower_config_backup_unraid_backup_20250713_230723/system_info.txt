@@ -1,8 +1,0 @@
-=== ENHANCED UNRAID SYSTEM INFORMATION ===
-Backup Date: 2025-07-13T23:07:23-07:00
-Hostname: aftrs-main
-Kernel: 6.6.87.2-microsoft-standard-WSL2
-Architecture: x86_64
-Uname: Linux aftrs-main 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
-Boot Time: 2025-07-13 19:26:45
-System Load:  0.03, 0.04, 0.00
