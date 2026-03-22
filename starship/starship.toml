@@ -1,0 +1,165 @@
+# Snazzy-on-black Starship prompt — matches Ghostty rice
+# Full-featured config with contextual modules
+
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_commit\
+$git_state\
+$git_metrics\
+$git_status\
+$package\
+$golang\
+$nodejs\
+$python\
+$rust\
+$terraform\
+$docker_context\
+$kubernetes\
+$aws\
+$gcloud\
+$env_var\
+$cmd_duration\
+$jobs\
+$line_break\
+$character"""
+
+right_format = """$time"""
+
+# ── Prompt ──────────────────────────────────────
+[character]
+success_symbol = "[❯](bold #5af78e)"
+error_symbol = "[❯](bold #ff5c57)"
+
+[username]
+show_always = false
+style_user = "#686868"
+style_root = "bold #ff5c57"
+format = "[$user]($style) "
+
+[hostname]
+ssh_only = true
+style = "#686868"
+format = "[@$hostname]($style) "
+
+[directory]
+style = "bold #57c7ff"
+truncation_length = 3
+truncation_symbol = "…/"
+read_only = " 󰌾"
+read_only_style = "#ff5c57"
+
+# ── Git ─────────────────────────────────────────
+[git_branch]
+symbol = " "
+style = "bold #ff6ac1"
+
+[git_commit]
+tag_symbol = " 󰓹 "
+style = "#686868"
+commit_hash_length = 7
+only_detached = true
+
+[git_state]
+style = "bold #f3f99d"
+rebase = "REBASING"
+merge = "MERGING"
+revert = "REVERTING"
+cherry_pick = "CHERRY-PICKING"
+bisect = "BISECTING"
+
+[git_metrics]
+disabled = false
+added_style = "#5af78e"
+deleted_style = "#ff5c57"
+format = '([+$added]($added_style) )([-$deleted]($deleted_style) )'
+
+[git_status]
+style = "bold #f3f99d"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+modified = "!${count}"
+untracked = "?${count}"
+staged = "+${count}"
+stashed = "≡${count}"
+conflicted = "=${count}"
+
+# ── Languages ───────────────────────────────────
+[package]
+symbol = "󰏗 "
+style = "#f3f99d"
+format = "[$symbol$version]($style) "
+
+[golang]
+symbol = " "
+style = "bold #9aedfe"
+
+[nodejs]
+symbol = " "
+style = "bold #5af78e"
+
+[python]
+symbol = " "
+style = "bold #f3f99d"
+format = '[$symbol${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+
+[rust]
+symbol = " "
+style = "bold #ff5c57"
+
+[terraform]
+symbol = "󱁢 "
+style = "bold #9aedfe"
+format = "[$symbol$workspace]($style) "
+
+# ── Cloud / Infra ───────────────────────────────
+[docker_context]
+symbol = " "
+style = "bold #57c7ff"
+only_with_files = true
+
+[kubernetes]
+disabled = false
+symbol = "󱃾 "
+style = "bold #57c7ff"
+format = "[$symbol$context( \\($namespace\\))]($style) "
+
+[aws]
+disabled = false
+symbol = " "
+style = "bold #f3f99d"
+format = "[$symbol($profile )(\\($region\\) )]($style)"
+
+[gcloud]
+disabled = false
+symbol = "󱇶 "
+style = "bold #57c7ff"
+format = "[$symbol($project )]($style)"
+
+# ── Status / Meta ───────────────────────────────
+[cmd_duration]
+min_time = 2_000
+style = "#686868"
+format = "took [$duration]($style) "
+show_notifications = false
+
+[jobs]
+symbol = "+"
+style = "#f3f99d"
+threshold = 1
+
+[time]
+disabled = false
+style = "#686868"
+format = "[$time]($style)"
+time_format = "%H:%M"
+
+[env_var.VIRTUAL_ENV]
+symbol = "🐍 "
+style = "#f3f99d"
+format = "[$env_value]($style) "
+variable = "VIRTUAL_ENV"
+default = ""
