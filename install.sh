@@ -159,6 +159,15 @@ create_symlinks() {
     link_file "$DOTFILES_DIR/k9s"        "$HOME/.config/k9s"
     link_file "$DOTFILES_DIR/lazygit"   "$HOME/.config/lazygit"
 
+    # Desktop rice
+    link_file "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
+    link_file "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
+    link_file "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
+    link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
+    link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
+    link_file "$DOTFILES_DIR/cava"        "$HOME/.config/cava"
+    link_file "$DOTFILES_DIR/glow"        "$HOME/.config/glow"
+
     # Individual file symlinks (non-XDG)
     link_file "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
 }
@@ -199,6 +208,13 @@ check_symlinks() {
     check_link "$DOTFILES_DIR/gh"         "$HOME/.config/gh"
     check_link "$DOTFILES_DIR/k9s"        "$HOME/.config/k9s"
     check_link "$DOTFILES_DIR/lazygit"    "$HOME/.config/lazygit"
+    check_link "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
+    check_link "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
+    check_link "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
+    check_link "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
+    check_link "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
+    check_link "$DOTFILES_DIR/cava"        "$HOME/.config/cava"
+    check_link "$DOTFILES_DIR/glow"        "$HOME/.config/glow"
     check_link "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
 
     log_info "Checking brew packages..."

@@ -449,6 +449,16 @@ if cmd_exists kubectl; then
     alias kingress='kubectl get ingress --all-namespaces'
 fi
 
+# ── Window management ─────────────────────────
+alias aero-reload='aerospace reload-config'
+alias bar-reload='sketchybar --reload'
+
+# ── New tools ─────────────────────────────────
+alias top='btop'
+alias yy='yazi'
+alias viz='cava'
+alias md='glow'
+
 # ── MCP / Ralph ────────────────────────────────
 alias hgs='cd ~/hairglasses-studio'
 alias mcplog='tail -f /tmp/mcp-*.log 2>/dev/null || echo "No MCP logs found"'
