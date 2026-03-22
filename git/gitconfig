@@ -7,7 +7,7 @@
     autocrlf = input
     whitespace = fix
 [include]
-    path = ~/.config/delta/catppuccin.gitconfig
+    path = ~/.config/delta/snazzy.gitconfig
 [interactive]
     diffFilter = delta --color-only
 [delta]

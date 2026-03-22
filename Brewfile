@@ -49,7 +49,24 @@ brew "tree"
 brew "watch"
 brew "lazygit"
 
+# Desktop rice
+tap "FelixKratz/formulae"
+tap "nikitabobko/tap"
+brew "FelixKratz/formulae/sketchybar"
+brew "FelixKratz/formulae/borders"
+brew "btop"
+brew "cava"
+brew "glow"
+
+# File manager + preview deps
+brew "yazi"
+brew "ffmpegthumbnailer"
+brew "unar"
+brew "poppler"
+
 # Casks
 cask "ghostty"
+cask "nikitabobko/tap/aerospace"
 cask "font-jetbrains-mono-nerd-font"
+cask "font-sketchybar-app-font"
 cask "1password-cli"

@@ -1,0 +1,78 @@
+# Snazzy theme for btop
+
+# Main bg and fg
+theme[main_bg]="#000000"
+theme[main_fg]="#d4d4d4"
+
+# Title color
+theme[title]="#f1f1f0"
+
+# Highlight color
+theme[hi_fg]="#57c7ff"
+
+# Selected items
+theme[selected_bg]="#1a1a1a"
+theme[selected_fg]="#f1f1f0"
+
+# Inactive items
+theme[inactive_fg]="#686868"
+
+# Misc UI
+theme[proc_misc]="#57c7ff"
+
+# Box outlines
+theme[cpu_box]="#57c7ff"
+theme[mem_box]="#5af78e"
+theme[net_box]="#ff6ac1"
+theme[proc_box]="#f3f99d"
+
+# Graph colors (gradient)
+theme[graph_text]="#d4d4d4"
+
+# CPU
+theme[cpu_start]="#57c7ff"
+theme[cpu_mid]="#ff6ac1"
+theme[cpu_end]="#ff5c57"
+
+# Free mem
+theme[free_start]="#5af78e"
+theme[free_mid]="#5af78e"
+theme[free_end]="#57c7ff"
+
+# Cached mem
+theme[cached_start]="#57c7ff"
+theme[cached_mid]="#57c7ff"
+theme[cached_end]="#ff6ac1"
+
+# Available mem
+theme[available_start]="#f3f99d"
+theme[available_mid]="#f3f99d"
+theme[available_end]="#5af78e"
+
+# Used mem
+theme[used_start]="#ff6ac1"
+theme[used_mid]="#ff5c57"
+theme[used_end]="#ff5c57"
+
+# Download
+theme[download_start]="#57c7ff"
+theme[download_mid]="#57c7ff"
+theme[download_end]="#ff6ac1"
+
+# Upload
+theme[upload_start]="#5af78e"
+theme[upload_mid]="#5af78e"
+theme[upload_end]="#f3f99d"
+
+# Process
+theme[process_start]="#57c7ff"
+theme[process_mid]="#ff6ac1"
+theme[process_end]="#ff5c57"
+
+# Temperature
+theme[temp_start]="#5af78e"
+theme[temp_mid]="#f3f99d"
+theme[temp_end]="#ff5c57"
+
+# Divider line
+theme[div_line]="#686868"
