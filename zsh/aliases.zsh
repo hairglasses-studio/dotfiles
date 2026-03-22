@@ -468,5 +468,92 @@ shader-random() {
   sed -i "" "s|custom-shader = .*|custom-shader = $pick|" ~/.config/ghostty/config 2>/dev/null
 }
 
+# FZF shader picker with categories and preview
+shader-pick() {
+  local dir="$HOME/.config/ghostty/shaders"
+  [[ -d "$dir" ]] || { echo "No shaders directory found"; return 1; }
+
+  # Category → shader mapping (sorted by category)
+  local entries=""
+  local shader
+  for shader in "$dir"/*.glsl(N); do
+    local name="${shader:t}"
+    local cat desc
+    case "$name" in
+      amber-crt*|blue-crt*|green-crt*|bettercrt*|crt.glsl|in-game-crt*|retro-terminal*) cat="CRT" ;;
+      cursor_*|*_cursor*|*_boom_cursor*|sonic_boom*) cat="Cursor" ;;
+      *-bg.glsl|cauliflower*|flat-wash*|glazing*|graded-wash*|granulating*|salt-bg*|splatter*|variegated*|wet-on-wet*) cat="Watercolor" ;;
+      animated-gradient*|cineShader*|cubes*|fireworks*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sin-interference*|smoke-and-ghost*|sparks-from-fire*|starfield*|underwater*|water.glsl) cat="Background" ;;
+      bloom*|dither*|drunkard*|glitchy*|glow-rgb*|mnoise*|negative*|spotlight*|tft*) cat="Post-FX" ;;
+      *) cat="Other" ;;
+    esac
+    case "$name" in
+      amber-crt*)          desc="Amber phosphor CRT with scanlines" ;;
+      blue-crt*)           desc="Blue phosphor CRT with scanlines" ;;
+      green-crt*)          desc="Green phosphor CRT with scanlines" ;;
+      bettercrt*)          desc="Enhanced CRT with chromatic aberration" ;;
+      crt.glsl)            desc="Classic CRT scanlines and curvature" ;;
+      in-game-crt-cursor*) desc="In-game CRT with cursor highlight" ;;
+      in-game-crt.glsl)    desc="In-game style CRT monitor" ;;
+      retro-terminal*)     desc="Retro green phosphor terminal" ;;
+      bloom*)              desc="Soft glow bleed around bright text" ;;
+      dither*)             desc="Dithering effect on output" ;;
+      drunkard*)           desc="Wobbly distorted screen" ;;
+      glitchy*)            desc="Digital glitch/corruption" ;;
+      glow-rgb*)           desc="RGB split with glow and twitch" ;;
+      mnoise*)             desc="Perlin noise overlay" ;;
+      negative*)           desc="Color inversion" ;;
+      spotlight*)          desc="Spotlight vignette following cursor" ;;
+      tft*)                desc="TFT/LCD subpixel rendering" ;;
+      cursor_blaze*)       desc="Fire trail behind cursor" ;;
+      cursor_sweep*)       desc="Sweep trail behind cursor" ;;
+      cursor_tail*)        desc="Fading tail behind cursor" ;;
+      cursor_warp*)        desc="Warp distortion around cursor" ;;
+      rectangle_boom*)     desc="Rectangular explosion on cursor" ;;
+      ripple_cursor*)      desc="Ripple wave from cursor" ;;
+      ripple_rectangle*)   desc="Rectangular ripple from cursor" ;;
+      sonic_boom*)         desc="Sonic boom shockwave from cursor" ;;
+      animated-gradient*)  desc="Animated color gradient" ;;
+      cineShader*)         desc="Animated lava/magma" ;;
+      cubes*)              desc="Animated 3D cube grid" ;;
+      fireworks-rockets*)  desc="Fireworks with rocket trails" ;;
+      fireworks.glsl)      desc="Fireworks particle animation" ;;
+      galaxy*)             desc="Animated galaxy/nebula" ;;
+      gears*)              desc="Mechanical gears animation" ;;
+      gradient-background*) desc="Static color gradient" ;;
+      inside-the-matrix*)  desc="Matrix rain animation" ;;
+      just-snow*)          desc="Falling snow particles" ;;
+      matrix-hallway*)     desc="Matrix code fly-through" ;;
+      sin-interference*)   desc="Sine wave interference" ;;
+      smoke-and-ghost*)    desc="Smoky ghost particles" ;;
+      sparks-from-fire*)   desc="Fire sparks particles" ;;
+      starfield-colors*)   desc="Colorful animated starfield" ;;
+      starfield.glsl)      desc="Classic starfield fly-through" ;;
+      underwater*)         desc="Underwater caustics" ;;
+      water.glsl)          desc="Water ripple/wave" ;;
+      cauliflower*)        desc="Cauliflower texture wash" ;;
+      flat-wash*)          desc="Flat watercolor wash" ;;
+      glazing*)            desc="Glazing watercolor layers" ;;
+      graded-wash*)        desc="Graded color transition wash" ;;
+      granulating*)        desc="Granulating pigment texture" ;;
+      salt-bg*)            desc="Salt texture on watercolor" ;;
+      splatter*)           desc="Paint splatter effect" ;;
+      variegated*)         desc="Multi-color variegated wash" ;;
+      wet-on-wet*)         desc="Wet-on-wet watercolor blend" ;;
+      *)                   desc="" ;;
+    esac
+    entries+="$(printf '%-12s │ %-36s %s' "$cat" "$name" "$desc")\n"
+  done
+
+  local pick
+  pick="$(echo -e "$entries" | sort | fzf --header='Pick a shader (ESC to cancel)' --ansi --no-multi)" || return
+  local shader_name
+  shader_name="$(echo "$pick" | awk -F'│' '{print $2}' | awk '{print $1}')"
+  [[ -z "$shader_name" ]] && return
+
+  sed -i "" "s|custom-shader = .*|custom-shader = $dir/$shader_name|" ~/.config/ghostty/config 2>/dev/null
+  echo "Shader set to: $shader_name (open a new terminal to see it)"
+}
+
 # Load local aliases if they exist
 [[ -f "$HOME/.aliases.local" ]] && source "$HOME/.aliases.local"
