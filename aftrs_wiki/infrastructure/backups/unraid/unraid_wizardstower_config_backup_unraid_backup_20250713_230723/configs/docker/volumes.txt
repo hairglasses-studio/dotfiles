@@ -1,4 +1,0 @@
-VOLUME NAME                                           DRIVER
-buildx_buildkit_aftrs-main-wsl-buildx-docker0_state   local
-ollama                                                local
-open-webui                                            local
