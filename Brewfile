@@ -26,6 +26,7 @@ brew "goreleaser"
 brew "air"
 brew "protobuf"
 brew "grpcurl"
+brew "glslang"
 
 # AWS / Cloud
 brew "awscli"

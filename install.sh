@@ -8,6 +8,11 @@ set -euo pipefail
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 BACKUP_CREATED=false
+CHECK_ONLY=false
+
+if [[ "${1:-}" == "--check" ]]; then
+    CHECK_ONLY=true
+fi
 
 # ── Logging ─────────────────────────────────────
 log_info()    { printf "\033[0;34m[INFO]\033[0m  %s\n" "$1"; }
@@ -158,6 +163,80 @@ create_symlinks() {
     link_file "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
 }
 
+# ── Check mode ─────────────────────────────────
+check_symlinks() {
+    local errors=0
+
+    check_link() {
+        local src="$1" dst="$2"
+        if [[ -L "$dst" ]] && [[ "$(readlink "$dst")" == "$src" ]]; then
+            log_success "OK: $dst"
+        elif [[ -L "$dst" ]]; then
+            log_error "Wrong target: $dst -> $(readlink "$dst") (expected $src)"
+            errors=$((errors + 1))
+        elif [[ -e "$dst" ]]; then
+            log_warn "Exists but not a symlink: $dst"
+            errors=$((errors + 1))
+        else
+            log_error "Missing: $dst"
+            errors=$((errors + 1))
+        fi
+    }
+
+    log_info "Checking symlinks..."
+    check_link "$DOTFILES_DIR/zsh/zshrc"              "$HOME/.zshrc"
+    check_link "$DOTFILES_DIR/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
+    check_link "$DOTFILES_DIR/zsh/zshenv"             "$HOME/.zshenv"
+    check_link "$DOTFILES_DIR/git/gitconfig"          "$HOME/.gitconfig"
+    check_link "$DOTFILES_DIR/ssh/config"             "$HOME/.ssh/config"
+    check_link "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
+    check_link "$DOTFILES_DIR/ghostty"    "$HOME/.config/ghostty"
+    check_link "$DOTFILES_DIR/nvim"       "$HOME/.config/nvim"
+    check_link "$DOTFILES_DIR/bat"        "$HOME/.config/bat"
+    check_link "$DOTFILES_DIR/fastfetch"  "$HOME/.config/fastfetch"
+    check_link "$DOTFILES_DIR/git/delta"  "$HOME/.config/delta"
+    check_link "$DOTFILES_DIR/git/ignore" "$HOME/.config/git/ignore"
+    check_link "$DOTFILES_DIR/gh"         "$HOME/.config/gh"
+    check_link "$DOTFILES_DIR/k9s"        "$HOME/.config/k9s"
+    check_link "$DOTFILES_DIR/lazygit"    "$HOME/.config/lazygit"
+    check_link "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
+
+    log_info "Checking brew packages..."
+    if command -v brew &>/dev/null; then
+        local missing=0
+        while IFS= read -r pkg; do
+            pkg="$(echo "$pkg" | sed 's/^brew "//;s/"$//')"
+            if ! brew list --formula "$pkg" &>/dev/null; then
+                log_error "Missing brew package: $pkg"
+                missing=$((missing + 1))
+            fi
+        done < <(grep '^brew ' "$DOTFILES_DIR/Brewfile")
+        if [[ $missing -eq 0 ]]; then
+            log_success "All brew packages installed"
+        fi
+        errors=$((errors + missing))
+    else
+        log_warn "Homebrew not installed"
+        errors=$((errors + 1))
+    fi
+
+    log_info "Checking Oh My Zsh..."
+    if [[ -d "$HOME/.oh-my-zsh" ]]; then
+        log_success "Oh My Zsh installed"
+    else
+        log_error "Oh My Zsh not found"
+        errors=$((errors + 1))
+    fi
+
+    echo ""
+    if [[ $errors -eq 0 ]]; then
+        log_success "All checks passed"
+    else
+        log_error "$errors issue(s) found"
+    fi
+    return $errors
+}
+
 # ── Main ────────────────────────────────────────
 main() {
     echo ""
@@ -165,6 +244,11 @@ main() {
     echo "  ──────────────────"
     echo "  repo: $DOTFILES_DIR"
     echo ""
+
+    if $CHECK_ONLY; then
+        check_symlinks
+        return $?
+    fi
 
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install_homebrew

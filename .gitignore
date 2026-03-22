@@ -1,5 +1,28 @@
+# OS
 .DS_Store
+Thumbs.db
+
+# Editor temps
 *.swp
+*.swo
 *~
+*.bak
+.*.un~
+
+# Secrets
 .env
 .env.*
+credentials.json
+
+# Logs
+*.log
+
+# Runtime artifacts
+node_modules/
+__pycache__/
+.terraform/
+.vagrant/
+
+# Build output
+*.o
+*.dylib
