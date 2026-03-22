@@ -119,5 +119,16 @@ sketchybar --add item k8s right \
         update_freq=30 \
         script="$PLUGIN_DIR/k8s_context.sh"
 
+# ── Now Playing (center) ────────────────────────
+sketchybar --add item media center \
+    --set media \
+        icon=󰎈 \
+        icon.color=$MAGENTA \
+        label.color=$GRAY \
+        label.max_chars=40 \
+        drawing=off \
+        update_freq=5 \
+        script="$PLUGIN_DIR/media.sh"
+
 # ── Finalize ─────────────────────────────────────
 sketchybar --update

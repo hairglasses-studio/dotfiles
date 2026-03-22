@@ -104,6 +104,32 @@ export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CACHE_HOME="$HOME/.cache"
 
+# ── EZA Snazzy colors ────────────────────────
+export EZA_COLORS="\
+di=1;34:\
+ln=35:\
+so=32:\
+pi=33:\
+ex=1;32:\
+bd=34;46:\
+cd=34;43:\
+su=30;41:\
+sg=30;46:\
+tw=30;42:\
+ow=34;42:\
+ur=33:uw=31:ux=32:ue=32:\
+gr=33:gw=31:gx=32:\
+tr=33:tw=31:tx=32:\
+sn=36:sb=36:\
+da=38;5;243:\
+*.tar=33:*.gz=33:*.zip=33:*.7z=33:*.rar=33:*.bz2=33:*.xz=33:\
+*.png=35:*.jpg=35:*.jpeg=35:*.gif=35:*.svg=35:*.webp=35:*.ico=35:\
+*.mp3=35:*.flac=35:*.wav=35:*.aac=35:*.ogg=35:\
+*.mp4=35:*.mkv=35:*.avi=35:*.mov=35:*.webm=35:\
+*.pdf=31:*.doc=31:*.docx=31:*.xls=31:*.xlsx=31:\
+*.go=36:*.rs=31:*.py=33:*.js=33:*.ts=34:*.lua=34:\
+*.md=37:*.json=33:*.yaml=33:*.yml=33:*.toml=33"
+
 # ── History ─────────────────────────────────────
 export HISTFILE="$HOME/.zsh_history"
 export HISTSIZE=50000
@@ -125,6 +151,32 @@ bindkey '^[[3~' delete-char
 bindkey '^ ' autosuggest-accept
 export KEYTIMEOUT=1
 
+# ── Long-running command notification ────────
+_cmd_timer_preexec() {
+  _CMD_START_TIME=$EPOCHSECONDS
+  _CMD_NAME="$1"
+}
+
+_cmd_timer_precmd() {
+  if [[ -n "$_CMD_START_TIME" ]]; then
+    local elapsed=$(( EPOCHSECONDS - _CMD_START_TIME ))
+    if (( elapsed > 30 )); then
+      if command -v terminal-notifier &>/dev/null; then
+        terminal-notifier \
+          -title "Command Complete" \
+          -message "${_CMD_NAME} finished (${elapsed}s)" \
+          -sound Glass \
+          -group "zsh-timer" &>/dev/null
+      fi
+    fi
+    unset _CMD_START_TIME _CMD_NAME
+  fi
+}
+
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec _cmd_timer_preexec
+add-zsh-hook precmd _cmd_timer_precmd
+
 # ── fzf-tab config ─────────────────────────────
 zstyle ':fzf-tab:complete:*:*' extra-opts --preview='
 if [[ -d $realpath ]]; then
@@ -137,6 +189,12 @@ zstyle ':fzf-tab:complete:cd:*' extra-opts --preview='ls -la $realpath 2>/dev/nu
 
 # ── Zoxide (smart cd) ──────────────────────────
 eval "$(zoxide init zsh)"
+
+# ── onefetch on entering git repos ───────────
+_onefetch_chpwd() {
+  [[ -d .git ]] && command -v onefetch &>/dev/null && onefetch --no-color-palette 2>/dev/null
+}
+chpwd_functions+=(_onefetch_chpwd)
 
 # ── fzf (fuzzy finder) ─────────────────────────
 source <(fzf --zsh)
@@ -180,9 +238,13 @@ fi
 # Rust
 [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
-# ── Fastfetch on new terminal ───────────────────
-if [[ $SHLVL -eq 1 && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" ]]; then
-  fastfetch
+# ── Terminal splash on new shell ──────────────
+if [[ $SHLVL -eq 1 && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" && $- == *i* ]]; then
+  if (( RANDOM % 2 == 0 )) && command -v fortune &>/dev/null && command -v cowsay &>/dev/null && command -v lolcat &>/dev/null; then
+    fortune -s | cowsay -f "$(cowsay -l | tail -n+2 | tr ' ' '\n' | shuf -n1)" | lolcat -t
+  else
+    fastfetch
+  fi
 fi
 
 # ── Prompt engine init ──────────────────────────
