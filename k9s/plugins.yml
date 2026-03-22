@@ -1,0 +1,99 @@
+plugins:
+  # Stern multi-pod log streaming
+  stern:
+    shortCut: Shift-L
+    description: "Stern logs"
+    scopes:
+      - pods
+      - deployments
+    command: stern
+    args:
+      - "--tail"
+      - "100"
+      - "--color"
+      - "always"
+      - "$NAME"
+      - "-n"
+      - "$NAMESPACE"
+    background: false
+
+  # Debug container with netshoot
+  debug:
+    shortCut: Shift-D
+    description: "Debug container"
+    scopes:
+      - pods
+    command: kubectl
+    args:
+      - "debug"
+      - "-it"
+      - "$NAME"
+      - "-n"
+      - "$NAMESPACE"
+      - "--image=nicolaka/netshoot"
+      - "--target=$NAME"
+    background: false
+
+  # Dive into container image layers
+  dive-image:
+    shortCut: Shift-I
+    description: "Dive image layers"
+    scopes:
+      - containers
+    command: dive
+    args:
+      - "$COL-IMAGE"
+    background: false
+
+  # Port-forward to localhost
+  port-forward:
+    shortCut: Shift-F
+    description: "Port-forward 8080"
+    scopes:
+      - pods
+      - services
+    command: kubectl
+    args:
+      - "port-forward"
+      - "$NAME"
+      - "-n"
+      - "$NAMESPACE"
+      - "8080"
+    background: true
+
+  # Get resource as YAML (piped to bat)
+  get-yaml:
+    shortCut: Shift-Y
+    description: "Get YAML"
+    scopes:
+      - all
+    command: sh
+    args:
+      - "-c"
+      - "kubectl get $RESOURCE_NAME $NAME -n $NAMESPACE -o yaml | bat --language=yaml --paging=always"
+    background: false
+
+  # JSON structured logs via jq
+  jq-logs:
+    shortCut: Shift-J
+    description: "JSON logs (jq)"
+    scopes:
+      - pods
+    command: sh
+    args:
+      - "-c"
+      - "kubectl logs $NAME -n $NAMESPACE --tail=200 | jq -C '.' 2>/dev/null || kubectl logs $NAME -n $NAMESPACE --tail=200"
+    background: false
+
+  # Helm releases for a namespace
+  helm-releases:
+    shortCut: Shift-H
+    description: "Helm releases"
+    scopes:
+      - namespaces
+    command: helm
+    args:
+      - "list"
+      - "-n"
+      - "$NAME"
+    background: false

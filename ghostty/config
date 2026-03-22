@@ -44,8 +44,6 @@ palette = 15=#eff0eb
 # ── Window ──────────────────────────────────────
 background-opacity = 0.85
 window-decoration = true
-gtk-tabs-location = hidden
-macos-titlebar-tabs = true
 window-padding-x = 4
 window-padding-y = 2
 window-padding-balance = true
@@ -66,3 +64,27 @@ mouse-hide-while-typing = true
 cursor-style = bar
 cursor-style-blink = false
 shell-integration = zsh
+
+# ── Splits ─────────────────────────────────────
+keybind = super+d=new_split:right
+keybind = super+shift+d=new_split:down
+keybind = super+alt+left=goto_split:left
+keybind = super+alt+right=goto_split:right
+keybind = super+alt+up=goto_split:top
+keybind = super+alt+down=goto_split:bottom
+
+# ── Font rendering ─────────────────────────────
+font-thicken = true
+
+# ── Clipboard ──────────────────────────────────
+clipboard-read = allow
+clipboard-write = allow
+clipboard-paste-protection = false
+
+# ── Tab keybinds ───────────────────────────────
+keybind = super+shift+left_bracket=previous_tab
+keybind = super+shift+right_bracket=next_tab
+
+# ── Window management ─────────────────────────
+keybind = super+enter=toggle_fullscreen
+window-save-state = always
