@@ -64,6 +64,19 @@ brew "ffmpegthumbnailer"
 brew "unar"
 brew "poppler"
 
+# Terminal fun / hacker aesthetic
+brew "pipes-sh"
+brew "cbonsai"
+brew "tty-clock"
+brew "lolcat"
+brew "figlet"
+brew "toilet"
+brew "cowsay"
+brew "fortune"
+brew "cmatrix"
+brew "onefetch"
+brew "terminal-notifier"
+
 # Casks
 cask "ghostty"
 cask "nikitabobko/tap/aerospace"

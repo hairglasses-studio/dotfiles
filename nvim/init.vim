@@ -46,6 +46,17 @@ Plug 'lambdalisue/suda.vim'         " Sudo support
 Plug 'christoomey/vim-tmux-navigator' " Tmux navigation
 Plug 'editorconfig/editorconfig-vim' " EditorConfig support
 
+" Modern enhancements
+Plug 'goolord/alpha-nvim'                                    " Dashboard
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}  " Modern syntax
+Plug 'lukas-reineke/indent-blankline.nvim'                   " Indent guides
+Plug 'norcalli/nvim-colorizer.lua'                           " Inline color preview
+Plug 'nvim-lua/plenary.nvim'                                 " Required dependency
+Plug 'nvim-tree/nvim-web-devicons'                           " Better icons
+
+" Disable polyglot for languages handled by treesitter
+let g:polyglot_disabled = ['go', 'python', 'javascript', 'typescript', 'lua', 'bash', 'json', 'yaml', 'toml', 'markdown', 'dockerfile', 'terraform', 'html', 'css']
+
 call plug#end()
 
 " ===============================
@@ -156,11 +167,7 @@ nnoremap <leader>bn :bnext<CR>
 nnoremap <leader>bp :bprevious<CR>
 nnoremap <leader>bd :bdelete<CR>
 
-" Window navigation (with tmux integration)
-nnoremap <C-h> <C-w>h
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-l> <C-w>l
+" Window navigation (handled by vim-tmux-navigator plugin for C-hjkl)
 
 " Window resizing
 nnoremap <leader>= <C-w>=
@@ -395,6 +402,11 @@ endfunction
 if filereadable(expand('~/.config/nvim/local.vim'))
     source ~/.config/nvim/local.vim
 endif
+
+" ===============================
+" Lua Plugin Configuration
+" ===============================
+lua require('rice')
 
 " ===============================
 " Final Settings
