@@ -4,6 +4,8 @@
 [core]
     editor = nvim
     pager = delta
+    autocrlf = input
+    whitespace = fix
 [include]
     path = ~/.config/delta/catppuccin.gitconfig
 [interactive]
@@ -16,3 +18,40 @@
     conflictstyle = diff3
 [diff]
     colorMoved = default
+    algorithm = histogram
+[fetch]
+    prune = true
+    prunetags = true
+[push]
+    default = current
+    autoSetupRemote = true
+    followTags = true
+[pull]
+    rebase = true
+[rebase]
+    autoStash = true
+    autoSquash = true
+[init]
+    defaultBranch = main
+[rerere]
+    enabled = true
+[gpg]
+    format = ssh
+[gpg "ssh"]
+    program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+[commit]
+    gpgsign = true
+[alias]
+    co = checkout
+    cb = checkout -b
+    st = status --short --branch
+    lg = log --oneline --graph --decorate --all -20
+    undo = reset --soft HEAD~1
+    wip = !git add -A && git commit -m 'wip [skip ci]'
+    cleanup = !git branch --merged main | grep -v 'main' | xargs git branch -d
+    pr = !gh pr create --fill
+    prc = !gh pr checkout
+[url "git@github.com:hairglasses-studio/"]
+    insteadOf = hgs:
+[url "git@github.com:hairglasses/"]
+    insteadOf = hg:

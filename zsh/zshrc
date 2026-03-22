@@ -59,6 +59,16 @@ plugins=(
     # macOS
     brew
     macos
+
+    # Stack-specific
+    aws
+    docker-compose
+    gh
+    1password
+    jsontools
+    encode64
+    kubectx
+    tmux
 )
 
 export UPDATE_ZSH_DAYS=7
@@ -89,6 +99,7 @@ export VISUAL=nvim
 export PAGER=less
 export TERM=xterm-256color
 export GPG_TTY=$TTY
+export AWS_PAGER=""
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CACHE_HOME="$HOME/.cache"
@@ -161,7 +172,9 @@ fi
 # Go
 if command -v go > /dev/null; then
     export GOPATH="$HOME/go"
-    export PATH="$GOPATH/bin:$PATH"
+    export GOBIN="$GOPATH/bin"
+    export PATH="$GOBIN:$PATH"
+    export GOPRIVATE="github.com/hairglasses-studio/*"
 fi
 
 # Rust
@@ -178,6 +191,40 @@ if [[ "$PROMPT_ENGINE" == "starship" ]]; then
 elif [[ "$PROMPT_ENGINE" == "p10k" ]]; then
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 fi
+
+# ── Transient prompt (minimal after Enter) ────
+if [[ "$PROMPT_ENGINE" == "starship" ]]; then
+  zle-line-init() {
+    emulate -L zsh
+    [[ $CONTEXT == start ]] || return 0
+    while true; do
+      zle .recursive-edit
+      local -i ret=$?
+      [[ $ret == 0 && $KEYS == $'\4' ]] || break
+      [[ -o ignore_eof ]] || exit 0
+    done
+    local saved_prompt="$PROMPT"
+    local saved_rprompt="$RPROMPT"
+    PROMPT='%(?.%F{#5af78e}❯%f.%F{#ff5c57}❯%f) '
+    RPROMPT=''
+    zle .reset-prompt
+    PROMPT="$saved_prompt"
+    RPROMPT="$saved_rprompt"
+    if (( ret )); then
+      zle .send-break
+    else
+      zle .accept-line
+    fi
+    return ret
+  }
+  zle -N zle-line-init
+fi
+
+# ── Default working directory ──────────────────
+cd /Users/mitchnotmitchell 2>/dev/null
+
+# ── Random Ghostty shader per terminal ────────
+shader-random 2>/dev/null
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

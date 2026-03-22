@@ -1,5 +1,11 @@
-# bat config — dark theme to match Ghostty rice
 --theme=1337
 --italic-text=always
+--style=numbers,changes,header
 --map-syntax="*.conf:INI"
 --map-syntax=".ignore:Git Ignore"
+--map-syntax="*.go:Go"
+--map-syntax="*.tf:Terraform (HCL)"
+--map-syntax="*.hcl:Terraform (HCL)"
+--map-syntax="*.proto:Protocol Buffers"
+--map-syntax="Tiltfile:Python"
+--map-syntax="Brewfile:Ruby"

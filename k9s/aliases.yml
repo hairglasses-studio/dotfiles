@@ -1,0 +1,19 @@
+aliases:
+  pp: v1/pods
+  svc: v1/services
+  dep: apps/v1/deployments
+  ds: apps/v1/daemonsets
+  sts: apps/v1/statefulsets
+  cm: v1/configmaps
+  sec: v1/secrets
+  ing: networking.k8s.io/v1/ingresses
+  ns: v1/namespaces
+  no: v1/nodes
+  pv: v1/persistentvolumes
+  pvc: v1/persistentvolumeclaims
+  crb: rbac.authorization.k8s.io/v1/clusterrolebindings
+  rb: rbac.authorization.k8s.io/v1/rolebindings
+  sa: v1/serviceaccounts
+  cj: batch/v1/cronjobs
+  j: batch/v1/jobs
+  hpa: autoscaling/v2/horizontalpodautoscalers
