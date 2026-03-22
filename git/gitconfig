@@ -1,0 +1,18 @@
+[user]
+    name = hairglasses
+    email = mitch@galileo.ai
+[core]
+    editor = nvim
+    pager = delta
+[include]
+    path = ~/.config/delta/catppuccin.gitconfig
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true
+    line-numbers = true
+    side-by-side = false
+[merge]
+    conflictstyle = diff3
+[diff]
+    colorMoved = default

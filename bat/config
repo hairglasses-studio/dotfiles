@@ -1,0 +1,5 @@
+# bat config — dark theme to match Ghostty rice
+--theme=1337
+--italic-text=always
+--map-syntax="*.conf:INI"
+--map-syntax=".ignore:Git Ignore"

@@ -1,0 +1,183 @@
+# ── Dotfiles location ─────────────────────────
+export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+
+# ── Prompt engine toggle ────────────────────────
+# Set to "starship" or "p10k" — switch anytime, just `source ~/.zshrc`
+PROMPT_ENGINE="starship"
+
+# ── Powerlevel10k instant prompt (must be near top) ──
+if [[ "$PROMPT_ENGINE" == "p10k" ]]; then
+  if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+  fi
+fi
+
+# ── PATH ────────────────────────────────────────
+export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.cargo/bin:$PATH"
+[[ "$OSTYPE" == "darwin"* ]] && export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
+# ── Oh My Zsh ──────────────────────────────────
+export ZSH="$HOME/.oh-my-zsh"
+
+if [[ "$PROMPT_ENGINE" == "p10k" ]]; then
+  ZSH_THEME="powerlevel10k/powerlevel10k"
+else
+  ZSH_THEME=""
+fi
+
+plugins=(
+    # Core
+    git
+    common-aliases
+    colored-man-pages
+    command-not-found
+
+    # Dev tools
+    docker
+    kubectl
+    helm
+    terraform
+    python
+    pip
+    npm
+    golang
+
+    # Enhanced shell
+    fast-syntax-highlighting
+    zsh-autosuggestions
+    zsh-completions
+    you-should-use
+    z
+    fzf
+    fzf-tab
+
+    # Productivity
+    vi-mode
+    dotenv
+    catimg
+
+    # macOS
+    brew
+    macos
+)
+
+export UPDATE_ZSH_DAYS=7
+DISABLE_MAGIC_FUNCTIONS=true
+CASE_SENSITIVE="true"
+
+source "$ZSH/oh-my-zsh.sh"
+
+# ── Personal aliases ───────────────────────────
+alias claude='claude --dangerously-skip-permissions'
+alias ralph="bash /Users/mitchnotmitchell/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
+
+# ── Modern CLI replacements ─────────────────────
+alias ls='eza --icons --group-directories-first'
+alias ll='eza --icons --group-directories-first -la'
+alias la='eza --icons --group-directories-first -la'
+alias lt='eza --icons --tree --level=2'
+alias cat='bat --paging=never --style=plain'
+alias catn='bat --paging=never'
+
+# ── Dotfiles aliases + options ──────────────────
+[[ -f "$DOTFILES_DIR/zsh/aliases.zsh" ]] && source "$DOTFILES_DIR/zsh/aliases.zsh"
+[[ -f "$DOTFILES_DIR/zsh/zshopt" ]] && source "$DOTFILES_DIR/zsh/zshopt"
+
+# ── Environment ─────────────────────────────────
+export EDITOR=nvim
+export VISUAL=nvim
+export PAGER=less
+export TERM=xterm-256color
+export GPG_TTY=$TTY
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+
+# ── History ─────────────────────────────────────
+export HISTFILE="$HOME/.zsh_history"
+export HISTSIZE=50000
+export SAVEHIST=50000
+setopt HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS
+setopt HIST_FIND_NO_DUPS HIST_SAVE_NO_DUPS HIST_REDUCE_BLANKS
+setopt HIST_VERIFY SHARE_HISTORY EXTENDED_HISTORY
+
+# ── Autosuggestions styling ─────────────────────
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#686868'
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
+# ── Key bindings ────────────────────────────────
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+bindkey '^[[H' beginning-of-line
+bindkey '^[[F' end-of-line
+bindkey '^[[3~' delete-char
+bindkey '^ ' autosuggest-accept
+export KEYTIMEOUT=1
+
+# ── fzf-tab config ─────────────────────────────
+zstyle ':fzf-tab:complete:*:*' extra-opts --preview='
+if [[ -d $realpath ]]; then
+    ls -la $realpath 2>/dev/null
+elif [[ -f $realpath ]]; then
+    bat --color=always --pager=never $realpath 2>/dev/null || cat $realpath 2>/dev/null
+fi'
+zstyle ':fzf-tab:*' insert-space false
+zstyle ':fzf-tab:complete:cd:*' extra-opts --preview='ls -la $realpath 2>/dev/null'
+
+# ── Zoxide (smart cd) ──────────────────────────
+eval "$(zoxide init zsh)"
+
+# ── fzf (fuzzy finder) ─────────────────────────
+source <(fzf --zsh)
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='
+  --color=bg+:#1a1a1a,bg:#000000,spinner:#ff6ac1,hl:#57c7ff
+  --color=fg:#d4d4d4,header:#57c7ff,info:#f3f99d,pointer:#ff6ac1
+  --color=marker:#5af78e,fg+:#f1f1f0,prompt:#ff6ac1,hl+:#57c7ff
+  --height=40% --layout=reverse --border=rounded --margin=0,1
+  --preview "bat --color=always --style=numbers {} 2>/dev/null || cat {}"
+  --preview-window right:50%:wrap
+  --bind "ctrl-v:execute(nvim {})+abort"
+  --bind "alt-a:select-all"
+  --bind "alt-d:deselect-all"
+  --bind "?:toggle-preview"
+'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_CTRL_R_OPTS="--layout=reverse --preview-window hidden"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+
+# ── Language managers ───────────────────────────
+# NVM
+export NVM_DIR="$HOME/.nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+
+# Pyenv
+if command -v pyenv > /dev/null; then
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init -)"
+fi
+
+# Go
+if command -v go > /dev/null; then
+    export GOPATH="$HOME/go"
+    export PATH="$GOPATH/bin:$PATH"
+fi
+
+# Rust
+[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
+# ── Fastfetch on new terminal ───────────────────
+if [[ $SHLVL -eq 1 && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" ]]; then
+  fastfetch
+fi
+
+# ── Prompt engine init ──────────────────────────
+if [[ "$PROMPT_ENGINE" == "starship" ]]; then
+  eval "$(starship init zsh)"
+elif [[ "$PROMPT_ENGINE" == "p10k" ]]; then
+  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+fi
+
+# ── Local overrides ────────────────────────────
+[[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
