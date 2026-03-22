@@ -1,0 +1,16 @@
+# Snazzy delta theme
+# Include in .gitconfig: [include] path = ~/.config/delta/snazzy.gitconfig
+
+[delta]
+    syntax-theme = 1337
+    minus-style = syntax "#ff5c57"
+    minus-emph-style = syntax bold "#ff5c57"
+    plus-style = syntax "#5af78e"
+    plus-emph-style = syntax bold "#5af78e"
+    hunk-header-style = syntax bold "#57c7ff"
+    hunk-header-decoration-style = "#57c7ff" box
+    line-numbers-minus-style = "#ff5c57"
+    line-numbers-plus-style = "#5af78e"
+    line-numbers-zero-style = "#686868"
+    file-style = bold "#ff6ac1"
+    file-decoration-style = "#ff6ac1" ul
