@@ -136,6 +136,17 @@ install_vim_plug() {
     mkdir -p "$HOME/.local/share/nvim/swap"
 }
 
+# ── Tmux Plugin Manager ──────────────────────
+install_tpm() {
+    local tpm_dir="$HOME/.tmux/plugins/tpm"
+    if [[ -d "$tpm_dir" ]]; then
+        log_success "TPM already installed"
+    else
+        log_info "Installing TPM..."
+        git clone --depth=1 https://github.com/tmux-plugins/tpm "$tpm_dir" 2>/dev/null
+    fi
+}
+
 # ── Create symlinks ────────────────────────────
 create_symlinks() {
     log_info "Creating symlinks..."
@@ -274,7 +285,14 @@ main() {
     install_omz
     install_omz_plugins
     install_vim_plug
+    install_tpm
     create_symlinks
+
+    # Build bat cache (custom themes)
+    if command -v bat &>/dev/null; then
+        log_info "Building bat theme cache..."
+        bat cache --build 2>/dev/null
+    fi
 
     echo ""
     if $BACKUP_CREATED; then

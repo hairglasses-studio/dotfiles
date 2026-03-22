@@ -1,4 +1,4 @@
---theme=1337
+--theme=Snazzy
 --italic-text=always
 --style=numbers,changes,header
 --map-syntax="*.conf:INI"
