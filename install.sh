@@ -165,6 +165,21 @@ install_retrovisor() {
     fi
 }
 
+# ── Tattoy shader symlink ────────────────────
+setup_tattoy_shaders() {
+    local tattoy_shaders="$HOME/Library/Application Support/tattoy/shaders"
+    local ghostty_shaders="$DOTFILES_DIR/ghostty/shaders"
+    if [[ -L "$tattoy_shaders" ]] && [[ "$(readlink "$tattoy_shaders")" == "$ghostty_shaders" ]]; then
+        log_success "Tattoy shaders already linked"
+    elif [[ -d "$tattoy_shaders" ]]; then
+        log_warn "Tattoy shaders dir exists, skipping symlink"
+    else
+        mkdir -p "$(dirname "$tattoy_shaders")"
+        ln -sf "$ghostty_shaders" "$tattoy_shaders"
+        log_success "Linked Tattoy shaders to Ghostty shader collection"
+    fi
+}
+
 # ── Tmux Plugin Manager ──────────────────────
 install_tpm() {
     local tpm_dir="$HOME/.tmux/plugins/tpm"
@@ -210,6 +225,13 @@ create_symlinks() {
 
     # Individual file symlinks (non-XDG)
     link_file "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
+
+    # Tattoy (terminal shader compositor)
+    link_file "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
+
+    # RetroVisor auto-launch
+    link_file "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
+        "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
 }
 
 # ── Check mode ─────────────────────────────────
@@ -256,6 +278,9 @@ check_symlinks() {
     check_link "$DOTFILES_DIR/cava"        "$HOME/.config/cava"
     check_link "$DOTFILES_DIR/glow"        "$HOME/.config/glow"
     check_link "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
+    check_link "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
+    check_link "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
+        "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
 
     log_info "Checking brew packages..."
     if command -v brew &>/dev/null; then
@@ -317,6 +342,7 @@ main() {
     install_tpm
     install_retrovisor
     create_symlinks
+    setup_tattoy_shaders
 
     # Build bat cache (custom themes)
     if command -v bat &>/dev/null; then
