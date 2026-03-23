@@ -141,6 +141,35 @@ classify "starfield-colors-alt.glsl"  "Background" "MED"
 classify "starfield-sherwin.glsl"     "Background" "MED"
 classify "sparks-from-fire-shadertoy.glsl" "Background" "HIGH"
 classify "underwater.glsl"            "Background" "MED"
+classify "cineShader-Lava.glsl"      "Background" "MED"
+classify "fireworks-rockets.glsl"    "Background" "MED"
+classify "fireworks.glsl"            "Background" "MED"
+classify "sin-interference.glsl"     "Background" "MED"
+classify "smoke-and-ghost.glsl"      "Background" "HIGH"
+classify "matrix.glsl"               "Background" "MED"
+classify "matrix_rain.glsl"          "Background" "LOW"
+
+# CRT (re-added + variants)
+classify "bettercrt-alt.glsl"        "CRT"        "MED"
+
+# Post-FX (fearlessgeekmedia + originals)
+classify "negative.glsl"             "Post-FX"    "LOW"
+classify "spotlight.glsl"            "Post-FX"    "LOW"
+classify "computer-glitchy.glsl"     "Post-FX"    "MED"
+classify "computer-glitchy-2.glsl"   "Post-FX"    "MED"
+classify "computer-glitchy-3.glsl"   "Post-FX"    "MED"
+classify "computer-glitchy-4.glsl"   "Post-FX"    "MED"
+classify "cyberpunk.glsl"            "Post-FX"    "MED"
+classify "holo-shimmer.glsl"         "Post-FX"    "LOW"
+classify "old-film.glsl"             "Post-FX"    "MED"
+classify "scanbars.glsl"             "Post-FX"    "LOW"
+classify "static.glsl"               "Post-FX"    "LOW"
+classify "focus-blur.glsl"           "Post-FX"    "MED"
+classify "focus-pulse.glsl"          "Post-FX"    "LOW"
+
+# Cursor (linkarzu variants)
+classify "cursor_smear_linkarzu.glsl"     "Cursor" "MED"
+classify "cursor_smear_fade_linkarzu.glsl" "Cursor" "MED"
 
 # Watercolor
 classify "graded-wash-bg.glsl"         "Watercolor" "MED"
