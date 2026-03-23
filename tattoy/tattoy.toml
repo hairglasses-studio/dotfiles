@@ -1,0 +1,99 @@
+# ── Tattoy — terminal text compositor ────────────
+# Runs Shadertoy-compatible shaders inside any terminal emulator.
+# https://github.com/tattoy-org/tattoy
+#
+# Config location (macOS): ~/Library/Application Support/tattoy/tattoy.toml
+#
+# Built-in keybindings (inside a tattoy session):
+#   ALT+t  → toggle all effects on/off
+#   ALT+9  → previous shader
+#   ALT+0  → next shader
+#   ALT+s  → toggle scroll mode
+#   ALT+M  → toggle minimap
+
+# ── General ──────────────────────────────────────
+
+# Target frame rate for shader rendering (lower = less GPU, try 15–60)
+frame_rate = 30
+
+# Logging — set to "debug" or "trace" to troubleshoot, "off" for daily use
+log_level = "off"
+
+# Hide the tattoy branding on launch
+show_startup_logo = false
+
+# Blue dot indicator in top-right corner when tattoy is active
+show_tattoy_indicator = true
+
+# Lines retained in scrollback buffer
+scrollback_size = 1000
+
+# ── Shader (background effect) ──────────────────
+# Shaders live in the shaders/ subdirectory (symlinked to ghostty/shaders).
+# Cycle between them at runtime with ALT+9 / ALT+0.
+[shader]
+enabled = true
+
+# How transparent the shader layer is over the terminal background.
+# 0.0 = invisible, 1.0 = fully opaque. Start low and raise to taste.
+opacity = 0.3
+
+# Render depth: negative = behind text, positive = in front of text.
+layer = -10
+
+# Render shader output to the terminal
+render = true
+
+# If true, shader colours tint the text foreground too (can hurt readability)
+render_shader_colours_to_text = false
+
+# Default shader — a soft CRT glow that pairs well with RetroVisor's overlay.
+# Relative to this config directory. Change to any .glsl in shaders/.
+path = "shaders/green-crt.glsl"
+
+# ── Animated Cursor ─────────────────────────────
+[animated_cursor]
+enabled = true
+
+# Cursor shader opacity (0.0 = invisible, 1.0 = fully visible)
+opacity = 0.8
+
+# Cursor effect shader, relative to config directory
+path = "shaders/smear-cursor.glsl"
+
+# Scale factor for cursor size (0.0 = match terminal's cursor size)
+cursor_scale = 0.0
+
+# ── Color Adjustments ───────────────────────────
+# Fine-tune to complement RetroVisor's CRT color shift.
+# All values: 0.0 = no change from terminal defaults.
+[color]
+saturation = 0.0   # range: -1.0 to 1.0
+brightness = 0.0   # range: -1.0 to 1.0
+hue = 0.0          # range: -180 to 180 degrees
+
+# ── Text Contrast ───────────────────────────────
+# Boosts foreground text legibility when shaders are active.
+# Essential when layering RetroVisor + Tattoy together.
+[text_contrast]
+enabled = true
+
+# WCAG 2.1 contrast ratio target between text and its background.
+# 2.0 is subtle; raise to 4.5 if text gets hard to read.
+target_contrast = 2.0
+
+# Only boost alphanumeric text, not UTF-8 half-blocks used for graphics
+apply_to_readable_text_only = true
+
+# ── Notifications ───────────────────────────────
+[notifications]
+enabled = true
+opacity = 0.9
+level = "info"
+duration = 3.0
+
+# ── Minimap ─────────────────────────────────────
+[minimap]
+enabled = false
+# animation_speed = 0.15
+# max_width = 10
