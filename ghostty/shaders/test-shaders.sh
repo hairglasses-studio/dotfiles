@@ -52,22 +52,16 @@ catalog_shader() {
 }
 
 # thijskok/ghostty-shaders
-catalog_shader "amber-crt.glsl"       "thijskok"  "CRT"        "Amber phosphor CRT with scanlines and flicker"
 catalog_shader "blue-crt.glsl"        "thijskok"  "CRT"        "Blue phosphor CRT with scanlines and flicker"
 catalog_shader "green-crt.glsl"       "thijskok"  "CRT"        "Green phosphor CRT with scanlines and flicker"
 
 # 0xhckr/ghostty-shaders
 catalog_shader "animated-gradient-shader.glsl" "0xhckr" "Background" "Animated color gradient background"
-catalog_shader "bettercrt.glsl"       "0xhckr"    "CRT"        "Enhanced CRT with curvature and chromatic aberration"
-catalog_shader "bloom.glsl"           "0xhckr"    "Post-FX"    "Soft glow bleed around bright text"
-catalog_shader "cineShader-Lava.glsl" "0xhckr"    "Background" "Animated lava/magma background"
 catalog_shader "crt.glsl"             "0xhckr"    "CRT"        "Classic CRT scanlines and curvature"
 catalog_shader "cubes.glsl"           "0xhckr"    "Background" "Animated 3D cube grid"
 catalog_shader "cursor_blaze.glsl"    "0xhckr"    "Cursor"     "Fire trail behind cursor"
 catalog_shader "dither.glsl"          "0xhckr"    "Post-FX"    "Dithering effect on terminal output"
 catalog_shader "drunkard.glsl"        "0xhckr"    "Post-FX"    "Wobbly/distorted screen effect"
-catalog_shader "fireworks-rockets.glsl" "0xhckr"  "Background" "Fireworks with rocket trails"
-catalog_shader "fireworks.glsl"       "0xhckr"    "Background" "Fireworks particle animation"
 catalog_shader "galaxy.glsl"          "0xhckr"    "Background" "Animated galaxy/nebula background"
 catalog_shader "gears-and-belts.glsl" "0xhckr"    "Background" "Mechanical gears animation"
 catalog_shader "glitchy.glsl"         "0xhckr"    "Post-FX"    "Digital glitch/corruption effect"
@@ -79,37 +73,63 @@ catalog_shader "inside-the-matrix.glsl" "0xhckr"  "Background" "Matrix rain anim
 catalog_shader "just-snow.glsl"       "0xhckr"    "Background" "Falling snow particle effect"
 catalog_shader "matrix-hallway.glsl"  "0xhckr"    "Background" "Matrix code hallway fly-through"
 catalog_shader "mnoise.glsl"          "0xhckr"    "Post-FX"    "Perlin/simplex noise overlay"
-catalog_shader "negative.glsl"        "0xhckr"    "Post-FX"    "Color inversion (negative)"
 catalog_shader "retro-terminal.glsl"  "0xhckr"    "CRT"        "Retro green phosphor terminal"
-catalog_shader "sin-interference.glsl" "0xhckr"   "Background" "Sine wave interference pattern"
-catalog_shader "smoke-and-ghost.glsl" "0xhckr"    "Background" "Smoky ghost particle animation"
 catalog_shader "sparks-from-fire.glsl" "0xhckr"   "Background" "Fire sparks particle effect"
-catalog_shader "spotlight.glsl"       "0xhckr"    "Post-FX"    "Spotlight/vignette following cursor"
 catalog_shader "starfield-colors.glsl" "0xhckr"   "Background" "Colorful animated starfield"
 catalog_shader "starfield.glsl"       "0xhckr"    "Background" "Classic starfield fly-through"
 catalog_shader "tft.glsl"             "0xhckr"    "Post-FX"    "TFT/LCD subpixel rendering simulation"
-catalog_shader "underwater.glsl"      "0xhckr"    "Background" "Underwater caustics animation"
 catalog_shader "water.glsl"           "0xhckr"    "Background" "Water ripple/wave effect"
 
 # sahaj-b/ghostty-cursor-shaders
 catalog_shader "cursor_sweep.glsl"    "sahaj-b"   "Cursor"     "Sweep trail behind cursor movement"
 catalog_shader "cursor_tail.glsl"     "sahaj-b"   "Cursor"     "Fading tail trail behind cursor"
 catalog_shader "cursor_warp.glsl"     "sahaj-b"   "Cursor"     "Warp distortion around cursor"
-catalog_shader "rectangle_boom_cursor.glsl" "sahaj-b" "Cursor"  "Rectangular explosion on cursor"
 catalog_shader "ripple_cursor.glsl"   "sahaj-b"   "Cursor"     "Ripple wave from cursor position"
 catalog_shader "ripple_rectangle_cursor.glsl" "sahaj-b" "Cursor" "Rectangular ripple from cursor"
-catalog_shader "sonic_boom_cursor.glsl" "sahaj-b"  "Cursor"     "Sonic boom shockwave from cursor"
 
 # JRMeyer/ghostty-watercolors
-catalog_shader "cauliflower-bg.glsl"  "JRMeyer"   "Watercolor" "Cauliflower texture watercolor wash"
-catalog_shader "flat-wash-bg.glsl"    "JRMeyer"   "Watercolor" "Flat watercolor wash background"
-catalog_shader "glazing-bg.glsl"      "JRMeyer"   "Watercolor" "Glazing technique watercolor layers"
 catalog_shader "graded-wash-bg.glsl"  "JRMeyer"   "Watercolor" "Graded wash with color transition"
-catalog_shader "granulating-bg.glsl"  "JRMeyer"   "Watercolor" "Granulating pigment texture"
 catalog_shader "salt-bg.glsl"         "JRMeyer"   "Watercolor" "Salt texture on watercolor wash"
 catalog_shader "splatter-bg.glsl"     "JRMeyer"   "Watercolor" "Paint splatter effect"
 catalog_shader "variegated-wash-bg.glsl" "JRMeyer" "Watercolor" "Variegated multi-color wash"
 catalog_shader "wet-on-wet-bg.glsl"   "JRMeyer"   "Watercolor" "Wet-on-wet watercolor blending"
+
+# fielding/ghostty-shader-adventures
+catalog_shader "clouds.glsl"          "fielding"  "Background" "Parallax cloud background"
+catalog_shader "cursor-glitch.glsl"   "fielding"  "Cursor"     "Glitch distortion around cursor"
+catalog_shader "electric.glsl"        "fielding"  "Background" "Electric/lightning background effect"
+catalog_shader "electric-modes.glsl"  "fielding"  "Background" "Electric effect with mode switching"
+catalog_shader "hexglitch.glsl"       "fielding"  "Post-FX"    "Hex grid glitch distortion"
+catalog_shader "splatter-fractal.glsl" "fielding"  "Background" "Fractal paint splatter"
+
+# 12jihan/ghostty_shaders
+catalog_shader "crt_glitch.glsl"      "12jihan"   "CRT"        "CRT with glitch distortion"
+catalog_shader "flicker.glsl"         "12jihan"   "Post-FX"    "Screen flicker effect"
+catalog_shader "glow.glsl"            "12jihan"   "Post-FX"    "Simple bloom/glow effect"
+
+# Crackerfracks/Synesthaxia.glsl
+catalog_shader "cursor_synesthaxia.glsl" "Crackerfracks" "Cursor" "Colorscheme-adaptive cursor with tweened motion"
+
+# zoitrok/ghostty-shaders
+catalog_shader "scanline.glsl"        "zoitrok"   "CRT"        "Simple scanline overlay"
+catalog_shader "pixels.glsl"          "zoitrok"   "Post-FX"    "Pixel grid effect"
+
+# KroneCorylus/ghostty-shader-playground
+catalog_shader "blaze_sparks.glsl"    "KroneCorylus" "Cursor"  "Sparking blaze cursor effect"
+catalog_shader "cursor_blaze_tapered.glsl" "KroneCorylus" "Cursor" "Tapered fire trail cursor"
+catalog_shader "cursor_blaze_no_trail.glsl" "KroneCorylus" "Cursor" "Blaze cursor without trail"
+catalog_shader "cursor_border_1.glsl" "KroneCorylus" "Cursor"  "Cursor border glow"
+catalog_shader "cursor_frozen.glsl"   "KroneCorylus" "Cursor"  "Frozen/ice cursor effect"
+catalog_shader "cursor_smear.glsl"    "KroneCorylus" "Cursor"  "Smear trail cursor"
+catalog_shader "cursor_smear_fade.glsl" "KroneCorylus" "Cursor" "Smear with fade cursor"
+catalog_shader "cursor_smear_gradient.glsl" "KroneCorylus" "Cursor" "Gradient smear cursor"
+catalog_shader "cursor_smear_rainbow.glsl" "KroneCorylus" "Cursor" "Rainbow smear cursor"
+catalog_shader "last_letter_zoom.glsl" "KroneCorylus" "Cursor" "Zoom effect on last typed character"
+catalog_shader "manga_slash.glsl"     "KroneCorylus" "Cursor"  "Manga-style slash effect"
+catalog_shader "party_sparks.glsl"    "KroneCorylus" "Cursor"  "Colorful party sparks"
+catalog_shader "shake.glsl"           "KroneCorylus" "Post-FX" "Screen shake effect"
+catalog_shader "sparks.glsl"          "KroneCorylus" "Cursor"  "Spark particles from cursor"
+catalog_shader "zoom_and_aberration.glsl" "KroneCorylus" "Post-FX" "Zoom with chromatic aberration"
 
 # ── List mode ──────────────────────────────────────
 if $LIST_ONLY; then
