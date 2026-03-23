@@ -182,6 +182,39 @@ catalog_shader "vhs-tape.glsl"         "adapted"    "Post-FX"    "VHS tape degra
 catalog_shader "chromatic-aberration.glsl" "adapted" "Post-FX"   "Radial chromatic aberration from center"
 catalog_shader "vaporwave.glsl"        "adapted"    "Post-FX"    "Vaporwave pink/cyan/purple color grade"
 
+# m-ahdal/ghostty-shaders (previously removed, re-added)
+catalog_shader "cineShader-Lava.glsl"  "m-ahdal"    "Background" "Animated lava/magma shader"
+catalog_shader "fireworks-rockets.glsl" "m-ahdal"   "Background" "Fireworks with rocket trails"
+catalog_shader "fireworks.glsl"        "m-ahdal"    "Background" "Fireworks burst animation"
+catalog_shader "negative.glsl"         "m-ahdal"    "Post-FX"    "Color negative/inversion filter"
+catalog_shader "sin-interference.glsl" "m-ahdal"    "Background" "Sine wave interference pattern"
+catalog_shader "smoke-and-ghost.glsl"  "m-ahdal"    "Background" "Smoke and ghost particle effect"
+catalog_shader "spotlight.glsl"        "m-ahdal"    "Post-FX"    "Spotlight/vignette following cursor"
+catalog_shader "bettercrt-alt.glsl"    "m-ahdal"    "CRT"        "Alternative CRT with different distortion"
+
+# erniee/gshaders
+catalog_shader "matrix.glsl"           "erniee"     "Background" "Matrix digital rain"
+catalog_shader "matrix_rain.glsl"      "erniee"     "Background" "Matrix rain with green glow"
+
+# fearlessgeekmedia/Fearless-Geek-Shaders-for-Ghostty
+catalog_shader "computer-glitchy.glsl"   "fearlessgeekmedia" "Post-FX" "Computer glitch distortion"
+catalog_shader "computer-glitchy-2.glsl" "fearlessgeekmedia" "Post-FX" "Computer glitch variant 2"
+catalog_shader "computer-glitchy-3.glsl" "fearlessgeekmedia" "Post-FX" "Computer glitch variant 3"
+catalog_shader "computer-glitchy-4.glsl" "fearlessgeekmedia" "Post-FX" "Computer glitch variant 4"
+catalog_shader "cyberpunk.glsl"          "fearlessgeekmedia" "Post-FX" "Cyberpunk neon color grade"
+catalog_shader "holo-shimmer.glsl"       "fearlessgeekmedia" "Post-FX" "Holographic shimmer effect"
+catalog_shader "old-film.glsl"           "fearlessgeekmedia" "Post-FX" "Old film grain and scratches"
+catalog_shader "scanbars.glsl"           "fearlessgeekmedia" "Post-FX" "Horizontal scan bar effect"
+catalog_shader "static.glsl"             "fearlessgeekmedia" "Post-FX" "Static/snow noise overlay"
+
+# linkarzu/dotfiles-latest (variants)
+catalog_shader "cursor_smear_linkarzu.glsl"      "linkarzu" "Cursor" "Smear cursor variant (linkarzu)"
+catalog_shader "cursor_smear_fade_linkarzu.glsl"  "linkarzu" "Cursor" "Smear-fade cursor variant (linkarzu)"
+
+# Original focus-aware shaders (Ghostty-exclusive)
+catalog_shader "focus-blur.glsl"       "original"   "Post-FX"    "Gaussian blur + desaturation on unfocus"
+catalog_shader "focus-pulse.glsl"      "original"   "Post-FX"    "Glow pulse on terminal refocus"
+
 # ── List mode ──────────────────────────────────────
 if $LIST_ONLY; then
   printf "\n%-36s %-10s %-12s %s\n" "SHADER" "SOURCE" "CATEGORY" "DESCRIPTION"
