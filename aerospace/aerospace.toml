@@ -7,6 +7,7 @@ after-login-command = []
 after-startup-command = [
     'exec-and-forget borders',
     'exec-and-forget sketchybar',
+    'exec-and-forget open -a RetroVisor',
 ]
 
 # Notify SketchyBar on workspace change
@@ -38,6 +39,9 @@ outer.top = 40  # room for SketchyBar
 
 # Main mode keybindings
 [mode.main.binding]
+
+# Toggle CRT overlay (RetroVisor) on/off
+alt-shift-c = 'exec-and-forget bash -c "pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVisor"'
 
 # Focus (alt + hjkl)
 alt-h = 'focus left'
