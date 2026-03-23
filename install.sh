@@ -145,19 +145,27 @@ install_retrovisor() {
     fi
     log_info "Installing RetroVisor (CRT shader overlay for macOS)..."
     local latest_url
+    # Release may be .dmg or .zip — try both
     latest_url=$(curl -s https://api.github.com/repos/dirkwhoffmann/RetroVisor/releases/latest \
-        | grep "browser_download_url.*dmg" | head -1 | cut -d '"' -f 4)
+        | grep "browser_download_url" | grep -E '\.(dmg|zip)"' | head -1 | cut -d '"' -f 4)
     if [[ -z "$latest_url" ]]; then
         log_warn "Could not find RetroVisor release — install manually from https://github.com/dirkwhoffmann/RetroVisor/releases"
         return 0
     fi
-    local dmg_path="/tmp/RetroVisor.dmg"
-    curl -fsSL "$latest_url" -o "$dmg_path"
-    local mount_point
-    mount_point=$(hdiutil attach "$dmg_path" -nobrowse -quiet | tail -1 | awk '{print $3}')
-    cp -R "$mount_point/RetroVisor.app" /Applications/ 2>/dev/null || true
-    hdiutil detach "$mount_point" -quiet 2>/dev/null || true
-    rm -f "$dmg_path"
+    local ext="${latest_url##*.}"
+    local tmp_path="/tmp/RetroVisor.$ext"
+    curl -fsSL "$latest_url" -o "$tmp_path"
+    if [[ "$ext" == "dmg" ]]; then
+        local mount_point
+        mount_point=$(hdiutil attach "$tmp_path" -nobrowse -quiet | tail -1 | awk '{print $3}')
+        cp -R "$mount_point/RetroVisor.app" /Applications/ 2>/dev/null || true
+        hdiutil detach "$mount_point" -quiet 2>/dev/null || true
+    elif [[ "$ext" == "zip" ]]; then
+        unzip -q -o "$tmp_path" -d /tmp/RetroVisor_extract 2>/dev/null
+        cp -R /tmp/RetroVisor_extract/RetroVisor.app /Applications/ 2>/dev/null || true
+        rm -rf /tmp/RetroVisor_extract
+    fi
+    rm -f "$tmp_path"
     if [[ -d "$app_path" ]]; then
         log_success "RetroVisor installed to /Applications"
     else

@@ -483,18 +483,54 @@ alias hgs='cd ~/hairglasses-studio'
 alias mcplog='tail -f /tmp/mcp-*.log 2>/dev/null || echo "No MCP logs found"'
 
 # ── Ghostty shader switching ──────────────────
-alias shader-crt='sed -i "" "s|custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/green-crt.glsl|" ~/.config/ghostty/config'
-alias shader-none='sed -i "" "s|custom-shader = .*|# custom-shader = disabled|" ~/.config/ghostty/config'
+shader-crt() {
+  local cfg="$HOME/.config/ghostty/config" tmp
+  tmp="$(mktemp "${cfg}.XXXXXX")"
+  sed -e "s|^custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/green-crt.glsl|" \
+      -e "s|^custom-shader-animation = .*|custom-shader-animation = true|" \
+      "$cfg" > "$tmp"
+  mv "$tmp" "$cfg"
+}
+shader-none() {
+  local cfg="$HOME/.config/ghostty/config" tmp
+  tmp="$(mktemp "${cfg}.XXXXXX")"
+  sed -e "s|^custom-shader = .*|# custom-shader = disabled|" \
+      -e "s|^custom-shader-animation = .*|custom-shader-animation = false|" \
+      "$cfg" > "$tmp"
+  mv "$tmp" "$cfg"
+}
 # Interactive shader audition — test each shader one-by-one with keep/skip
 alias shader-audit='bash ~/.config/ghostty/shaders/pick-shaders.sh'
 
-# Random shader (called from zshrc on each new shell)
+# Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
+source "$HOME/.config/ghostty/shaders/shader-playlist.sh" 2>/dev/null
+
+# Playlist-aware shader selection (called from zshrc on each new shell)
+shader-next() {
+  [[ -z "$GHOSTTY_RESOURCES_DIR" ]] && return
+  if [[ "$GHOSTTY_QUICK_TERMINAL" = "1" ]]; then
+    shader-playlist-next "high-intensity"
+  else
+    shader-playlist-next "low-intensity"
+  fi
+}
+
+# Random shader from all shaders (manual fallback, ignores playlists)
+# Also available as AeroSpace keybind: alt-shift-s
 shader-random() {
-  local dir="$HOME/.config/ghostty/shaders"
-  local shaders=("$dir"/*.glsl(N))
-  (( ${#shaders} == 0 )) && return
-  local pick="${shaders[RANDOM % ${#shaders} + 1]}"
-  sed -i "" "s|custom-shader = .*|custom-shader = $pick|" ~/.config/ghostty/config 2>/dev/null
+  bash "$HOME/.config/ghostty/shaders/randomize-shader.sh"
+}
+
+# Playlist utilities
+alias shader-reshuffle='rm -f ~/.local/state/ghostty/*.queue ~/.local/state/ghostty/*.idx && echo "Playlists reshuffled on next shell"'
+shader-status() {
+  local lo_idx lo_total hi_idx hi_total
+  lo_idx="$(cat ~/.local/state/ghostty/low-intensity.idx 2>/dev/null || echo 0)"
+  lo_total="$(wc -l < ~/.local/state/ghostty/low-intensity.queue 2>/dev/null | tr -d ' ')" 2>/dev/null || lo_total="?"
+  hi_idx="$(cat ~/.local/state/ghostty/high-intensity.idx 2>/dev/null || echo 0)"
+  hi_total="$(wc -l < ~/.local/state/ghostty/high-intensity.queue 2>/dev/null | tr -d ' ')" 2>/dev/null || hi_total="?"
+  echo "Low-intensity:  $lo_idx / $lo_total"
+  echo "High-intensity: $hi_idx / $hi_total"
 }
 
 # FZF shader picker with categories and preview
@@ -513,7 +549,7 @@ shader-pick() {
       cursor_*|cursor-*|*_cursor*|blaze_sparks*|last_letter_zoom*|manga_slash*|party_sparks*|sparks.glsl|cursor_explosion*|cursor_viberation*|cursor_smear_linkarzu*|cursor_smear_fade_linkarzu*) cat="Cursor" ;;
       *-bg.glsl|graded-wash*|salt-bg*|splatter-bg*|variegated*|wet-on-wet*) cat="Watercolor" ;;
       animated-gradient*|clouds*|cubes*|electric*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sparks-from-fire*|splatter-fractal*|starfield*|water.glsl|underwater*|cineShader-Lava*|fireworks*|sin-interference*|smoke-and-ghost*|matrix.glsl|matrix_rain*) cat="Background" ;;
-      dither*|drunkard*|flicker*|glitchy*|glow*|hexglitch*|mnoise*|pixels*|shake*|tft*|zoom_and_aberration*|chromatic-aberration*|vcr-*|vhs-*|vaporwave*|bloom*|negative*|spotlight*|computer-glitchy*|cyberpunk*|holo-shimmer*|old-film*|scanbars*|static*|focus-blur*|focus-pulse*) cat="Post-FX" ;;
+      dither*|drunkard*|flicker*|glitchy*|glow*|hexglitch*|mnoise*|pixels*|shake*|soft_shadows*|tft*|zoom_and_aberration*|chromatic-aberration*|vcr-*|vhs-*|vaporwave*|bloom*|negative*|spotlight*|computer-glitchy*|cyberpunk*|holo-shimmer*|old-film*|scanbars*|static*|focus-blur*|focus-pulse*) cat="Post-FX" ;;
       *) cat="Other" ;;
     esac
     case "$name" in
@@ -541,6 +577,7 @@ shader-pick() {
       mnoise*)             desc="Perlin noise overlay" ;;
       pixels*)             desc="Pixel grid effect" ;;
       shake*)              desc="Screen shake effect" ;;
+      soft_shadows*)       desc="Soft shadow circles animation" ;;
       tft*)                desc="TFT/LCD subpixel rendering" ;;
       zoom_and_aberration*) desc="Zoom with chromatic aberration" ;;
       chromatic-aberration*) desc="Radial chromatic aberration" ;;
@@ -599,6 +636,7 @@ shader-pick() {
       starfield-colors*)   desc="Colorful animated starfield" ;;
       starfield.glsl)      desc="Classic starfield fly-through" ;;
       starfield-alt*)      desc="Starfield variant" ;;
+      starfield-colors-alt*) desc="Colorful starfield variant" ;;
       starfield-sherwin*)  desc="Starfield with image overlay" ;;
       inside-the-matrix-alt*) desc="Matrix rain variant" ;;
       inside-the-matrix-sherwin*) desc="Matrix with custom blending" ;;
@@ -644,8 +682,18 @@ shader-pick() {
   shader_name="$(echo "$pick" | awk -F'│' '{print $2}' | awk '{print $1}')"
   [[ -z "$shader_name" ]] && return
 
-  sed -i "" "s|custom-shader = .*|custom-shader = $dir/$shader_name|" ~/.config/ghostty/config 2>/dev/null
-  echo "Shader set to: $shader_name (open a new terminal to see it)"
+  local shader_path="$dir/$shader_name"
+  local anim="false"
+  grep -qE '(ghostty_time|iTime|u_time)' "$shader_path" 2>/dev/null && anim="true"
+
+  local cfg="$HOME/.config/ghostty/config" tmp
+  tmp="$(mktemp "${cfg}.XXXXXX")"
+  sed -e "s|^custom-shader = .*|custom-shader = $shader_path|" \
+      -e "s|^# custom-shader.*|custom-shader = $shader_path|" \
+      -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
+      "$cfg" > "$tmp"
+  mv "$tmp" "$cfg"
+  echo "Shader set to: $shader_name (animation=$anim)"
 }
 
 # Load local aliases if they exist

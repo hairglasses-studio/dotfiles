@@ -166,6 +166,7 @@ classify "scanbars.glsl"             "Post-FX"    "LOW"
 classify "static.glsl"               "Post-FX"    "LOW"
 classify "focus-blur.glsl"           "Post-FX"    "MED"
 classify "focus-pulse.glsl"          "Post-FX"    "LOW"
+classify "soft_shadows.glsl"         "Post-FX"    "MED"
 
 # Cursor (linkarzu variants)
 classify "cursor_smear_linkarzu.glsl"     "Cursor" "MED"
@@ -208,12 +209,13 @@ ORIGINAL_SHADER=$(grep '^custom-shader\s*=' "$CONFIG_FILE" | head -1 || echo "")
 ORIGINAL_ANIM=$(grep '^custom-shader-animation\s*=' "$CONFIG_FILE" | head -1 || echo "")
 
 restore_config() {
-  if [[ -n "$ORIGINAL_SHADER" ]]; then
-    sed -i '' "s|^custom-shader = .*|$ORIGINAL_SHADER|" "$CONFIG_FILE"
-  fi
-  if [[ -n "$ORIGINAL_ANIM" ]]; then
-    sed -i '' "s|^custom-shader-animation = .*|$ORIGINAL_ANIM|" "$CONFIG_FILE"
-  fi
+  local tmp
+  tmp="$(mktemp "${CONFIG_FILE}.XXXXXX")"
+  local s="$ORIGINAL_SHADER" a="$ORIGINAL_ANIM"
+  sed -e "s|^custom-shader = .*|${s:-# custom-shader = disabled}|" \
+      -e "s|^custom-shader-animation = .*|${a:-custom-shader-animation = false}|" \
+      "$CONFIG_FILE" > "$tmp"
+  mv "$tmp" "$CONFIG_FILE"
 }
 
 trap restore_config EXIT
@@ -222,18 +224,19 @@ trap restore_config EXIT
 swap_shader() {
   local shader_path="$1"
   local needs_anim="$2"
-  sed -i '' "s|^custom-shader = .*|custom-shader = $shader_path|" "$CONFIG_FILE"
-  sed -i '' "s|^custom-shader-animation = .*|custom-shader-animation = $needs_anim|" "$CONFIG_FILE"
+  local tmp
+  tmp="$(mktemp "${CONFIG_FILE}.XXXXXX")"
+  sed -e "s|^custom-shader = .*|custom-shader = $shader_path|" \
+      -e "s|^custom-shader-animation = .*|custom-shader-animation = $needs_anim|" \
+      "$CONFIG_FILE" > "$tmp"
+  mv "$tmp" "$CONFIG_FILE"
 }
 
 needs_animation() {
   local name="$1"
-  local cat="${SHADER_CAT[$name]:-unknown}"
-  # Background and Watercolor shaders need animation=true to see the effect
-  case "$cat" in
-    Background|Watercolor) echo "true" ;;
-    *) echo "false" ;;
-  esac
+  # Check the actual shader source for time uniforms
+  grep -qE '(ghostty_time|iTime|u_time)' "$SHADERS_DIR/$name" 2>/dev/null && { echo "true"; return; }
+  echo "false"
 }
 
 # ── Cost color ────────────────────────────────────
