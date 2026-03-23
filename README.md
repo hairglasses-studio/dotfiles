@@ -38,7 +38,7 @@ tmux new "prefix + I"                         # Install tmux plugins via TPM
 | `aerospace/` | i3-style tiling WM — alt+hjkl focus/move, 9 workspaces, 8px gaps |
 | `sketchybar/` | Custom menu bar — workspaces, front app, now playing, k8s context, clock, battery, CPU, Wi-Fi |
 | `borders/` | Window borders — blue active (`#57c7ff`), gray inactive (`#686868`) |
-| `ghostty/` | Visor terminal, 52 GLSL shaders with random rotation, Snazzy palette, P3 wide gamut |
+| `ghostty/` | Visor terminal, 120 GLSL shaders with random rotation, Snazzy palette, P3 wide gamut |
 | `zsh/` | Oh My Zsh, transient Starship prompt, 13 plugins, 500+ lines of aliases, command notifications |
 | `starship/` | Fill-based right alignment, git metrics, cloud context, helm/container modules |
 | `nvim/` | vim-plug, 29 plugins, alpha-nvim dashboard, treesitter, indent guides, colorizer, CoC LSP |
@@ -108,14 +108,14 @@ TPM-managed with session persistence:
 
 ## Shaders
 
-97 GLSL shaders from 15+ community repos, gists, and Shadertoy adaptations:
+120 GLSL shaders from 25+ community repos, gists, and Shadertoy adaptations:
 
 | Category | Count | Examples |
 |----------|-------|---------|
-| CRT | 14 | crt-chromatic, amber-monitor, vt320-amber-glow, bettercrt, retro-terminal |
-| Post-FX | 24 | vcr-distortion, vhs-tape, vaporwave, chromatic-aberration, bloom variants |
-| Background | 23 | electric, underwater, inside-the-matrix, starfield variants, galaxy |
-| Cursor | 31 | cursor_explosion, cursor_viberation, cursor_smear variants, manga_slash |
+| CRT | 15 | crt-chromatic, amber-monitor, vt320-amber-glow, bettercrt, retro-terminal |
+| Post-FX | 37 | cyberpunk, holo-shimmer, old-film, vcr-distortion, vaporwave, bloom variants, focus-blur |
+| Background | 30 | electric, fireworks, matrix, lava, smoke-and-ghost, starfield variants, galaxy |
+| Cursor | 33 | cursor_explosion, cursor_viberation, cursor_smear variants, manga_slash |
 | Watercolor | 5 | graded-wash, salt, splatter, variegated-wash, wet-on-wet |
 
 ```bash

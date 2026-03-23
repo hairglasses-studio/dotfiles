@@ -473,6 +473,11 @@ alias forecast='curl -s wttr.in'
 cheat() { curl -s "cht.sh/$1"; }
 alias colortest='for i in $(seq 0 255); do printf "\e[48;5;${i}m  %3s  \e[0m" "$i"; (( (i+1) % 16 == 0 )) && echo; done'
 
+# ── CRT / Shader effects ────────────────────────
+alias crt-on='open -a RetroVisor'
+alias crt-off='pkill -x RetroVisor'
+alias crt-toggle='pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVisor'
+
 # ── MCP / Ralph ────────────────────────────────
 alias hgs='cd ~/hairglasses-studio'
 alias mcplog='tail -f /tmp/mcp-*.log 2>/dev/null || echo "No MCP logs found"'
@@ -504,11 +509,11 @@ shader-pick() {
     local name="${shader:t}"
     local cat desc
     case "$name" in
-      blue-crt*|green-crt*|crt.glsl|crt_glitch*|crt-chromatic*|bettercrt*|in-game-crt*|retro-terminal*|scanline*|amber-monitor*|vt320-amber*) cat="CRT" ;;
-      cursor_*|cursor-*|*_cursor*|blaze_sparks*|last_letter_zoom*|manga_slash*|party_sparks*|sparks.glsl|cursor_explosion*|cursor_viberation*) cat="Cursor" ;;
+      blue-crt*|green-crt*|crt.glsl|crt_glitch*|crt-chromatic*|bettercrt*|in-game-crt*|retro-terminal*|scanline*|amber-monitor*|vt320-amber*|bettercrt-alt*) cat="CRT" ;;
+      cursor_*|cursor-*|*_cursor*|blaze_sparks*|last_letter_zoom*|manga_slash*|party_sparks*|sparks.glsl|cursor_explosion*|cursor_viberation*|cursor_smear_linkarzu*|cursor_smear_fade_linkarzu*) cat="Cursor" ;;
       *-bg.glsl|graded-wash*|salt-bg*|splatter-bg*|variegated*|wet-on-wet*) cat="Watercolor" ;;
-      animated-gradient*|clouds*|cubes*|electric*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sparks-from-fire*|splatter-fractal*|starfield*|water.glsl|underwater*) cat="Background" ;;
-      dither*|drunkard*|flicker*|glitchy*|glow*|hexglitch*|mnoise*|pixels*|shake*|tft*|zoom_and_aberration*|chromatic-aberration*|vcr-*|vhs-*|vaporwave*|bloom*) cat="Post-FX" ;;
+      animated-gradient*|clouds*|cubes*|electric*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sparks-from-fire*|splatter-fractal*|starfield*|water.glsl|underwater*|cineShader-Lava*|fireworks*|sin-interference*|smoke-and-ghost*|matrix.glsl|matrix_rain*) cat="Background" ;;
+      dither*|drunkard*|flicker*|glitchy*|glow*|hexglitch*|mnoise*|pixels*|shake*|tft*|zoom_and_aberration*|chromatic-aberration*|vcr-*|vhs-*|vaporwave*|bloom*|negative*|spotlight*|computer-glitchy*|cyberpunk*|holo-shimmer*|old-film*|scanbars*|static*|focus-blur*|focus-pulse*) cat="Post-FX" ;;
       *) cat="Other" ;;
     esac
     case "$name" in
@@ -600,6 +605,29 @@ shader-pick() {
       sparks-from-fire-shadertoy*) desc="Shadertoy fire sparks" ;;
       underwater*)         desc="Underwater caustics and light" ;;
       water.glsl)          desc="Water ripple/wave" ;;
+      cineShader-Lava*)    desc="Animated lava/magma shader" ;;
+      fireworks-rockets*)  desc="Fireworks with rocket trails" ;;
+      fireworks.glsl)      desc="Fireworks burst animation" ;;
+      sin-interference*)   desc="Sine wave interference pattern" ;;
+      smoke-and-ghost*)    desc="Smoke and ghost particles" ;;
+      matrix.glsl)         desc="Matrix digital rain" ;;
+      matrix_rain*)        desc="Matrix rain with green glow" ;;
+      bettercrt-alt*)      desc="Alternative CRT distortion" ;;
+      negative*)           desc="Color negative/inversion filter" ;;
+      spotlight*)          desc="Spotlight/vignette effect" ;;
+      computer-glitchy-2*) desc="Computer glitch variant 2" ;;
+      computer-glitchy-3*) desc="Computer glitch variant 3" ;;
+      computer-glitchy-4*) desc="Computer glitch variant 4" ;;
+      computer-glitchy*)   desc="Computer glitch distortion" ;;
+      cyberpunk*)          desc="Cyberpunk neon color grade" ;;
+      holo-shimmer*)       desc="Holographic shimmer effect" ;;
+      old-film*)           desc="Old film grain and scratches" ;;
+      scanbars*)           desc="Horizontal scan bar effect" ;;
+      static*)             desc="Static/snow noise overlay" ;;
+      focus-blur*)         desc="Blur + desaturate on unfocus" ;;
+      focus-pulse*)        desc="Glow pulse on refocus" ;;
+      cursor_smear_linkarzu*) desc="Smear cursor variant (linkarzu)" ;;
+      cursor_smear_fade_linkarzu*) desc="Smear-fade variant (linkarzu)" ;;
       graded-wash*)        desc="Graded color transition wash" ;;
       salt-bg*)            desc="Salt texture on watercolor" ;;
       splatter-bg*)        desc="Paint splatter effect" ;;
