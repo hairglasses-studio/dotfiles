@@ -284,8 +284,8 @@ fi
 # ── Default working directory ──────────────────
 cd /Users/mitchnotmitchell 2>/dev/null
 
-# ── Random Ghostty shader per terminal ────────
-shader-random 2>/dev/null
+# ── Shuffled Ghostty shader per terminal ──────
+shader-next 2>/dev/null
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

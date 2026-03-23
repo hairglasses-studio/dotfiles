@@ -214,6 +214,7 @@ catalog_shader "cursor_smear_fade_linkarzu.glsl"  "linkarzu" "Cursor" "Smear-fad
 # Original focus-aware shaders (Ghostty-exclusive)
 catalog_shader "focus-blur.glsl"       "original"   "Post-FX"    "Gaussian blur + desaturation on unfocus"
 catalog_shader "focus-pulse.glsl"      "original"   "Post-FX"    "Glow pulse on terminal refocus"
+catalog_shader "soft_shadows.glsl"     "shadertoy"  "Post-FX"    "Soft shadow circles animation"
 
 # ── List mode ──────────────────────────────────────
 if $LIST_ONLY; then

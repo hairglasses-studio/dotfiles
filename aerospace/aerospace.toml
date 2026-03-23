@@ -43,6 +43,9 @@ outer.top = 40  # room for SketchyBar
 # Toggle CRT overlay (RetroVisor) on/off
 alt-shift-c = 'exec-and-forget bash -c "pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVisor"'
 
+# Random shader — Ghostty auto-reloads via FSEvents when config changes
+alt-shift-s = 'exec-and-forget bash ~/.config/ghostty/shaders/randomize-shader.sh'
+
 # Focus (alt + hjkl)
 alt-h = 'focus left'
 alt-j = 'focus down'
@@ -83,9 +86,9 @@ alt-comma = 'layout accordion horizontal vertical'
 alt-f = 'fullscreen'
 alt-shift-space = 'layout floating tiling'
 
-# Split direction
-alt-backslash = 'split horizontal'
-alt-minus = 'split vertical'
+# Join direction (use join-with instead of split — required with flatten-containers)
+alt-backslash = 'join-with right'
+alt-minus = 'join-with down'
 
 # Misc
 alt-shift-r = 'reload-config'
