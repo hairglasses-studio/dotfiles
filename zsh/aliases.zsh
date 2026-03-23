@@ -504,11 +504,11 @@ shader-pick() {
     local name="${shader:t}"
     local cat desc
     case "$name" in
-      blue-crt*|green-crt*|crt.glsl|crt_glitch*|in-game-crt*|retro-terminal*|scanline*) cat="CRT" ;;
-      cursor_*|cursor-*|*_cursor*|blaze_sparks*|last_letter_zoom*|manga_slash*|party_sparks*|sparks.glsl) cat="Cursor" ;;
+      blue-crt*|green-crt*|crt.glsl|crt_glitch*|crt-chromatic*|bettercrt*|in-game-crt*|retro-terminal*|scanline*|amber-monitor*|vt320-amber*) cat="CRT" ;;
+      cursor_*|cursor-*|*_cursor*|blaze_sparks*|last_letter_zoom*|manga_slash*|party_sparks*|sparks.glsl|cursor_explosion*|cursor_viberation*) cat="Cursor" ;;
       *-bg.glsl|graded-wash*|salt-bg*|splatter-bg*|variegated*|wet-on-wet*) cat="Watercolor" ;;
-      animated-gradient*|clouds*|cubes*|electric*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sparks-from-fire*|splatter-fractal*|starfield*|water.glsl) cat="Background" ;;
-      dither*|drunkard*|flicker*|glitchy*|glow*|hexglitch*|mnoise*|pixels*|shake*|tft*|zoom_and_aberration*) cat="Post-FX" ;;
+      animated-gradient*|clouds*|cubes*|electric*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sparks-from-fire*|splatter-fractal*|starfield*|water.glsl|underwater*) cat="Background" ;;
+      dither*|drunkard*|flicker*|glitchy*|glow*|hexglitch*|mnoise*|pixels*|shake*|tft*|zoom_and_aberration*|chromatic-aberration*|vcr-*|vhs-*|vaporwave*|bloom*) cat="Post-FX" ;;
       *) cat="Other" ;;
     esac
     case "$name" in
@@ -520,6 +520,12 @@ shader-pick() {
       in-game-crt.glsl)    desc="In-game style CRT monitor" ;;
       retro-terminal*)     desc="Retro green phosphor terminal" ;;
       scanline*)           desc="Simple scanline overlay" ;;
+      crt-chromatic*)      desc="CRT with chromatic aberration + dot matrix" ;;
+      bettercrt*)          desc="Enhanced CRT with barrel distortion" ;;
+      in-game-crt-alt*)    desc="In-game CRT variant" ;;
+      amber-monitor*)      desc="Amber phosphor monitor simulation" ;;
+      vt320-amber*)        desc="VT320-style amber phosphor glow" ;;
+      retro-terminal-soanvig*) desc="Retro terminal amalgam" ;;
       dither*)             desc="Dithering effect on output" ;;
       drunkard*)           desc="Wobbly distorted screen" ;;
       flicker*)            desc="Screen flicker effect" ;;
@@ -532,6 +538,18 @@ shader-pick() {
       shake*)              desc="Screen shake effect" ;;
       tft*)                desc="TFT/LCD subpixel rendering" ;;
       zoom_and_aberration*) desc="Zoom with chromatic aberration" ;;
+      chromatic-aberration*) desc="Radial chromatic aberration" ;;
+      vcr-distortion*)     desc="VCR tape playback distortion" ;;
+      vhs-tape*)           desc="VHS tape degradation effect" ;;
+      vaporwave*)          desc="Vaporwave pink/cyan color grade" ;;
+      bloom-classic*)      desc="Classic bloom/glow effect" ;;
+      bloom-soft*)         desc="Soft bloom/glow effect" ;;
+      bloom-warm*)         desc="Warm-toned bloom effect" ;;
+      bloom025*)           desc="Bloom at 25% intensity" ;;
+      bloom050*)           desc="Bloom at 50% intensity" ;;
+      bloom060*)           desc="Bloom at 60% intensity" ;;
+      bloom075*)           desc="Bloom at 75% intensity" ;;
+      bloom1*)             desc="Bloom at full intensity" ;;
       blaze_sparks*)       desc="Sparking blaze cursor" ;;
       cursor_blaze_no_trail*) desc="Blaze cursor without trail" ;;
       cursor_blaze_tapered*) desc="Tapered fire trail cursor" ;;
@@ -553,6 +571,13 @@ shader-pick() {
       ripple_cursor*)      desc="Ripple wave from cursor" ;;
       ripple_rectangle*)   desc="Rectangular ripple from cursor" ;;
       sparks.glsl)         desc="Spark particles from cursor" ;;
+      cursor_explosion*)   desc="Particle explosion from cursor" ;;
+      cursor_viberation*)  desc="Vibrating cursor with feedback" ;;
+      cursor_blaze_alt*)   desc="Alternative fire trail cursor" ;;
+      cursor_blaze_chardskarth*) desc="Original cursor blaze (chardskarth)" ;;
+      cursor_blaze_no_trail_chardskarth*) desc="Blaze without trail (chardskarth)" ;;
+      cursor_smear_alt*)   desc="Alternative smear trail cursor" ;;
+      cursor_smear_*_original*|cursor_smear_original*) desc="Original smear variant (pre-edit)" ;;
       animated-gradient*)  desc="Animated color gradient" ;;
       clouds*)             desc="Parallax cloud background" ;;
       cubes*)              desc="Animated 3D cube grid" ;;
@@ -568,6 +593,12 @@ shader-pick() {
       splatter-fractal*)   desc="Fractal paint splatter" ;;
       starfield-colors*)   desc="Colorful animated starfield" ;;
       starfield.glsl)      desc="Classic starfield fly-through" ;;
+      starfield-alt*)      desc="Starfield variant" ;;
+      starfield-sherwin*)  desc="Starfield with image overlay" ;;
+      inside-the-matrix-alt*) desc="Matrix rain variant" ;;
+      inside-the-matrix-sherwin*) desc="Matrix with custom blending" ;;
+      sparks-from-fire-shadertoy*) desc="Shadertoy fire sparks" ;;
+      underwater*)         desc="Underwater caustics and light" ;;
       water.glsl)          desc="Water ripple/wave" ;;
       graded-wash*)        desc="Graded color transition wash" ;;
       salt-bg*)            desc="Salt texture on watercolor" ;;

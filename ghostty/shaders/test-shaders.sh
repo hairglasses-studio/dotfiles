@@ -130,6 +130,57 @@ catalog_shader "party_sparks.glsl"    "KroneCorylus" "Cursor"  "Colorful party s
 catalog_shader "shake.glsl"           "KroneCorylus" "Post-FX" "Screen shake effect"
 catalog_shader "sparks.glsl"          "KroneCorylus" "Cursor"  "Spark particles from cursor"
 catalog_shader "zoom_and_aberration.glsl" "KroneCorylus" "Post-FX" "Zoom with chromatic aberration"
+catalog_shader "cursor_smear_original.glsl" "KroneCorylus" "Cursor" "Original smear trail cursor (pre-edit)"
+catalog_shader "cursor_smear_fade_original.glsl" "KroneCorylus" "Cursor" "Original smear-fade cursor (pre-edit)"
+catalog_shader "cursor_smear_gradient_original.glsl" "KroneCorylus" "Cursor" "Original gradient smear cursor (pre-edit)"
+catalog_shader "cursor_smear_rainbow_original.glsl" "KroneCorylus" "Cursor" "Original rainbow smear cursor (pre-edit)"
+
+# luiscarlospando/crt-shader
+catalog_shader "crt-chromatic.glsl"    "luiscarlospando" "CRT"   "CRT with chromatic aberration, glow, scanlines, dot matrix"
+
+# Orcax-1399/my-ghostty-cursor-animation
+catalog_shader "cursor_explosion.glsl" "Orcax-1399" "Cursor"     "Particle explosion from cursor"
+catalog_shader "cursor_viberation.glsl" "Orcax-1399" "Cursor"    "Vibrating cursor with dynamic feedback"
+
+# chuhlomin/ghostty-shaders
+catalog_shader "bettercrt.glsl"        "chuhlomin"  "CRT"        "Enhanced CRT with barrel distortion and vignette"
+catalog_shader "bloom-soft.glsl"       "chuhlomin"  "Post-FX"    "Soft bloom/glow effect"
+
+# GhostInTheToast/dotfiles (bloom variants)
+catalog_shader "bloom-warm.glsl"       "GhostInTheToast" "Post-FX" "Warm-toned bloom effect"
+catalog_shader "bloom025.glsl"         "GhostInTheToast" "Post-FX" "Bloom at 25% intensity"
+catalog_shader "bloom050.glsl"         "GhostInTheToast" "Post-FX" "Bloom at 50% intensity"
+catalog_shader "bloom060.glsl"         "GhostInTheToast" "Post-FX" "Bloom at 60% intensity"
+catalog_shader "bloom075.glsl"         "GhostInTheToast" "Post-FX" "Bloom at 75% intensity"
+catalog_shader "bloom1.glsl"           "GhostInTheToast" "Post-FX" "Bloom at full intensity"
+catalog_shader "bloom-classic.glsl"    "0xhckr"     "Post-FX"    "Classic bloom/glow effect"
+catalog_shader "cursor_blaze_alt.glsl" "GhostInTheToast" "Cursor" "Alternative fire trail cursor"
+catalog_shader "cursor_smear_alt.glsl" "io-PEAK"    "Cursor"     "Alternative smear trail cursor"
+catalog_shader "inside-the-matrix-alt.glsl" "GhostInTheToast" "Background" "Matrix rain variant"
+catalog_shader "starfield-alt.glsl"    "GhostInTheToast" "Background" "Starfield fly-through variant"
+catalog_shader "starfield-colors-alt.glsl" "GhostInTheToast" "Background" "Colorful starfield variant"
+catalog_shader "in-game-crt-alt.glsl"  "yuxiang"    "CRT"        "In-game CRT variant with different distortion"
+
+# alex-sherwin/my-ghostty-shaders
+catalog_shader "inside-the-matrix-sherwin.glsl" "alex-sherwin" "Background" "Matrix rain with custom blending"
+catalog_shader "starfield-sherwin.glsl" "alex-sherwin" "Background" "Starfield with image overlay"
+catalog_shader "sparks-from-fire-shadertoy.glsl" "alex-sherwin" "Background" "Shadertoy fire sparks conversion"
+catalog_shader "underwater.glsl"       "alex-sherwin" "Background" "Underwater caustics and light rays"
+
+# chardskarth (gist)
+catalog_shader "cursor_blaze_chardskarth.glsl" "chardskarth" "Cursor" "Original cursor blaze with particle trails"
+catalog_shader "cursor_blaze_no_trail_chardskarth.glsl" "chardskarth" "Cursor" "Blaze cursor without trail (original)"
+
+# Gists — standalone
+catalog_shader "amber-monitor.glsl"    "seanwcom"   "CRT"        "Amber phosphor monitor simulation"
+catalog_shader "retro-terminal-soanvig.glsl" "soanvig" "CRT"     "Retro terminal amalgam with CRT effects"
+catalog_shader "vt320-amber-glow.glsl" "reactorcoremeltdown" "CRT" "VT320-style amber phosphor glow"
+
+# Shadertoy adaptations
+catalog_shader "vcr-distortion.glsl"   "adapted"    "Post-FX"    "VCR tape playback distortion"
+catalog_shader "vhs-tape.glsl"         "adapted"    "Post-FX"    "VHS tape degradation with color bleeding"
+catalog_shader "chromatic-aberration.glsl" "adapted" "Post-FX"   "Radial chromatic aberration from center"
+catalog_shader "vaporwave.glsl"        "adapted"    "Post-FX"    "Vaporwave pink/cyan/purple color grade"
 
 # ── List mode ──────────────────────────────────────
 if $LIST_ONLY; then
