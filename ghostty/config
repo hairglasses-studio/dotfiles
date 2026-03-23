@@ -51,8 +51,8 @@ macos-titlebar-style = hidden
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /Users/mitchnotmitchell/.config/ghostty/shaders/splatter-bg.glsl
-custom-shader-animation = false
+custom-shader = /Users/mitchnotmitchell/.config/ghostty/shaders/cursor_smear_gradient_original.glsl
+custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
 link-url = true
