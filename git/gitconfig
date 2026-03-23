@@ -1,6 +1,7 @@
 [user]
     name = hairglasses
     email = mitch@galileo.ai
+	signingkey = DBA0A26180A4ED19
 [core]
     editor = nvim
     pager = delta
@@ -36,9 +37,7 @@
 [rerere]
     enabled = true
 [gpg]
-    format = ssh
-[gpg "ssh"]
-    program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+	format = openpgp
 [commit]
     gpgsign = true
 [alias]
