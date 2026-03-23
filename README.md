@@ -108,14 +108,14 @@ TPM-managed with session persistence:
 
 ## Shaders
 
-62 GLSL shaders from 8 community repos, organized in 5 categories:
+97 GLSL shaders from 15+ community repos, gists, and Shadertoy adaptations:
 
 | Category | Count | Examples |
 |----------|-------|---------|
-| CRT | 8 | green-crt, crt_glitch, scanline, in-game-crt, retro-terminal |
-| Post-FX | 11 | hexglitch, flicker, shake, glow, zoom_and_aberration, pixels |
-| Background | 16 | electric, clouds, galaxy, matrix-hallway, splatter-fractal |
-| Cursor | 22 | cursor_smear_rainbow, cursor-glitch, manga_slash, synesthaxia |
+| CRT | 14 | crt-chromatic, amber-monitor, vt320-amber-glow, bettercrt, retro-terminal |
+| Post-FX | 24 | vcr-distortion, vhs-tape, vaporwave, chromatic-aberration, bloom variants |
+| Background | 23 | electric, underwater, inside-the-matrix, starfield variants, galaxy |
+| Cursor | 31 | cursor_explosion, cursor_viberation, cursor_smear variants, manga_slash |
 | Watercolor | 5 | graded-wash, salt, splatter, variegated-wash, wet-on-wet |
 
 ```bash
