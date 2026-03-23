@@ -136,6 +136,35 @@ install_vim_plug() {
     mkdir -p "$HOME/.local/share/nvim/swap"
 }
 
+# ── RetroVisor (CRT overlay for macOS) ────────
+install_retrovisor() {
+    local app_path="/Applications/RetroVisor.app"
+    if [[ -d "$app_path" ]]; then
+        log_success "RetroVisor already installed"
+        return 0
+    fi
+    log_info "Installing RetroVisor (CRT shader overlay for macOS)..."
+    local latest_url
+    latest_url=$(curl -s https://api.github.com/repos/dirkwhoffmann/RetroVisor/releases/latest \
+        | grep "browser_download_url.*dmg" | head -1 | cut -d '"' -f 4)
+    if [[ -z "$latest_url" ]]; then
+        log_warn "Could not find RetroVisor release — install manually from https://github.com/dirkwhoffmann/RetroVisor/releases"
+        return 0
+    fi
+    local dmg_path="/tmp/RetroVisor.dmg"
+    curl -fsSL "$latest_url" -o "$dmg_path"
+    local mount_point
+    mount_point=$(hdiutil attach "$dmg_path" -nobrowse -quiet | tail -1 | awk '{print $3}')
+    cp -R "$mount_point/RetroVisor.app" /Applications/ 2>/dev/null || true
+    hdiutil detach "$mount_point" -quiet 2>/dev/null || true
+    rm -f "$dmg_path"
+    if [[ -d "$app_path" ]]; then
+        log_success "RetroVisor installed to /Applications"
+    else
+        log_warn "RetroVisor install may have failed — install manually from https://github.com/dirkwhoffmann/RetroVisor/releases"
+    fi
+}
+
 # ── Tmux Plugin Manager ──────────────────────
 install_tpm() {
     local tpm_dir="$HOME/.tmux/plugins/tpm"
@@ -286,6 +315,7 @@ main() {
     install_omz_plugins
     install_vim_plug
     install_tpm
+    install_retrovisor
     create_symlinks
 
     # Build bat cache (custom themes)

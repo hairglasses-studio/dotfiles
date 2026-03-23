@@ -28,7 +28,6 @@ fi
 plugins=(
     # Core
     git
-    common-aliases
     colored-man-pages
     command-not-found
 
@@ -290,3 +289,4 @@ shader-random 2>/dev/null
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

@@ -108,20 +108,19 @@ TPM-managed with session persistence:
 
 ## Shaders
 
-52 GLSL shaders from 4 community repos, organized in 6 categories:
+62 GLSL shaders from 8 community repos, organized in 5 categories:
 
 | Category | Count | Examples |
 |----------|-------|---------|
-| CRT | 8 | amber-crt, green-crt, bettercrt, retro-terminal |
-| Post-FX | 10 | bloom, dither, glitchy, glow-rgbsplit, spotlight |
-| Background | 18 | galaxy, matrix-hallway, starfield, underwater, fireworks |
-| Cursor | 8 | cursor_blaze, cursor_tail, ripple_cursor, sonic_boom |
-| Watercolor | 9 | flat-wash, glazing, salt, splatter, wet-on-wet |
+| CRT | 8 | green-crt, crt_glitch, scanline, in-game-crt, retro-terminal |
+| Post-FX | 11 | hexglitch, flicker, shake, glow, zoom_and_aberration, pixels |
+| Background | 16 | electric, clouds, galaxy, matrix-hallway, splatter-fractal |
+| Cursor | 22 | cursor_smear_rainbow, cursor-glitch, manga_slash, synesthaxia |
+| Watercolor | 5 | graded-wash, salt, splatter, variegated-wash, wet-on-wet |
 
 ```bash
 shader-random          # random shader (runs automatically per terminal)
 shader-pick            # fzf picker with categories
-shader-bloom           # set bloom.glsl
 shader-crt             # set green-crt.glsl
 shader-none            # disable shader
 ```

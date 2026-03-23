@@ -478,10 +478,10 @@ alias hgs='cd ~/hairglasses-studio'
 alias mcplog='tail -f /tmp/mcp-*.log 2>/dev/null || echo "No MCP logs found"'
 
 # ── Ghostty shader switching ──────────────────
-alias shader-bloom='sed -i "" "s|custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/bloom.glsl|" ~/.config/ghostty/config'
 alias shader-crt='sed -i "" "s|custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/green-crt.glsl|" ~/.config/ghostty/config'
-alias shader-amber='sed -i "" "s|custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/amber-crt.glsl|" ~/.config/ghostty/config'
 alias shader-none='sed -i "" "s|custom-shader = .*|# custom-shader = disabled|" ~/.config/ghostty/config'
+# Interactive shader audition — test each shader one-by-one with keep/skip
+alias shader-audit='bash ~/.config/ghostty/shaders/pick-shaders.sh'
 
 # Random shader (called from zshrc on each new shell)
 shader-random() {
@@ -504,64 +504,74 @@ shader-pick() {
     local name="${shader:t}"
     local cat desc
     case "$name" in
-      amber-crt*|blue-crt*|green-crt*|bettercrt*|crt.glsl|in-game-crt*|retro-terminal*) cat="CRT" ;;
-      cursor_*|*_cursor*|*_boom_cursor*|sonic_boom*) cat="Cursor" ;;
-      *-bg.glsl|cauliflower*|flat-wash*|glazing*|graded-wash*|granulating*|salt-bg*|splatter*|variegated*|wet-on-wet*) cat="Watercolor" ;;
-      animated-gradient*|cineShader*|cubes*|fireworks*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sin-interference*|smoke-and-ghost*|sparks-from-fire*|starfield*|underwater*|water.glsl) cat="Background" ;;
-      bloom*|dither*|drunkard*|glitchy*|glow-rgb*|mnoise*|negative*|spotlight*|tft*) cat="Post-FX" ;;
+      blue-crt*|green-crt*|crt.glsl|crt_glitch*|in-game-crt*|retro-terminal*|scanline*) cat="CRT" ;;
+      cursor_*|cursor-*|*_cursor*|blaze_sparks*|last_letter_zoom*|manga_slash*|party_sparks*|sparks.glsl) cat="Cursor" ;;
+      *-bg.glsl|graded-wash*|salt-bg*|splatter-bg*|variegated*|wet-on-wet*) cat="Watercolor" ;;
+      animated-gradient*|clouds*|cubes*|electric*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sparks-from-fire*|splatter-fractal*|starfield*|water.glsl) cat="Background" ;;
+      dither*|drunkard*|flicker*|glitchy*|glow*|hexglitch*|mnoise*|pixels*|shake*|tft*|zoom_and_aberration*) cat="Post-FX" ;;
       *) cat="Other" ;;
     esac
     case "$name" in
-      amber-crt*)          desc="Amber phosphor CRT with scanlines" ;;
       blue-crt*)           desc="Blue phosphor CRT with scanlines" ;;
       green-crt*)          desc="Green phosphor CRT with scanlines" ;;
-      bettercrt*)          desc="Enhanced CRT with chromatic aberration" ;;
       crt.glsl)            desc="Classic CRT scanlines and curvature" ;;
+      crt_glitch*)         desc="CRT with glitch distortion" ;;
       in-game-crt-cursor*) desc="In-game CRT with cursor highlight" ;;
       in-game-crt.glsl)    desc="In-game style CRT monitor" ;;
       retro-terminal*)     desc="Retro green phosphor terminal" ;;
-      bloom*)              desc="Soft glow bleed around bright text" ;;
+      scanline*)           desc="Simple scanline overlay" ;;
       dither*)             desc="Dithering effect on output" ;;
       drunkard*)           desc="Wobbly distorted screen" ;;
+      flicker*)            desc="Screen flicker effect" ;;
       glitchy*)            desc="Digital glitch/corruption" ;;
+      glow.glsl)           desc="Simple bloom/glow effect" ;;
       glow-rgb*)           desc="RGB split with glow and twitch" ;;
+      hexglitch*)          desc="Hex grid glitch distortion" ;;
       mnoise*)             desc="Perlin noise overlay" ;;
-      negative*)           desc="Color inversion" ;;
-      spotlight*)          desc="Spotlight vignette following cursor" ;;
+      pixels*)             desc="Pixel grid effect" ;;
+      shake*)              desc="Screen shake effect" ;;
       tft*)                desc="TFT/LCD subpixel rendering" ;;
+      zoom_and_aberration*) desc="Zoom with chromatic aberration" ;;
+      blaze_sparks*)       desc="Sparking blaze cursor" ;;
+      cursor_blaze_no_trail*) desc="Blaze cursor without trail" ;;
+      cursor_blaze_tapered*) desc="Tapered fire trail cursor" ;;
       cursor_blaze*)       desc="Fire trail behind cursor" ;;
+      cursor_border_1*)    desc="Cursor border glow" ;;
+      cursor_frozen*)      desc="Frozen/ice cursor effect" ;;
+      cursor-glitch*)      desc="Glitch distortion around cursor" ;;
+      cursor_smear_fade*)  desc="Smear with fade cursor" ;;
+      cursor_smear_gradient*) desc="Gradient smear cursor" ;;
+      cursor_smear_rainbow*) desc="Rainbow smear cursor" ;;
+      cursor_smear*)       desc="Smear trail cursor" ;;
       cursor_sweep*)       desc="Sweep trail behind cursor" ;;
+      cursor_synesthaxia*) desc="Colorscheme-adaptive cursor" ;;
       cursor_tail*)        desc="Fading tail behind cursor" ;;
       cursor_warp*)        desc="Warp distortion around cursor" ;;
-      rectangle_boom*)     desc="Rectangular explosion on cursor" ;;
+      last_letter_zoom*)   desc="Zoom on last typed character" ;;
+      manga_slash*)        desc="Manga-style slash effect" ;;
+      party_sparks*)       desc="Colorful party sparks" ;;
       ripple_cursor*)      desc="Ripple wave from cursor" ;;
       ripple_rectangle*)   desc="Rectangular ripple from cursor" ;;
-      sonic_boom*)         desc="Sonic boom shockwave from cursor" ;;
+      sparks.glsl)         desc="Spark particles from cursor" ;;
       animated-gradient*)  desc="Animated color gradient" ;;
-      cineShader*)         desc="Animated lava/magma" ;;
+      clouds*)             desc="Parallax cloud background" ;;
       cubes*)              desc="Animated 3D cube grid" ;;
-      fireworks-rockets*)  desc="Fireworks with rocket trails" ;;
-      fireworks.glsl)      desc="Fireworks particle animation" ;;
+      electric-modes*)     desc="Electric effect with modes" ;;
+      electric*)           desc="Electric/lightning effect" ;;
       galaxy*)             desc="Animated galaxy/nebula" ;;
       gears*)              desc="Mechanical gears animation" ;;
       gradient-background*) desc="Static color gradient" ;;
       inside-the-matrix*)  desc="Matrix rain animation" ;;
       just-snow*)          desc="Falling snow particles" ;;
       matrix-hallway*)     desc="Matrix code fly-through" ;;
-      sin-interference*)   desc="Sine wave interference" ;;
-      smoke-and-ghost*)    desc="Smoky ghost particles" ;;
       sparks-from-fire*)   desc="Fire sparks particles" ;;
+      splatter-fractal*)   desc="Fractal paint splatter" ;;
       starfield-colors*)   desc="Colorful animated starfield" ;;
       starfield.glsl)      desc="Classic starfield fly-through" ;;
-      underwater*)         desc="Underwater caustics" ;;
       water.glsl)          desc="Water ripple/wave" ;;
-      cauliflower*)        desc="Cauliflower texture wash" ;;
-      flat-wash*)          desc="Flat watercolor wash" ;;
-      glazing*)            desc="Glazing watercolor layers" ;;
       graded-wash*)        desc="Graded color transition wash" ;;
-      granulating*)        desc="Granulating pigment texture" ;;
       salt-bg*)            desc="Salt texture on watercolor" ;;
-      splatter*)           desc="Paint splatter effect" ;;
+      splatter-bg*)        desc="Paint splatter effect" ;;
       variegated*)         desc="Multi-color variegated wash" ;;
       wet-on-wet*)         desc="Wet-on-wet watercolor blend" ;;
       *)                   desc="" ;;
