@@ -1,11 +1,12 @@
 #!/usr/bin/env zsh
-# shader-playlist.sh — shuffled shader playlist engine for Ghostty
-# Source this from aliases.zsh; call shader-playlist-next <playlist-name>
+# shader-playlist.sh — shuffled shader playlist engine for Ghostty + Tattoy
+# Source this from aliases.zsh; call shader-playlist-next or tattoy-playlist-next
 
 _shader_playlist_dir="${0:A:h}/playlists"
 _shader_state_dir="$HOME/.local/state/ghostty"
 _shader_base_dir="$HOME/.config/ghostty/shaders"
 _ghostty_config="$HOME/.config/ghostty/config"
+_tattoy_config="$HOME/Library/Application Support/tattoy/tattoy.toml"
 
 # Fisher-Yates shuffle: reads lines from file, prints shuffled
 _shader_shuffle() {
@@ -25,14 +26,15 @@ _shader_needs_animation() {
   grep -qE '(ghostty_time|iTime|u_time)' "$1" 2>/dev/null
 }
 
-# Main entry point: advance playlist and apply shader
-# Usage: shader-playlist-next <playlist-name>
-shader-playlist-next() {
+# Advance a playlist queue and print the next shader basename to stdout.
+# Does NOT update any config file — callers handle that.
+# Usage: _shader_playlist_pick <playlist-name>
+_shader_playlist_pick() {
   local name="$1"
-  [[ -z "$name" ]] && { echo "Usage: shader-playlist-next <playlist-name>" >&2; return 1; }
+  [[ -z "$name" ]] && return 1
 
   local playlist_file="$_shader_playlist_dir/${name}.txt"
-  [[ -f "$playlist_file" ]] || { echo "Playlist not found: $playlist_file" >&2; return 1; }
+  [[ -f "$playlist_file" ]] || return 1
 
   mkdir -p "$_shader_state_dir" 2>/dev/null
 
@@ -70,7 +72,6 @@ shader-playlist-next() {
   local shader_name shader_path attempts=0
   while (( attempts < 5 )); do
     if (( idx >= queue_len )); then
-      # Exhausted mid-skip — reshuffle
       _shader_shuffle "$playlist_file" > "$queue_file"
       idx=0
       queue_len="$(wc -l < "$queue_file" | tr -d ' ')"
@@ -91,6 +92,20 @@ shader-playlist-next() {
 
   [[ -f "$shader_path" ]] || return 1
 
+  # Print shader basename to stdout
+  printf '%s' "$shader_name"
+}
+
+# Advance a Ghostty playlist and update Ghostty config
+# Usage: shader-playlist-next <playlist-name>
+shader-playlist-next() {
+  local name="$1"
+  [[ -z "$name" ]] && { echo "Usage: shader-playlist-next <playlist-name>" >&2; return 1; }
+
+  local shader_name
+  shader_name="$(_shader_playlist_pick "$name")" || return 1
+  local shader_path="$_shader_base_dir/$shader_name"
+
   # Determine animation setting
   local anim="false"
   _shader_needs_animation "$shader_path" && anim="true"
@@ -103,4 +118,22 @@ shader-playlist-next() {
       -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
       "$_ghostty_config" > "$tmp"
   command mv -f "$tmp" "$_ghostty_config"
+}
+
+# Advance both Tattoy playlists (cursor + background) and update tattoy.toml
+# Uses anchor comments (# shader-path, # cursor-path) to target the right lines
+tattoy-playlist-next() {
+  [[ -f "$_tattoy_config" ]] || return 1
+
+  local cursor_shader bg_shader
+  cursor_shader="$(_shader_playlist_pick "tattoy-cursor")" || return 1
+  bg_shader="$(_shader_playlist_pick "tattoy-background")" || return 1
+
+  # Atomic config update (Tattoy uses relative paths)
+  local tmp
+  tmp="$(mktemp "${_tattoy_config}.XXXXXX")"
+  sed -e "s|^path = \"shaders/.*\"  # shader-path|path = \"shaders/$bg_shader\"  # shader-path|" \
+      -e "s|^path = \"shaders/.*\"  # cursor-path|path = \"shaders/$cursor_shader\"  # cursor-path|" \
+      "$_tattoy_config" > "$tmp"
+  command mv -f "$tmp" "$_tattoy_config"
 }
