@@ -506,6 +506,7 @@ alias shader-audit='bash ~/.config/ghostty/shaders/pick-shaders.sh'
 source "$HOME/.config/ghostty/shaders/shader-playlist.sh" 2>/dev/null
 
 # Playlist-aware shader selection (called from zshrc on each new shell)
+# Rotates Ghostty shader + both Tattoy layers (cursor & background) together
 shader-next() {
   [[ -z "$GHOSTTY_RESOURCES_DIR" ]] && return
   if [[ "$GHOSTTY_QUICK_TERMINAL" = "1" ]]; then
@@ -513,7 +514,11 @@ shader-next() {
   else
     shader-playlist-next "low-intensity"
   fi
+  tattoy-playlist-next 2>/dev/null
 }
+
+# Manually rotate all shader layers (Ghostty + Tattoy) on demand
+alias shader-rotate='shader-playlist-next "low-intensity"; tattoy-playlist-next 2>/dev/null'
 
 # Random shader from all shaders (manual fallback, ignores playlists)
 # Also available as AeroSpace keybind: alt-shift-s
@@ -524,13 +529,14 @@ shader-random() {
 # Playlist utilities
 alias shader-reshuffle='rm -f ~/.local/state/ghostty/*.queue ~/.local/state/ghostty/*.idx && echo "Playlists reshuffled on next shell"'
 shader-status() {
-  local lo_idx lo_total hi_idx hi_total
-  lo_idx="$(cat ~/.local/state/ghostty/low-intensity.idx 2>/dev/null || echo 0)"
-  lo_total="$(wc -l < ~/.local/state/ghostty/low-intensity.queue 2>/dev/null | tr -d ' ')" 2>/dev/null || lo_total="?"
-  hi_idx="$(cat ~/.local/state/ghostty/high-intensity.idx 2>/dev/null || echo 0)"
-  hi_total="$(wc -l < ~/.local/state/ghostty/high-intensity.queue 2>/dev/null | tr -d ' ')" 2>/dev/null || hi_total="?"
-  echo "Low-intensity:  $lo_idx / $lo_total"
-  echo "High-intensity: $hi_idx / $hi_total"
+  local sd="$HOME/.local/state/ghostty"
+  _ss_line() { local i t; i="$(cat "$sd/$1.idx" 2>/dev/null || echo 0)"; t="$(wc -l < "$sd/$1.queue" 2>/dev/null | tr -d ' ')" 2>/dev/null || t="?"; printf "%-20s %s / %s\n" "$2" "$i" "$t"; }
+  echo "── Ghostty ──"
+  _ss_line "low-intensity"    "Low-intensity:"
+  _ss_line "high-intensity"   "High-intensity:"
+  echo "── Tattoy ──"
+  _ss_line "tattoy-cursor"    "Cursor:"
+  _ss_line "tattoy-background" "Background:"
 }
 
 # FZF shader picker with categories and preview
