@@ -49,7 +49,7 @@ render_shader_colours_to_text = false
 
 # Default shader — a soft CRT glow that pairs well with RetroVisor's overlay.
 # Relative to this config directory. Change to any .glsl in shaders/.
-path = "shaders/green-crt.glsl"
+path = "shaders/green-crt.glsl"  # shader-path
 
 # ── Animated Cursor ─────────────────────────────
 [animated_cursor]
@@ -59,7 +59,7 @@ enabled = true
 opacity = 0.8
 
 # Cursor effect shader, relative to config directory
-path = "shaders/smear-cursor.glsl"
+path = "shaders/cursor_smear.glsl"  # cursor-path
 
 # Scale factor for cursor size (0.0 = match terminal's cursor size)
 cursor_scale = 0.0
