@@ -1,3 +1,4 @@
+precision highp float;
 // Shader Contribution by PremModhaOfficial
 // For inquiries or modifications, please reach him
 // GitHub: https://github.com/PremModhaOfficial

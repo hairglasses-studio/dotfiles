@@ -1,3 +1,4 @@
+precision highp float;
 // Created by Paul Robello
 
 

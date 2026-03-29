@@ -57,3 +57,8 @@ variegated-wash-bg.glsl
 wet-on-wet-bg.glsl
 water.glsl
 zoom_and_aberration.glsl
+film-grain.glsl
+halftone.glsl
+depth-of-field.glsl
+thermal.glsl
+ascii-overlay.glsl

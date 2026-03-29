@@ -1,3 +1,4 @@
+precision highp float;
 // adapted by Alex Sherwin for Ghstty from https://www.shadertoy.com/view/wl2Gzc
 
 //Shader License: CC BY 3.0
@@ -36,7 +37,9 @@
 
 float hash1_2(in vec2 x)
 {
- 	return fract(sin(dot(x, vec2(52.127, 61.2871))) * 521.582);   
+ 	uvec2 q = uvec2(x * 256.0) * uvec2(1597334673u, 3812015801u);
+ 	uint n = (q.x ^ q.y) * 1597334673u;
+ 	return float(n) / float(0xffffffffu);
 }
 
 vec2 hash2_2(in vec2 x)

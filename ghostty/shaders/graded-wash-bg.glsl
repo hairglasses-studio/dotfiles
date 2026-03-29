@@ -1,3 +1,4 @@
+precision highp float;
 // Graded Watercolor Wash Background
 // Color gradually fades from full intensity to transparent, top to bottom.
 // Organic, irregular edges like real watercolor on paper.

@@ -1,3 +1,4 @@
+precision highp float;
 // Salt Texture Watercolor Wash Background
 // Salt sprinkled on wet paint disrupts the wash into a fine speckled texture.
 // Paper peeks through where crystals absorbed pigment; pigment concentrates between.

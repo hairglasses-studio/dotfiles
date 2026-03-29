@@ -1,3 +1,4 @@
+precision highp float;
 //Shader License: CC BY 3.0
 //Author: Jan Mróz (jaszunio15)
 

@@ -1,3 +1,4 @@
+precision highp float;
 // Hex Glitch — hexagonal interference with CRT glitch effects
 // Ported from Shadertoy lfscD7 for Ghostty terminal
 //
@@ -183,27 +184,31 @@ vec3 RGBToHSV(vec3 rgb) {
 }
 
 vec3 Overlay(vec3 a, vec3 b) {
-    return vec3(
-        (a.x < 0.5) ? (2.0 * a.x * b.x) : (1.0 - 2.0 * (1.0 - a.x) * (1.0 - b.x)),
-        (a.y < 0.5) ? (2.0 * a.y * b.y) : (1.0 - 2.0 * (1.0 - a.y) * (1.0 - b.y)),
-        (a.z < 0.5) ? (2.0 * a.z * b.z) : (1.0 - 2.0 * (1.0 - a.z) * (1.0 - b.z))
-    );
+    vec3 lo = 2.0 * a * b;
+    vec3 hi = 1.0 - 2.0 * (1.0 - a) * (1.0 - b);
+    return mix(lo, hi, step(0.5, a));
 }
 
 vec3 paletteColor(float t) {
-    t = fract(t);
-    if (t < 0.2)      return mix(COL_CYAN, COL_BLUE, t * 5.0);
-    else if (t < 0.4) return mix(COL_BLUE, COL_PURPLE, (t - 0.2) * 5.0);
-    else if (t < 0.6) return mix(COL_PURPLE, COL_PINK, (t - 0.4) * 5.0);
-    else if (t < 0.8) return mix(COL_PINK, COL_GOLD, (t - 0.6) * 5.0);
-    else               return mix(COL_GOLD, COL_CYAN, (t - 0.8) * 5.0);
+    t = fract(t) * 5.0;
+    vec3 c0 = mix(COL_CYAN, COL_BLUE, clamp(t, 0.0, 1.0));
+    vec3 c1 = mix(COL_BLUE, COL_PURPLE, clamp(t - 1.0, 0.0, 1.0));
+    vec3 c2 = mix(COL_PURPLE, COL_PINK, clamp(t - 2.0, 0.0, 1.0));
+    vec3 c3 = mix(COL_PINK, COL_GOLD, clamp(t - 3.0, 0.0, 1.0));
+    vec3 c4 = mix(COL_GOLD, COL_CYAN, clamp(t - 4.0, 0.0, 1.0));
+    vec3 result = c0;
+    result = mix(result, c1, step(1.0, t));
+    result = mix(result, c2, step(2.0, t));
+    result = mix(result, c3, step(3.0, t));
+    result = mix(result, c4, step(4.0, t));
+    return result;
 }
 
 // ─── Core hex pattern ───────────────────────────────────────────────────────
 
 vec3 HexRender(vec2 uvScreen, vec2 res, bool isDisplaced, vec2 cursorPos, float heat, out float blend) {
-    #define kTurns 7
-    #define kNumRipples 5
+    #define kTurns 5
+    #define kNumRipples 4
     #define kRippleDelay (float(kNumRipples) / float(kTurns))
     #define kMaxIter 2
 
@@ -401,13 +406,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec3 hex = HexRender(xy, iResolution.xy, isDisplaced, curPos, heat, blend);
 
     // Posterize displaced regions (JPEG damage effect)
-    if (isDisplaced) {
-        hex *= 5.0;
-        hex.x += (fract(hex.x) > jpegDmg) ? 1.0 : 0.0;
-        hex.y += (fract(hex.y) > jpegDmg) ? 1.0 : 0.0;
-        hex.z += (fract(hex.z) > jpegDmg) ? 1.0 : 0.0;
-        hex = floor(hex) / 5.0;
-    }
+    float dispF = float(isDisplaced);
+    vec3 hexScaled = hex * 5.0;
+    vec3 dithered = hexScaled + step(jpegDmg, fract(hexScaled));
+    hex = mix(hex, floor(dithered) / 5.0, dispF);
 
     // Color grading: overlay tint + HSV hue shift + gamma
     hex = mix(hex, Overlay(hex, vec3(0.15, 0.29, 0.39)), blend);

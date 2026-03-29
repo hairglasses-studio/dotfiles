@@ -1,3 +1,11 @@
+precision highp float;
+
+float _hash(vec2 p) {
+    uvec2 q = uvec2(p * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
+}
+
 // NOTE:
 // This is neat, but I don't find it usable day to day - but it takes me back to good memories 
 // from many years ago when I was playing Flight Sim on my grandfather's amber CRT.  :)
@@ -53,7 +61,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     scanline = pow(scanline, 1.02); // Very minimal falloff
     
     // Subtle noise overlay
-    float noise = fract(sin(dot(uv + iTime * 0.01, vec2(12.9898, 78.233))) * 43758.5453);
+    float noise = _hash(uv + iTime * 0.01);
     noise = smoothstep(0.4, 0.6, noise) * 0.03; // Reduced noise
     
     // Amber color transformation

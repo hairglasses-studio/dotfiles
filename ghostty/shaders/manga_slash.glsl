@@ -1,3 +1,4 @@
+precision highp float;
 // By Komsit37 (https://github.com/komsit37)
 
 float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)
@@ -24,7 +25,9 @@ float ease(float x) {
 
 // Smooth noise function for fluid motion
 float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    uvec2 q = uvec2(p * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
 }
 
 float noise(vec2 p) {

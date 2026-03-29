@@ -1,3 +1,4 @@
+precision highp float;
 // Cursor trail shader that creates a hexagonal trailing effect with rainbow plasma
 
 // Process each edge: compute distance and determine if point is inside

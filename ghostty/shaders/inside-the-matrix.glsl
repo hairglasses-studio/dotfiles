@@ -1,3 +1,4 @@
+precision highp float;
 /*
   Feel free to do anything you want with this code.
   This shader uses "runes" code by FabriceNeyret2 (https://www.shadertoy.com/view/4ltyDM)
@@ -7,7 +8,7 @@
   @pkazmier modified this shader to work in Ghostty.
 */
 
-const int ITERATIONS = 40;   //use less value if you need more performance
+const int ITERATIONS = 25;   //use less value if you need more performance
 const float SPEED = .5;
 
 const float STRIP_CHARS_MIN =  7.;
@@ -28,35 +29,36 @@ const float PI = 3.14159265359;
 //        ----  random  ----
 
 float hash(float v) {
-    return fract(sin(v)*43758.5453123);
+    uint n = uint(v * 256.0) * 1597334673u;
+    n = n * 3812015801u;
+    return float(n) / float(0xffffffffu);
 }
 
 float hash(vec2 v) {
-    return hash(dot(v, vec2(5.3983, 5.4427)));
+    uvec2 q = uvec2(v * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
 }
 
-vec2 hash2(vec2 v)
-{
-    v = vec2(v * mat2(127.1, 311.7,  269.5, 183.3));
-    return fract(sin(v)*43758.5453123);
+vec2 hash2(vec2 v) {
+    uvec2 q = uvec2(v * mat2(127.1, 311.7, 269.5, 183.3) * 256.0);
+    q *= uvec2(1597334673u, 3812015801u);
+    q = q ^ (q >> 16u);
+    return vec2(q) / float(0xffffffffu);
 }
 
-vec4 hash4(vec2 v)
-{
-    vec4 p = vec4(v * mat4x2( 127.1, 311.7,
-                              269.5, 183.3,
-                              113.5, 271.9,
-                              246.1, 124.6 ));
-    return fract(sin(p)*43758.5453123);
+vec4 hash4(vec2 v) {
+    vec4 p = vec4(v * mat4x2(127.1, 311.7, 269.5, 183.3, 113.5, 271.9, 246.1, 124.6));
+    uvec4 q = uvec4(p * 256.0) * uvec4(1597334673u, 3812015801u, 2798796415u, 1370589171u);
+    q = q ^ (q >> 16u);
+    return vec4(q) / float(0xffffffffu);
 }
 
-vec4 hash4(vec3 v)
-{
-    vec4 p = vec4(v * mat4x3( 127.1, 311.7, 74.7,
-                              269.5, 183.3, 246.1,
-                              113.5, 271.9, 124.6,
-                              271.9, 269.5, 311.7 ) );
-    return fract(sin(p)*43758.5453123);
+vec4 hash4(vec3 v) {
+    vec4 p = vec4(v * mat4x3(127.1, 311.7, 74.7, 269.5, 183.3, 246.1, 113.5, 271.9, 124.6, 271.9, 269.5, 311.7));
+    uvec4 q = uvec4(p * 256.0) * uvec4(1597334673u, 3812015801u, 2798796415u, 1370589171u);
+    q = q ^ (q >> 16u);
+    return vec4(q) / float(0xffffffffu);
 }
 
 //        ----  symbols  ----
@@ -120,7 +122,10 @@ vec3 rain(vec3 ro3, vec3 rd3, float time) {
     //  move through xy-cells in the ray direction
     float t2 = 0.;  // the ray formula is: ro2 + rd2 * t2, where t2 is positive as the ray has a direction.
     ivec2 next_cell = ivec2(floor(ro2/XYCELL_SIZE));  //first cell index where ray origin is located
+    float lod = clamp(iResolution.x / 1920.0, 0.5, 1.0);
+    int maxIter = int(float(ITERATIONS) * lod);
     for (int i=0; i<ITERATIONS; i++) {
+        if (i >= maxIter) break;
         ivec2 cell = next_cell;  //save cell value before changing
         float t2s = t2;          //and t
 
