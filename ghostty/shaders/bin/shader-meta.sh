@@ -225,20 +225,18 @@ cmd_validate() {
   done
 
   # Check every manifest entry has a .glsl file
-  _toml_list_names | while read -r name; do
+  while read -r name; do
     if [[ ! -f "$SHADERS_DIR/${name}.glsl" ]]; then
       echo "ORPHAN in manifest: ${name} (no .glsl file)"
       errors=$((errors + 1))
     fi
-  done
-
-  # Check playlist references
-  _toml_dump_all | while IFS=$'\t' read -r name cat cost src desc; do
-    :  # Playlist validation is in generate-playlists
-  done
+  done < <(_toml_list_names)
 
   if [[ $errors -eq 0 ]]; then
     echo "OK: All $(wc -l < <(_toml_list_names) | tr -d ' ') manifest entries match .glsl files."
+  else
+    echo "ERRORS: $errors mismatch(es) found."
+    return 1
   fi
 }
 
