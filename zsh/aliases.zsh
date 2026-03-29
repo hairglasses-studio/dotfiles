@@ -505,6 +505,11 @@ alias shader-audit='bash ~/.config/ghostty/shaders/bin/shader-audit.sh'
 # Benchmark shaders via glslViewer headless rendering
 alias shader-bench='bash ~/.config/ghostty/shaders/bin/shader-benchmark.sh'
 
+# Shader toolchain
+alias shader-meta='bash ~/.config/ghostty/shaders/bin/shader-meta.sh'
+alias shader-build='bash ~/.config/ghostty/shaders/bin/shader-build.sh'
+alias shader-test='bash ~/.config/ghostty/shaders/bin/shader-test.sh'
+
 # Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
 source "$HOME/.config/ghostty/shaders/bin/shader-playlist.sh" 2>/dev/null
 source "$HOME/.config/ghostty/shaders/bin/shader-pick-tattoy.sh" 2>/dev/null
