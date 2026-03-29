@@ -96,7 +96,7 @@ apply_ghostty_shader() {
 clear_ghostty_shader() {
   local tmp
   tmp="$(mktemp "${GHOSTTY_CONFIG}.XXXXXX")"
-  sed -e "s|^custom-shader = .*|# custom-shader = none|" \
+  sed -e "s|^#* *custom-shader = .*|# custom-shader = none|" \
       -e "s|^custom-shader-animation = .*|custom-shader-animation = false|" \
       "$GHOSTTY_CONFIG" > "$tmp"
   mv -f "$tmp" "$GHOSTTY_CONFIG"
