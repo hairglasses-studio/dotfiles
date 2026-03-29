@@ -509,6 +509,7 @@ alias shader-bench='bash ~/.config/ghostty/shaders/bin/shader-benchmark.sh'
 alias shader-meta='bash ~/.config/ghostty/shaders/bin/shader-meta.sh'
 alias shader-build='bash ~/.config/ghostty/shaders/bin/shader-build.sh'
 alias shader-test='bash ~/.config/ghostty/shaders/bin/shader-test.sh'
+alias shader-cycle='bash ~/.config/ghostty/shaders/bin/shader-cycle.sh'
 
 # Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
 source "$HOME/.config/ghostty/shaders/bin/shader-playlist.sh" 2>/dev/null
