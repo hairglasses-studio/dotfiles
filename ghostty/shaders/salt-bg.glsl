@@ -1,4 +1,8 @@
 precision highp float;
+
+#ifndef WASH_HUE
+#define WASH_HUE 0.6
+#endif
 // Salt Texture Watercolor Wash Background
 // Salt sprinkled on wet paint disrupts the wash into a fine speckled texture.
 // Paper peeks through where crystals absorbed pigment; pigment concentrates between.
@@ -30,7 +34,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec4 orig = texture(iChannel0, uv);
 
-    float distToBg = distance(orig.rgb, iBackgroundColor);
+    float distToBg = distance(orig.rgb, iBackgroundColor.rgb);
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -76,7 +80,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float pigmentPresence = saltTexture * 0.6 + saltDensity * 0.4;
 
     // Soft mapping to color — wide smoothstep avoids hard camo edges
-    vec3 washColor = mix(iBackgroundColor, pigment,
+    vec3 washColor = mix(iBackgroundColor.rgb, pigment,
                          smoothstep(0.2, 0.65, pigmentPresence) * 0.75);
 
     // Minimal paper grain

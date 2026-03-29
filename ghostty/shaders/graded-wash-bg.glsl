@@ -1,4 +1,8 @@
 precision highp float;
+
+#ifndef WASH_HUE
+#define WASH_HUE 0.6
+#endif
 // Graded Watercolor Wash Background
 // Color gradually fades from full intensity to transparent, top to bottom.
 // Organic, irregular edges like real watercolor on paper.
@@ -30,7 +34,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec4 orig = texture(iChannel0, uv);
 
-    float distToBg = distance(orig.rgb, iBackgroundColor);
+    float distToBg = distance(orig.rgb, iBackgroundColor.rgb);
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -91,7 +95,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     if (isBg > 0.5) {
         if (inPaint > 0.5) {
             // Inside the wash — graded intensity
-            result = mix(iBackgroundColor, washColor, 0.6 * washStrength);
+            result = mix(iBackgroundColor.rgb, washColor, 0.6 * washStrength);
             alpha = mix(0.3, 0.9, washStrength);
         } else {
             // Outside the wash — fully transparent
