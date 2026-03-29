@@ -46,6 +46,10 @@ alt-shift-c = 'exec-and-forget bash -c "pgrep -x RetroVisor && pkill -x RetroVis
 # Random shader — Ghostty auto-reloads via FSEvents when config changes
 alt-shift-s = 'exec-and-forget bash ~/.config/ghostty/shaders/bin/shader-random.sh'
 
+# Cycle shaders (curated list + Tattoy mode)
+alt-shift-n = 'exec-and-forget bash ~/.config/ghostty/shaders/bin/shader-cycle.sh'
+alt-shift-p = 'exec-and-forget bash ~/.config/ghostty/shaders/bin/shader-cycle.sh --prev'
+
 # Focus (alt + hjkl)
 alt-h = 'focus left'
 alt-j = 'focus down'
