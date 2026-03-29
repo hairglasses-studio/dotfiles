@@ -1,3 +1,4 @@
+precision highp float;
 float triangle(float x, float period) { 
 	return 2.0 * abs(3.0*   ((x / period) - floor((x / period) + 0.5))) - 1.0;
 }

@@ -209,7 +209,7 @@ Shaders rotate automatically on each new shell via shuffled playlists with no-re
 | Tattoy background layer | All non-cursor | 88 — CRT, backgrounds, post-FX, watercolor |
 | Tattoy cursor layer | All cursor | 33 — blaze, smear, sweep, ripple, sparks |
 
-Playlists are managed by `ghostty/shaders/shader-playlist.sh` with Fisher-Yates shuffle and state persistence in `~/.local/state/ghostty/`.
+Playlists are managed by `ghostty/shaders/bin/shader-playlist.sh` with Fisher-Yates shuffle and state persistence in `~/.local/state/ghostty/`.
 
 ### Shader commands
 

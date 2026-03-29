@@ -67,6 +67,7 @@ brew "poppler"
 # Shader / visual-effects tools
 tap "tattoy-org/tap"
 brew "tattoy-org/tap/tattoy"          # text compositor — runs Shadertoy shaders in any terminal
+brew "glslviewer"                     # CLI GLSL sandbox for prototyping shaders
 # RetroVisor: CRT shader overlay for any macOS window (not on Homebrew)
 # Download from: https://github.com/dirkwhoffmann/RetroVisor/releases
 

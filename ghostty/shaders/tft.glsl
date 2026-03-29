@@ -1,3 +1,4 @@
+precision highp float;
 /** Size of TFT "pixels" */
 float resolution = 4.0;
 

@@ -1,3 +1,4 @@
+precision highp float;
 // JAM - typing-speed-reactive electricity shader v2
 // CRANKED: thicker bolts, more branches, screen shake, particle sparks, faster response
 
@@ -22,7 +23,9 @@ const vec3 COL_BLUE   = vec3(0.271, 0.541, 0.886);
 const vec3 COL_WHITE  = vec3(0.973, 0.965, 0.949);
 
 float hash21(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    uvec2 q = uvec2(p) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
 }
 
 float vnoise(vec2 p) {
@@ -131,12 +134,18 @@ float particleSpark(vec2 p, vec2 origin, float tm, float seed) {
 }
 
 vec3 getArcColor(float tm) {
-    float phase = fract(tm * 0.5);
-    if (phase < 0.2)      return mix(COL_CYAN, COL_BLUE, phase * 5.0);
-    else if (phase < 0.4) return mix(COL_BLUE, COL_PURPLE, (phase - 0.2) * 5.0);
-    else if (phase < 0.6) return mix(COL_PURPLE, COL_PINK, (phase - 0.4) * 5.0);
-    else if (phase < 0.8) return mix(COL_PINK, COL_GOLD, (phase - 0.6) * 5.0);
-    else                  return mix(COL_GOLD, COL_CYAN, (phase - 0.8) * 5.0);
+    float t = fract(tm * 0.5) * 5.0;
+    vec3 c0 = mix(COL_CYAN, COL_BLUE, clamp(t, 0.0, 1.0));
+    vec3 c1 = mix(COL_BLUE, COL_PURPLE, clamp(t - 1.0, 0.0, 1.0));
+    vec3 c2 = mix(COL_PURPLE, COL_PINK, clamp(t - 2.0, 0.0, 1.0));
+    vec3 c3 = mix(COL_PINK, COL_GOLD, clamp(t - 3.0, 0.0, 1.0));
+    vec3 c4 = mix(COL_GOLD, COL_CYAN, clamp(t - 4.0, 0.0, 1.0));
+    vec3 result = c0;
+    result = mix(result, c1, step(1.0, t));
+    result = mix(result, c2, step(2.0, t));
+    result = mix(result, c3, step(3.0, t));
+    result = mix(result, c4, step(4.0, t));
+    return result;
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {

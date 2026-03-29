@@ -86,3 +86,14 @@ vt320-amber-glow.glsl
 water.glsl
 wet-on-wet-bg.glsl
 zoom_and_aberration.glsl
+film-grain.glsl
+halftone.glsl
+depth-of-field.glsl
+thermal.glsl
+ascii-overlay.glsl
+creation.glsl
+star-nest.glsl
+protean-clouds.glsl
+auroras.glsl
+balatro-background.glsl
+seascape.glsl

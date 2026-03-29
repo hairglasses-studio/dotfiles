@@ -1,6 +1,6 @@
 # Shader Sources & Attribution
 
-120 GLSL shaders collected from 25+ sources for the Ghostty terminal emulator.
+133 GLSL shaders collected from 25+ sources for the Ghostty terminal emulator.
 
 ## Source Repositories
 
@@ -191,6 +191,16 @@ Hand-adapted from Shadertoy techniques for Ghostty's `iChannel0` terminal textur
 - `vhs-tape.glsl` — Post-FX: VHS tape degradation
 - `chromatic-aberration.glsl` — Post-FX: Radial RGB channel separation
 - `vaporwave.glsl` — Post-FX: Pink/cyan/purple color grade
+
+## Shadertoy Ports (direct)
+
+Iconic shaders ported directly from Shadertoy with `iMouse` replaced by auto-orbit:
+- `creation.glsl` — Background: Psychedelic plasma energy ([Silexars](https://www.shadertoy.com/view/XsXXDn))
+- `star-nest.glsl` — Background: Deep space flythrough ([Kali](https://www.shadertoy.com/view/XlfGRj))
+- `protean-clouds.glsl` — Background: Volumetric clouds ([nimitz](https://www.shadertoy.com/view/3l23Rh))
+- `auroras.glsl` — Background: Northern lights ([nimitz](https://www.shadertoy.com/view/XtGGRt))
+- `balatro-background.glsl` — Background: Liquid swirl effect ([Shadertoy](https://www.shadertoy.com/view/XXtBRr))
+- `seascape.glsl` — Background: Photorealistic ocean ([TDM](https://www.shadertoy.com/view/Ms2SD1))
 
 ## Original Shaders
 

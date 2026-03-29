@@ -1,3 +1,4 @@
+precision highp float;
 // Based on the Shadertoy: https://www.shadertoy.com/view/3s3cD2
 // With help from @slammy_13
 

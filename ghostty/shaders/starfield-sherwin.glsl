@@ -1,3 +1,4 @@
+precision highp float;
 
 // divisions of grid
 const float repeats = 30.;

@@ -1,3 +1,4 @@
+precision highp float;
 // Configuration
 #define ZOOM_DURATION 0.8
 #define MAX_SCALE 2.0
@@ -8,7 +9,9 @@ float easeOutCubic(float t) {
 
 // 2D Random
 float random (in vec2 st) {
-    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+    uvec2 q = uvec2(st * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
 }
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord)

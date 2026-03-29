@@ -500,10 +500,14 @@ shader-none() {
   mv "$tmp" "$cfg"
 }
 # Interactive shader audition — test each shader one-by-one with keep/skip
-alias shader-audit='bash ~/.config/ghostty/shaders/pick-shaders.sh'
+alias shader-audit='bash ~/.config/ghostty/shaders/bin/shader-audit.sh'
+
+# Benchmark shaders via glslViewer headless rendering
+alias shader-bench='bash ~/.config/ghostty/shaders/bin/shader-benchmark.sh'
 
 # Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
-source "$HOME/.config/ghostty/shaders/shader-playlist.sh" 2>/dev/null
+source "$HOME/.config/ghostty/shaders/bin/shader-playlist.sh" 2>/dev/null
+source "$HOME/.config/ghostty/shaders/bin/shader-pick-tattoy.sh" 2>/dev/null
 
 # Playlist-aware shader selection (called from zshrc on each new shell)
 # Rotates Ghostty shader + both Tattoy layers (cursor & background) together
@@ -512,7 +516,10 @@ shader-next() {
   if [[ "$GHOSTTY_QUICK_TERMINAL" = "1" ]]; then
     shader-playlist-next "high-intensity"
   else
-    shader-playlist-next "low-intensity"
+    local active_pl="low-intensity"
+    local pl_cfg="$HOME/.local/state/ghostty/auto-rotate-playlist"
+    [[ -f "$pl_cfg" ]] && active_pl="$(< "$pl_cfg")"
+    shader-playlist-next "$active_pl"
   fi
   tattoy-playlist-next 2>/dev/null
 }
@@ -523,7 +530,7 @@ alias shader-rotate='shader-playlist-next "low-intensity"; tattoy-playlist-next 
 # Random shader from all shaders (manual fallback, ignores playlists)
 # Also available as AeroSpace keybind: alt-shift-s
 shader-random() {
-  bash "$HOME/.config/ghostty/shaders/randomize-shader.sh"
+  bash "$HOME/.config/ghostty/shaders/bin/shader-random.sh"
 }
 
 # Playlist utilities
@@ -537,155 +544,97 @@ shader-status() {
   echo "── Tattoy ──"
   _ss_line "tattoy-cursor"    "Cursor:"
   _ss_line "tattoy-background" "Background:"
+  _ss_line "best-of"          "Best-of:"
+  echo "── Auto-rotate ──"
+  local active_pl="low-intensity"
+  [[ -f "$sd/auto-rotate-playlist" ]] && active_pl="$(< "$sd/auto-rotate-playlist")"
+  printf "%-20s %s\n" "Active playlist:" "$active_pl"
+  if launchctl list com.dotfiles.shader-rotate &>/dev/null; then
+    printf "%-20s %s\n" "Timer:" "running"
+  else
+    printf "%-20s %s\n" "Timer:" "stopped"
+  fi
 }
 
-# FZF shader picker with categories and preview
+# Automatic timed shader rotation via launchd
+# shader-auto start [minutes]  — start rotating every N minutes (default 30)
+# shader-auto stop             — stop automatic rotation
+# shader-auto status           — check if timer is running
+shader-auto() {
+  local plist="$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
+  local label="com.dotfiles.shader-rotate"
+  case "${1:-status}" in
+    start)
+      local interval=$(( ${2:-30} * 60 ))
+      local tmp; tmp="$(mktemp "${plist}.XXXXXX")"
+      sed "s|<integer>[0-9]*</integer>|<integer>${interval}</integer>|" "$plist" > "$tmp"
+      mv -f "$tmp" "$plist"
+      launchctl unload "$plist" 2>/dev/null
+      launchctl load "$plist"
+      echo "Shader auto-rotate started (every ${2:-30} minutes)"
+      ;;
+    stop)
+      launchctl unload "$plist" 2>/dev/null
+      echo "Shader auto-rotate stopped"
+      ;;
+    status)
+      if launchctl list "$label" &>/dev/null; then
+        echo "Shader auto-rotate: running"
+      else
+        echo "Shader auto-rotate: stopped"
+      fi
+      ;;
+    *)
+      echo "Usage: shader-auto {start [minutes]|stop|status}"
+      ;;
+  esac
+}
+
+# Best-of shader showcase — curated playlist of the most impressive effects
+# shader-best start [minutes]  — activate best-of rotation (default 15 min)
+# shader-best stop             — revert to low-intensity and stop
+# shader-best next             — manually advance to next best-of shader
+shader-best() {
+  local state_dir="$HOME/.local/state/ghostty"
+  local playlist_cfg="$state_dir/auto-rotate-playlist"
+  mkdir -p "$state_dir" 2>/dev/null
+
+  case "${1:-next}" in
+    start)
+      printf '%s' "best-of" > "$playlist_cfg"
+      shader-auto start "${2:-15}"
+      echo "Best-of showcase active (every ${2:-15} minutes)"
+      ;;
+    stop)
+      printf '%s' "low-intensity" > "$playlist_cfg"
+      shader-auto stop
+      echo "Best-of stopped, reverted to low-intensity"
+      ;;
+    next)
+      printf '%s' "best-of" > "$playlist_cfg"
+      shader-playlist-next "best-of"
+      ;;
+    *)
+      echo "Usage: shader-best {start [minutes]|stop|next}"
+      ;;
+  esac
+}
+
+# FZF shader picker — reads metadata from shaders.toml manifest
 shader-pick() {
   local dir="$HOME/.config/ghostty/shaders"
+  local meta="$dir/bin/shader-meta.sh"
   [[ -d "$dir" ]] || { echo "No shaders directory found"; return 1; }
-
-  # Category → shader mapping (sorted by category)
-  local entries=""
-  local shader
-  for shader in "$dir"/*.glsl(N); do
-    local name="${shader:t}"
-    local cat desc
-    case "$name" in
-      blue-crt*|green-crt*|crt.glsl|crt_glitch*|crt-chromatic*|bettercrt*|in-game-crt*|retro-terminal*|scanline*|amber-monitor*|vt320-amber*|bettercrt-alt*) cat="CRT" ;;
-      cursor_*|cursor-*|*_cursor*|blaze_sparks*|last_letter_zoom*|manga_slash*|party_sparks*|sparks.glsl|cursor_explosion*|cursor_viberation*|cursor_smear_linkarzu*|cursor_smear_fade_linkarzu*) cat="Cursor" ;;
-      *-bg.glsl|graded-wash*|salt-bg*|splatter-bg*|variegated*|wet-on-wet*) cat="Watercolor" ;;
-      animated-gradient*|clouds*|cubes*|electric*|galaxy*|gears*|gradient-background*|inside-the-matrix*|just-snow*|matrix-hallway*|sparks-from-fire*|splatter-fractal*|starfield*|water.glsl|underwater*|cineShader-Lava*|fireworks*|sin-interference*|smoke-and-ghost*|matrix.glsl|matrix_rain*) cat="Background" ;;
-      dither*|drunkard*|flicker*|glitchy*|glow*|hexglitch*|mnoise*|pixels*|shake*|soft_shadows*|tft*|zoom_and_aberration*|chromatic-aberration*|vcr-*|vhs-*|vaporwave*|bloom*|negative*|spotlight*|computer-glitchy*|cyberpunk*|holo-shimmer*|old-film*|scanbars*|static*|focus-blur*|focus-pulse*) cat="Post-FX" ;;
-      *) cat="Other" ;;
-    esac
-    case "$name" in
-      blue-crt*)           desc="Blue phosphor CRT with scanlines" ;;
-      green-crt*)          desc="Green phosphor CRT with scanlines" ;;
-      crt.glsl)            desc="Classic CRT scanlines and curvature" ;;
-      crt_glitch*)         desc="CRT with glitch distortion" ;;
-      in-game-crt-cursor*) desc="In-game CRT with cursor highlight" ;;
-      in-game-crt.glsl)    desc="In-game style CRT monitor" ;;
-      retro-terminal*)     desc="Retro green phosphor terminal" ;;
-      scanline*)           desc="Simple scanline overlay" ;;
-      crt-chromatic*)      desc="CRT with chromatic aberration + dot matrix" ;;
-      bettercrt*)          desc="Enhanced CRT with barrel distortion" ;;
-      in-game-crt-alt*)    desc="In-game CRT variant" ;;
-      amber-monitor*)      desc="Amber phosphor monitor simulation" ;;
-      vt320-amber*)        desc="VT320-style amber phosphor glow" ;;
-      retro-terminal-soanvig*) desc="Retro terminal amalgam" ;;
-      dither*)             desc="Dithering effect on output" ;;
-      drunkard*)           desc="Wobbly distorted screen" ;;
-      flicker*)            desc="Screen flicker effect" ;;
-      glitchy*)            desc="Digital glitch/corruption" ;;
-      glow.glsl)           desc="Simple bloom/glow effect" ;;
-      glow-rgb*)           desc="RGB split with glow and twitch" ;;
-      hexglitch*)          desc="Hex grid glitch distortion" ;;
-      mnoise*)             desc="Perlin noise overlay" ;;
-      pixels*)             desc="Pixel grid effect" ;;
-      shake*)              desc="Screen shake effect" ;;
-      soft_shadows*)       desc="Soft shadow circles animation" ;;
-      tft*)                desc="TFT/LCD subpixel rendering" ;;
-      zoom_and_aberration*) desc="Zoom with chromatic aberration" ;;
-      chromatic-aberration*) desc="Radial chromatic aberration" ;;
-      vcr-distortion*)     desc="VCR tape playback distortion" ;;
-      vhs-tape*)           desc="VHS tape degradation effect" ;;
-      vaporwave*)          desc="Vaporwave pink/cyan color grade" ;;
-      bloom-classic*)      desc="Classic bloom/glow effect" ;;
-      bloom-soft*)         desc="Soft bloom/glow effect" ;;
-      bloom-warm*)         desc="Warm-toned bloom effect" ;;
-      bloom025*)           desc="Bloom at 25% intensity" ;;
-      bloom050*)           desc="Bloom at 50% intensity" ;;
-      bloom060*)           desc="Bloom at 60% intensity" ;;
-      bloom075*)           desc="Bloom at 75% intensity" ;;
-      bloom1*)             desc="Bloom at full intensity" ;;
-      blaze_sparks*)       desc="Sparking blaze cursor" ;;
-      cursor_blaze_no_trail*) desc="Blaze cursor without trail" ;;
-      cursor_blaze_tapered*) desc="Tapered fire trail cursor" ;;
-      cursor_blaze*)       desc="Fire trail behind cursor" ;;
-      cursor_border_1*)    desc="Cursor border glow" ;;
-      cursor_frozen*)      desc="Frozen/ice cursor effect" ;;
-      cursor-glitch*)      desc="Glitch distortion around cursor" ;;
-      cursor_smear_fade*)  desc="Smear with fade cursor" ;;
-      cursor_smear_gradient*) desc="Gradient smear cursor" ;;
-      cursor_smear_rainbow*) desc="Rainbow smear cursor" ;;
-      cursor_smear*)       desc="Smear trail cursor" ;;
-      cursor_sweep*)       desc="Sweep trail behind cursor" ;;
-      cursor_synesthaxia*) desc="Colorscheme-adaptive cursor" ;;
-      cursor_tail*)        desc="Fading tail behind cursor" ;;
-      cursor_warp*)        desc="Warp distortion around cursor" ;;
-      last_letter_zoom*)   desc="Zoom on last typed character" ;;
-      manga_slash*)        desc="Manga-style slash effect" ;;
-      party_sparks*)       desc="Colorful party sparks" ;;
-      ripple_cursor*)      desc="Ripple wave from cursor" ;;
-      ripple_rectangle*)   desc="Rectangular ripple from cursor" ;;
-      sparks.glsl)         desc="Spark particles from cursor" ;;
-      cursor_explosion*)   desc="Particle explosion from cursor" ;;
-      cursor_viberation*)  desc="Vibrating cursor with feedback" ;;
-      cursor_blaze_alt*)   desc="Alternative fire trail cursor" ;;
-      cursor_blaze_chardskarth*) desc="Original cursor blaze (chardskarth)" ;;
-      cursor_blaze_no_trail_chardskarth*) desc="Blaze without trail (chardskarth)" ;;
-      cursor_smear_alt*)   desc="Alternative smear trail cursor" ;;
-      cursor_smear_*_original*|cursor_smear_original*) desc="Original smear variant (pre-edit)" ;;
-      animated-gradient*)  desc="Animated color gradient" ;;
-      clouds*)             desc="Parallax cloud background" ;;
-      cubes*)              desc="Animated 3D cube grid" ;;
-      electric-modes*)     desc="Electric effect with modes" ;;
-      electric*)           desc="Electric/lightning effect" ;;
-      galaxy*)             desc="Animated galaxy/nebula" ;;
-      gears*)              desc="Mechanical gears animation" ;;
-      gradient-background*) desc="Static color gradient" ;;
-      inside-the-matrix*)  desc="Matrix rain animation" ;;
-      just-snow*)          desc="Falling snow particles" ;;
-      matrix-hallway*)     desc="Matrix code fly-through" ;;
-      sparks-from-fire*)   desc="Fire sparks particles" ;;
-      splatter-fractal*)   desc="Fractal paint splatter" ;;
-      starfield-colors*)   desc="Colorful animated starfield" ;;
-      starfield.glsl)      desc="Classic starfield fly-through" ;;
-      starfield-alt*)      desc="Starfield variant" ;;
-      starfield-colors-alt*) desc="Colorful starfield variant" ;;
-      starfield-sherwin*)  desc="Starfield with image overlay" ;;
-      inside-the-matrix-alt*) desc="Matrix rain variant" ;;
-      inside-the-matrix-sherwin*) desc="Matrix with custom blending" ;;
-      sparks-from-fire-shadertoy*) desc="Shadertoy fire sparks" ;;
-      underwater*)         desc="Underwater caustics and light" ;;
-      water.glsl)          desc="Water ripple/wave" ;;
-      cineShader-Lava*)    desc="Animated lava/magma shader" ;;
-      fireworks-rockets*)  desc="Fireworks with rocket trails" ;;
-      fireworks.glsl)      desc="Fireworks burst animation" ;;
-      sin-interference*)   desc="Sine wave interference pattern" ;;
-      smoke-and-ghost*)    desc="Smoke and ghost particles" ;;
-      matrix.glsl)         desc="Matrix digital rain" ;;
-      matrix_rain*)        desc="Matrix rain with green glow" ;;
-      bettercrt-alt*)      desc="Alternative CRT distortion" ;;
-      negative*)           desc="Color negative/inversion filter" ;;
-      spotlight*)          desc="Spotlight/vignette effect" ;;
-      computer-glitchy-2*) desc="Computer glitch variant 2" ;;
-      computer-glitchy-3*) desc="Computer glitch variant 3" ;;
-      computer-glitchy-4*) desc="Computer glitch variant 4" ;;
-      computer-glitchy*)   desc="Computer glitch distortion" ;;
-      cyberpunk*)          desc="Cyberpunk neon color grade" ;;
-      holo-shimmer*)       desc="Holographic shimmer effect" ;;
-      old-film*)           desc="Old film grain and scratches" ;;
-      scanbars*)           desc="Horizontal scan bar effect" ;;
-      static*)             desc="Static/snow noise overlay" ;;
-      focus-blur*)         desc="Blur + desaturate on unfocus" ;;
-      focus-pulse*)        desc="Glow pulse on refocus" ;;
-      cursor_smear_linkarzu*) desc="Smear cursor variant (linkarzu)" ;;
-      cursor_smear_fade_linkarzu*) desc="Smear-fade variant (linkarzu)" ;;
-      graded-wash*)        desc="Graded color transition wash" ;;
-      salt-bg*)            desc="Salt texture on watercolor" ;;
-      splatter-bg*)        desc="Paint splatter effect" ;;
-      variegated*)         desc="Multi-color variegated wash" ;;
-      wet-on-wet*)         desc="Wet-on-wet watercolor blend" ;;
-      *)                   desc="" ;;
-    esac
-    entries+="$(printf '%-12s │ %-36s %s' "$cat" "$name" "$desc")\n"
-  done
+  [[ -x "$meta" ]] || { echo "shader-meta.sh not found"; return 1; }
 
   local pick
-  pick="$(echo -e "$entries" | sort | fzf --header='Pick a shader (ESC to cancel)' --ansi --no-multi)" || return
+  pick="$("$meta" fzf-lines | fzf \
+    --delimiter='\t' \
+    --with-nth=2,1,3 \
+    --header='Pick a shader (ESC to cancel)' \
+    --no-multi)" || return
   local shader_name
-  shader_name="$(echo "$pick" | awk -F'│' '{print $2}' | awk '{print $1}')"
+  shader_name="$(echo "$pick" | cut -f1)"
   [[ -z "$shader_name" ]] && return
 
   local shader_path="$dir/$shader_name"

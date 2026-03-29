@@ -1,3 +1,4 @@
+precision highp float;
 // --- CONFIGURATION ---
 vec4 TRAIL_COLOR = iCurrentCursorColor; // can change to eg: vec4(0.2, 0.6, 1.0, 0.5);
 const float DURATION = 0.2; // total animation time

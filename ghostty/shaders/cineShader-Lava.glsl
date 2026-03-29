@@ -1,3 +1,4 @@
+precision highp float;
 // INFO: This shader is a port of https://www.shadertoy.com/view/3sySRK
 
 // INFO: Change these variables to create some variation in the animation

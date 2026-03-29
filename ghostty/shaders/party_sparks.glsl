@@ -1,3 +1,4 @@
+precision highp float;
 // Original shader by yakovgal on Shadertoy:
 // https://www.shadertoy.com/user/yakovgal
 

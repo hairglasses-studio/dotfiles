@@ -1,3 +1,4 @@
+precision highp float;
 // First it does a "chromatic aberration" by splitting the rgb signals by a product of sin functions
 // over time, then it does a glow effect in a perceptual color space
 // Based on kalgynirae's Ghostty passable glow shader and NickWest's Chromatic Aberration shader demo
