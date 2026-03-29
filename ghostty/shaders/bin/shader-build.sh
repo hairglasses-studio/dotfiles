@@ -104,6 +104,7 @@ process_shader() {
       current_lib="${current_lib% ---}"
       in_block=true
       changed=true
+      include_just_seen=""
       continue
     fi
 
@@ -115,17 +116,40 @@ process_shader() {
       # Write the directive
       echo "$line" >> "$tmp"
 
-      if $STRIP_MODE; then
-        : # Just keep the directive, no inline
-      elif [[ -f "$lib_file" ]]; then
-        echo "$BEGIN_MARKER $lib_ref ---" >> "$tmp"
-        cat "$lib_file" >> "$tmp"
-        echo "$END_MARKER $lib_ref ---" >> "$tmp"
-        changed=true
-      else
-        echo "WARNING: $lib_ref not found for $shader_name" >&2
-      fi
+      # If an existing inlined block follows, the BEGIN handler will re-inline it.
+      # Only inline here if this is a fresh directive (no block follows yet).
+      # We track this with a flag; the BEGIN handler checks it.
+      include_just_seen="$lib_ref"
       continue
+    fi
+
+    # If we just saw an #include and the next line is a BEGIN marker for the same lib,
+    # let the block handler take over (it will strip + re-inline). Otherwise, inline now.
+    if [[ -n "${include_just_seen:-}" ]]; then
+      if [[ "$line" == "${BEGIN_MARKER}"* ]]; then
+        # Existing block follows — enter block mode to replace it
+        current_lib="${line#${BEGIN_MARKER} }"
+        current_lib="${current_lib% ---}"
+        in_block=true
+        changed=true
+        include_just_seen=""
+        continue
+      else
+        # No existing block — inline the lib now
+        if ! $STRIP_MODE; then
+          local ilib_file="$LIB_DIR/${include_just_seen#lib/}"
+          if [[ -f "$ilib_file" ]]; then
+            echo "$BEGIN_MARKER $include_just_seen ---" >> "$tmp"
+            cat "$ilib_file" >> "$tmp"
+            echo "$END_MARKER $include_just_seen ---" >> "$tmp"
+            changed=true
+          else
+            echo "WARNING: $include_just_seen not found for $shader_name" >&2
+          fi
+        fi
+        include_just_seen=""
+        # Fall through to write the current line normally
+      fi
     fi
 
     echo "$line" >> "$tmp"
