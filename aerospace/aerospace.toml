@@ -37,6 +37,17 @@ outer.right = 8
 outer.bottom = 8
 outer.top = 40  # room for SketchyBar
 
+# ── Window rules ──────────────────────────────
+# RetroVisor is a fullscreen CRT overlay — must float, never tile
+[[on-window-detected]]
+if.app-id = 'de.dirkwhoffmann.de.RetroVisor'
+run = 'layout floating'
+
+# glslViewer is a CLI tool with no bundle ID — match by name, keep floating
+[[on-window-detected]]
+if.app-name-regex-substring = 'glslViewer'
+run = 'layout floating'
+
 # Main mode keybindings
 [mode.main.binding]
 
