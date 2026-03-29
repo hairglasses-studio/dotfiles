@@ -1,5 +1,12 @@
+precision highp float;
 #define COLOR_BACK vec3(0.10, 0.10, 0.10)
 #define COLOR_TRACE vec3(0.10, 1.10, 0.50)
+
+float _hash(vec2 p) {
+    uvec2 q = uvec2(p * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
+}
 
 // Function to apply lens distortion
 vec2 applyLensDistortion(vec2 uv, float distortionAmount) {
@@ -25,8 +32,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     float aberrationOffset = 0.0035;
     float glitchAmount = 0.015;
 
-    float glitchX = mix(1.0, 1.0 + glitchAmount, fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453));
-    float glitchY = mix(1.0, 1.0 + glitchAmount, fract(sin(dot(uv, vec2(39.7424, 76.3456))) * 43758.5453));
+    float glitchX = mix(1.0, 1.0 + glitchAmount, _hash(uv));
+    float glitchY = mix(1.0, 1.0 + glitchAmount, _hash(uv * 1.3));
 
     // Define the frequency and amplitude for palpitation
     float palpitationFrequency = 5.5; // Adjust this value for the frequency of palpitation

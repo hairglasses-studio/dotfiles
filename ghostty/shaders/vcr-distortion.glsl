@@ -1,9 +1,12 @@
+precision highp float;
 // VCR Distortion — Ghostty terminal overlay
 // Adapted from Shadertoy VCR Distortion concept by ryk
 // Simulates analog VCR tape playback artifacts
 
 float rand(vec2 co) {
-    return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    uvec2 q = uvec2(co * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
 }
 
 float noise(vec2 p) {

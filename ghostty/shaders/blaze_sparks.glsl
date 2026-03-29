@@ -1,3 +1,4 @@
+precision highp float;
 const vec3 blue_shift = vec3(1.0, 1.0, 1.0);
 
 uint pcg(uint v)

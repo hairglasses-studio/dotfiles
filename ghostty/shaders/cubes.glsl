@@ -1,3 +1,4 @@
+precision highp float;
 // credits: https://github.com/rymdlego
 
 const float speed = 0.2;

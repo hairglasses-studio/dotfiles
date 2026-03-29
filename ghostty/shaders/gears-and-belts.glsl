@@ -1,3 +1,4 @@
+precision highp float;
 // sligltly modified version of https://www.shadertoy.com/view/DsVSDV
 // The only changes are done in the mainImage function 
 // Ive added comments on what to modify
@@ -13,7 +14,9 @@
 #define DF(a,b) length(a) * cos( mod( atan(a.y,a.x)+6.28/(b*8.0), 6.28/((b*8.0)*0.5))+(b-1.)*6.28/(b*8.0) + vec2(0,11) )
 
 float random (vec2 p) {
-    return fract(sin(dot(p.xy, vec2(12.9898,78.233)))* 43758.5453123);
+    uvec2 q = uvec2(p * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
 }
 
 float innerGear(vec2 p, float dir){

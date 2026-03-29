@@ -1,3 +1,4 @@
+precision highp float;
 // Wet-on-Wet Watercolor Wash Background
 // Colors bleed and bloom into each other with soft, diffused edges.
 // Like dropping pigment onto wet paper — no hard boundaries.

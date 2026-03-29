@@ -1,3 +1,4 @@
+precision highp float;
 float ease(float x) {
     return pow(1.0 - x, 10.0);
 }

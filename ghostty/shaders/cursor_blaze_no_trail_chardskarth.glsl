@@ -1,3 +1,4 @@
+precision highp float;
 
 float sdBox(in vec2 p, in vec2 xy, in vec2 b)
 {

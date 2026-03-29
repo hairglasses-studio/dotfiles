@@ -1,3 +1,4 @@
+precision highp float;
 // Splatter — Ghostty terminal shader
 // Fractal paint splatters + interactive cursor paintbrush
 // Based on magic box fractal from Shadertoy sdjGRc

@@ -1,3 +1,4 @@
+precision highp float;
 
 #define TAU 6.28318530718
 #define MAX_ITER 6

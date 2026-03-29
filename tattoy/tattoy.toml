@@ -49,7 +49,7 @@ render_shader_colours_to_text = false
 
 # Default shader — a soft CRT glow that pairs well with RetroVisor's overlay.
 # Relative to this config directory. Change to any .glsl in shaders/.
-path = "shaders/green-crt.glsl"  # shader-path
+path = "shaders/old-film.glsl"  # shader-path
 
 # ── Animated Cursor ─────────────────────────────
 [animated_cursor]

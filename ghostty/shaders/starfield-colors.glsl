@@ -1,3 +1,4 @@
+precision highp float;
 // transparent background
 const bool transparent = false;
 

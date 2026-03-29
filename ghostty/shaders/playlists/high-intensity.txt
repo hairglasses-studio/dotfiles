@@ -60,3 +60,9 @@ glow-rgbsplit-twitchy.glsl
 hexglitch.glsl
 shake.glsl
 vcr-distortion.glsl
+creation.glsl
+star-nest.glsl
+protean-clouds.glsl
+auroras.glsl
+balatro-background.glsl
+seascape.glsl

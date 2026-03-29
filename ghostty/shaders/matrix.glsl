@@ -1,3 +1,4 @@
+precision highp float;
 float text(vec2 fragCoord)
 {
     vec2 uv = mod(fragCoord.xy, 16.)*.0625;

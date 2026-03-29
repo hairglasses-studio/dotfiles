@@ -1,3 +1,4 @@
+precision highp float;
 /*─────────────────────────────────────────────────────────────────────────
  *  cursor_smear_dynamic.glsl  —  Ghostty custom-shader drop-in (rev 3)
  *    • trail now aligned to cursor row

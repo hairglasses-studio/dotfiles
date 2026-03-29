@@ -1,8 +1,11 @@
+precision highp float;
 // VHS Tape Effect — Ghostty terminal overlay
 // Simulates VHS tape degradation with color bleeding and noise
 
 float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    uvec2 q = uvec2(p * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
 }
 
 float vnoise(vec2 p) {

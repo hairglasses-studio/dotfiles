@@ -1,3 +1,4 @@
+precision highp float;
 
 // adapted by Alex Sherwin for Ghostty from https://www.shadertoy.com/view/lljGDt
 

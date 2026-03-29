@@ -1,3 +1,4 @@
+precision highp float;
 // Cursor trail shader that creates a hexagonal trailing effect
 //
 // The effect works by:

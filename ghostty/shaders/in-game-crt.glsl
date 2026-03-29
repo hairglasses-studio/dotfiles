@@ -1,3 +1,4 @@
+precision highp float;
 // In-game CRT shader
 // Author: sarphiv
 // License: CC BY-NC-SA 4.0

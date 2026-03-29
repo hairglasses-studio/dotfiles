@@ -1,3 +1,4 @@
+precision highp float;
 // Focus Blur — Ghostty-exclusive shader
 // Applies gaussian blur + desaturation when terminal loses focus.
 // Uses iFocus uniform (1 = focused, 0 = unfocused).
