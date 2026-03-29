@@ -1,18 +1,9 @@
 precision highp float;
-This shader has shitty code, and is amalgamate of multiple shaders I found in https://github.com/hackr-sh/ghostty-shaders.
+// Retro terminal CRT effect — amalgamate of multiple shaders
+// from https://github.com/hackr-sh/ghostty-shaders
+// Preview: https://streamable.com/jy4dnh
+// NOTE: screen curvature makes it hard to select text with mouse
 
-Here is the preview: https://streamable.com/jy4dnh
-It uses rose-pine theme (I know, it doesn't look like it :P)
-
-TODO:
-
-1. Cleanup the code
-2. Add authorship acknowledgments
-
-NOTES:
-1. screen curvature makes it hard to select text with mouse
-
-```glsl
 // sRGB linear -> nonlinear transform from https://bottosson.github.io/posts/colorwrong/
 float f(float x) {
     if (x >= 0.0031308) {
@@ -217,4 +208,3 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     fragColor *= contrastMatrix(1.3);
 }
-```

@@ -1,4 +1,8 @@
 precision highp float;
+
+#ifndef WASH_HUE
+#define WASH_HUE 0.6
+#endif
 // Splatter Watercolor Wash Background
 // Random droplets scattered across a light wash, like flicking a loaded brush.
 // Multiple sizes from large drops to fine spray.
@@ -56,7 +60,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec4 orig = texture(iChannel0, uv);
 
-    float distToBg = distance(orig.rgb, iBackgroundColor);
+    float distToBg = distance(orig.rgb, iBackgroundColor.rgb);
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -93,7 +97,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Light base wash underneath the splatter
     vec2 p = fragCoord * 0.001 + vec2(hue * 100.0, hue * 73.0);
     float baseWash = fbm(p * 1.5 + vec2(5.0, 3.0));
-    vec3 washColor = mix(iBackgroundColor, pigment, smoothstep(0.3, 0.6, baseWash) * 0.25);
+    vec3 washColor = mix(iBackgroundColor.rgb, pigment, smoothstep(0.3, 0.6, baseWash) * 0.25);
 
     // Splatter at three scales: large drops, medium drops, fine spray
     float largeDrop = splatDrops(fragCoord, 80.0, 0.25, 0.25);

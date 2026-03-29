@@ -1,4 +1,8 @@
 precision highp float;
+
+#ifndef WASH_HUE
+#define WASH_HUE 0.6
+#endif
 // Variegated Watercolor Wash Background
 // Two colors blending into each other top to bottom, with subtle organic variation.
 // Like loading two pigments on a wet brush and pulling a single stroke.
@@ -30,7 +34,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     vec4 orig = texture(iChannel0, uv);
 
-    float distToBg = distance(orig.rgb, iBackgroundColor);
+    float distToBg = distance(orig.rgb, iBackgroundColor.rgb);
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -91,7 +95,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     if (isBg > 0.5) {
         if (inPaint > 0.5) {
             // Inside the wash — opaque with wash color
-            result = mix(iBackgroundColor, washColor, 0.6);
+            result = mix(iBackgroundColor.rgb, washColor, 0.6);
             alpha = 0.9;
         } else {
             // Outside the wash — fully transparent
