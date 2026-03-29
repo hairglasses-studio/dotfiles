@@ -1,3 +1,4 @@
+precision highp float;
 //-----------------------------------------------------------------------------
 // CRT Shader with Chromatic Aberration, Glow, Scanlines, Dot Matrix and Transparency
 //-----------------------------------------------------------------------------

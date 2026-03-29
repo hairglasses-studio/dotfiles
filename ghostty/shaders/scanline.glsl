@@ -1,3 +1,4 @@
+precision highp float;
 #define speed 0.1
 #define lineheight 0.01
 

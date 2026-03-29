@@ -1,3 +1,4 @@
+precision highp float;
 // Focus Pulse — Ghostty-exclusive shader
 // Brief glow/pulse animation when terminal regains focus.
 // Uses iTimeFocus uniform (time of last focus event).

@@ -1,3 +1,4 @@
+precision highp float;
 // This Ghostty shader is a lightly modified port of https://www.shadertoy.com/view/4dBGRw
 
 #define BLACK_BLEND_THRESHOLD .4

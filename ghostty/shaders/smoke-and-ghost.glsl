@@ -1,3 +1,4 @@
+precision highp float;
 // Settings for detection
 #define TARGET_COLOR vec3(0.0, 0.0, 0.0)      // RGB target pixels to transform
 #define REPLACE_COLOR vec3(0.0, 0.0, 0.0)    // Color to replace target pixels
@@ -23,7 +24,9 @@
 #define GHOST_BG_SCALE vec2(0.03, 0.06)       
 
 float random(vec2 st) {
-    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+    uvec2 q = uvec2(st * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
 }
 
 float random1(float n) {

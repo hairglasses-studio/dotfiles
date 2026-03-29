@@ -51,7 +51,7 @@ macos-titlebar-style = hidden
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /Users/mitchnotmitchell/.config/ghostty/shaders/water.glsl
+custom-shader = /Users/mitchnotmitchell/.config/ghostty/shaders/star-nest.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────

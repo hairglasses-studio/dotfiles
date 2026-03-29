@@ -1,3 +1,4 @@
+precision highp float;
 #define gridsize 3.
 #define linewidth 1.
 #define contrast .3

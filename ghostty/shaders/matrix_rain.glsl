@@ -1,3 +1,4 @@
+precision highp float;
 // [SH17A] Matrix rain. Created by Reinder Nijhoff 2017
 // Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 // @reindernijhoff
@@ -13,4 +14,11 @@ void mainImage(out vec4 o,vec2 u) {
         j=fract(i*=.1),
         p=vec3(9,int(iTime*(9.+8.*sin(i-=j).x)),0)+i;
    o-=o,o.g=R/s.z;p*=j;o*=R>.5&&j.x<.6&&j.y<.8?1.:0.;
+
+   // Blend with terminal text
+   vec2 termUV = u / iResolution.xy;
+   vec4 terminal = texture(iChannel0, termUV);
+   float termLuma = dot(terminal.rgb, vec3(0.2126, 0.7152, 0.0722));
+   float mask = 1.0 - smoothstep(0.05, 0.2, termLuma);
+   o = vec4(mix(terminal.rgb, o.rgb, mask), terminal.a);
 }

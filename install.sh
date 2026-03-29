@@ -240,6 +240,10 @@ create_symlinks() {
     # RetroVisor auto-launch
     link_file "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
         "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
+
+    # Shader auto-rotation (disabled by default — enable with: shader-auto start)
+    link_file "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
+        "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
 }
 
 # ── Check mode ─────────────────────────────────
@@ -289,6 +293,8 @@ check_symlinks() {
     check_link "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
     check_link "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
         "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
+    check_link "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
+        "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
 
     log_info "Checking brew packages..."
     if command -v brew &>/dev/null; then

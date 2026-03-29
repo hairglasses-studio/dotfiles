@@ -1,3 +1,11 @@
+precision highp float;
+
+float _hash(vec2 p) {
+    uvec2 q = uvec2(p * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
+}
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord/iResolution.xy;
     
@@ -24,7 +32,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec3 bChannel = texture(iChannel0, glitchUV - vec2(0.01, 0.0)).b * vec3(0.0, 0.0, 1.0);
     
     // Digital noise
-    float digitalNoise = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453123);
+    float digitalNoise = _hash(uv);
     float noiseThreshold = step(0.85, digitalNoise);
     
     // Harsh color manipulation

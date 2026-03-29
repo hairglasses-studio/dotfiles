@@ -1,3 +1,4 @@
+precision highp float;
 // Splatter Watercolor Wash Background
 // Random droplets scattered across a light wash, like flicking a loaded brush.
 // Multiple sizes from large drops to fine spray.

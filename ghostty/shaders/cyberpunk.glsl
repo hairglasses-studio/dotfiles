@@ -1,3 +1,11 @@
+precision highp float;
+
+float _hash(vec2 p) {
+    uvec2 q = uvec2(p * 256.0) * uvec2(1597334673u, 3812015801u);
+    uint n = (q.x ^ q.y) * 1597334673u;
+    return float(n) / float(0xffffffffu);
+}
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord/iResolution.xy;
     
@@ -70,7 +78,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     cyberpunkColor *= vignette;
     
     // Add subtle noise for film grain effect
-    float noise = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453123);
+    float noise = _hash(uv);
     cyberpunkColor += noise * 0.02;
     
     // Color grading for cyberpunk look

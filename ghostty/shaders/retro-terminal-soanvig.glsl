@@ -1,3 +1,4 @@
+precision highp float;
 This shader has shitty code, and is amalgamate of multiple shaders I found in https://github.com/hackr-sh/ghostty-shaders.
 
 Here is the preview: https://streamable.com/jy4dnh

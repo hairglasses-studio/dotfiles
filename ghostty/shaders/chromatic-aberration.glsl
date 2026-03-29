@@ -1,3 +1,4 @@
+precision highp float;
 // Chromatic Aberration — Ghostty terminal overlay
 // Separates RGB channels with radial offset from screen center
 

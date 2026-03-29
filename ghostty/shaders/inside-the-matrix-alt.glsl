@@ -1,3 +1,4 @@
+precision highp float;
 /*
   Feel free to do anything you want with this code.
   This shader uses "runes" code by FabriceNeyret2 (https://www.shadertoy.com/view/4ltyDM)

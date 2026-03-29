@@ -1,3 +1,4 @@
+precision highp float;
 // based on the following Shader Toy entry
 //
 // [SH17A] Matrix rain. Created by Reinder Nijhoff 2017

@@ -1,3 +1,4 @@
+precision highp float;
 
 float getSdfRectangle(in vec2 point, in vec2 center, in vec2 halfSize)
 {

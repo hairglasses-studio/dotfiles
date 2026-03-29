@@ -1,3 +1,4 @@
+precision highp float;
 // Configuration
 #define ZOOM_DURATION 0.5
 #define MAX_SCALE 3.0
