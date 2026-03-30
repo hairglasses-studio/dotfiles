@@ -5,13 +5,19 @@ quick-terminal-screen = main
 quick-terminal-animation-duration = 0.12
 
 # ── Font ────────────────────────────────────────
-font-family = JetBrainsMono Nerd Font Mono
-font-family-bold = JetBrainsMono Nerd Font Mono
-font-style-bold = SemiBold
+font-family = MonoidNerdFontMono
+font-family-bold = MonoidNerdFontMono
+font-family-italic = MapleMono-NF
+font-family-bold-italic = MapleMono-NF
+font-style = Regular
+font-style-bold = Bold
+font-style-italic = Italic
+font-style-bold-italic = Bold Italic
 font-size = 9
 font-feature = calt
 font-feature = liga
 adjust-cell-height = 2
+adjust-cell-width = 1
 bold-is-bright = false
 
 # ── Colors ──────────────────────────────────────
@@ -51,7 +57,7 @@ macos-titlebar-style = hidden
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /Users/mitchnotmitchell/.config/ghostty/shaders/star-nest.glsl
+custom-shader = /Users/mitchnotmitchell/.config/ghostty/shaders/green-crt.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────

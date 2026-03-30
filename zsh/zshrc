@@ -239,11 +239,7 @@ fi
 
 # ── Terminal splash on new shell ──────────────
 if [[ $SHLVL -eq 1 && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" && $- == *i* ]]; then
-  if (( RANDOM % 2 == 0 )) && command -v fortune &>/dev/null && command -v cowsay &>/dev/null && command -v lolcat &>/dev/null; then
-    fortune -s | cowsay -f "$(cowsay -l | tail -n+2 | tr ' ' '\n' | shuf -n1)" | lolcat -t
-  else
-    fastfetch
-  fi
+  (cd ~/.config/ghosttyfetch && ~/.local/bin/ghosttyfetch)
 fi
 
 # ── Prompt engine init ──────────────────────────
