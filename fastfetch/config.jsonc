@@ -1,20 +1,7 @@
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "logo": {
-    "type": "file",
-    "source": "~/.config/fastfetch/skull.txt",
-    "color": {
-      "1": "#57c7ff",
-      "2": "#1a1a1a",
-      "3": "#5af78e",
-      "4": "#f3f99d",
-      "5": "#ff6ac1"
-    },
-    "padding": {
-      "top": 1,
-      "left": 2,
-      "right": 4
-    }
+    "type": "none"
   },
   "display": {
     "separator": "  ",
@@ -37,10 +24,6 @@
       "key": "  os"
     },
     {
-      "type": "kernel",
-      "key": " 󰒋 kernel"
-    },
-    {
       "type": "shell",
       "key": "  shell"
     },
@@ -57,25 +40,8 @@
       "key": " 󰖯 wm"
     },
     {
-      "type": "display",
-      "key": " 󰍹 display"
-    },
-    {
-      "type": "cpu",
-      "key": " 󰘚 cpu"
-    },
-    {
-      "type": "gpu",
-      "key": " 󰢮 gpu"
-    },
-    {
       "type": "memory",
       "key": " 󰍛 mem"
-    },
-    {
-      "type": "disk",
-      "key": " 󰋊 disk",
-      "folders": "/"
     },
     {
       "type": "battery",
@@ -84,10 +50,6 @@
     {
       "type": "uptime",
       "key": " 󰅐 up"
-    },
-    {
-      "type": "packages",
-      "key": " 󰏗 pkgs"
     },
     {
       "type": "separator",
