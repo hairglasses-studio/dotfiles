@@ -9,9 +9,7 @@
     "modules-left": ["sway/workspaces", "sway/mode", "sway/window"],
     "modules-center": ["clock"],
     "modules-right": [
-        "custom/rg-fleet", "custom/rg-loops", "custom/rg-cost",
-        "custom/rg-models", "custom/rg-repos", "custom/rg-iters",
-        "custom/k8s", "mpris", "network", "cpu", "battery"
+        "mpris", "network", "cpu", "battery"
     ],
 
     // ── System modules ───────────────────────────────────
@@ -60,49 +58,49 @@
         "all-outputs": false
     },
 
-    // ── Kubernetes ───────────────────────────────────────
-    "custom/k8s": {
-        "exec": "k8s-context.sh",
-        "return-type": "json",
-        "interval": 30,
-        "tooltip": true
-    },
+    // ── Kubernetes (uncomment when k8s-context.sh is on PATH) ─
+    // "custom/k8s": {
+    //     "exec": "k8s-context.sh",
+    //     "return-type": "json",
+    //     "interval": 30,
+    //     "tooltip": true
+    // },
 
-    // ── Ralphglasses fleet modules ──────────────────────
-    "custom/rg-fleet": {
-        "exec": "rg-status-bar.sh --segment fleet --waybar",
-        "return-type": "json",
-        "interval": 30,
-        "tooltip": true
-    },
-    "custom/rg-loops": {
-        "exec": "rg-status-bar.sh --segment loops --waybar",
-        "return-type": "json",
-        "interval": 30,
-        "tooltip": true
-    },
-    "custom/rg-cost": {
-        "exec": "rg-status-bar.sh --segment cost --waybar",
-        "return-type": "json",
-        "interval": 30,
-        "tooltip": true
-    },
-    "custom/rg-models": {
-        "exec": "rg-status-bar.sh --segment models --waybar",
-        "return-type": "json",
-        "interval": 30,
-        "tooltip": true
-    },
-    "custom/rg-repos": {
-        "exec": "rg-status-bar.sh --segment repos --waybar",
-        "return-type": "json",
-        "interval": 30,
-        "tooltip": true
-    },
-    "custom/rg-iters": {
-        "exec": "rg-status-bar.sh --segment iters --waybar",
-        "return-type": "json",
-        "interval": 30,
-        "tooltip": true
-    }
+    // ── Ralphglasses fleet modules (uncomment when rg-status-bar.sh is on PATH) ─
+    // "custom/rg-fleet": {
+    //     "exec": "rg-status-bar.sh --segment fleet --waybar",
+    //     "return-type": "json",
+    //     "interval": 30,
+    //     "tooltip": true
+    // },
+    // "custom/rg-loops": {
+    //     "exec": "rg-status-bar.sh --segment loops --waybar",
+    //     "return-type": "json",
+    //     "interval": 30,
+    //     "tooltip": true
+    // },
+    // "custom/rg-cost": {
+    //     "exec": "rg-status-bar.sh --segment cost --waybar",
+    //     "return-type": "json",
+    //     "interval": 30,
+    //     "tooltip": true
+    // },
+    // "custom/rg-models": {
+    //     "exec": "rg-status-bar.sh --segment models --waybar",
+    //     "return-type": "json",
+    //     "interval": 30,
+    //     "tooltip": true
+    // },
+    // "custom/rg-repos": {
+    //     "exec": "rg-status-bar.sh --segment repos --waybar",
+    //     "return-type": "json",
+    //     "interval": 30,
+    //     "tooltip": true
+    // },
+    // "custom/rg-iters": {
+    //     "exec": "rg-status-bar.sh --segment iters --waybar",
+    //     "return-type": "json",
+    //     "interval": 30,
+    //     "tooltip": true
+    // }
 }

@@ -11,8 +11,8 @@ window {
 }
 
 @keyframes fade-in {
-    from { opacity: 0; transform: translateY(-10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 #input {
@@ -29,8 +29,9 @@ window {
 }
 
 @keyframes border-glow {
-    0%, 100% { border-bottom-color: #57c7ff; }
-    50%      { border-bottom-color: #ff6ac1; }
+    0%   { border-bottom-color: #57c7ff; }
+    50%  { border-bottom-color: #ff6ac1; }
+    100% { border-bottom-color: #57c7ff; }
 }
 
 #input:focus {
@@ -80,8 +81,9 @@ window {
 }
 
 @keyframes select-pulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(87, 199, 255, 0.3); }
-    50%      { box-shadow: 0 0 16px rgba(87, 199, 255, 0.6); }
+    0%   { box-shadow: 0 0 8px rgba(87, 199, 255, 0.3); }
+    50%  { box-shadow: 0 0 16px rgba(87, 199, 255, 0.6); }
+    100% { box-shadow: 0 0 8px rgba(87, 199, 255, 0.3); }
 }
 
 #img {
