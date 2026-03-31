@@ -460,18 +460,73 @@ alias viz='cava'
 alias md='glow'
 
 # ── Hacker aesthetic / fun ───────────────────
-if cmd_exists pipes.sh;  then alias pipes='pipes.sh'; fi
-if cmd_exists cbonsai;   then alias bonsai='cbonsai -l -t 0.02'; fi
-if cmd_exists tty-clock; then alias clock='tty-clock -s -c -C 4 -b'; fi
-if cmd_exists cmatrix;   then alias matrix='cmatrix -ab -C cyan'; fi
-if cmd_exists figlet;    then alias banner='figlet -f slant'; fi
-if cmd_exists lolcat;    then alias rainbow='lolcat'; fi
-if cmd_exists onefetch;  then alias gitfetch='onefetch'; fi
-alias screensaver='pipes.sh -t 2 -R -r 0 -p 5'
+if cmd_exists pipes.sh;      then alias pipes='pipes.sh -t 2 -R -r 0 -p 5 -c 4'; fi
+if cmd_exists cbonsai;        then alias bonsai='cbonsai -l -t 0.02 -c "  "'; fi
+if cmd_exists tty-clock;      then alias clock='tty-clock -s -c -C 4 -b'; fi
+if cmd_exists cmatrix;        then alias matrix='cmatrix -ab -C cyan'; fi
+if cmd_exists unimatrix;      then alias umatrix='unimatrix -s 96 -l kKaA -c cyan'; fi
+if cmd_exists figlet;         then alias banner='figlet -f slant'; fi
+if cmd_exists toilet;         then alias cyberbanner='toilet -f future --filter border --filter gay'; fi
+if cmd_exists lolcat;         then alias rainbow='lolcat'; fi
+if cmd_exists nms;            then alias decrypt='nms -a -f cyan'; fi
+if cmd_exists asciiquarium;   then alias aquarium='asciiquarium'; fi
+if cmd_exists hollywood;      then alias hwood='hollywood'; fi
+if cmd_exists onefetch;       then alias gitfetch='onefetch'; fi
 alias weather='curl -s "wttr.in?format=3"'
 alias forecast='curl -s wttr.in'
 cheat() { curl -s "cht.sh/$1"; }
 alias colortest='for i in $(seq 0 255); do printf "\e[48;5;${i}m  %3s  \e[0m" "$i"; (( (i+1) % 16 == 0 )) && echo; done'
+
+# ── Cyberpunk commands ──────────────────────
+hack() {
+  if cmd_exists toilet && cmd_exists lolcat; then
+    echo "" | toilet -f future "INITIATING..." --filter border 2>/dev/null | lolcat -f -S 50
+  elif cmd_exists figlet; then
+    figlet -f slant "INITIATING..."
+  fi
+  sleep 0.3
+  local lines=(
+    "Bypassing firewall ................. OK"
+    "Decrypting AES-256 ................. OK"
+    "Injecting payload .................. OK"
+    "Elevating privileges ............... OK"
+  )
+  for line in "${lines[@]}"; do
+    if cmd_exists nms; then
+      echo "$line" | nms -a -f cyan 2>/dev/null
+    else
+      echo "$line"
+    fi
+    sleep 0.1
+  done
+  echo
+  if cmd_exists toilet && cmd_exists lolcat; then
+    echo "" | toilet -f future "ACCESS GRANTED" --filter border 2>/dev/null | lolcat -f -S 100
+  fi
+  sleep 0.3
+  cmd_exists fastfetch && fastfetch
+}
+
+dashboard() {
+  tmux new-session -d -s cyber 2>/dev/null || { tmux switch-client -t cyber 2>/dev/null || tmux attach-session -t cyber; return; }
+  tmux send-keys -t cyber 'btop' C-m
+  tmux split-window -t cyber -h -p 35
+  tmux send-keys -t cyber 'cava 2>/dev/null || cmatrix -ab -C cyan' C-m
+  tmux split-window -t cyber -v -p 40
+  tmux send-keys -t cyber 'cmatrix -ab -C cyan' C-m
+  tmux attach-session -t cyber 2>/dev/null || tmux switch-client -t cyber
+}
+
+screensaver() {
+  local cmds=()
+  cmd_exists cmatrix      && cmds+=("cmatrix -ab -C cyan")
+  cmd_exists unimatrix    && cmds+=("unimatrix -s 96 -l kKaA -c cyan")
+  cmd_exists pipes.sh     && cmds+=("pipes.sh -t 2 -R -r 0 -p 5 -c 4")
+  cmd_exists asciiquarium && cmds+=("asciiquarium")
+  cmd_exists cbonsai      && cmds+=("cbonsai -l -t 0.02")
+  (( ${#cmds[@]} == 0 )) && { echo "No screensavers installed"; return 1; }
+  eval "${cmds[$((RANDOM % ${#cmds[@]} + 1))]}"
+}
 
 # ── CRT / Shader effects ────────────────────────
 alias crt-on='open -a RetroVisor'

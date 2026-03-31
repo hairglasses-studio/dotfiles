@@ -53,11 +53,11 @@ window-decoration = true
 window-padding-x = 4
 window-padding-y = 2
 window-padding-balance = true
-macos-titlebar-style = hidden
+# macos-titlebar-style = hidden  # macOS-only
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /Users/mitchnotmitchell/.config/ghostty/shaders/green-crt.glsl
+custom-shader = /home/hg/.config/ghostty/shaders/green-crt.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
