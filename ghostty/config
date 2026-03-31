@@ -57,8 +57,8 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /home/hg/.config/ghostty/shaders/scanbars.glsl
-custom-shader-animation = true
+custom-shader = /home/hg/.config/ghostty/shaders/bloom060.glsl
+custom-shader-animation = false
 
 # ── Links ───────────────────────────────────────
 link-url = true
