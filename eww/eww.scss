@@ -124,6 +124,29 @@ $red: #ff5c57;
   animation: text-glow-magenta 3s ease-in-out infinite;
 }
 
+// ── Ralphglasses fleet segments ──────────────
+.bar-fleet {
+  padding: 0 4px;
+}
+
+.rg-seg {
+  padding: 0 2px;
+}
+
+.rg-icon {
+  font-size: 11px;
+  &.green   { color: $green; }
+  &.magenta { color: $magenta; }
+  &.cyan    { color: $cyan; }
+  &.yellow  { color: $yellow; }
+  &.dim     { color: $dim; }
+}
+
+.rg-val {
+  color: $fg;
+  font-size: 10px;
+}
+
 // ── Ambient animations ─────────────────────
 @keyframes border-breathe {
   0%   { border-color: $cyan; box-shadow: 0 0 8px rgba(87, 199, 255, 0.2); }
