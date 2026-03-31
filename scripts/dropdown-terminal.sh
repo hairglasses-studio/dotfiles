@@ -16,6 +16,14 @@ else
 
     # Launch foot with the dropdown app_id, running a tmux split layout
     foot --app-id "$APP_ID" --font='Maple Mono NF CN:size=18' -- bash -c "
+        # Cyberdeck greeting
+        if command -v tte &>/dev/null; then
+            echo 'CYBERDECK ONLINE' | tte beams \
+                --beam-gradient-stops 57c7ff ff6ac1 \
+                --final-gradient-stops 5af78e 57c7ff \
+                --beam-delay 2 2>/dev/null
+            sleep 0.3
+        fi
         tmux new-session -d -s $TMUX_SESSION \
             'ralphglasses --scan-path /home/hg/hairglasses-studio'
         tmux split-window -t $TMUX_SESSION -h -c /home/hg/dotfiles \
