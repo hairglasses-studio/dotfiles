@@ -109,7 +109,11 @@ declare -a RESULTS=()
 
 if $VISUAL; then
   MODE="visual (launching Ghostty, ${DURATION}s each)"
-  GHOSTTY_BIN="$(command -v ghostty 2>/dev/null || echo "/Applications/Ghostty.app/Contents/MacOS/ghostty")"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    GHOSTTY_BIN="$(command -v ghostty 2>/dev/null || echo "/Applications/Ghostty.app/Contents/MacOS/ghostty")"
+  else
+    GHOSTTY_BIN="$(command -v ghostty 2>/dev/null)"
+  fi
   if [[ ! -x "$GHOSTTY_BIN" ]] && ! command -v ghostty &>/dev/null; then
     echo "ERROR: ghostty binary not found (needed for --visual mode)"
     exit 1
