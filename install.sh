@@ -282,8 +282,10 @@ create_symlinks() {
         mkdir -p "$HOME/.config/systemd/user"
         cp "$DOTFILES_DIR/systemd/shader-rotate.timer" "$HOME/.config/systemd/user/"
         cp "$DOTFILES_DIR/systemd/shader-rotate.service" "$HOME/.config/systemd/user/"
+        cp "$DOTFILES_DIR/systemd/tmux.service" "$HOME/.config/systemd/user/"
         systemctl --user daemon-reload
         systemctl --user enable shader-rotate.timer
+        systemctl --user enable tmux.service
     fi
 }
 
