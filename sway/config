@@ -3,7 +3,7 @@
 
 # ── Variables ──────────────────────────────────────────────────
 set $mod Mod4
-set $term ghostty
+set $term ghostty --gtk-single-instance=false
 set $menu wofi --show drun
 
 # ── Output ─────────────────────────────────────────────────────
