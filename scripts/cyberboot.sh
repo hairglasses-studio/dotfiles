@@ -38,8 +38,10 @@ if [[ ! -f "$CYBER_FLAG" ]]; then
   printf '\033[0m'
   echo
 
-  # Sneakers decrypt reveal for system info
-  if command -v nms &>/dev/null && command -v fastfetch &>/dev/null; then
+  # Decrypt reveal for system info
+  if command -v tte &>/dev/null && command -v fastfetch &>/dev/null; then
+    fastfetch 2>/dev/null | tte decrypt --typing-speed 2 --ciphertext-colors 57c7ff ff6ac1 5af78e
+  elif command -v nms &>/dev/null && command -v fastfetch &>/dev/null; then
     fastfetch 2>/dev/null | nms -a -f cyan 2>/dev/null
   elif command -v fastfetch &>/dev/null; then
     fastfetch
