@@ -45,6 +45,13 @@ alias .....='cd ../../../..'
 alias ~='cd ~'
 alias -- -='cd -'
 
+# ── Linux / Wayland equivalents ──────────────────────────────
+if [[ "$(uname)" == "Linux" ]]; then
+    alias pbcopy='wl-copy'
+    alias pbpaste='wl-paste'
+    alias open='xdg-open'
+fi
+
 # File operations (cross-platform)
 alias mkdir='mkdir -pv'
 alias cp='cp -iv'
@@ -255,7 +262,11 @@ fi
 
 # Clean up functions
 alias cleanup='find . -type f -name "*.DS_Store" -ls -delete'
-alias emptytrash='rm -rf ~/.Trash/*'
+if [[ "$(uname)" == "Darwin" ]]; then
+    alias emptytrash='rm -rf ~/.Trash/*'
+else
+    alias emptytrash='rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/*'
+fi
 
 # Terraform aliases (if available)
 if cmd_exists terraform; then
@@ -450,8 +461,10 @@ if cmd_exists kubectl; then
 fi
 
 # ── Window management ─────────────────────────
-alias aero-reload='aerospace reload-config'
-alias bar-reload='sketchybar --reload'
+if [[ "$(uname)" == "Darwin" ]]; then
+    alias aero-reload='aerospace reload-config'
+    alias bar-reload='sketchybar --reload'
+fi
 
 # ── New tools ─────────────────────────────────
 alias top='btop'
@@ -573,10 +586,28 @@ screensaver() {
   eval "${cmds[$((RANDOM % ${#cmds[@]} + 1))]}"
 }
 
+# ── MOTD / fun combos ────────────────────────
+alias motd='fortune -s | cowsay -f small | lolcat'
+alias wisdom='fortune | toilet -f term --gay 2>/dev/null || fortune | lolcat'
+alias hackermode='cmatrix -ab -C cyan'
+
+# Cockpit — ambient dashboard layout in tmux (lightweight alternative to dashboard)
+cockpit() {
+  tmux new-session -d -s cockpit 'btop' \; \
+    split-window -h 'cava' \; \
+    split-window -v 'tty-clock -s -c -C 4 -b' \; \
+    select-pane -t 0 \; \
+    resize-pane -R 20 \; \
+    attach
+}
+
+
 # ── CRT / Shader effects ────────────────────────
-alias crt-on='open -a RetroVisor'
-alias crt-off='pkill -x RetroVisor'
-alias crt-toggle='pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVisor'
+if [[ "$(uname)" == "Darwin" ]]; then
+    alias crt-on='open -a RetroVisor'
+    alias crt-off='pkill -x RetroVisor'
+    alias crt-toggle='pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVisor'
+fi
 
 # ── MCP / Ralph ────────────────────────────────
 alias hgs='cd ~/hairglasses-studio'
@@ -612,7 +643,9 @@ alias shader-test='bash ~/.config/ghostty/shaders/bin/shader-test.sh'
 alias shader-cycle='bash ~/.config/ghostty/shaders/bin/shader-cycle.sh'
 
 # Peekaboo — macOS screen capture for visual review
-alias peek='peekaboo'
+if [[ "$(uname)" == "Darwin" ]]; then
+    alias peek='peekaboo'
+fi
 
 # Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
 source "$HOME/.config/ghostty/shaders/bin/shader-playlist.sh" 2>/dev/null
@@ -658,17 +691,26 @@ shader-status() {
   local active_pl="low-intensity"
   [[ -f "$sd/auto-rotate-playlist" ]] && active_pl="$(< "$sd/auto-rotate-playlist")"
   printf "%-20s %s\n" "Active playlist:" "$active_pl"
-  if launchctl list com.dotfiles.shader-rotate &>/dev/null; then
-    printf "%-20s %s\n" "Timer:" "running"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if launchctl list com.dotfiles.shader-rotate &>/dev/null; then
+      printf "%-20s %s\n" "Timer:" "running"
+    else
+      printf "%-20s %s\n" "Timer:" "stopped"
+    fi
   else
-    printf "%-20s %s\n" "Timer:" "stopped"
+    if systemctl --user is-active shader-rotate.timer &>/dev/null; then
+      printf "%-20s %s\n" "Timer:" "running"
+    else
+      printf "%-20s %s\n" "Timer:" "stopped"
+    fi
   fi
 }
 
-# Automatic timed shader rotation via launchd
+# Automatic timed shader rotation via launchd (macOS) or systemd timer (Linux)
 # shader-auto start [minutes]  — start rotating every N minutes (default 30)
 # shader-auto stop             — stop automatic rotation
 # shader-auto status           — check if timer is running
+if [[ "$(uname)" == "Darwin" ]]; then
 shader-auto() {
   local plist="$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
   local label="com.dotfiles.shader-rotate"
@@ -698,6 +740,7 @@ shader-auto() {
       ;;
   esac
 }
+fi
 
 # Best-of shader showcase — curated playlist of the most impressive effects
 # shader-best start [minutes]  — activate best-of rotation (default 15 min)

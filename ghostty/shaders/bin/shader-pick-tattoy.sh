@@ -3,7 +3,11 @@
 # Source this from aliases.zsh; call tattoy-pick or tattoy-pick-cursor
 
 _shader_pick_dir="${0:A:h:h}"
-_shader_pick_config="$HOME/Library/Application Support/tattoy/tattoy.toml"
+if [[ "$(uname)" == "Darwin" ]]; then
+    _shader_pick_config="$HOME/Library/Application Support/tattoy/tattoy.toml"
+else
+    _shader_pick_config="${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+fi
 
 # Pick a background shader with fzf and apply it to tattoy.toml
 tattoy-pick() {

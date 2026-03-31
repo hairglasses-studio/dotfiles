@@ -1,0 +1,115 @@
+/* Personal Waybar theme — Snazzy-on-Black palette
+ * Ported from SketchyBar. For distro kiosk, see ralphglasses/distro/sway/waybar/
+ */
+
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: rgba(26, 27, 38, 0.92);
+    color: #f1f1f0;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    color: #686868;
+    border-bottom: 2px solid transparent;
+}
+
+#workspaces button.focused {
+    color: #57c7ff;
+    border-bottom: 2px solid #57c7ff;
+}
+
+#workspaces button.urgent {
+    color: #ff5c57;
+    border-bottom: 2px solid #ff5c57;
+}
+
+#clock {
+    color: #f1f1f0;
+    font-weight: bold;
+}
+
+#battery {
+    color: #5af78e;
+}
+
+#battery.warning {
+    color: #f3f99d;
+}
+
+#battery.critical {
+    color: #ff5c57;
+}
+
+#cpu {
+    color: #686868;
+}
+
+#network {
+    color: #686868;
+}
+
+#network.disconnected {
+    color: #ff5c57;
+}
+
+#mpris {
+    color: #ff6ac1;
+}
+
+#window {
+    color: #ff6ac1;
+    font-weight: bold;
+}
+
+#custom-k8s {
+    color: #57c7ff;
+}
+
+/* ── Ralphglasses fleet modules ─────────────────── */
+
+#custom-rg-fleet {
+    color: #5af78e;
+    font-weight: bold;
+}
+
+#custom-rg-loops {
+    color: #ff6ac1;
+}
+
+#custom-rg-cost {
+    color: #5af78e;
+}
+
+#custom-rg-models {
+    color: #f3f99d;
+}
+
+#custom-rg-repos {
+    color: #57c7ff;
+}
+
+#custom-rg-iters {
+    color: #686868;
+}
+
+/* ── Module spacing ─────────────────────────────── */
+
+#battery,
+#cpu,
+#network,
+#mpris,
+#custom-k8s,
+#custom-rg-fleet,
+#custom-rg-loops,
+#custom-rg-cost,
+#custom-rg-models,
+#custom-rg-repos,
+#custom-rg-iters {
+    padding: 0 8px;
+}
