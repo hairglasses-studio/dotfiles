@@ -100,7 +100,10 @@ if alpha_ok then
     button.opts.hl_shortcut = 'AlphaH1'
   end
 
-  dashboard.section.footer.val = '  [ C Y B E R N E T   A C T I V E ]'
+  local fortune_handle = io.popen('fortune -s 2>/dev/null')
+  local fortune_text = fortune_handle and fortune_handle:read('*a') or ''
+  if fortune_handle then fortune_handle:close() end
+  dashboard.section.footer.val = fortune_text ~= '' and fortune_text or '  [ C Y B E R N E T   A C T I V E ]'
   dashboard.section.footer.opts.hl = 'AlphaH8'
 
   alpha.setup(dashboard.config)

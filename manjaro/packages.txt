@@ -1,0 +1,81 @@
+# Core CLI (pacman -S)
+bat
+eza
+fastfetch
+fd
+fzf
+github-cli
+git
+git-delta
+jq
+neovim
+ripgrep
+starship
+zoxide
+
+# Go
+go
+golangci-lint
+goreleaser
+
+# Cloud
+aws-cli-v2
+
+# Kubernetes/Containers
+k9s
+helm
+stern
+kubectx
+docker
+lazydocker
+dive
+
+# Desktop (Sway)
+sway
+waybar
+swayidle
+swaylock
+wl-clipboard
+xorg-xwayland
+alacritty
+mako
+
+# Shell
+zsh-autosuggestions
+zsh-completions
+zsh-history-substring-search
+zsh-syntax-highlighting
+
+# Terminal fun
+pipes.sh
+cbonsai
+tty-clock
+lolcat
+figlet
+toilet
+cowsay
+fortune-mod
+cmatrix
+onefetch
+
+# Utilities
+tmux
+tree
+lazygit
+httpie
+yq
+btop
+yazi
+ffmpegthumbnailer
+unarchiver
+poppler
+cava
+glow
+glslang
+
+# Protobuf / gRPC
+protobuf
+grpcurl
+
+# Fonts (AUR — install with yay)
+# ttf-jetbrains-mono-nerd

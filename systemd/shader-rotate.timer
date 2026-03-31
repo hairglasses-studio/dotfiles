@@ -1,0 +1,9 @@
+[Unit]
+Description=Rotate Ghostty shader every 30 minutes
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=1800
+
+[Install]
+WantedBy=timers.target

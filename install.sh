@@ -6,6 +6,7 @@ set -euo pipefail
 # Idempotent — safe to run multiple times.
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OS="$(uname -s)"
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 BACKUP_CREATED=false
 CHECK_ONLY=false
@@ -175,7 +176,12 @@ install_retrovisor() {
 
 # ── Tattoy shader symlink ────────────────────
 setup_tattoy_shaders() {
-    local tattoy_shaders="$HOME/Library/Application Support/tattoy/shaders"
+    local tattoy_shaders
+    if [[ "$OS" == "Darwin" ]]; then
+        tattoy_shaders="$HOME/Library/Application Support/tattoy/shaders"
+    else
+        tattoy_shaders="${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/shaders"
+    fi
     local ghostty_shaders="$DOTFILES_DIR/ghostty/shaders"
     if [[ -L "$tattoy_shaders" ]] && [[ "$(readlink "$tattoy_shaders")" == "$ghostty_shaders" ]]; then
         log_success "Tattoy shaders already linked"
@@ -222,10 +228,16 @@ create_symlinks() {
     link_file "$DOTFILES_DIR/k9s"        "$HOME/.config/k9s"
     link_file "$DOTFILES_DIR/lazygit"   "$HOME/.config/lazygit"
 
-    # Desktop rice
-    link_file "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
-    link_file "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
-    link_file "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
+    # Desktop rice (platform-specific)
+    if [[ "$OS" == "Darwin" ]]; then
+        link_file "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
+        link_file "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
+        link_file "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
+    elif [[ "$OS" == "Linux" ]]; then
+        link_file "$DOTFILES_DIR/sway/config" "$HOME/.config/sway/config"
+        link_file "$DOTFILES_DIR/waybar/config.jsonc" "$HOME/.config/waybar/config"
+        link_file "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
+    fi
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
     link_file "$DOTFILES_DIR/cava"        "$HOME/.config/cava"
@@ -235,15 +247,29 @@ create_symlinks() {
     link_file "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
 
     # Tattoy (terminal shader compositor)
-    link_file "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
+    if [[ "$OS" == "Darwin" ]]; then
+        link_file "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
+    else
+        link_file "$DOTFILES_DIR/tattoy/tattoy.toml" "${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+    fi
 
-    # RetroVisor auto-launch
-    link_file "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
-        "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
+    # Platform-specific service management
+    if [[ "$OS" == "Darwin" ]]; then
+        # RetroVisor auto-launch
+        link_file "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
+            "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
 
-    # Shader auto-rotation (disabled by default — enable with: shader-auto start)
-    link_file "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
-        "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
+        # Shader auto-rotation (disabled by default — enable with: shader-auto start)
+        link_file "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
+            "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
+    elif [[ "$OS" == "Linux" ]]; then
+        log_info "Installing systemd user services..."
+        mkdir -p "$HOME/.config/systemd/user"
+        cp "$DOTFILES_DIR/systemd/shader-rotate.timer" "$HOME/.config/systemd/user/"
+        cp "$DOTFILES_DIR/systemd/shader-rotate.service" "$HOME/.config/systemd/user/"
+        systemctl --user daemon-reload
+        systemctl --user enable shader-rotate.timer
+    fi
 }
 
 # ── Check mode ─────────────────────────────────
@@ -282,37 +308,49 @@ check_symlinks() {
     check_link "$DOTFILES_DIR/gh"         "$HOME/.config/gh"
     check_link "$DOTFILES_DIR/k9s"        "$HOME/.config/k9s"
     check_link "$DOTFILES_DIR/lazygit"    "$HOME/.config/lazygit"
-    check_link "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
-    check_link "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
-    check_link "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
+    if [[ "$OS" == "Darwin" ]]; then
+        check_link "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
+        check_link "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
+        check_link "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
+    elif [[ "$OS" == "Linux" ]]; then
+        check_link "$DOTFILES_DIR/sway/config" "$HOME/.config/sway/config"
+        check_link "$DOTFILES_DIR/waybar/config.jsonc" "$HOME/.config/waybar/config"
+        check_link "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
+    fi
     check_link "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     check_link "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
     check_link "$DOTFILES_DIR/cava"        "$HOME/.config/cava"
     check_link "$DOTFILES_DIR/glow"        "$HOME/.config/glow"
     check_link "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
-    check_link "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
-    check_link "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
-        "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
-    check_link "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
-        "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
-
-    log_info "Checking brew packages..."
-    if command -v brew &>/dev/null; then
-        local missing=0
-        while IFS= read -r pkg; do
-            pkg="$(echo "$pkg" | sed 's/^brew "//;s/"$//')"
-            if ! brew list --formula "$pkg" &>/dev/null; then
-                log_error "Missing brew package: $pkg"
-                missing=$((missing + 1))
-            fi
-        done < <(grep '^brew ' "$DOTFILES_DIR/Brewfile")
-        if [[ $missing -eq 0 ]]; then
-            log_success "All brew packages installed"
-        fi
-        errors=$((errors + missing))
+    if [[ "$OS" == "Darwin" ]]; then
+        check_link "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
+        check_link "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
+            "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
+        check_link "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
+            "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
     else
-        log_warn "Homebrew not installed"
-        errors=$((errors + 1))
+        check_link "$DOTFILES_DIR/tattoy/tattoy.toml" "${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+    fi
+
+    if [[ "$OS" == "Darwin" ]]; then
+        log_info "Checking brew packages..."
+        if command -v brew &>/dev/null; then
+            local missing=0
+            while IFS= read -r pkg; do
+                pkg="$(echo "$pkg" | sed 's/^brew "//;s/"$//')"
+                if ! brew list --formula "$pkg" &>/dev/null; then
+                    log_error "Missing brew package: $pkg"
+                    missing=$((missing + 1))
+                fi
+            done < <(grep '^brew ' "$DOTFILES_DIR/Brewfile")
+            if [[ $missing -eq 0 ]]; then
+                log_success "All brew packages installed"
+            fi
+            errors=$((errors + missing))
+        else
+            log_warn "Homebrew not installed"
+            errors=$((errors + 1))
+        fi
     fi
 
     log_info "Checking Oh My Zsh..."
@@ -354,7 +392,9 @@ main() {
     install_omz_plugins
     install_vim_plug
     install_tpm
-    install_retrovisor
+    if [[ "$OS" == "Darwin" ]]; then
+        install_retrovisor
+    fi
     create_symlinks
     setup_tattoy_shaders
 
