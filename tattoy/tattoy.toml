@@ -32,7 +32,7 @@ scrollback_size = 1000
 # Shaders live in the shaders/ subdirectory (symlinked to ghostty/shaders).
 # Cycle between them at runtime with ALT+9 / ALT+0.
 [shader]
-enabled = true
+enabled = false
 
 # How transparent the shader layer is over the terminal background.
 # 0.0 = invisible, 1.0 = fully opaque. Start low and raise to taste.

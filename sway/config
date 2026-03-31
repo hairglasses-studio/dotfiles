@@ -134,9 +134,8 @@ mode "resize" {
 bindsym $mod+Shift+semicolon mode "resize"
 
 # ── Status bar ───────────────────────────────────────────────
-bar {
-    swaybar_command waybar
-}
+# Eww bar (replaces waybar)
+# bar { swaybar_command waybar }
 
 # ── Keybinds: Lock screen ────────────────────────────────────
 bindsym $mod+Shift+x exec swaylock
@@ -149,7 +148,7 @@ bindsym $mod+Shift+Ctrl+w exec wallpaper-cycle.sh random
 bindsym $mod+Shift+d exec eww open --toggle dashboard
 
 # ── Startup ──────────────────────────────────────────────────
-exec waybar
+exec eww daemon && eww open bar
 exec mako
 exec swww-daemon
 exec swayidle -w \
