@@ -101,6 +101,19 @@ bindsym $mod+Shift+7 move container to workspace number 7
 bindsym $mod+Shift+8 move container to workspace number 8
 bindsym $mod+Shift+9 move container to workspace number 9
 
+# ── Workspace-to-monitor binding (match Hyprland) ──────────
+# DP-1 (left): workspaces 1-3
+# DP-2 (ultrawide): workspaces 4-9
+workspace 1 output DP-1
+workspace 2 output DP-1
+workspace 3 output DP-1
+workspace 4 output DP-2
+workspace 5 output DP-2
+workspace 6 output DP-2
+workspace 7 output DP-2
+workspace 8 output DP-2
+workspace 9 output DP-2
+
 # ── Keybinds: Window management ──────────────────────────────
 bindsym $mod+Shift+q kill
 bindsym $mod+Tab workspace back_and_forth
@@ -110,6 +123,10 @@ bindsym $mod+g exec zsh -ic 'shader-toggle'
 
 # Move workspace to next output (from AeroSpace alt-shift-tab)
 bindsym $mod+Shift+Tab move workspace to output right
+
+# ── Keybinds: Screenshots ────────────────────────────────────
+bindsym Print exec grim - | wl-copy
+bindsym $mod+Print exec screenshot-crop.sh
 
 # ── Keybinds: Shaders (from AeroSpace) ──────────────────────
 bindsym $mod+Shift+s exec shader-random.sh
@@ -157,7 +174,8 @@ bindsym $mod+Shift+Ctrl+w exec shader-wallpaper.sh random
 bindsym $mod+Shift+Mod1+w exec shader-wallpaper.sh static random
 
 # ── Keybinds: Eww dashboard ────────────────────────────────
-bindsym $mod+Shift+d exec eww open --toggle dashboard
+# Note: $mod+Shift+d is used by ralphglasses config.d for wdisplays
+bindsym $mod+Shift+o exec eww open --toggle dashboard
 
 # ── Keybinds: Session ──────────────────────────────────────
 bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -B 'Logout' 'swaymsg exit'
