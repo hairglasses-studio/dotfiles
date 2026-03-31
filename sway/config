@@ -56,6 +56,10 @@ bindsym $mod+Right focus right
 bindsym $mod+Down focus down
 bindsym $mod+Up focus up
 
+# ── Keybinds: Rotary encoder (Keychron V1 Ultra) ──────────
+bindsym F13 focus left
+bindsym F14 focus right
+
 # ── Keybinds: Move windows (hjkl + arrows) ──────────────────
 bindsym $mod+Shift+h move left
 bindsym $mod+Shift+j move down
