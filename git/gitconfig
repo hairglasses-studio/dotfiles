@@ -7,6 +7,7 @@
     pager = delta
     autocrlf = input
     whitespace = fix
+    hooksPath = ~/dotfiles/git/hooks
 [include]
     path = ~/.config/delta/snazzy.gitconfig
 [interactive]

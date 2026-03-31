@@ -501,6 +501,41 @@ if cmd_exists trip;           then alias trace='sudo trip'; fi
 if cmd_exists bandwhich;      then alias netwatch='sudo bandwhich'; fi
 if cmd_exists sniffnet;       then alias sniff='sniffnet'; fi
 
+# ── Animated wrappers ────────────────────────
+ssh() {
+  local target="${@: -1}"
+  if [[ -t 1 ]] && cmd_exists tte; then
+    echo "CONNECTING // $target" | tte decrypt \
+      --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+  fi
+  command ssh "$@"
+}
+
+yay() {
+  if [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
+    echo "PACKAGE ACQUISITION // $*" | tte beams \
+      --beam-delay 2 --beam-gradient-stops 57c7ff 5af78e \
+      --final-gradient-stops 57c7ff 5af78e 2>/dev/null
+  fi
+  command yay "$@"
+  local rc=$?
+  if (( rc == 0 )) && [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
+    echo "PACKAGES SYNCHRONIZED" | tte slide \
+      --movement-speed 1.5 --final-gradient-stops 5af78e 57c7ff 2>/dev/null
+  fi
+  return $rc
+}
+
+command_not_found_handler() {
+  if cmd_exists tte && [[ -t 1 ]]; then
+    echo "UNKNOWN PROTOCOL: $1" | tte errorcorrect \
+      --error-pairs 0.05 --final-gradient-stops ff5c57 ff6ac1 2>/dev/null
+  else
+    printf '\033[38;2;255;92;87mUNKNOWN COMMAND: %s\033[0m\n' "$1"
+  fi
+  return 127
+}
+
 alias weather='curl -s "wttr.in?format=3"'
 alias forecast='curl -s wttr.in'
 cheat() { curl -s "cht.sh/$1"; }
@@ -757,9 +792,49 @@ briefing() {
 cls() {
   if cmd_exists tte && [[ -t 1 ]] && (( COLUMNS > 40 )); then
     printf '\033[2J\033[H'
+    echo "BUFFER CLEARED // $(date '+%H:%M:%S')" | tte sweep \
+      --final-gradient-stops 57c7ff 1a1a1a 000000 \
+      --final-gradient-direction vertical 2>/dev/null
   else
     command clear
   fi
+}
+
+# ── SSH connection animation ───────────────────
+ssh() {
+  local target="${@: -1}"
+  if [[ -t 1 ]] && cmd_exists tte; then
+    echo "CONNECTING // $target" | tte decrypt \
+      --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+  fi
+  command ssh "$@"
+}
+
+# ── Command not found handler ──────────────────
+command_not_found_handler() {
+  if cmd_exists tte && [[ -t 1 ]]; then
+    echo "UNKNOWN PROTOCOL: $1" | tte errorcorrect \
+      --final-gradient-stops ff5c57 ff6ac1 2>/dev/null
+  else
+    printf '\033[38;2;255;92;87mUNKNOWN COMMAND: %s\033[0m\n' "$1"
+  fi
+  return 127
+}
+
+# ── Package management wrapper ─────────────────
+yay() {
+  if [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
+    echo "PACKAGE ACQUISITION // $*" | tte beams \
+      --beam-delay 2 --beam-gradient-stops 57c7ff 5af78e \
+      --final-gradient-stops 57c7ff 5af78e 2>/dev/null
+  fi
+  command yay "$@"
+  local rc=$?
+  if (( rc == 0 )) && [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
+    echo "PACKAGES SYNCHRONIZED" | tte slide \
+      --movement-speed 1.5 --final-gradient-stops 5af78e 57c7ff 2>/dev/null
+  fi
+  return $rc
 }
 
 # ── CRT / Shader effects ────────────────────────
