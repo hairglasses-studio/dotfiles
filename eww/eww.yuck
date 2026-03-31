@@ -91,14 +91,11 @@
 
 ; ── Bar polling variables ────────────────────────
 
-(deflisten bar_workspaces
-  `while true; do swaymsg -t get_workspaces | jq -c '[.[] | {num, focused, name, urgent}]'; swaymsg -t subscribe '["workspace"]' > /dev/null 2>&1; done`)
+(deflisten bar_workspaces `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh`)
 
-(deflisten bar_window
-  `while true; do swaymsg -t get_tree | jq -r 'recurse(.nodes[]?, .floating_nodes[]?) | select(.focused) | .name // ""' | head -1; swaymsg -t subscribe '["window"]' > /dev/null 2>&1; done`)
+(deflisten bar_window `$HOME/hairglasses-studio/dotfiles/scripts/eww-activewindow.sh`)
 
-(deflisten bar_mode
-  `echo "default"; swaymsg -t subscribe '["mode"]' | jq -r --unbuffered '.change'`)
+(deflisten bar_mode `$HOME/hairglasses-studio/dotfiles/scripts/eww-mode.sh`)
 
 (defpoll bar_time :interval "1s"
   `date '+%H:%M'`)
@@ -124,7 +121,7 @@
   (box :class "bar-workspaces" :orientation "h" :spacing 4
     (for ws in {bar_workspaces ?: "[]"}
       (button :class "bar-ws ${ws.focused ? 'bar-ws-active' : ''} ${ws.urgent ? 'bar-ws-urgent' : ''}"
-              :onclick "swaymsg workspace number ${ws.num}"
+              :onclick "if [ -n \"$HYPRLAND_INSTANCE_SIGNATURE\" ]; then hyprctl dispatch workspace ${ws.num}; else swaymsg workspace number ${ws.num}; fi"
         "${ws.num}"))))
 
 (defwidget bar-mode-display []
