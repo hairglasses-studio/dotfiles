@@ -209,7 +209,8 @@
   (box :class "bar-right" :orientation "h" :spacing 12 :halign "end"
     (bar-fleet)
     (bar-mpris-display)
-    (bar-sys)))
+    (bar-sys)
+    (systray :pack-direction "ltr" :icon-size 20)))
 
 (defwidget bar-layout []
   (centerbox :class "bar-container" :orientation "h"
