@@ -115,6 +115,29 @@
 (defpoll bar_mpris :interval "3s"
   `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
 
+; ── Ralphglasses fleet variables ─────────────────
+
+(defpoll rg_fleet :interval "30s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment fleet --waybar 2>/dev/null | jq -r '.text // ""'`)
+
+(defpoll rg_loops :interval "30s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment loops --waybar 2>/dev/null | jq -r '.text // ""'`)
+
+(defpoll rg_cost :interval "30s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment cost --waybar 2>/dev/null | jq -r '.text // ""'`)
+
+(defpoll rg_models :interval "30s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment models --waybar 2>/dev/null | jq -r '.text // ""'`)
+
+(defpoll rg_repos :interval "30s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment repos --waybar 2>/dev/null | jq -r '.text // ""'`)
+
+(defpoll rg_iters :interval "30s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment iters --waybar 2>/dev/null | jq -r '.text // ""'`)
+
+(defpoll k8s_ctx :interval "30s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/k8s-context.sh 2>/dev/null | jq -r '.text // ""'`)
+
 ; ── Bar widgets ──────────────────────────────────
 
 (defwidget bar-workspaces []
@@ -153,6 +176,25 @@
   (box :class "bar-mpris" :visible {bar_mpris != ""}
     (label :class "bar-mpris-text" :text "♫ ${bar_mpris}" :limit-width 30)))
 
+(defwidget rg-segment [label value color]
+  (box :class "rg-seg" :spacing 4
+       :visible {value != "" && value != "idle" && value != "offline"}
+    (label :class "rg-icon ${color}" :text label)
+    (label :class "rg-val" :text value)))
+
+(defwidget bar-fleet []
+  (box :class "bar-fleet" :orientation "h" :spacing 8
+    (rg-segment :label "↻" :value rg_fleet :color "green")
+    (rg-segment :label "⟳" :value rg_loops :color "magenta")
+    (rg-segment :label "$" :value rg_cost :color "green")
+    (rg-segment :label "󰧑" :value rg_models :color "yellow")
+    (rg-segment :label "🔍" :value rg_repos :color "cyan")
+    (rg-segment :label "󰔚" :value rg_iters :color "dim")
+    (box :class "rg-seg" :spacing 4
+         :visible {k8s_ctx != "" && k8s_ctx != "offline"}
+      (label :class "rg-icon cyan" :text "⎈")
+      (label :class "rg-val" :text k8s_ctx))))
+
 (defwidget bar-left []
   (box :class "bar-left" :orientation "h" :spacing 8 :halign "start"
     (bar-workspaces)
@@ -165,6 +207,7 @@
 
 (defwidget bar-right []
   (box :class "bar-right" :orientation "h" :spacing 12 :halign "end"
+    (bar-fleet)
     (bar-mpris-display)
     (bar-sys)))
 
