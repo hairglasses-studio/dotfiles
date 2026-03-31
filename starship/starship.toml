@@ -34,8 +34,8 @@ right_format = ""
 
 # ── Prompt ──────────────────────────────────────
 [character]
-success_symbol = "[❯](bold #5af78e)"
-error_symbol = "[❯](bold #ff5c57)"
+success_symbol = "[](bold #5af78e)"
+error_symbol = "[](bold #ff5c57)"
 
 [username]
 show_always = false
@@ -51,7 +51,8 @@ format = "[@$hostname]($style) "
 [directory]
 style = "bold #57c7ff"
 truncation_length = 3
-truncation_symbol = "…/"
+truncation_symbol = "../"
+format = "[\\[$path\\]]($style)[$read_only]($read_only_style) "
 read_only = " 󰌾"
 read_only_style = "#ff5c57"
 

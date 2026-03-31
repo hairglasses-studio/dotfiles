@@ -13,6 +13,7 @@ edit = [
 ]
 open = [
     { run = 'open "$@"', for = "macos" },
+    { run = 'xdg-open "$@"', for = "linux" },
 ]
 
 [preview]
