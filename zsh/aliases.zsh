@@ -544,8 +544,8 @@ hack() {
 
 dashboard() {
   tmux new-session -d -s cyber 2>/dev/null || { tmux switch-client -t cyber 2>/dev/null || tmux attach-session -t cyber; return; }
-  # Left: system monitor (60%)
-  tmux send-keys -t cyber 'btop' C-m
+  # Left: system monitor (60%) — animated banner then btop
+  tmux send-keys -t cyber 'echo "CYBER DASHBOARD" | tte synthgrid --grid-gradient-stops 57c7ff ff6ac1 --text-gradient-stops 57c7ff 5af78e --max-active-blocks 0.1 2>/dev/null; btop' C-m
   # Right column (40%)
   tmux split-window -t cyber -h -p 40
   # Top-right: audio visualizer
@@ -601,7 +601,166 @@ cockpit() {
     attach
 }
 
+# ── TTE pipe presets ─────────────────────────────
+if cmd_exists tte; then
+  alias encrypt='tte decrypt --typing-speed 1 --ciphertext-colors 57c7ff ff6ac1'
+  alias redact='tte burn --burn-colors ffffff f3f99d ff5c57 8A003C --final-gradient-stops ff5c57 ff6ac1'
+  alias reveal='tte scattered --final-gradient-stops 5af78e 57c7ff --movement-speed 0.5'
+  alias glitch='tte vhstape --glitch-line-colors 57c7ff ff6ac1 --noise-colors 686868 --final-gradient-stops 57c7ff ff6ac1'
+  alias summon='tte blackhole --star-colors 57c7ff ff6ac1 5af78e --final-gradient-stops 57c7ff ff6ac1 5af78e'
+  alias materialize='tte synthgrid --grid-gradient-stops 57c7ff ff6ac1 --text-gradient-stops 57c7ff 5af78e'
+fi
 
+# ── scan — network reconnaissance ───────────────
+scan() {
+  local target="${1:?Usage: scan <hostname|ip>}"
+  local C='\033[38;2;87;199;255m' M='\033[38;2;255;106;193m' G='\033[38;2;90;247;142m' R='\033[0m'
+
+  _scan_header() {
+    if cmd_exists tte; then
+      echo "$1" | tte decrypt --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+    else
+      printf "${M}%s${R}\n" "$1"
+    fi
+  }
+
+  _scan_header "▸ TARGET ACQUISITION: $target"
+  echo
+
+  _scan_header "▸ DNS RESOLUTION"
+  if cmd_exists dig; then
+    dig +short "$target" 2>/dev/null | while read -r line; do
+      printf "  ${C}%s${R}\n" "$line"
+    done
+  else
+    printf "  ${C}%s${R}\n" "$(host "$target" 2>/dev/null | head -3)"
+  fi
+  echo
+
+  _scan_header "▸ ROUTE TRACE"
+  if cmd_exists trip; then
+    sudo trip "$target" --mode tui 2>/dev/null
+  elif cmd_exists traceroute; then
+    traceroute -m 15 "$target" 2>/dev/null
+  else
+    printf "  %s\n" "traceroute not available"
+  fi
+}
+
+# ── deploy — dramatic git push ──────────────────
+deploy() {
+  local cmd="${*:-git push}"
+  local C='57c7ff' M='ff6ac1' G='5af78e' R='ff5c57'
+
+  if cmd_exists tte; then
+    echo "DEPLOYING" | tte synthgrid \
+      --grid-gradient-stops $C $M \
+      --text-gradient-stops $C $G \
+      --max-active-blocks 0.1 2>/dev/null
+  elif cmd_exists figlet; then
+    figlet -f slant "DEPLOYING" | lolcat -f 2>/dev/null
+  fi
+
+  local stages=(
+    "Compiling artifacts ............... "
+    "Running preflight checks .......... "
+    "Authenticating deploy key ......... "
+    "Pushing to remote ................. "
+  )
+  for stage in "${stages[@]}"; do
+    if cmd_exists tte; then
+      echo "$stage" | tte print --print-speed 4 \
+        --final-gradient-stops $C $M 2>/dev/null
+    else
+      printf '\033[38;2;87;199;255m%s\033[0m\n' "$stage"
+    fi
+  done
+
+  echo
+  if eval "$cmd"; then
+    echo
+    if cmd_exists tte; then
+      echo "DEPLOY SUCCESSFUL" | tte fireworks \
+        --firework-colors $G $C $M \
+        --final-gradient-stops $G $C \
+        --explode-anywhere 2>/dev/null
+    else
+      printf '\033[38;2;90;247;142mDEPLOY SUCCESSFUL\033[0m\n'
+    fi
+  else
+    echo
+    if cmd_exists tte; then
+      echo "DEPLOY FAILED" | tte burn \
+        --burn-colors ffffff f3f99d $R 8A003C \
+        --final-gradient-stops $R $M 2>/dev/null
+    else
+      printf '\033[38;2;255;92;87mDEPLOY FAILED\033[0m\n'
+    fi
+    return 1
+  fi
+}
+
+# ── briefing — animated daily dashboard ─────────
+briefing() {
+  local C='57c7ff' M='ff6ac1' G='5af78e' Y='f3f99d'
+
+  # Header
+  if cmd_exists tte; then
+    echo "DAILY BRIEFING // $(date '+%Y-%m-%d %H:%M')" | tte beams \
+      --beam-gradient-stops $C $M \
+      --final-gradient-stops $C $G \
+      --beam-delay 2 2>/dev/null
+  else
+    printf '\033[38;2;87;199;255mDAILY BRIEFING // %s\033[0m\n' "$(date '+%Y-%m-%d %H:%M')"
+  fi
+  echo
+
+  # System info
+  if cmd_exists fastfetch; then
+    if cmd_exists tte; then
+      fastfetch 2>/dev/null | tte sweep \
+        --final-gradient-stops $C $M $G \
+        --final-gradient-direction horizontal 2>/dev/null
+    else
+      fastfetch 2>/dev/null
+    fi
+  fi
+  echo
+
+  # Git status of key repos
+  local repos=("$HOME/hairglasses-studio" "$HOME/dotfiles")
+  for repo in "${repos[@]}"; do
+    [[ -d "$repo/.git" ]] || continue
+    local repo_name="${repo##*/}"
+    local branch=$(git -C "$repo" branch --show-current 2>/dev/null)
+    local status=$(git -C "$repo" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+    local line="▸ $repo_name ($branch) — $status uncommitted"
+    if cmd_exists tte; then
+      echo "$line" | tte decrypt --typing-speed 6 --ciphertext-colors $C $M 2>/dev/null
+    else
+      printf '\033[38;2;255;106;193m%s\033[0m\n' "$line"
+    fi
+  done
+  echo
+
+  # Weather
+  if cmd_exists tte; then
+    curl -s "wttr.in?format=3" 2>/dev/null | tte slide \
+      --movement-speed 1.5 \
+      --final-gradient-stops $Y $C 2>/dev/null
+  else
+    curl -s "wttr.in?format=3" 2>/dev/null
+  fi
+}
+
+# ── cls — animated clear ────────────────────────
+cls() {
+  if cmd_exists tte && [[ -t 1 ]] && (( COLUMNS > 40 )); then
+    printf '\033[2J\033[H'
+  else
+    command clear
+  fi
+}
 # ── CRT / Shader effects ────────────────────────
 if [[ "$(uname)" == "Darwin" ]]; then
     alias crt-on='open -a RetroVisor'

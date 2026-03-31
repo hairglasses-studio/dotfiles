@@ -157,15 +157,35 @@ _cmd_timer_preexec() {
 }
 
 _cmd_timer_precmd() {
+  local last_status=$?
   if [[ -n "$_CMD_START_TIME" ]]; then
     local elapsed=$(( EPOCHSECONDS - _CMD_START_TIME ))
-    if (( elapsed > 30 )); then
+    if (( elapsed > 30 )) && [[ -t 1 ]]; then
+      # System notification (macOS)
       if command -v terminal-notifier &>/dev/null; then
         terminal-notifier \
           -title "Command Complete" \
           -message "${_CMD_NAME} finished (${elapsed}s)" \
           -sound Glass \
           -group "zsh-timer" &>/dev/null
+      fi
+      # Animated terminal celebration
+      if command -v tte &>/dev/null; then
+        if (( last_status == 0 )); then
+          echo "✓ ${_CMD_NAME%% *} completed (${elapsed}s)" | tte beams \
+            --beam-gradient-stops 5af78e 57c7ff \
+            --final-gradient-stops 5af78e 57c7ff \
+            --beam-delay 2 2>/dev/null
+        else
+          echo "✗ ${_CMD_NAME%% *} failed [exit $last_status] (${elapsed}s)" | tte burn \
+            --burn-colors ffffff f3f99d ff5c57 8A003C \
+            --final-gradient-stops ff5c57 ff6ac1 2>/dev/null
+        fi
+      fi
+      # Notification sound (Linux - notify-send)
+      if command -v notify-send &>/dev/null; then
+        notify-send -u normal "Command Complete" \
+          "${_CMD_NAME} finished (${elapsed}s)" 2>/dev/null
       fi
     fi
     unset _CMD_START_TIME _CMD_NAME
@@ -191,7 +211,16 @@ eval "$(zoxide init zsh)"
 
 # ── onefetch on entering git repos ───────────
 _onefetch_chpwd() {
-  [[ -d .git ]] && command -v onefetch &>/dev/null && onefetch --no-color-palette 2>/dev/null
+  if [[ -d .git ]] && command -v onefetch &>/dev/null; then
+    if command -v tte &>/dev/null; then
+      onefetch --no-color-palette 2>/dev/null | tte wipe \
+        --wipe-delay 0 \
+        --final-gradient-stops 57c7ff ff6ac1 5af78e \
+        --final-gradient-direction horizontal 2>/dev/null
+    else
+      onefetch --no-color-palette 2>/dev/null
+    fi
+  fi
 }
 chpwd_functions+=(_onefetch_chpwd)
 
