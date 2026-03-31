@@ -43,7 +43,7 @@ Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — 
 
 ### Claude Code Integration
 - **PostToolUse hook** — Auto-reloads Hyprland/mako/eww/waybar when Claude writes config files
-- **MCP servers** — `sway-mcp` for Wayland desktop control (screenshot, input, windows). Future: `hyprland-mcp`, `dotfiles-mcp`, `shader-mcp` via mcpkit Go toolkit.
+- **MCP servers** — `sway-mcp` for Wayland desktop control (screenshot, input, windows). `hyprland-mcp` (9 tools), `dotfiles-mcp` (4 tools), `shader-mcp` (5 tools) — Go binaries in sibling repos, registered in `.mcp.json`.
 
 ### Wallpaper Shaders
 Live animated wallpapers via Shadertoy-compatible GLSL rendered by `shaderbg`:
