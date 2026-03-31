@@ -45,6 +45,28 @@ Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — 
 - **PostToolUse hook** — Auto-reloads Hyprland/mako/eww/waybar when Claude writes config files
 - **MCP servers** — `sway-mcp` for Wayland desktop control (screenshot, input, windows). Future: `hyprland-mcp`, `dotfiles-mcp`, `shader-mcp` via mcpkit Go toolkit.
 
+### Wallpaper Shaders
+Live animated wallpapers via Shadertoy-compatible GLSL rendered by `shaderbg`:
+- **`wallpaper-shaders/`** — 5 procgen GLSL fragments (cyber-rain, neon-grid, plasma-flow, fractal-pulse, particle-aurora)
+- **`scripts/shader-wallpaper.sh`** — Rotation engine: `shader-wallpaper.sh [next|random|set <path>|stop|list|static]`
+- Keybinds: `$mod+Shift+W` (next), `$mod+Shift+Ctrl+W` (random), `$mod+Shift+Alt+W` (static fallback)
+
+### Boot Stack
+- **rEFInd** — UEFI bootloader with Matrix cyberpunk theme (config tracked in `refind/`, deployed to `/boot/efi/EFI/refind/` via copy)
+- **Plymouth** — Animated boot splash (proxzima cyberpunk theme) between rEFInd and login
+- **Kernel params:** `quiet splash loglevel=3 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1`
+
+### MCP Servers (Go binaries, built separately)
+- **`hyprland-mcp`** — 9 tools: screenshot, windows, workspaces, input (ydotool/wtype), config reload
+- **`dotfiles-mcp`** — 4 tools: list configs, validate TOML/JSON, reload service, check symlinks
+- **`shader-mcp`** — 5 tools: list/set/random/test/get_state for 132 shaders
+- **`sway-mcp`** — Node.js: screenshot, windows, input, clipboard for Sway/Wayland
+
+### Claude Code Skills & Agents
+- **Skills:** `/rice-check` (validate rice), `/screenshot-review` (visual analysis), `/shader-browse` (shader explorer)
+- **Agents:** `rice-developer` (autonomous cyberpunk rice iteration, opus), `config-validator` (fast syntax check, haiku)
+- **Rules:** `hyprland.md` (0.54 block windowrule syntax), `shaders.md` (self-contained GLSL), `snazzy-palette.md` (color enforcement)
+
 ## Key Patterns
 
 ### Ghostty Config Updates
@@ -56,7 +78,7 @@ mv -f "$tmp" "$CONFIG"
 ```
 
 ### Tattoy Config Toggling
-Tattoy watches its config with 100ms debounce. Section-scoped sed to avoid hitting `[text_contrast].enabled`:
+Tattoo watches its config with 100ms debounce. Section-scoped sed to avoid hitting `[text_contrast].enabled`:
 ```bash
 sed -e "/^\[shader\]/,/^\[/ s|^enabled = .*|enabled = true|"
 ```
