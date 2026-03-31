@@ -1,0 +1,76 @@
+/* Cyberpunk Snazzy wlogout theme */
+
+window {
+    background-color: rgba(0, 0, 0, 0.75);
+    font-family: "JetBrainsMono Nerd Font", monospace;
+}
+
+button {
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid #57c7ff;
+    border-radius: 8px;
+    color: #f1f1f0;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 3px;
+    margin: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: rgba(87, 199, 255, 0.12);
+    border-color: #ff6ac1;
+    color: #ff6ac1;
+}
+
+button:active {
+    background-color: rgba(255, 106, 193, 0.2);
+    border-color: #5af78e;
+    color: #5af78e;
+}
+
+#lock {
+    border-color: #57c7ff;
+    color: #57c7ff;
+}
+#lock:hover {
+    border-color: #5af78e;
+    color: #5af78e;
+}
+
+#suspend {
+    border-color: #f3f99d;
+    color: #f3f99d;
+}
+#suspend:hover {
+    border-color: #ff6ac1;
+    color: #ff6ac1;
+}
+
+#logout {
+    border-color: #ff6ac1;
+    color: #ff6ac1;
+}
+#logout:hover {
+    border-color: #57c7ff;
+    color: #57c7ff;
+}
+
+#reboot {
+    border-color: #5af78e;
+    color: #5af78e;
+}
+#reboot:hover {
+    border-color: #ff6ac1;
+    color: #ff6ac1;
+}
+
+#shutdown {
+    border-color: #ff5c57;
+    color: #ff5c57;
+}
+#shutdown:hover {
+    border-color: #f3f99d;
+    color: #f3f99d;
+}
