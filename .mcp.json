@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "sway": {
-      "command": "node",
-      "args": ["/home/hg/hairglasses-studio/sway-mcp/src/index.js"]
+      "command": "bash",
+      "args": ["-c", "node \"$HOME/hairglasses-studio/sway-mcp/src/index.js\""]
     }
   }
 }

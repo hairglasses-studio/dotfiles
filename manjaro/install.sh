@@ -197,6 +197,16 @@ create_symlinks() {
     if [[ -d "$DOTFILES/waybar" ]]; then
         link_file "$DOTFILES/waybar" "$HOME/.config/waybar"
     fi
+
+    # Hyprland + tools
+    if [[ -d "$DOTFILES/hyprland" ]]; then
+        link_file "$DOTFILES/hyprland" "$HOME/.config/hypr"
+    fi
+    for dir in eww mako wofi wlogout; do
+        if [[ -d "$DOTFILES/$dir" ]]; then
+            link_file "$DOTFILES/$dir" "$HOME/.config/$dir"
+        fi
+    done
 }
 
 # ── Systemd user services ────────────────────────────────────
