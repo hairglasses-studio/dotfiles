@@ -1,5 +1,5 @@
 # ── Dotfiles location ─────────────────────────
-export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
+export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}"
 
 # ── Prompt engine toggle ────────────────────────
 # Set to "starship" or "p10k" — switch anytime, just `source ~/.zshrc`
