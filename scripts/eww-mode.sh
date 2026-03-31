@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # eww-mode.sh — Compositor-aware mode/submap listener for eww bar
-# Outputs the current keybind mode name on each change
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/compositor.sh"
 
 _sway() {
   echo "default"
@@ -21,10 +23,8 @@ _hyprland() {
   done
 }
 
-if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
-  _hyprland
-elif [[ -n "$SWAYSOCK" ]]; then
-  _sway
-else
-  echo "default"
-fi
+case "$(compositor_type)" in
+  hyprland) _hyprland ;;
+  sway)     _sway ;;
+  *)        echo "default" ;;
+esac

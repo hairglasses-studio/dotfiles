@@ -2,6 +2,9 @@
 # dropdown-terminal.sh — Yakuake-style toggle for ralphglasses + claude code
 # Works on both Sway and Hyprland
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/compositor.sh"
+
 APP_ID="dropdown-cyber"
 TMUX_SESSION="dropdown"
 WIDTH=5120
@@ -18,15 +21,16 @@ _launch_terminal() {
             sleep 0.3
         fi
         tmux new-session -d -s $TMUX_SESSION \
-            'ralphglasses --scan-path /home/hg/hairglasses-studio'
-        tmux split-window -t $TMUX_SESSION -h -c /home/hg/dotfiles \
+            'ralphglasses --scan-path $HOME/hairglasses-studio'
+        tmux split-window -t $TMUX_SESSION -h -c $HOME/hairglasses-studio/dotfiles \
             'claude'
         tmux select-pane -t $TMUX_SESSION:0.0
         tmux attach-session -t $TMUX_SESSION
     " &
 }
 
-if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
+case "$(compositor_type)" in
+hyprland)
     # Hyprland — use special workspace as scratchpad
     if hyprctl clients -j | jq -e ".[] | select(.class == \"$APP_ID\")" > /dev/null 2>&1; then
         hyprctl dispatch togglespecialworkspace dropdown
@@ -36,7 +40,8 @@ if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
         hyprctl dispatch movetoworkspacesilent "special:dropdown,class:^($APP_ID)$"
         hyprctl dispatch togglespecialworkspace dropdown
     fi
-elif [[ -n "$SWAYSOCK" ]]; then
+    ;;
+sway)
     # Sway — use scratchpad
     if swaymsg -t get_tree | grep -q "\"app_id\": \"$APP_ID\""; then
         swaymsg "[app_id=\"$APP_ID\"] scratchpad show"
@@ -45,4 +50,5 @@ elif [[ -n "$SWAYSOCK" ]]; then
     fi
     sleep 0.15
     swaymsg "[app_id=\"$APP_ID\"] resize set $WIDTH $HEIGHT, move position 0 0"
-fi
+    ;;
+esac
