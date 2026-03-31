@@ -163,6 +163,8 @@ bindsym $mod+Shift+d exec eww open --toggle dashboard
 bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -B 'Logout' 'swaymsg exit'
 
 # ── Startup ──────────────────────────────────────────────────
+# Dismiss the NVIDIA proprietary driver swaynag warning
+exec pkill swaynag
 exec eww daemon && eww open bar && eww open bar-secondary
 exec mako
 exec swww-daemon
