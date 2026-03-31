@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__hyprland__*",
+      "mcp__dotfiles__*",
+      "mcp__shader__*",
+      "mcp__sway__*",
+      "Bash(hyprctl *)",
+      "Bash(eww *)",
+      "Bash(makoctl *)",
+      "Bash(swaymsg *)",
+      "Bash(grim *)",
+      "Bash(shader-*)",
+      "Bash(glslangValidator *)"
+    ]
+  }
+}
