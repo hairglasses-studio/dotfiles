@@ -761,6 +761,7 @@ cls() {
     command clear
   fi
 }
+
 # ── CRT / Shader effects ────────────────────────
 if [[ "$(uname)" == "Darwin" ]]; then
     alias crt-on='open -a RetroVisor'
