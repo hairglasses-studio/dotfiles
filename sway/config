@@ -1,0 +1,143 @@
+# Personal Sway config — ported from AeroSpace
+# For the ralphglasses distro kiosk, see ralphglasses/distro/sway/config
+
+# ── Variables ──────────────────────────────────────────────────
+set $mod Mod4
+set $term ghostty
+set $menu wofi --show drun
+
+# ── Output ─────────────────────────────────────────────────────
+# Configure per-machine with ~/.config/sway/config.d/*.conf
+
+# ── Input ──────────────────────────────────────────────────────
+input type:keyboard {
+    repeat_delay 250
+    repeat_rate 40
+}
+
+# ── Mouse ──────────────────────────────────────────────────────
+# Port of AeroSpace on-focus-changed move-mouse window-lazy-center
+focus_follows_mouse yes
+mouse_warping container
+
+# ── Appearance ─────────────────────────────────────────────────
+# Snazzy-on-Black palette
+font pango:monospace 10
+default_border pixel 2
+default_floating_border pixel 1
+hide_edge_borders smart
+client.focused          #57c7ff #57c7ff #000000 #57c7ff #57c7ff
+client.unfocused        #686868 #1a1b26 #686868 #686868 #686868
+client.focused_inactive #686868 #1a1b26 #686868 #686868 #686868
+client.urgent           #ff5c57 #ff5c57 #000000 #ff5c57 #ff5c57
+
+gaps inner 8
+gaps outer 8
+gaps top 40
+
+# ── Keybinds: Launch ──────────────────────────────────────────
+bindsym $mod+Return exec $term
+bindsym $mod+d exec $menu
+bindsym $mod+grave exec ghostty --class=quick-terminal
+for_window [app_id="quick-terminal"] floating enable, resize set 800 500
+
+# ── Keybinds: Navigation (from AeroSpace alt-hjkl) ───────────
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+
+# ── Keybinds: Move windows (from AeroSpace alt-shift-hjkl) ───
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+
+# ── Keybinds: Layout ─────────────────────────────────────────
+# alt-slash → cycle tiles layout; alt-comma → accordion (tabbed/stacking)
+bindsym $mod+slash layout toggle split tabbed stacking
+bindsym $mod+comma layout toggle tabbed stacking splitv splith
+bindsym $mod+f fullscreen toggle
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+space focus mode_toggle
+bindsym $mod+a focus parent
+
+# ── Keybinds: Split direction (from AeroSpace join-with) ─────
+# alt-backslash → join-with right (horizontal split)
+# alt-minus → join-with down (vertical split)
+bindsym $mod+backslash splith
+bindsym $mod+minus splitv
+
+# ── Keybinds: Workspaces (from AeroSpace alt-1..9) ──────────
+bindsym $mod+1 workspace number 1
+bindsym $mod+2 workspace number 2
+bindsym $mod+3 workspace number 3
+bindsym $mod+4 workspace number 4
+bindsym $mod+5 workspace number 5
+bindsym $mod+6 workspace number 6
+bindsym $mod+7 workspace number 7
+bindsym $mod+8 workspace number 8
+bindsym $mod+9 workspace number 9
+
+bindsym $mod+Shift+1 move container to workspace number 1
+bindsym $mod+Shift+2 move container to workspace number 2
+bindsym $mod+Shift+3 move container to workspace number 3
+bindsym $mod+Shift+4 move container to workspace number 4
+bindsym $mod+Shift+5 move container to workspace number 5
+bindsym $mod+Shift+6 move container to workspace number 6
+bindsym $mod+Shift+7 move container to workspace number 7
+bindsym $mod+Shift+8 move container to workspace number 8
+bindsym $mod+Shift+9 move container to workspace number 9
+
+# ── Keybinds: Window management ──────────────────────────────
+bindsym $mod+Shift+q kill
+bindsym $mod+Tab workspace back_and_forth
+bindsym $mod+Shift+r reload
+
+# Move workspace to next output (from AeroSpace alt-shift-tab)
+bindsym $mod+Shift+Tab move workspace to output right
+
+# ── Keybinds: Shaders (from AeroSpace) ──────────────────────
+bindsym $mod+Shift+s exec shader-random.sh
+bindsym $mod+Shift+n exec shader-cycle.sh next
+bindsym $mod+Shift+p exec shader-cycle.sh prev
+
+# ── Keybinds: CRT overlay toggle (from AeroSpace alt-shift-c) ─
+# RetroVisor is macOS-only; on Linux, adapt this to your CRT shader toggle
+# bindsym $mod+Shift+c exec crt-toggle.sh
+
+# ── Window rules ─────────────────────────────────────────────
+# glslViewer — always float (from AeroSpace)
+for_window [app_id="glslViewer"] floating enable
+for_window [class="glslViewer"] floating enable
+
+# ── Keybinds: Resize mode (from AeroSpace service mode) ─────
+# Enter with alt-shift-semicolon in AeroSpace → $mod+Shift+semicolon here
+mode "resize" {
+    bindsym h resize shrink width 50px
+    bindsym j resize grow height 50px
+    bindsym k resize shrink height 50px
+    bindsym l resize grow width 50px
+
+    # Service-mode join-with (from AeroSpace)
+    bindsym Shift+h move left
+    bindsym Shift+j move down
+    bindsym Shift+k move up
+    bindsym Shift+l move right
+
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+}
+bindsym $mod+Shift+semicolon mode "resize"
+
+# ── Status bar ───────────────────────────────────────────────
+bar {
+    swaybar_command waybar
+}
+
+# ── Startup ──────────────────────────────────────────────────
+exec waybar
+exec mako
+
+# ── Include machine-specific overrides ───────────────────────
+include ~/.config/sway/config.d/*

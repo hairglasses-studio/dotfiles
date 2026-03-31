@@ -19,7 +19,11 @@ SHADERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 STATE_DIR="$HOME/.local/state/ghostty"
 CYCLE_FILE="$STATE_DIR/cycle-index"
 GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
-TATTOY_CONFIG="$HOME/Library/Application Support/tattoy/tattoy.toml"
+if [[ "$(uname)" == "Darwin" ]]; then
+    TATTOY_CONFIG="$HOME/Library/Application Support/tattoy/tattoy.toml"
+else
+    TATTOY_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+fi
 
 # ── Cycle list ──────────────────────────────────
 # Edit this array to change the cycle order.
