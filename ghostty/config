@@ -57,13 +57,14 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /home/hg/.config/ghostty/shaders/amber-monitor.glsl
+custom-shader = /home/hg/.config/ghostty/shaders/cursor_smear_fade.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
 link-url = true
 
 # ── Terminal behavior ───────────────────────────
+gtk-single-instance = false
 scrollback-limit = 10000
 copy-on-select = clipboard
 mouse-hide-while-typing = true
