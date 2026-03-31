@@ -33,6 +33,8 @@ Plug 'sheerun/vim-polyglot'         " Language pack
 
 " Syntax highlighting and themes
 Plug 'connorholyday/vim-snazzy'     " Snazzy color scheme
+Plug 'scottmckendry/cyberdream.nvim' " Cyberpunk colorscheme
+Plug 'hyperb1iss/silkcircuit-nvim'   " Neon cyberpunk colorscheme
 Plug 'vim-airline/vim-airline'      " Status line
 Plug 'vim-airline/vim-airline-themes' " Airline themes
 
@@ -138,6 +140,9 @@ set termguicolors                   " Enable true color
 set background=dark
 let g:SnazzyTransparent = 1
 colorscheme snazzy
+
+" Theme toggle: <leader>ct cycles snazzy → cyberdream → silkcircuit
+nnoremap <silent> <leader>ct :lua local themes={"snazzy","cyberdream","silkcircuit"}; local cur=vim.g.colors_name or "snazzy"; for i,t in ipairs(themes) do if t==cur then vim.cmd("colorscheme "..themes[i%#themes+1]); print("Theme: "..themes[i%#themes+1]); break end end<CR>
 
 " Airline configuration
 let g:airline_powerline_fonts = 1

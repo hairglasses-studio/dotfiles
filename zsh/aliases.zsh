@@ -472,6 +472,22 @@ if cmd_exists nms;            then alias decrypt='nms -a -f cyan'; fi
 if cmd_exists asciiquarium;   then alias aquarium='asciiquarium'; fi
 if cmd_exists hollywood;      then alias hwood='hollywood'; fi
 if cmd_exists onefetch;       then alias gitfetch='onefetch'; fi
+if cmd_exists lavat;          then alias lava='lavat -c cyan -s 8 -r 2'; fi
+if cmd_exists rusty-rain;     then alias rain='rusty-rain -C 0,255,255 -H 50 -S'; fi
+if cmd_exists neo-matrix;     then alias neo='neo-matrix --color=cyan --charset=katakana --speed=6 --density=0.75'; fi
+if cmd_exists tmatrix;        then alias tmatrix='tmatrix -c default -s 40'; fi
+if cmd_exists genact;         then alias busy='genact'; fi
+if cmd_exists mapscii;        then alias map='mapscii'; fi
+if cmd_exists arttime;        then alias art='arttime'; fi
+if cmd_exists durdraw;        then alias ansi='durdraw'; fi
+if cmd_exists spotify_player; then alias spot='spotify_player'; fi
+if cmd_exists tte;            then alias textfx='tte'; fi
+
+# ── Network hacker tools ──────────────────────
+if cmd_exists trip;           then alias trace='sudo trip'; fi
+if cmd_exists bandwhich;      then alias netwatch='sudo bandwhich'; fi
+if cmd_exists sniffnet;       then alias sniff='sniffnet'; fi
+
 alias weather='curl -s "wttr.in?format=3"'
 alias forecast='curl -s wttr.in'
 cheat() { curl -s "cht.sh/$1"; }
@@ -479,7 +495,9 @@ alias colortest='for i in $(seq 0 255); do printf "\e[48;5;${i}m  %3s  \e[0m" "$
 
 # ── Cyberpunk commands ──────────────────────
 hack() {
-  if cmd_exists toilet && cmd_exists lolcat; then
+  if cmd_exists tte; then
+    echo "INITIATING..." | tte beams --beam-delay 2 --beam-gradient-stops 57c7ff ff6ac1 --final-gradient-stops 57c7ff 5af78e
+  elif cmd_exists toilet && cmd_exists lolcat; then
     echo "" | toilet -f future "INITIATING..." --filter border 2>/dev/null | lolcat -f -S 50
   elif cmd_exists figlet; then
     figlet -f slant "INITIATING..."
@@ -492,7 +510,9 @@ hack() {
     "Elevating privileges ............... OK"
   )
   for line in "${lines[@]}"; do
-    if cmd_exists nms; then
+    if cmd_exists tte; then
+      echo "$line" | tte decrypt --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1
+    elif cmd_exists nms; then
       echo "$line" | nms -a -f cyan 2>/dev/null
     else
       echo "$line"
@@ -500,7 +520,9 @@ hack() {
     sleep 0.1
   done
   echo
-  if cmd_exists toilet && cmd_exists lolcat; then
+  if cmd_exists tte; then
+    echo "ACCESS GRANTED" | tte scattered --final-gradient-stops 5af78e 57c7ff --movement-speed 0.5
+  elif cmd_exists toilet && cmd_exists lolcat; then
     echo "" | toilet -f future "ACCESS GRANTED" --filter border 2>/dev/null | lolcat -f -S 100
   fi
   sleep 0.3
@@ -509,11 +531,30 @@ hack() {
 
 dashboard() {
   tmux new-session -d -s cyber 2>/dev/null || { tmux switch-client -t cyber 2>/dev/null || tmux attach-session -t cyber; return; }
+  # Left: system monitor (60%)
   tmux send-keys -t cyber 'btop' C-m
-  tmux split-window -t cyber -h -p 35
+  # Right column (40%)
+  tmux split-window -t cyber -h -p 40
+  # Top-right: audio visualizer
   tmux send-keys -t cyber 'cava 2>/dev/null || cmatrix -ab -C cyan' C-m
-  tmux split-window -t cyber -v -p 40
-  tmux send-keys -t cyber 'cmatrix -ab -C cyan' C-m
+  # Mid-right: network monitor or matrix rain
+  tmux split-window -t cyber -v -p 66
+  if cmd_exists bandwhich; then
+    tmux send-keys -t cyber 'sudo bandwhich 2>/dev/null || cmatrix -ab -C cyan' C-m
+  elif cmd_exists rusty-rain; then
+    tmux send-keys -t cyber 'rusty-rain -C 0,255,255 -H 50 -S' C-m
+  else
+    tmux send-keys -t cyber 'cmatrix -ab -C cyan' C-m
+  fi
+  # Bottom-right: lava lamp or screensaver
+  tmux split-window -t cyber -v -p 50
+  if cmd_exists lavat; then
+    tmux send-keys -t cyber 'lavat -c cyan -s 8 -r 2' C-m
+  elif cmd_exists pipes.sh; then
+    tmux send-keys -t cyber 'pipes.sh -t 2 -R -r 0 -p 5 -c 4' C-m
+  else
+    tmux send-keys -t cyber 'tty-clock -s -c -C 4 -b 2>/dev/null || date' C-m
+  fi
   tmux attach-session -t cyber 2>/dev/null || tmux switch-client -t cyber
 }
 
@@ -524,6 +565,10 @@ screensaver() {
   cmd_exists pipes.sh     && cmds+=("pipes.sh -t 2 -R -r 0 -p 5 -c 4")
   cmd_exists asciiquarium && cmds+=("asciiquarium")
   cmd_exists cbonsai      && cmds+=("cbonsai -l -t 0.02")
+  cmd_exists lavat        && cmds+=("lavat -c cyan -s 8 -r 2")
+  cmd_exists rusty-rain   && cmds+=("rusty-rain -C 0,255,255 -H 50 -S")
+  cmd_exists neo-matrix   && cmds+=("neo-matrix --color=cyan --charset=katakana --speed=6 --density=0.75")
+  cmd_exists tty-clock    && cmds+=("tty-clock -s -c -C 4 -b")
   (( ${#cmds[@]} == 0 )) && { echo "No screensavers installed"; return 1; }
   eval "${cmds[$((RANDOM % ${#cmds[@]} + 1))]}"
 }
