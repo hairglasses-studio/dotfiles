@@ -6,12 +6,12 @@ layer=overlay
 anchor=top-right
 
 font=JetBrainsMono Nerd Font 11
-width=380
+width=320
 height=120
-margin=8,8,0,0
+margin=8,8,46,0
 padding=12,16
 border-size=2
-border-radius=4
+border-radius=6
 border-color=#57c7ff
 background-color=#000000ee
 text-color=#f1f1f0

@@ -13,21 +13,17 @@ button {
     font-size: 18px;
     font-weight: bold;
     letter-spacing: 3px;
-    margin: 12px;
-    padding: 20px;
+    margin: 8px;
+    padding: 16px;
     transition: all 0.3s ease;
 }
 
 button:hover {
-    background-color: rgba(87, 199, 255, 0.12);
-    border-color: #ff6ac1;
-    color: #ff6ac1;
+    background-color: rgba(87, 199, 255, 0.08);
 }
 
 button:active {
-    background-color: rgba(255, 106, 193, 0.2);
-    border-color: #5af78e;
-    color: #5af78e;
+    background-color: rgba(87, 199, 255, 0.15);
 }
 
 #lock {
@@ -35,8 +31,7 @@ button:active {
     color: #57c7ff;
 }
 #lock:hover {
-    border-color: #5af78e;
-    color: #5af78e;
+    box-shadow: 0 0 20px rgba(87, 199, 255, 0.5);
 }
 
 #suspend {
@@ -44,8 +39,7 @@ button:active {
     color: #f3f99d;
 }
 #suspend:hover {
-    border-color: #ff6ac1;
-    color: #ff6ac1;
+    box-shadow: 0 0 20px rgba(243, 249, 157, 0.5);
 }
 
 #logout {
@@ -53,8 +47,7 @@ button:active {
     color: #ff6ac1;
 }
 #logout:hover {
-    border-color: #57c7ff;
-    color: #57c7ff;
+    box-shadow: 0 0 20px rgba(255, 106, 193, 0.5);
 }
 
 #reboot {
@@ -62,8 +55,7 @@ button:active {
     color: #5af78e;
 }
 #reboot:hover {
-    border-color: #ff6ac1;
-    color: #ff6ac1;
+    box-shadow: 0 0 20px rgba(90, 247, 142, 0.5);
 }
 
 #shutdown {
@@ -71,6 +63,5 @@ button:active {
     color: #ff5c57;
 }
 #shutdown:hover {
-    border-color: #f3f99d;
-    color: #f3f99d;
+    box-shadow: 0 0 20px rgba(255, 92, 87, 0.5);
 }
