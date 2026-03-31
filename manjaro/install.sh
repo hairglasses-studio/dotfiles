@@ -202,11 +202,17 @@ create_symlinks() {
     if [[ -d "$DOTFILES/hyprland" ]]; then
         link_file "$DOTFILES/hyprland" "$HOME/.config/hypr"
     fi
-    for dir in eww mako wofi wlogout; do
+    for dir in eww mako wofi wlogout foot; do
         if [[ -d "$DOTFILES/$dir" ]]; then
             link_file "$DOTFILES/$dir" "$HOME/.config/$dir"
         fi
     done
+
+    # GTK3 settings
+    if [[ -f "$DOTFILES/gtk/settings.ini" ]]; then
+        mkdir -p "$HOME/.config/gtk-3.0"
+        link_file "$DOTFILES/gtk/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
+    fi
 }
 
 # ── Systemd user services ────────────────────────────────────
