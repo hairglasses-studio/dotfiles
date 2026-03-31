@@ -260,7 +260,11 @@ if $UPDATE_MANIFEST; then
     current_cost="$("$SCRIPT_DIR/shader-meta.sh" get "$shader_base" cost 2>/dev/null)"
     if [[ -n "$current_cost" ]] && [[ "$current_cost" != "$cost" ]]; then
       # Update cost in manifest
-      sed -i '' "/^\[shaders\.\"${shader_base}\"\]/,/^\[shaders\./ s/^cost = \".*\"/cost = \"${cost}\"/" "$MANIFEST"
+      if [[ "$(uname)" == "Darwin" ]]; then
+        sed -i '' "/^\[shaders\.\"${shader_base}\"\]/,/^\[shaders\./ s/^cost = \".*\"/cost = \"${cost}\"/" "$MANIFEST"
+      else
+        sed -i "/^\[shaders\.\"${shader_base}\"\]/,/^\[shaders\./ s/^cost = \".*\"/cost = \"${cost}\"/" "$MANIFEST"
+      fi
       printf "  Updated: %s  %s → %s\n" "$name" "$current_cost" "$cost"
       updated=$((updated + 1))
     fi
