@@ -1,0 +1,1 @@
+../ghostty/shaders/bin/shader-random.sh
