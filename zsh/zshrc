@@ -324,11 +324,20 @@ shader-next 2>/dev/null
 
 # ── Auto-attach tmux on login (session persistence) ──
 # tmux-continuum restores all saved sessions on first attach after boot.
-# Only auto-attach on the first interactive login shell (not nested).
+# Only auto-attach if no client is already attached to "main" (prevents duplicate views).
 if [[ $SHLVL -eq 1 && -z "$TMUX" && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" && $- == *i* ]]; then
   if command -v tmux &>/dev/null; then
-    # Attach to existing session or create "main"
-    tmux attach-session -t main 2>/dev/null || tmux new-session -s main
+    if tmux has-session -t main 2>/dev/null; then
+      # Only attach if no one else is already viewing it
+      local attached
+      attached=$(tmux list-clients -t main 2>/dev/null | wc -l)
+      if (( attached == 0 )); then
+        tmux attach-session -t main
+      fi
+      # Otherwise: skip attach, give a fresh shell
+    else
+      tmux new-session -s main
+    fi
   fi
 fi
 
