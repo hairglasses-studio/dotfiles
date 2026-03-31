@@ -1,5 +1,6 @@
 /* Personal Waybar theme — Snazzy-on-Black palette
  * Ported from SketchyBar. For distro kiosk, see ralphglasses/distro/sway/waybar/
+ * Note: GTK CSS does not support @keyframes. Use transition for hover/state effects.
  */
 
 * {
@@ -17,37 +18,30 @@ window#waybar {
     padding: 0 8px;
     color: #686868;
     border-bottom: 2px solid transparent;
+    transition: all 300ms ease;
 }
 
 #workspaces button.focused {
     color: #57c7ff;
     border-bottom: 2px solid #57c7ff;
+    text-shadow: 0 0 6px #57c7ff;
 }
 
 #workspaces button.urgent {
     color: #ff5c57;
     border-bottom: 2px solid #ff5c57;
-    animation: urgent-pulse 0.8s ease-in-out infinite;
-}
-
-@keyframes urgent-pulse {
-    0%, 100% { color: #ff5c57; }
-    50%      { color: #ff6ac1; }
+    text-shadow: 0 0 4px #ff5c57;
 }
 
 #clock {
     color: #f1f1f0;
     font-weight: bold;
-    animation: clock-glow 8s ease-in-out infinite;
-}
-
-@keyframes clock-glow {
-    0%, 100% { text-shadow: 0 0 6px #57c7ff; }
-    50%      { text-shadow: 0 0 6px #ff6ac1; }
+    text-shadow: 0 0 6px #57c7ff;
 }
 
 #battery {
     color: #5af78e;
+    transition: all 300ms ease;
 }
 
 #battery.warning {
@@ -56,12 +50,7 @@ window#waybar {
 
 #battery.critical {
     color: #ff5c57;
-    animation: critical-pulse 1s ease-in-out infinite;
-}
-
-@keyframes critical-pulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.6; }
+    text-shadow: 0 0 4px #ff5c57;
 }
 
 #cpu {
@@ -70,22 +59,17 @@ window#waybar {
 
 #network {
     color: #686868;
+    transition: all 300ms ease;
 }
 
 #network.disconnected {
     color: #ff5c57;
-    animation: critical-pulse 1.5s ease-in-out infinite;
     text-shadow: 0 0 4px #ff5c57;
 }
 
 #mpris {
     color: #ff6ac1;
-    animation: mpris-neon 6s ease-in-out infinite;
-}
-
-@keyframes mpris-neon {
-    0%, 100% { color: #ff6ac1; text-shadow: 0 0 4px #ff6ac1; }
-    50%      { color: #57c7ff; text-shadow: 0 0 4px #57c7ff; }
+    text-shadow: 0 0 4px #ff6ac1;
 }
 
 #window {
@@ -102,12 +86,7 @@ window#waybar {
 #custom-rg-fleet {
     color: #5af78e;
     font-weight: bold;
-    animation: fleet-breathe 4s ease-in-out infinite;
-}
-
-@keyframes fleet-breathe {
-    0%, 100% { text-shadow: none; }
-    50%      { text-shadow: 0 0 4px #5af78e; }
+    text-shadow: 0 0 4px #5af78e;
 }
 
 #custom-rg-loops {
