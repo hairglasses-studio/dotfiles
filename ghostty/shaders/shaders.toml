@@ -3,7 +3,7 @@
 # Used by shader-meta.sh to generate playlists, SOURCES.md, and fzf picker.
 #
 # Fields:
-#   category  = CRT | Post-FX | Cursor | Background | Watercolor
+#   category  = CRT | Post-FX | Cursor | Background | Watercolor | Cyberpunk
 #   cost      = LOW | MED | HIGH
 #   source    = github-user or "adapted" / "original" / "shadertoy-port"
 #   description = one-line description
@@ -932,4 +932,48 @@ cost = "MED"
 source = "KroneCorylus"
 description = "Zoom with chromatic aberration"
 playlists = ["low-intensity", "tattoy-background"]
+
+# ── Cyberpunk Collection ─────────────────────────
+
+[shaders."synthwave-horizon"]
+category = "Cyberpunk"
+cost = "LOW"
+source = "original"
+description = "Outrun perspective neon grid with gradient sky and retro sun"
+playlists = ["best-of", "high-intensity"]
+
+[shaders."holo-display"]
+category = "Cyberpunk"
+cost = "MED"
+source = "original"
+description = "Sci-fi holographic display with Fresnel scanlines and RGB separation"
+playlists = ["best-of", "high-intensity"]
+
+[shaders."neon-hex-grid"]
+category = "Cyberpunk"
+cost = "MED"
+source = "original"
+description = "Hexagonal neon grid with propagating energy pulses"
+playlists = ["best-of", "high-intensity"]
+
+[shaders."circuit-trace"]
+category = "Cyberpunk"
+cost = "MED"
+source = "original"
+description = "Procedural circuit board with animated data flow"
+playlists = ["best-of", "high-intensity"]
+
+[shaders."rain-on-glass"]
+category = "Cyberpunk"
+cost = "HIGH"
+source = "original"
+description = "Raindrops sliding on glass with neon bokeh refraction"
+playlists = ["best-of", "high-intensity"]
+
+[shaders."cyber-glitch-holo"]
+category = "Cyberpunk"
+cost = "HIGH"
+source = "original"
+description = "Holographic display with data corruption and block displacement"
+playlists = ["best-of", "high-intensity"]
 
