@@ -22,6 +22,9 @@ max-visible=5
 group-by=app-name
 markup=1
 format=<b>%s</b>\n%b
+history=1
+on-button-left=dismiss
+on-button-right=dismiss-all
 
 # ── Urgency levels ──────────────────────────────
 
