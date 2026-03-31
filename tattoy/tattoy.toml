@@ -32,7 +32,7 @@ scrollback_size = 1000
 # Shaders live in the shaders/ subdirectory (symlinked to ghostty/shaders).
 # Cycle between them at runtime with ALT+9 / ALT+0.
 [shader]
-enabled = false
+enabled = true
 
 # How transparent the shader layer is over the terminal background.
 # 0.0 = invisible, 1.0 = fully opaque. Start low and raise to taste.
@@ -49,11 +49,11 @@ render_shader_colours_to_text = false
 
 # Default shader — a soft CRT glow that pairs well with RetroVisor's overlay.
 # Relative to this config directory. Change to any .glsl in shaders/.
-path = "shaders/old-film.glsl"  # shader-path
+path = "shaders/cyberpunk.glsl"  # shader-path
 
 # ── Animated Cursor ─────────────────────────────
 [animated_cursor]
-enabled = false
+enabled = true
 
 # Cursor shader opacity (0.0 = invisible, 1.0 = fully visible)
 opacity = 0.8
