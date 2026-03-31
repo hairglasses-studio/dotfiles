@@ -51,6 +51,14 @@ mako
 wofi
 swww
 socat
+grim
+slurp
+wlogout
+hyprpicker
+brightnessctl
+cliphist
+ydotool
+wtype
 
 # Shell
 zsh-autosuggestions
