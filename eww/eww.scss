@@ -1,0 +1,191 @@
+// Cyberpunk Snazzy Eww dashboard theme
+
+$bg: rgba(0, 0, 0, 0.88);
+$bg-dark: rgba(26, 26, 26, 0.95);
+$fg: #f1f1f0;
+$dim: #686868;
+$cyan: #57c7ff;
+$magenta: #ff6ac1;
+$green: #5af78e;
+$yellow: #f3f99d;
+$red: #ff5c57;
+
+// ── Ambient animations ─────────────────────
+@keyframes border-breathe {
+  0%, 100% { border-color: $cyan; box-shadow: 0 0 8px rgba(87, 199, 255, 0.2); }
+  50%      { border-color: $magenta; box-shadow: 0 0 12px rgba(255, 106, 193, 0.3); }
+}
+
+@keyframes text-glow-cyan {
+  0%, 100% { text-shadow: 0 0 4px rgba(87, 199, 255, 0.4); }
+  50%      { text-shadow: 0 0 10px rgba(87, 199, 255, 0.8); }
+}
+
+@keyframes text-glow-magenta {
+  0%, 100% { text-shadow: 0 0 4px rgba(255, 106, 193, 0.4); }
+  50%      { text-shadow: 0 0 10px rgba(255, 106, 193, 0.8); }
+}
+
+@keyframes text-glow-green {
+  0%, 100% { text-shadow: 0 0 4px rgba(90, 247, 142, 0.3); }
+  50%      { text-shadow: 0 0 8px rgba(90, 247, 142, 0.6); }
+}
+
+@keyframes scanline {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-bar {
+  0%, 100% { opacity: 0.8; }
+  50%      { opacity: 1.0; }
+}
+
+.dashboard {
+  background-color: $bg;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(87, 199, 255, 0.02) 2px,
+    rgba(87, 199, 255, 0.02) 4px
+  );
+  animation: scanline 8s linear infinite, border-breathe 6s ease-in-out infinite;
+  border: 2px solid $cyan;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  color: $fg;
+}
+
+// ── Header ─────────────────────────────────
+.header {
+  padding: 4px 0 8px;
+
+  .header-logo {
+    color: $cyan;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .header-text {
+    color: $magenta;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+}
+
+// ── Clock ──────────────────────────────────
+.clock-box {
+  padding: 4px 0;
+}
+
+.clock-time {
+  color: $fg;
+  font-size: 28px;
+  font-weight: bold;
+  animation: text-glow-cyan 4s ease-in-out infinite;
+}
+
+.clock-date {
+  color: $dim;
+  font-size: 11px;
+}
+
+// ── Metrics ────────────────────────────────
+.metrics-row {
+  padding: 8px 0;
+}
+
+.metric {
+  min-width: 60px;
+}
+
+.metric-label {
+  color: $dim;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.metric-value {
+  color: $fg;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.metric-bar-container {
+  min-height: 4px;
+  background-color: rgba(104, 104, 104, 0.3);
+  border-radius: 2px;
+  margin: 2px 0;
+}
+
+.metric-bar {
+  min-height: 4px;
+  border-radius: 2px;
+
+  trough {
+    background-color: rgba(104, 104, 104, 0.3);
+    border-radius: 2px;
+    min-height: 4px;
+  }
+
+  highlight {
+    border-radius: 2px;
+    min-height: 4px;
+  }
+
+  &.cyan highlight { background-color: $cyan; animation: pulse-bar 2s ease-in-out infinite; }
+  &.magenta highlight { background-color: $magenta; animation: pulse-bar 2.5s ease-in-out infinite; }
+  &.green highlight { background-color: $green; animation: pulse-bar 3s ease-in-out infinite; }
+  &.yellow highlight { background-color: $yellow; animation: pulse-bar 3.5s ease-in-out infinite; }
+}
+
+// ── Network ────────────────────────────────
+.network {
+  padding: 4px 0;
+}
+
+.net-down {
+  color: $green;
+  font-size: 11px;
+}
+
+.net-up {
+  color: $magenta;
+  font-size: 11px;
+}
+
+// ── Now Playing ────────────────────────────
+.now-playing {
+  padding: 4px 0;
+  border-top: 1px solid rgba(104, 104, 104, 0.3);
+  margin-top: 4px;
+}
+
+.np-text {
+  color: $magenta;
+  font-size: 11px;
+  font-style: italic;
+  animation: text-glow-magenta 3s ease-in-out infinite;
+}
+
+// ── Footer ─────────────────────────────────
+.footer {
+  padding: 4px 0 0;
+  border-top: 1px solid rgba(104, 104, 104, 0.3);
+  margin-top: 4px;
+}
+
+.footer-text {
+  color: $dim;
+  font-size: 10px;
+  letter-spacing: 1px;
+}

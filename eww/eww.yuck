@@ -1,0 +1,98 @@
+; ── Cyberpunk dashboard overlay ────────────────────
+; Launch: eww open dashboard
+; Close:  eww close dashboard
+
+; ── Polling variables ─────────────────────────────
+(defpoll cpu_usage :interval "2s"
+  `awk '/^cpu /{u=$2+$4; t=$2+$4+$5; if(NR>1) printf "%.0f", (u-pu)/(t-pt)*100; pu=u; pt=t}' /proc/stat /proc/stat`)
+
+(defpoll mem_usage :interval "5s"
+  `free -m | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
+
+(defpoll gpu_temp :interval "5s"
+  `awk '{printf "%.0f", $1/1000}' /sys/class/drm/card1/device/hwmon/hwmon1/temp1_input 2>/dev/null || echo "N/A"`)
+
+(defpoll net_down :interval "2s"
+  `awk 'NR>2{d+=$2}END{printf "%.1f", d/1024/1024}' /proc/net/dev`)
+
+(defpoll net_up :interval "2s"
+  `awk 'NR>2{u+=$10}END{printf "%.1f", u/1024/1024}' /proc/net/dev`)
+
+(defpoll disk_usage :interval "30s"
+  `df -h / | awk 'NR==2{print $5}'`)
+
+(defpoll uptime_val :interval "60s"
+  `uptime -p | sed 's/up //'`)
+
+(defpoll datetime :interval "1s"
+  `date '+%H:%M:%S'`)
+
+(defpoll datestr :interval "60s"
+  `date '+%Y-%m-%d'`)
+
+(defpoll now_playing :interval "3s"
+  `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
+
+; ── Widgets ───────────────────────────────────────
+
+(defwidget metric [label value ?unit ?color]
+  (box :class "metric" :orientation "v" :space-evenly false
+    (label :class "metric-label" :text label)
+    (box :class "metric-bar-container"
+      (scale :class "metric-bar ${color ?: ''}"
+             :min 0 :max 101
+             :value {value ?: 0}
+             :orientation "h"))
+    (label :class "metric-value" :text "${value}${unit ?: '%'}")))
+
+(defwidget header []
+  (box :class "header" :orientation "h" :space-evenly false :halign "center"
+    (label :class "header-logo" :text "⟨ ")
+    (label :class "header-text" :text "CYBERNET DASHBOARD")
+    (label :class "header-logo" :text " ⟩")))
+
+(defwidget clock-widget []
+  (box :class "clock-box" :orientation "v" :space-evenly false :halign "center"
+    (label :class "clock-time" :text datetime)
+    (label :class "clock-date" :text datestr)))
+
+(defwidget system-metrics []
+  (box :class "metrics-row" :orientation "h" :spacing 12
+    (metric :label "CPU" :value cpu_usage :color "cyan")
+    (metric :label "RAM" :value mem_usage :color "magenta")
+    (metric :label "GPU" :value gpu_temp :unit "°C" :color "green")
+    (metric :label "DISK" :value {replace(disk_usage, "%", "")} :color "yellow")))
+
+(defwidget network-stats []
+  (box :class "network" :orientation "h" :space-evenly true
+    (label :class "net-down" :text "↓ ${net_down} MB")
+    (label :class "net-up" :text "↑ ${net_up} MB")))
+
+(defwidget now-playing-widget []
+  (box :class "now-playing" :visible {now_playing != ""}
+    (label :class "np-text" :text "♫ ${now_playing}" :limit-width 40)))
+
+(defwidget footer []
+  (box :class "footer" :orientation "h" :space-evenly true
+    (label :class "footer-text" :text "UPTIME: ${uptime_val}")))
+
+(defwidget dashboard-content []
+  (box :class "dashboard" :orientation "v" :spacing 8
+    (header)
+    (clock-widget)
+    (system-metrics)
+    (network-stats)
+    (now-playing-widget)
+    (footer)))
+
+; ── Window ────────────────────────────────────────
+
+(defwindow dashboard
+  :monitor 0
+  :geometry (geometry :x "20px" :y "50px"
+                      :width "340px" :height "360px"
+                      :anchor "top right")
+  :stacking "overlay"
+  :exclusive false
+  :focusable false
+  (dashboard-content))
