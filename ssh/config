@@ -1,9 +1,3 @@
 Host *
 	IdentityFile ~/.ssh/id_ed25519
-
-# 1Password SSH agent (platform-specific socket)
-Match host * exec "test -S ~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-	IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-
-Match host * exec "test -S ~/.1password/agent.sock"
-	IdentityAgent ~/.1password/agent.sock
+	AddKeysToAgent yes
