@@ -1,4 +1,4 @@
-# Personal Sway config — ported from AeroSpace
+# Personal Sway config — consolidated with Hyprland keybinds
 # For the ralphglasses distro kiosk, see ralphglasses/distro/sway/config
 
 # ── Variables ──────────────────────────────────────────────────
@@ -16,14 +16,13 @@ input type:keyboard {
 }
 
 # ── Cursor ─────────────────────────────────────────────────────
-seat * xcursor_theme phinger-cursors-light 24
+seat * xcursor_theme Bibata-Modern-Classic 24
 
 # ── Mouse ──────────────────────────────────────────────────────
 input type:pointer {
     pointer_accel -0.5
     scroll_factor 0.25
 }
-# Port of AeroSpace on-focus-changed move-mouse window-lazy-center
 focus_follows_mouse yes
 mouse_warping container
 
@@ -42,10 +41,12 @@ gaps inner 8
 gaps outer 8
 gaps top 40
 
-# ── Keybinds: Launch ──────────────────────────────────────────
+# ── Keybinds: Launch ─────────────────────────────────────────
 bindsym $mod+Return exec $term
 bindsym $mod+d exec $menu
-# ── Keybinds: Navigation (from AeroSpace alt-hjkl) ───────────
+bindsym $mod+p exec wlogout
+
+# ── Keybinds: Navigation (hjkl + arrows) ────────────────────
 bindsym $mod+h focus left
 bindsym $mod+j focus down
 bindsym $mod+k focus up
@@ -55,7 +56,7 @@ bindsym $mod+Right focus right
 bindsym $mod+Down focus down
 bindsym $mod+Up focus up
 
-# ── Keybinds: Move windows (from AeroSpace alt-shift-hjkl) ───
+# ── Keybinds: Move windows (hjkl + arrows) ──────────────────
 bindsym $mod+Shift+h move left
 bindsym $mod+Shift+j move down
 bindsym $mod+Shift+k move up
@@ -65,22 +66,17 @@ bindsym $mod+Shift+Right move right
 bindsym $mod+Shift+Down move down
 bindsym $mod+Shift+Up move up
 
-# ── Keybinds: Layout ─────────────────────────────────────────
-# alt-slash → cycle tiles layout; alt-comma → accordion (tabbed/stacking)
-bindsym $mod+slash layout toggle split tabbed stacking
-bindsym $mod+comma layout toggle tabbed stacking splitv splith
+# ── Keybinds: Layout ────────────────────────────────────────
 bindsym $mod+f fullscreen toggle
 bindsym $mod+Shift+space floating toggle
 bindsym $mod+space focus mode_toggle
-bindsym $mod+a focus parent
-
-# ── Keybinds: Split direction (from AeroSpace join-with) ─────
-# alt-backslash → join-with right (horizontal split)
-# alt-minus → join-with down (vertical split)
+bindsym $mod+a [urgent=latest] focus
+bindsym $mod+slash layout toggle split tabbed stacking
+bindsym $mod+comma layout toggle tabbed stacking splitv splith
 bindsym $mod+backslash splith
 bindsym $mod+minus splitv
 
-# ── Keybinds: Workspaces (from AeroSpace alt-1..9) ──────────
+# ── Keybinds: Workspaces ────────────────────────────────────
 bindsym $mod+1 workspace number 1
 bindsym $mod+2 workspace number 2
 bindsym $mod+3 workspace number 3
@@ -102,8 +98,6 @@ bindsym $mod+Shift+8 move container to workspace number 8
 bindsym $mod+Shift+9 move container to workspace number 9
 
 # ── Workspace-to-monitor binding (match Hyprland) ──────────
-# DP-1 (left): workspaces 1-3
-# DP-2 (ultrawide): workspaces 4-9
 workspace 1 output DP-1
 workspace 2 output DP-1
 workspace 3 output DP-1
@@ -114,81 +108,85 @@ workspace 7 output DP-2
 workspace 8 output DP-2
 workspace 9 output DP-2
 
-# ── Keybinds: Window management ──────────────────────────────
+# ── Keybinds: Window management ─────────────────────────────
 bindsym $mod+Shift+q kill
 bindsym $mod+Tab workspace back_and_forth
 bindsym $mod+Shift+r reload
-bindsym $mod+Shift+g exec touch ~/.config/ghostty/config
-bindsym $mod+g exec zsh -ic 'shader-toggle'
-
-# Move workspace to next output (from AeroSpace alt-shift-tab)
 bindsym $mod+Shift+Tab move workspace to output right
 
-# ── Keybinds: Screenshots ────────────────────────────────────
-bindsym Print exec grim - | wl-copy
-bindsym $mod+Print exec screenshot-crop.sh
-
-# ── Keybinds: Shaders (from AeroSpace) ──────────────────────
-bindsym $mod+Shift+s exec shader-random.sh
-bindsym $mod+Shift+n exec shader-cycle.sh next
-bindsym $mod+Shift+p exec shader-cycle.sh prev
-
-# ── Keybinds: CRT overlay toggle (from AeroSpace alt-shift-c) ─
-# RetroVisor is macOS-only; on Linux, adapt this to your CRT shader toggle
-# bindsym $mod+Shift+c exec crt-toggle.sh
-
-# ── Window rules ─────────────────────────────────────────────
-# glslViewer — always float (from AeroSpace)
-for_window [app_id="glslViewer"] floating enable
-for_window [class="glslViewer"] floating enable
-
-# ── Keybinds: Resize mode (from AeroSpace service mode) ─────
-# Enter with alt-shift-semicolon in AeroSpace → $mod+Shift+semicolon here
+# ── Keybinds: Resize ────────────────────────────────────────
+bindsym $mod+Shift+semicolon mode "resize"
 mode "resize" {
     bindsym h resize shrink width 50px
     bindsym j resize grow height 50px
     bindsym k resize shrink height 50px
     bindsym l resize grow width 50px
-
-    # Service-mode join-with (from AeroSpace)
     bindsym Shift+h move left
     bindsym Shift+j move down
     bindsym Shift+k move up
     bindsym Shift+l move right
-
     bindsym Return mode "default"
     bindsym Escape mode "default"
 }
-bindsym $mod+Shift+semicolon mode "resize"
+
+# ── Keybinds: Screenshots ───────────────────────────────────
+bindsym Print exec grim - | wl-copy
+bindsym $mod+Print exec grim -g "$(slurp)" - | wl-copy
+bindsym $mod+Shift+Print exec screenshot-crop.sh
+
+# ── Keybinds: Clipboard & Color ─────────────────────────────
+bindsym $mod+v exec cliphist list | wofi --dmenu | cliphist decode | wl-copy
+bindsym $mod+Shift+c exec hyprpicker -a
+
+# ── Keybinds: Media ─────────────────────────────────────────
+bindsym XF86AudioPlay exec playerctl play-pause
+bindsym XF86AudioNext exec playerctl next
+bindsym XF86AudioPrev exec playerctl previous
+bindsym XF86AudioMute exec wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+bindsym XF86AudioRaiseVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+bindsym XF86AudioLowerVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+bindsym XF86MonBrightnessUp exec brightnessctl set +5%
+bindsym XF86MonBrightnessDown exec brightnessctl set 5%-
+
+# ── Keybinds: Night light ───────────────────────────────────
+bindsym $mod+Shift+t exec pkill wlsunset || wlsunset -t 3500
+
+# ── Keybinds: Shaders & Ghostty ─────────────────────────────
+bindsym $mod+g exec shader-cycle.sh next
+bindsym $mod+Shift+g exec touch ~/.config/ghostty/config
+bindsym $mod+Shift+s exec shader-random.sh
+bindsym $mod+Shift+n exec shader-cycle.sh next
+bindsym $mod+Shift+p exec shader-cycle.sh prev
+
+# ── Keybinds: Lock, wallpaper, dashboard ────────────────────
+bindsym $mod+Shift+x exec swaylock
+bindsym $mod+Shift+w exec shader-wallpaper.sh next
+bindsym $mod+Shift+Ctrl+w exec shader-wallpaper.sh random
+bindsym $mod+Shift+Mod1+w exec shader-wallpaper.sh static random
+bindsym $mod+Shift+d exec eww open --toggle dashboard
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -B 'Logout' 'swaymsg exit'
+
+# ── Window rules ─────────────────────────────────────────────
+for_window [app_id="glslViewer"] floating enable
+for_window [class="glslViewer"] floating enable
+for_window [app_id="pavucontrol"] floating enable
+for_window [title="Picture-in-Picture"] floating enable, sticky enable
+for_window [title="^(Open File|Save File|Confirm|About|Properties)$"] floating enable
 
 # ── Status bar ───────────────────────────────────────────────
 # Eww bar (replaces waybar)
 # bar { swaybar_command waybar }
 
-# ── Keybinds: Lock screen ────────────────────────────────────
-bindsym $mod+Shift+x exec swaylock
-
-# ── Keybinds: Wallpaper ─────────────────────────────────────
-bindsym $mod+Shift+w exec shader-wallpaper.sh next
-bindsym $mod+Shift+Ctrl+w exec shader-wallpaper.sh random
-bindsym $mod+Shift+Mod1+w exec shader-wallpaper.sh static random
-
-# ── Keybinds: Eww dashboard ────────────────────────────────
-# Note: $mod+Shift+d is used by ralphglasses config.d for wdisplays
-bindsym $mod+Shift+o exec eww open --toggle dashboard
-
-# ── Keybinds: Session ──────────────────────────────────────
-bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -B 'Logout' 'swaymsg exit'
-
 # ── Startup ──────────────────────────────────────────────────
-# Dismiss the NVIDIA proprietary driver swaynag warning
 exec pkill swaynag
 exec eww daemon && eww open bar && eww open bar-secondary
 exec mako
 exec swww-daemon
+exec wl-paste --type text --watch cliphist store
+exec wl-paste --type image --watch cliphist store
 exec swayidle -w \
-    timeout 300 'swaylock -f' \
-    timeout 600 'swaymsg "output * dpms off"' \
+    timeout 600 'swaylock -f' \
+    timeout 900 'swaymsg "output * dpms off"' \
     resume 'swaymsg "output * dpms on"' \
     before-sleep 'swaylock -f'
 
