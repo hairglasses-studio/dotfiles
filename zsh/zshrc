@@ -317,7 +317,7 @@ if [[ "$PROMPT_ENGINE" == "starship" ]]; then
 fi
 
 # ── Default working directory ──────────────────
-cd /Users/mitchnotmitchell 2>/dev/null
+[[ -d "$HOME/hairglasses-studio" ]] && cd "$HOME/hairglasses-studio"
 
 # ── Shuffled Ghostty shader per terminal ──────
 shader-next 2>/dev/null
