@@ -108,3 +108,59 @@ T    → RGB_SPI (speed+)         G → RGB_SPD (speed-)
 | 30752 | 0x7820 | RGB_TOG | Toggle RGB |
 | 30753 | 0x7821 | RGB_MOD | Next RGB effect |
 | 30754 | 0x7822 | RGB_RMOD | Prev RGB effect |
+
+---
+
+## Drop CTRL (TKL, v1 + v2)
+
+Firmware: `drop-ctrl-v1.json` (Microchip MCU) and `drop-ctrl-v2.json` (Drop MCU) — VIA keymap exports with the top-right trio remapped to match the Keychron encoder behavior.
+
+### Key Remaps
+
+The Print Screen / Scroll Lock / Pause trio mirrors the Keychron encoder layout:
+
+```
+[PrtSc]  [ScrLk]  [Pause]
+  F13     Enter     F14
+ focus←  confirm   focus→
+```
+
+| Physical Key | Default | Remapped To | Purpose |
+|-------------|---------|-------------|---------|
+| Print Screen | `KC_PSCR` | `KC_F13` | Hyprland `movefocus l` |
+| Scroll Lock | `KC_SCRL` | `KC_ENT` | Enter / submit prompt |
+| Pause/Break | `KC_PAUS` | `KC_F14` | Hyprland `movefocus r` |
+
+These are indices **13, 14, 15** in the VIA layer array.
+
+### Hyprland Integration
+
+Same F13/F14 binds as the Keychron — both keyboards send identical keycodes:
+
+```ini
+bind = , F13, movefocus, l
+bind = , F14, movefocus, r
+```
+
+Since Print Screen no longer sends `KC_PSCR`, screenshot binds use `$mod+S`:
+
+```ini
+bind = $mod, S, exec, grim - | wl-copy
+bind = $mod SHIFT, S, exec, grim -g "$(slurp)" - | wl-copy
+bind = $mod CTRL, S, exec, screenshot-crop.sh
+```
+
+### Flashing via VIA
+
+See [`drop-ctrl.md`](drop-ctrl.md) for detailed flashing instructions, Fn layer reference, cyberpunk RGB setup, and hardware version identification.
+
+### Testing Checklist
+
+| Test | Expected |
+|------|----------|
+| Tap PrtSc (top-left of trio) | Focus moves left |
+| Tap Pause (top-right of trio) | Focus moves right |
+| Tap ScrLk (middle of trio) | Sends Enter |
+| `$mod + S` | Full screenshot to clipboard |
+| `$mod + SHIFT + S` | Region screenshot |
+| `wev -f wl_keyboard:key` | Shows F13/F14 keycodes |
