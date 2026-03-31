@@ -3,6 +3,8 @@
 
 APP_ID="dropdown-cyber"
 TMUX_SESSION="dropdown"
+WIDTH=3840
+HEIGHT=486
 
 # Check if the dropdown window already exists in Sway
 if swaymsg -t get_tree | grep -q "\"app_id\": \"$APP_ID\""; then
@@ -20,5 +22,9 @@ else
             'claude'
         tmux select-pane -t $TMUX_SESSION:0.0
         tmux attach-session -t $TMUX_SESSION
-    "
+    " &
 fi
+
+# Resize after scratchpad show (workaround for swaywm/sway#8493)
+sleep 0.15
+swaymsg "[app_id=\"$APP_ID\"] resize set $WIDTH $HEIGHT, move position 0 0"
