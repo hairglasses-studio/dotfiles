@@ -24,7 +24,7 @@ window {
     background-color: transparent;
     color: #f1f1f0;
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 500;
     animation: border-glow 4s ease-in-out infinite;
 }
 
@@ -73,10 +73,15 @@ window {
     transition: all 0.15s ease;
 }
 
+#entry:hover {
+    background-color: rgba(26, 26, 26, 0.5);
+    border-left: 2px solid #ff6ac1;
+}
+
 #entry:selected {
     background-color: #57c7ff;
     color: #000000;
-    box-shadow: 0 0 12px rgba(87, 199, 255, 0.4);
+    box-shadow: 0 0 16px rgba(87, 199, 255, 0.6);
     animation: select-pulse 1.5s ease-in-out infinite;
 }
 
