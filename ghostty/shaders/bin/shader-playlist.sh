@@ -6,7 +6,11 @@ _shader_playlist_dir="${0:A:h:h}/playlists"
 _shader_state_dir="$HOME/.local/state/ghostty"
 _shader_base_dir="$HOME/.config/ghostty/shaders"
 _ghostty_config="$HOME/.config/ghostty/config"
-_tattoy_config="$HOME/Library/Application Support/tattoy/tattoy.toml"
+if [[ "$(uname)" == "Darwin" ]]; then
+  _tattoy_config="$HOME/Library/Application Support/tattoy/tattoy.toml"
+else
+  _tattoy_config="${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+fi
 
 # Fisher-Yates shuffle: reads lines from file, prints shuffled
 _shader_shuffle() {
