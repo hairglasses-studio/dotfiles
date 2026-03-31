@@ -1,11 +1,10 @@
 #!/bin/bash
-# JankyBorders — Snazzy window borders with per-app colors
+# JankyBorders — Snazzy window borders
 options=(
     style=round
     width=4.0
     hidpi=on
     active_color=0xff57c7ff
     inactive_color=0xff686868
-    blacklist="RetroVisor"
 )
 borders "${options[@]}"
