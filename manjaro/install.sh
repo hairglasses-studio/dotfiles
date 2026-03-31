@@ -1,16 +1,71 @@
 #!/usr/bin/env bash
 # manjaro/install.sh — Manjaro Linux installer for dotfiles
-# Counterpart to install.sh (macOS)
+# Feature flags in dotfiles.toml — toggle components on/off
+# Usage: ./manjaro/install.sh [--check] [--profile minimal|dev|full|cyberpunk]
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "$0")/.." && pwd)"
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 BACKUP_CREATED=false
 CHECK_ONLY=false
+PROFILE=""
 
-if [[ "${1:-}" == "--check" ]]; then
-    CHECK_ONLY=true
-fi
+# Parse args
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --check) CHECK_ONLY=true; shift ;;
+        --profile) PROFILE="${2:-}"; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+# ── Feature flag system ──────────────────────────────────────
+declare -A FEATURES
+_parse_features() {
+    local toml="$DOTFILES/dotfiles.toml"
+    [[ -f "$toml" ]] || return 0
+    local section=""
+    while IFS= read -r line; do
+        line="${line%%#*}"          # strip comments
+        line="${line//[[:space:]]/}" # strip whitespace
+        [[ -z "$line" ]] && continue
+        if [[ "$line" =~ ^\[(.+)\]$ ]]; then
+            section="${BASH_REMATCH[1]}"
+        elif [[ "$line" =~ ^([a-zA-Z0-9_-]+)=(true|false)$ ]]; then
+            FEATURES["${BASH_REMATCH[1]}"]="${BASH_REMATCH[2]}"
+        fi
+    done < "$toml"
+
+    # Apply profile override if specified
+    if [[ -n "$PROFILE" ]]; then
+        local in_profile=false
+        while IFS= read -r line; do
+            line="${line%%#*}"
+            [[ "$line" =~ ^\[profiles\.$PROFILE\] ]] && in_profile=true && continue
+            [[ "$line" =~ ^\[ ]] && in_profile=false
+            if $in_profile && [[ "$line" =~ enable.*=.*\[(.+)\] ]]; then
+                local items="${BASH_REMATCH[1]}"
+                if [[ "$items" == *'"*"'* ]]; then
+                    # Wildcard — enable everything
+                    for key in "${!FEATURES[@]}"; do FEATURES["$key"]="true"; done
+                else
+                    # Disable all, then enable listed
+                    for key in "${!FEATURES[@]}"; do FEATURES["$key"]="false"; done
+                    items="${items//\"/}"
+                    IFS=',' read -ra arr <<< "$items"
+                    for item in "${arr[@]}"; do
+                        item="${item//[[:space:]]/}"
+                        FEATURES["$item"]="true"
+                    done
+                fi
+            fi
+        done < "$toml"
+    fi
+}
+
+is_enabled() { [[ "${FEATURES[${1}]:-true}" == "true" ]]; }
+
+_parse_features
 
 # ── Logging ───────────────────────────────────────────────────
 info()    { printf '\033[1;34m[INFO]\033[0m  %s\n' "$1"; }
@@ -159,57 +214,46 @@ setup_tattoy_shaders() {
 
 # ── Symlinks ──────────────────────────────────────────────────
 create_symlinks() {
-    info "Creating symlinks..."
+    info "Creating symlinks (profile: ${PROFILE:-dotfiles.toml})..."
 
-    # Individual files
-    link_file "$DOTFILES/zsh/zshrc"              "$HOME/.zshrc"
-    link_file "$DOTFILES/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
-    link_file "$DOTFILES/zsh/zshenv"             "$HOME/.zshenv"
-    link_file "$DOTFILES/git/gitconfig"          "$HOME/.gitconfig"
-    link_file "$DOTFILES/ssh/config"             "$HOME/.ssh/config"
-    link_file "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
+    # ── Core ──
+    is_enabled zsh      && link_file "$DOTFILES/zsh/zshrc"              "$HOME/.zshrc"
+    is_enabled zsh      && link_file "$DOTFILES/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
+    is_enabled zsh      && link_file "$DOTFILES/zsh/zshenv"             "$HOME/.zshenv"
+    is_enabled git      && link_file "$DOTFILES/git/gitconfig"          "$HOME/.gitconfig"
+    is_enabled git      && link_file "$DOTFILES/git/delta"              "$HOME/.config/delta"
+    is_enabled git      && link_file "$DOTFILES/git/ignore"             "$HOME/.config/git/ignore"
+    is_enabled ssh      && link_file "$DOTFILES/ssh/config"             "$HOME/.ssh/config"
+    is_enabled starship && link_file "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
+    is_enabled tmux     && link_file "$DOTFILES/tmux/tmux.conf"         "$HOME/.tmux.conf"
+    is_enabled nvim     && link_file "$DOTFILES/nvim"                   "$HOME/.config/nvim"
 
-    # Directory symlinks (cross-platform)
-    link_file "$DOTFILES/ghostty"    "$HOME/.config/ghostty"
-    link_file "$DOTFILES/nvim"       "$HOME/.config/nvim"
-    link_file "$DOTFILES/bat"        "$HOME/.config/bat"
-    link_file "$DOTFILES/fastfetch"  "$HOME/.config/fastfetch"
-    link_file "$DOTFILES/git/delta"  "$HOME/.config/delta"
-    link_file "$DOTFILES/git/ignore" "$HOME/.config/git/ignore"
-    link_file "$DOTFILES/gh"         "$HOME/.config/gh"
-    link_file "$DOTFILES/k9s"        "$HOME/.config/k9s"
-    link_file "$DOTFILES/lazygit"    "$HOME/.config/lazygit"
-    link_file "$DOTFILES/btop"       "$HOME/.config/btop"
-    link_file "$DOTFILES/yazi"       "$HOME/.config/yazi"
-    link_file "$DOTFILES/cava"       "$HOME/.config/cava"
-    link_file "$DOTFILES/glow"       "$HOME/.config/glow"
+    # ── Terminal ──
+    is_enabled ghostty   && link_file "$DOTFILES/ghostty"   "$HOME/.config/ghostty"
+    is_enabled foot      && link_file "$DOTFILES/foot"      "$HOME/.config/foot"
+    is_enabled bat       && link_file "$DOTFILES/bat"       "$HOME/.config/bat"
+    is_enabled fastfetch && link_file "$DOTFILES/fastfetch" "$HOME/.config/fastfetch"
 
-    # Tmux
-    link_file "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
+    # ── TUI theming ──
+    is_enabled gh      && link_file "$DOTFILES/gh"      "$HOME/.config/gh"
+    is_enabled k9s     && link_file "$DOTFILES/k9s"     "$HOME/.config/k9s"
+    is_enabled lazygit && link_file "$DOTFILES/lazygit"  "$HOME/.config/lazygit"
+    is_enabled btop    && link_file "$DOTFILES/btop"     "$HOME/.config/btop"
+    is_enabled yazi    && link_file "$DOTFILES/yazi"     "$HOME/.config/yazi"
+    is_enabled cava    && link_file "$DOTFILES/cava"     "$HOME/.config/cava"
+    is_enabled glow    && link_file "$DOTFILES/glow"     "$HOME/.config/glow"
 
-    # Tattoy (Linux XDG path, not macOS ~/Library)
-    link_file "$DOTFILES/tattoy/tattoy.toml" "$HOME/.config/tattoy/tattoy.toml"
+    # ── Desktop (Linux) ──
+    is_enabled sway     && [[ -d "$DOTFILES/sway" ]]     && link_file "$DOTFILES/sway"     "$HOME/.config/sway"
+    is_enabled waybar   && [[ -d "$DOTFILES/waybar" ]]   && link_file "$DOTFILES/waybar"   "$HOME/.config/waybar"
+    is_enabled hyprland && [[ -d "$DOTFILES/hyprland" ]] && link_file "$DOTFILES/hyprland" "$HOME/.config/hypr"
+    is_enabled eww      && [[ -d "$DOTFILES/eww" ]]      && link_file "$DOTFILES/eww"      "$HOME/.config/eww"
+    is_enabled mako     && [[ -d "$DOTFILES/mako" ]]     && link_file "$DOTFILES/mako"     "$HOME/.config/mako"
+    is_enabled wofi     && [[ -d "$DOTFILES/wofi" ]]     && link_file "$DOTFILES/wofi"     "$HOME/.config/wofi"
+    is_enabled wlogout  && [[ -d "$DOTFILES/wlogout" ]]  && link_file "$DOTFILES/wlogout"  "$HOME/.config/wlogout"
 
-    # Sway + Waybar (if configs exist in dotfiles)
-    if [[ -d "$DOTFILES/sway" ]]; then
-        link_file "$DOTFILES/sway" "$HOME/.config/sway"
-    fi
-    if [[ -d "$DOTFILES/waybar" ]]; then
-        link_file "$DOTFILES/waybar" "$HOME/.config/waybar"
-    fi
-
-    # Hyprland + tools
-    if [[ -d "$DOTFILES/hyprland" ]]; then
-        link_file "$DOTFILES/hyprland" "$HOME/.config/hypr"
-    fi
-    for dir in eww mako wofi wlogout foot; do
-        if [[ -d "$DOTFILES/$dir" ]]; then
-            link_file "$DOTFILES/$dir" "$HOME/.config/$dir"
-        fi
-    done
-
-    # GTK3 settings
-    if [[ -f "$DOTFILES/gtk/settings.ini" ]]; then
+    # ── GTK ──
+    if is_enabled gtk && [[ -f "$DOTFILES/gtk/settings.ini" ]]; then
         mkdir -p "$HOME/.config/gtk-3.0"
         link_file "$DOTFILES/gtk/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
     fi
