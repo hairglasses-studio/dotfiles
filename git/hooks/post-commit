@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Cyberpunk post-commit celebration
+[[ -t 1 ]] || exit 0
+
+hash=$(git log -1 --format='%h' 2>/dev/null)
+msg=$(git log -1 --format='%s' 2>/dev/null)
+
+if command -v tte &>/dev/null; then
+  echo "COMMIT LOCKED // $hash" | tte beams \
+    --beam-delay 2 \
+    --beam-gradient-stops 5af78e 57c7ff \
+    --final-gradient-stops 5af78e 57c7ff 2>/dev/null
+fi
+
+if command -v notify-send &>/dev/null; then
+  notify-send -u low -a "Commit Locked" "Commit Locked" "$hash: $msg" 2>/dev/null
+fi

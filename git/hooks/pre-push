@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Cyberpunk pre-push animation
+[[ -t 1 ]] || exit 0
+
+remote="$1"
+if command -v tte &>/dev/null; then
+  echo "TRANSMITTING TO $remote" | tte decrypt \
+    --typing-speed 6 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+fi
+exit 0

@@ -184,7 +184,7 @@ _cmd_timer_precmd() {
       fi
       # Notification sound (Linux - notify-send)
       if command -v notify-send &>/dev/null; then
-        notify-send -u normal "Command Complete" \
+        notify-send -u normal -a "Command Complete" "Command Complete" \
           "${_CMD_NAME} finished (${elapsed}s)" 2>/dev/null
       fi
     fi
@@ -220,6 +220,11 @@ _onefetch_chpwd() {
     else
       onefetch --no-color-palette 2>/dev/null
     fi
+  elif [[ -f Makefile || -f Dockerfile || -f go.mod || -f package.json || -f Cargo.toml ]] \
+    && command -v tte &>/dev/null && [[ -t 1 ]]; then
+    echo "PROJECT // ${PWD##*/}" | tte slide \
+      --movement-speed 2.0 --grouping row \
+      --final-gradient-stops 686868 57c7ff 2>/dev/null
   fi
 }
 chpwd_functions+=(_onefetch_chpwd)

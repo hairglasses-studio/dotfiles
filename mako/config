@@ -1,0 +1,55 @@
+# Cyberpunk Snazzy notification theme
+# https://github.com/emersion/mako
+
+sort=-time
+layer=overlay
+anchor=top-right
+
+font=JetBrainsMono Nerd Font 11
+width=380
+height=120
+margin=8,8,0,0
+padding=12,16
+border-size=2
+border-radius=4
+border-color=#57c7ff
+background-color=#000000ee
+text-color=#f1f1f0
+icon-path=/usr/share/icons/Papirus-Dark
+max-icon-size=48
+default-timeout=5000
+max-visible=5
+group-by=app-name
+markup=1
+format=<b>%s</b>\n%b
+
+# ── Urgency levels ──────────────────────────────
+
+[urgency=low]
+border-color=#686868
+background-color=#1a1a1acc
+default-timeout=3000
+
+[urgency=normal]
+border-color=#57c7ff
+background-color=#000000ee
+
+[urgency=critical]
+border-color=#ff5c57
+background-color=#1a0000ee
+text-color=#ff5c57
+default-timeout=0
+
+# ── App-specific overrides ──────────────────────
+
+[app-name="Command Complete"]
+border-color=#5af78e
+background-color=#001a00ee
+
+[app-name="Commit Locked"]
+border-color=#5af78e
+background-color=#001a00ee
+
+[app-name="DEPLOY"]
+border-color=#ff6ac1
+background-color=#1a001aee
