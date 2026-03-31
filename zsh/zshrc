@@ -209,6 +209,9 @@ zstyle ':fzf-tab:complete:cd:*' extra-opts --preview='ls -la $realpath 2>/dev/nu
 # ── Zoxide (smart cd) ──────────────────────────
 eval "$(zoxide init zsh)"
 
+# ── direnv (per-directory env vars) ────────────
+command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
+
 # ── onefetch on entering git repos ───────────
 _onefetch_chpwd() {
   if [[ -d .git ]] && command -v onefetch &>/dev/null; then
