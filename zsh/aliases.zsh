@@ -473,6 +473,42 @@ if cmd_exists eww; then
   alias hud-kill='eww kill'
 fi
 
+# ── Email ─────────────────────────────────────
+if cmd_exists aerc;     then alias mail='aerc'; fi
+if cmd_exists himalaya; then
+  alias inbox='himalaya list --folder INBOX | head -20'
+  inbox-cyber() {
+    if cmd_exists tte; then
+      himalaya list --folder INBOX 2>/dev/null | head -20 | tte wipe \
+        --final-gradient-stops 57c7ff ff6ac1 5af78e \
+        --final-gradient-direction horizontal 2>/dev/null
+    else
+      himalaya list --folder INBOX | head -20
+    fi
+  }
+fi
+
+# ── Web browsing ──────────────────────────────
+if cmd_exists browsh; then alias web='browsh'; fi
+if cmd_exists w3m;    then alias www='w3m'; fi
+
+# ── Finance ───────────────────────────────────
+if cmd_exists hledger-ui; then alias budget='hledger-ui'; fi
+if cmd_exists bagels;     then alias expenses='bagels'; fi
+if cmd_exists wtfutil;    then alias dash='wtfutil'; fi
+
+# ── Amazon orders ─────────────────────────────
+if cmd_exists amazon-orders; then
+  orders() {
+    if cmd_exists tte && [[ -t 1 ]]; then
+      amazon-orders --years 1 2>/dev/null | tte decrypt \
+        --typing-speed 3 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+    else
+      amazon-orders --years 1 2>/dev/null
+    fi
+  }
+fi
+
 # ── New tools ─────────────────────────────────
 alias top='btop'
 alias yy='yazi'
