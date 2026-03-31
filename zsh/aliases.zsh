@@ -509,6 +509,13 @@ if cmd_exists amazon-orders; then
   }
 fi
 
+# ── Claude Code ───────────────────────────────
+if cmd_exists claude; then
+  alias cc='claude'
+  alias ccr='claude --resume'
+  alias ccc='claude --continue'
+fi
+
 # ── New tools ─────────────────────────────────
 alias top='btop'
 alias yy='yazi'
