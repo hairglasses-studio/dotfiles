@@ -2,11 +2,11 @@
   "mcpServers": {
     "sway": {
       "command": "bash",
-      "args": ["-c", "node \"$HOME/hairglasses-studio/sway-mcp/src/index.js\""]
+      "args": ["-c", "export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}; exec node \"$HOME/hairglasses-studio/sway-mcp/src/index.js\""]
     },
     "hyprland": {
       "command": "bash",
-      "args": ["-c", "\"$HOME/hairglasses-studio/hyprland-mcp/hyprland-mcp\""]
+      "args": ["-c", "export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}; export HYPRLAND_INSTANCE_SIGNATURE=${HYPRLAND_INSTANCE_SIGNATURE:-$(ls /run/user/$(id -u)/hypr/ 2>/dev/null | head -1)}; exec \"$HOME/hairglasses-studio/hyprland-mcp/hyprland-mcp\""]
     },
     "dotfiles": {
       "command": "bash",
