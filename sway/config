@@ -157,7 +157,10 @@ bindsym $mod+Shift+Ctrl+w exec shader-wallpaper.sh random
 bindsym $mod+Shift+Mod1+w exec shader-wallpaper.sh static random
 
 # ── Keybinds: Eww dashboard ────────────────────────────────
-bindsym $mod+Shift+e exec eww open --toggle dashboard
+bindsym $mod+Shift+d exec eww open --toggle dashboard
+
+# ── Keybinds: Session ──────────────────────────────────────
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -B 'Logout' 'swaymsg exit'
 
 # ── Startup ──────────────────────────────────────────────────
 exec eww daemon && eww open bar && eww open bar-secondary
