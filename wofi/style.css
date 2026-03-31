@@ -1,0 +1,89 @@
+/* Cyberpunk Snazzy wofi theme */
+
+window {
+    margin: 0;
+    border: 2px solid #57c7ff;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.92);
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 14px;
+    animation: fade-in 0.15s ease-out;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+#input {
+    margin: 8px 12px;
+    padding: 8px 12px;
+    border: none;
+    border-bottom: 2px solid #57c7ff;
+    border-radius: 0;
+    background-color: transparent;
+    color: #f1f1f0;
+    font-size: 15px;
+    font-weight: bold;
+    animation: border-glow 4s ease-in-out infinite;
+}
+
+@keyframes border-glow {
+    0%, 100% { border-bottom-color: #57c7ff; }
+    50%      { border-bottom-color: #ff6ac1; }
+}
+
+#input:focus {
+    border-bottom-color: #ff6ac1;
+    box-shadow: 0 2px 8px rgba(255, 106, 193, 0.3);
+}
+
+#inner-box {
+    margin: 4px 8px;
+    background-color: transparent;
+}
+
+#outer-box {
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0;
+    background-color: transparent;
+}
+
+#text {
+    margin: 0;
+    padding: 4px 0;
+    color: #f1f1f0;
+}
+
+#text:selected {
+    color: #000000;
+}
+
+#entry {
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin: 2px 4px;
+    background-color: transparent;
+    transition: all 0.15s ease;
+}
+
+#entry:selected {
+    background-color: #57c7ff;
+    color: #000000;
+    box-shadow: 0 0 12px rgba(87, 199, 255, 0.4);
+    animation: select-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes select-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(87, 199, 255, 0.3); }
+    50%      { box-shadow: 0 0 16px rgba(87, 199, 255, 0.6); }
+}
+
+#img {
+    margin-right: 8px;
+}
