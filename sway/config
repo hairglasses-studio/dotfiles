@@ -133,10 +133,10 @@ mode "resize" {
     bindsym Escape mode "default"
 }
 
-# ── Keybinds: Screenshots ───────────────────────────────────
-bindsym Print exec grim - | wl-copy
-bindsym $mod+Print exec grim -g "$(slurp)" - | wl-copy
-bindsym $mod+Shift+Print exec screenshot-crop.sh
+# ── Keybinds: Screenshots (PrtSc remapped to F13 on Drop CTRL) ─
+bindsym $mod+s exec grim - | wl-copy
+bindsym $mod+Shift+s exec grim -g "$(slurp)" - | wl-copy
+bindsym $mod+Ctrl+s exec screenshot-crop.sh
 
 # ── Keybinds: Clipboard & Color ─────────────────────────────
 bindsym $mod+v exec cliphist list | wofi --dmenu | cliphist decode | wl-copy
@@ -157,8 +157,7 @@ bindsym $mod+Shift+t exec pkill wlsunset || wlsunset -t 3500
 
 # ── Keybinds: Shaders & Ghostty ─────────────────────────────
 bindsym $mod+g exec shader-cycle.sh next
-bindsym $mod+Shift+g exec touch ~/.config/ghostty/config
-bindsym $mod+Shift+s exec shader-random.sh
+bindsym $mod+Shift+g exec shader-random.sh
 bindsym $mod+Shift+n exec shader-cycle.sh next
 bindsym $mod+Shift+p exec shader-cycle.sh prev
 
