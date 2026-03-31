@@ -10,7 +10,10 @@
   `free -m | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
 
 (defpoll gpu_temp :interval "5s"
-  `awk '{printf "%.0f", $1/1000}' /sys/class/drm/card1/device/hwmon/hwmon1/temp1_input 2>/dev/null || echo "N/A"`)
+  `nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null || echo "N/A"`)
+
+(defpoll gpu_util :interval "5s"
+  `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo "0"`)
 
 (defpoll net_down :interval "2s"
   `awk 'NR>2{d+=$2}END{printf "%.1f", d/1024/1024}' /proc/net/dev`)
@@ -61,6 +64,7 @@
     (metric :label "CPU" :value cpu_usage :color "cyan")
     (metric :label "RAM" :value mem_usage :color "magenta")
     (metric :label "GPU" :value gpu_temp :unit "°C" :color "green")
+    (metric :label "GPU%" :value gpu_util :color "green")
     (metric :label "DISK" :value {replace(disk_usage, "%", "")} :color "yellow")))
 
 (defwidget network-stats []
