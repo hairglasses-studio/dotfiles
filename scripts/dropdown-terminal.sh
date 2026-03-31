@@ -3,7 +3,7 @@
 
 APP_ID="dropdown-cyber"
 TMUX_SESSION="dropdown"
-WIDTH=3840
+WIDTH=5120
 HEIGHT=486
 
 # Check if the dropdown window already exists in Sway

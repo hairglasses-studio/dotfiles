@@ -15,6 +15,9 @@ input type:keyboard {
     repeat_rate 40
 }
 
+# ── Cursor ─────────────────────────────────────────────────────
+seat * xcursor_theme phinger-cursors-light 24
+
 # ── Mouse ──────────────────────────────────────────────────────
 # Port of AeroSpace on-focus-changed move-mouse window-lazy-center
 focus_follows_mouse yes
