@@ -30,15 +30,27 @@ docker
 lazydocker
 dive
 
-# Desktop (Sway)
+# Desktop — Sway
 sway
-waybar
 swayidle
 swaylock
+
+# Desktop — Hyprland
+hyprland
+hypridle
+hyprlock
+
+# Desktop — Shared
+waybar
+eww
 wl-clipboard
 xorg-xwayland
-alacritty
+ghostty
+foot
 mako
+wofi
+swww
+socat
 
 # Shell
 zsh-autosuggestions
