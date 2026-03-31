@@ -1,0 +1,6 @@
+[Unit]
+Description=Advance Ghostty shader rotation
+
+[Service]
+Type=oneshot
+ExecStart=%h/dotfiles/ghostty/shaders/bin/shader-auto-rotate.sh
