@@ -1,4 +1,4 @@
-// Cyberpunk Snazzy Eww dashboard theme
+// Cyberpunk Snazzy Eww theme
 
 $bg: rgba(0, 0, 0, 0.88);
 $bg-dark: rgba(26, 26, 26, 0.95);
@@ -10,25 +10,143 @@ $green: #5af78e;
 $yellow: #f3f99d;
 $red: #ff5c57;
 
+// ══════════════════════════════════════════════════
+// ── STATUS BAR ──────────────────────────────────
+// ══════════════════════════════════════════════════
+
+.bar-container {
+  background-color: $bg-dark;
+  border-bottom: 1px solid rgba(87, 199, 255, 0.3);
+  padding: 0 12px;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-size: 12px;
+  color: $fg;
+}
+
+// ── Workspaces ────────────────────────────────
+.bar-workspaces {
+  padding: 0 4px;
+}
+
+.bar-ws {
+  color: $dim;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border-bottom: 2px solid transparent;
+  transition: all 150ms ease;
+
+  &:hover {
+    color: $fg;
+    background-color: rgba(87, 199, 255, 0.1);
+  }
+}
+
+.bar-ws-active {
+  color: $cyan;
+  border-bottom: 2px solid $cyan;
+  text-shadow: 0 0 6px rgba(87, 199, 255, 0.5);
+}
+
+.bar-ws-urgent {
+  color: $red;
+  border-bottom: 2px solid $red;
+  animation: text-glow-red 1s ease-in-out infinite;
+}
+
+@keyframes text-glow-red {
+  0%   { text-shadow: 0 0 4px rgba(255, 92, 87, 0.4); }
+  50%  { text-shadow: 0 0 10px rgba(255, 92, 87, 0.8); }
+  100% { text-shadow: 0 0 4px rgba(255, 92, 87, 0.4); }
+}
+
+// ── Sway mode indicator ──────────────────────
+.bar-mode-active {
+  color: $bg;
+  background-color: $magenta;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+// ── Window title ─────────────────────────────
+.bar-title {
+  color: $dim;
+  font-size: 11px;
+}
+
+// ── Clock ────────────────────────────────────
+.bar-clock {
+  padding: 0 8px;
+}
+
+.bar-time {
+  color: $fg;
+  font-size: 13px;
+  font-weight: bold;
+  animation: text-glow-cyan 4s ease-in-out infinite;
+}
+
+.bar-date {
+  color: $dim;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+// ── System metrics ───────────────────────────
+.bar-sys {
+  padding: 0 4px;
+}
+
+.bar-metric {
+  padding: 2px 0;
+}
+
+.bar-icon {
+  font-size: 13px;
+  &.cyan    { color: $cyan; }
+  &.magenta { color: $magenta; }
+  &.green   { color: $green; }
+  &.yellow  { color: $yellow; }
+}
+
+.bar-metric-val {
+  color: $fg;
+  font-size: 11px;
+}
+
+// ── MPRIS ────────────────────────────────────
+.bar-mpris-text {
+  color: $magenta;
+  font-size: 11px;
+  font-style: italic;
+  animation: text-glow-magenta 3s ease-in-out infinite;
+}
+
 // ── Ambient animations ─────────────────────
 @keyframes border-breathe {
-  0%, 100% { border-color: $cyan; box-shadow: 0 0 8px rgba(87, 199, 255, 0.2); }
-  50%      { border-color: $magenta; box-shadow: 0 0 12px rgba(255, 106, 193, 0.3); }
+  0%   { border-color: $cyan; box-shadow: 0 0 8px rgba(87, 199, 255, 0.2); }
+  50%  { border-color: $magenta; box-shadow: 0 0 12px rgba(255, 106, 193, 0.3); }
+  100% { border-color: $cyan; box-shadow: 0 0 8px rgba(87, 199, 255, 0.2); }
 }
 
 @keyframes text-glow-cyan {
-  0%, 100% { text-shadow: 0 0 4px rgba(87, 199, 255, 0.4); }
-  50%      { text-shadow: 0 0 10px rgba(87, 199, 255, 0.8); }
+  0%   { text-shadow: 0 0 4px rgba(87, 199, 255, 0.4); }
+  50%  { text-shadow: 0 0 10px rgba(87, 199, 255, 0.8); }
+  100% { text-shadow: 0 0 4px rgba(87, 199, 255, 0.4); }
 }
 
 @keyframes text-glow-magenta {
-  0%, 100% { text-shadow: 0 0 4px rgba(255, 106, 193, 0.4); }
-  50%      { text-shadow: 0 0 10px rgba(255, 106, 193, 0.8); }
+  0%   { text-shadow: 0 0 4px rgba(255, 106, 193, 0.4); }
+  50%  { text-shadow: 0 0 10px rgba(255, 106, 193, 0.8); }
+  100% { text-shadow: 0 0 4px rgba(255, 106, 193, 0.4); }
 }
 
 @keyframes text-glow-green {
-  0%, 100% { text-shadow: 0 0 4px rgba(90, 247, 142, 0.3); }
-  50%      { text-shadow: 0 0 8px rgba(90, 247, 142, 0.6); }
+  0%   { text-shadow: 0 0 4px rgba(90, 247, 142, 0.3); }
+  50%  { text-shadow: 0 0 8px rgba(90, 247, 142, 0.6); }
+  100% { text-shadow: 0 0 4px rgba(90, 247, 142, 0.3); }
 }
 
 @keyframes scanline {
@@ -37,13 +155,14 @@ $red: #ff5c57;
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes pulse-bar {
-  0%, 100% { opacity: 0.8; }
-  50%      { opacity: 1.0; }
+  0%   { opacity: 0.8; }
+  50%  { opacity: 1.0; }
+  100% { opacity: 0.8; }
 }
 
 .dashboard {
