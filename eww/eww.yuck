@@ -4,7 +4,7 @@
 
 ; ── Polling variables ─────────────────────────────
 (defpoll cpu_usage :interval "2s"
-  `awk '/^cpu /{u=$2+$4; t=$2+$4+$5; if(NR>1) printf "%.0f", (u-pu)/(t-pt)*100; pu=u; pt=t}' /proc/stat /proc/stat`)
+  `awk '/^cpu /{printf "%.0f", ($2+$4)/($2+$4+$5)*100}' /proc/stat`)
 
 (defpoll mem_usage :interval "5s"
   `free -m | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
@@ -84,6 +84,114 @@
     (network-stats)
     (now-playing-widget)
     (footer)))
+
+; ══════════════════════════════════════════════════
+; ── STATUS BAR (replaces waybar) ─────────────────
+; ══════════════════════════════════════════════════
+
+; ── Bar polling variables ────────────────────────
+
+(deflisten bar_workspaces
+  `while true; do swaymsg -t get_workspaces | jq -c '[.[] | {num, focused, name, urgent}]'; swaymsg -t subscribe '["workspace"]' > /dev/null 2>&1; done`)
+
+(deflisten bar_window
+  `while true; do swaymsg -t get_tree | jq -r 'recurse(.nodes[]?, .floating_nodes[]?) | select(.focused) | .name // ""' | head -1; swaymsg -t subscribe '["window"]' > /dev/null 2>&1; done`)
+
+(deflisten bar_mode
+  `echo "default"; swaymsg -t subscribe '["mode"]' | jq -r --unbuffered '.change'`)
+
+(defpoll bar_time :interval "1s"
+  `date '+%H:%M'`)
+
+(defpoll bar_date :interval "60s"
+  `date '+%a %b %d'`)
+
+(defpoll bar_cpu :interval "3s"
+  `awk '/^cpu /{printf "%.0f", ($2+$4)/($2+$4+$5)*100}' /proc/stat`)
+
+(defpoll bar_mem :interval "5s"
+  `free -m | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
+
+(defpoll bar_net :interval "5s"
+  `ip -j route get 1.1.1.1 2>/dev/null | jq -r '.[0].dev // "none"'`)
+
+(defpoll bar_mpris :interval "3s"
+  `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
+
+; ── Bar widgets ──────────────────────────────────
+
+(defwidget bar-workspaces []
+  (box :class "bar-workspaces" :orientation "h" :spacing 4
+    (for ws in {bar_workspaces ?: "[]"}
+      (button :class "bar-ws ${ws.focused ? 'bar-ws-active' : ''} ${ws.urgent ? 'bar-ws-urgent' : ''}"
+              :onclick "swaymsg workspace number ${ws.num}"
+        "${ws.num}"))))
+
+(defwidget bar-mode-display []
+  (box :class "bar-mode ${bar_mode != 'default' ? 'bar-mode-active' : ''}"
+       :visible {bar_mode != "default"}
+    (label :text "${bar_mode}")))
+
+(defwidget bar-window-title []
+  (label :class "bar-title" :text {bar_window ?: ""} :limit-width 40))
+
+(defwidget bar-clock []
+  (box :class "bar-clock" :orientation "v" :space-evenly false :valign "center"
+    (label :class "bar-time" :text bar_time)
+    (label :class "bar-date" :text bar_date)))
+
+(defwidget bar-sys []
+  (box :class "bar-sys" :orientation "h" :spacing 12
+    (box :class "bar-metric" :spacing 4
+      (label :class "bar-icon cyan" :text "")
+      (label :class "bar-metric-val" :text "${bar_cpu}%"))
+    (box :class "bar-metric" :spacing 4
+      (label :class "bar-icon magenta" :text "")
+      (label :class "bar-metric-val" :text "${bar_mem}%"))
+    (box :class "bar-metric" :spacing 4
+      (label :class "bar-icon green" :text "")
+      (label :class "bar-metric-val" :text {bar_net ?: "—"}))))
+
+(defwidget bar-mpris-display []
+  (box :class "bar-mpris" :visible {bar_mpris != ""}
+    (label :class "bar-mpris-text" :text "♫ ${bar_mpris}" :limit-width 30)))
+
+(defwidget bar-left []
+  (box :class "bar-left" :orientation "h" :spacing 8 :halign "start"
+    (bar-workspaces)
+    (bar-mode-display)
+    (bar-window-title)))
+
+(defwidget bar-center []
+  (box :class "bar-center" :halign "center"
+    (bar-clock)))
+
+(defwidget bar-right []
+  (box :class "bar-right" :orientation "h" :spacing 12 :halign "end"
+    (bar-mpris-display)
+    (bar-sys)))
+
+(defwidget bar-layout []
+  (centerbox :class "bar-container" :orientation "h"
+    (bar-left)
+    (bar-center)
+    (bar-right)))
+
+; ── Bar window ───────────────────────────────────
+
+(defwindow bar
+  :monitor 0
+  :geometry (geometry :x "0px" :y "0px"
+                      :width "100%" :height "36px"
+                      :anchor "top center")
+  :stacking "fg"
+  :exclusive true
+  :focusable false
+  (bar-layout))
+
+; ══════════════════════════════════════════════════
+; ── DASHBOARD OVERLAY ────────────────────────────
+; ══════════════════════════════════════════════════
 
 ; ── Window ────────────────────────────────────────
 
