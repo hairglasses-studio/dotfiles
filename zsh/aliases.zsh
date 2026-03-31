@@ -912,7 +912,7 @@ shader-crt() {
   sed -e "s|^custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/green-crt.glsl|" \
       -e "s|^custom-shader-animation = .*|custom-shader-animation = true|" \
       "$cfg" > "$tmp"
-  mv "$tmp" "$cfg"
+  command mv -f "$tmp" "$cfg"
 }
 shader-none() {
   local cfg="$HOME/.config/ghostty/config" tmp
@@ -920,7 +920,36 @@ shader-none() {
   sed -e "s|^custom-shader = .*|# custom-shader = disabled|" \
       -e "s|^custom-shader-animation = .*|custom-shader-animation = false|" \
       "$cfg" > "$tmp"
-  mv "$tmp" "$cfg"
+  command mv -f "$tmp" "$cfg"
+}
+# Toggle shader on/off — remembers the last active shader
+shader-toggle() {
+  local cfg="$HOME/.config/ghostty/config"
+  local state="$HOME/.local/state/ghostty/shader-toggle.last"
+  mkdir -p "$(dirname "$state")"
+  if grep -q '^custom-shader = ' "$cfg" && ! grep -q '^# custom-shader' "$cfg"; then
+    # Shader is ON — save it, then disable
+    grep '^custom-shader = ' "$cfg" | head -1 > "$state"
+    grep '^custom-shader-animation = ' "$cfg" | head -1 >> "$state"
+    shader-none
+    echo "Shader OFF (saved state)"
+  else
+    # Shader is OFF — restore last shader
+    if [[ -f "$state" ]] && [[ -s "$state" ]]; then
+      local tmp; tmp="$(mktemp "${cfg}.XXXXXX")"
+      local last_shader last_anim
+      last_shader="$(grep '^custom-shader = ' "$state" | head -1)"
+      last_anim="$(grep '^custom-shader-animation = ' "$state" | head -1)"
+      sed -e "s|^# custom-shader.*|${last_shader}|" \
+          -e "s|^custom-shader-animation = .*|${last_anim}|" \
+          "$cfg" > "$tmp"
+      command mv -f "$tmp" "$cfg"
+      echo "Shader ON: ${last_shader#custom-shader = }"
+    else
+      echo "No previous shader saved — use a shader-* alias first"
+      return 1
+    fi
+  fi
 }
 # Quick-switch helper (atomic write, auto-detects animation)
 _shader-set() {
@@ -934,7 +963,7 @@ _shader-set() {
       -e "s|^# custom-shader.*|custom-shader = $path|" \
       -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
       "$cfg" > "$tmp"
-  mv "$tmp" "$cfg"
+  command mv -f "$tmp" "$cfg"
   echo "Shader: $name (animation=$anim)"
 }
 # Cyberpunk collection quick-switches
