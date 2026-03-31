@@ -1,16 +1,16 @@
 {
   "fps": 30.0,
-  "color": "#57c7ff",
+  "color": "#7aa2f7",
   "force_color": false,
   "no_color": false,
   "white_gradient_colors": [
-    "#57c7ff",
-    "#ff6ac1",
-    "#5af78e",
-    "#f3f99d",
-    "#9aedfe",
-    "#ff6ac1",
-    "#57c7ff"
+    "#7aa2f7",
+    "#bb9af7",
+    "#9ece6a",
+    "#7dcfff",
+    "#c0caf5",
+    "#bb9af7",
+    "#7aa2f7"
   ],
   "white_gradient_scroll": true,
   "white_gradient_scroll_speed": 20.0,
