@@ -49,6 +49,10 @@ bindsym $mod+h focus left
 bindsym $mod+j focus down
 bindsym $mod+k focus up
 bindsym $mod+l focus right
+bindsym $mod+Left focus left
+bindsym $mod+Right focus right
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
 
 # ── Keybinds: Move windows (from AeroSpace alt-shift-hjkl) ───
 bindsym $mod+Shift+h move left
@@ -96,6 +100,7 @@ bindsym $mod+Shift+9 move container to workspace number 9
 bindsym $mod+Shift+q kill
 bindsym $mod+Tab workspace back_and_forth
 bindsym $mod+Shift+r reload
+bindsym $mod+Shift+g exec touch ~/.config/ghostty/config
 
 # Move workspace to next output (from AeroSpace alt-shift-tab)
 bindsym $mod+Shift+Tab move workspace to output right
