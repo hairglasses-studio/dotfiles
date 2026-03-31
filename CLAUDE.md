@@ -1,6 +1,6 @@
 # Dotfiles
 
-macOS development environment managed with symlinks. Config files live here and are symlinked into `~/.config/` and `~/Library/Application Support/` by `install.sh`.
+Cross-platform development environment (macOS + Manjaro Linux) managed with symlinks. Config files live here and are symlinked into `~/.config/` and `~/Library/Application Support/` by `install.sh`.
 
 ## Architecture
 
@@ -34,9 +34,16 @@ Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — 
 3. **RetroVisor** — CRT overlay via ScreenCaptureKit + Metal (screen-level)
 
 ### Window Management
-- **AeroSpace** — i3-style tiling (`aerospace/aerospace.toml`)
-- **SketchyBar** — status bar (40px top gap reserved)
-- **JankyBorders** — window borders
+- **macOS:** AeroSpace tiling + SketchyBar + JankyBorders
+- **Linux:** Hyprland (primary) or Sway (fallback) + eww bar + mako notifications + wofi launcher + wlogout
+
+### Shared Libraries
+- **`scripts/lib/compositor.sh`** — Compositor detection & IPC abstraction. Functions: `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_output`, `compositor_subscribe`, `compositor_reload`, `compositor_workspace`. Detects Hyprland/Sway/AeroSpace via env vars.
+- **`scripts/lib/config.sh`** — Atomic config operations. Functions: `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service`. All scripts that modify configs should source this.
+
+### Claude Code Integration
+- **PostToolUse hook** — Auto-reloads Hyprland/mako/eww/waybar when Claude writes config files
+- **MCP servers** — `sway-mcp` for Wayland desktop control (screenshot, input, windows). Future: `hyprland-mcp`, `dotfiles-mcp`, `shader-mcp` via mcpkit Go toolkit.
 
 ## Key Patterns
 
