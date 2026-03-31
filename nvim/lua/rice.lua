@@ -52,20 +52,20 @@ if alpha_ok then
   local dashboard = require('alpha.themes.dashboard')
 
   dashboard.section.header.val = {
-    [[                                              ]],
-    [[    ██████╗ ██╗ ██████╗███████╗██████╗        ]],
-    [[    ██╔══██╗██║██╔════╝██╔════╝██╔══██╗       ]],
-    [[    ██████╔╝██║██║     █████╗  ██║  ██║       ]],
-    [[    ██╔══██╗██║██║     ██╔══╝  ██║  ██║       ]],
-    [[    ██║  ██║██║╚██████╗███████╗██████╔╝       ]],
-    [[    ╚═╝  ╚═╝╚═╝ ╚═════╝╚══════╝╚═════╝        ]],
-    [[                                              ]],
-    [[          ╔═══════════════════════╗            ]],
-    [[          ║   S N A Z Z Y  v i m ║            ]],
-    [[          ╚═══════════════════════╝            ]],
+    [[                                                          ]],
+    [[  ███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗    ]],
+    [[  ████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║    ]],
+    [[  ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║    ]],
+    [[  ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║    ]],
+    [[  ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║    ]],
+    [[  ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝    ]],
+    [[                                                          ]],
+    [[    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄    ]],
+    [[    █ C Y B E R N E T   //   S N A Z Z Y   v 2 . 0 █    ]],
+    [[    ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀    ]],
   }
 
-  -- Gradient highlights: magenta → blue → green
+  -- Gradient highlights: magenta → purple → cyan → green
   local header_colors = {
     'AlphaH1', 'AlphaH2', 'AlphaH3', 'AlphaH4',
     'AlphaH5', 'AlphaH6', 'AlphaH7', 'AlphaH8',
@@ -73,8 +73,8 @@ if alpha_ok then
   }
   local header_hex = {
     '#ff6ac1', '#ff6ac1', '#9a8eef', '#57c7ff',
-    '#57c7ff', '#5af78e', '#5af78e', '#686868',
-    '#57c7ff', '#57c7ff', '#686868',
+    '#57c7ff', '#9aedfe', '#5af78e', '#686868',
+    '#57c7ff', '#5af78e', '#57c7ff',
   }
   for i, name in ipairs(header_colors) do
     vim.api.nvim_set_hl(0, name, { fg = header_hex[i] })
@@ -100,7 +100,7 @@ if alpha_ok then
     button.opts.hl_shortcut = 'AlphaH1'
   end
 
-  dashboard.section.footer.val = '  Snazzy on Black'
+  dashboard.section.footer.val = '  [ C Y B E R N E T   A C T I V E ]'
   dashboard.section.footer.opts.hl = 'AlphaH8'
 
   alpha.setup(dashboard.config)
