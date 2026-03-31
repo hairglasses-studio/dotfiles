@@ -138,9 +138,14 @@ bar {
 # ── Keybinds: Lock screen ────────────────────────────────────
 bindsym $mod+Shift+x exec swaylock
 
+# ── Keybinds: Wallpaper ─────────────────────────────────────
+bindsym $mod+Shift+w exec wallpaper-cycle.sh next
+bindsym $mod+Shift+Ctrl+w exec wallpaper-cycle.sh random
+
 # ── Startup ──────────────────────────────────────────────────
 exec waybar
 exec mako
+exec swww-daemon
 exec swayidle -w \
     timeout 300 'swaylock -f' \
     timeout 600 'swaymsg "output * dpms off"' \
