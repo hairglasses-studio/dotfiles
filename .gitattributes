@@ -1,0 +1,14 @@
+# Line ending normalization
+* text=auto
+*.sh text eol=lf
+*.zsh text eol=lf
+*.conf text eol=lf
+*.toml text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.yuck text eol=lf
+*.glsl binary
+*.png binary
+*.jpg binary
