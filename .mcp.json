@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sway": {
+      "command": "node",
+      "args": ["/home/hg/hairglasses-studio/sway-mcp/src/index.js"]
+    }
+  }
+}

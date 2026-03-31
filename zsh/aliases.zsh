@@ -922,6 +922,28 @@ shader-none() {
       "$cfg" > "$tmp"
   mv "$tmp" "$cfg"
 }
+# Quick-switch helper (atomic write, auto-detects animation)
+_shader-set() {
+  local name="$1" cfg="$HOME/.config/ghostty/config"
+  local path="$HOME/.config/ghostty/shaders/${name}.glsl"
+  [[ -f "$path" ]] || { echo "Shader not found: $path"; return 1; }
+  local anim=false
+  grep -qE '(iTime|ghostty_time|u_time)' "$path" 2>/dev/null && anim=true
+  local tmp; tmp="$(mktemp "${cfg}.XXXXXX")"
+  sed -e "s|^custom-shader = .*|custom-shader = $path|" \
+      -e "s|^# custom-shader.*|custom-shader = $path|" \
+      -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
+      "$cfg" > "$tmp"
+  mv "$tmp" "$cfg"
+  echo "Shader: $name (animation=$anim)"
+}
+# Cyberpunk collection quick-switches
+alias shader-synthwave='_shader-set synthwave-horizon'
+alias shader-holo='_shader-set holo-display'
+alias shader-hexgrid='_shader-set neon-hex-grid'
+alias shader-circuit='_shader-set circuit-trace'
+alias shader-rain='_shader-set rain-on-glass'
+alias shader-glitchholo='_shader-set cyber-glitch-holo'
 # Interactive shader audition — test each shader one-by-one with keep/skip
 alias shader-audit='bash ~/.config/ghostty/shaders/bin/shader-audit.sh'
 
