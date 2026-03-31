@@ -142,6 +142,9 @@ bindsym $mod+Shift+x exec swaylock
 bindsym $mod+Shift+w exec wallpaper-cycle.sh next
 bindsym $mod+Shift+Ctrl+w exec wallpaper-cycle.sh random
 
+# ── Keybinds: Eww dashboard ────────────────────────────────
+bindsym $mod+Shift+d exec eww open --toggle dashboard
+
 # ── Startup ──────────────────────────────────────────────────
 exec waybar
 exec mako

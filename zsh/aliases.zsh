@@ -466,6 +466,13 @@ if [[ "$(uname)" == "Darwin" ]]; then
     alias bar-reload='sketchybar --reload'
 fi
 
+# ── Eww dashboard ─────────────────────────────
+if cmd_exists eww; then
+  alias hud='eww open --toggle dashboard'
+  alias hud-reload='eww reload'
+  alias hud-kill='eww kill'
+fi
+
 # ── New tools ─────────────────────────────────
 alias top='btop'
 alias yy='yazi'
