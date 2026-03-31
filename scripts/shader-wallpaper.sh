@@ -5,6 +5,9 @@
 # Runs Shadertoy-compatible GLSL shaders as live animated wallpapers.
 # Falls back to swww for static image wallpapers.
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/compositor.sh"
+
 SHADER_DIR="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}/wallpaper-shaders"
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/shader-wallpaper/current"
 FPS="${SHADER_WALLPAPER_FPS:-30}"
@@ -12,14 +15,7 @@ FPS="${SHADER_WALLPAPER_FPS:-30}"
 mkdir -p "$(dirname "$STATE_FILE")"
 
 _get_output() {
-  # Get the primary output name from the active compositor
-  local out
-  if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
-    out=$(hyprctl monitors -j 2>/dev/null | jq -r '.[0].name // empty' 2>/dev/null)
-  elif [[ -n "$SWAYSOCK" ]]; then
-    out=$(swaymsg -t get_outputs 2>/dev/null | jq -r '.[0].name // empty' 2>/dev/null)
-  fi
-  echo "$out"
+  compositor_output
 }
 
 _get_shaders() {

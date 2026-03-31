@@ -3,4 +3,5 @@ Description=Advance Ghostty shader rotation
 
 [Service]
 Type=oneshot
-ExecStart=%h/dotfiles/ghostty/shaders/bin/shader-auto-rotate.sh
+ExecStart=%h/hairglasses-studio/dotfiles/ghostty/shaders/bin/shader-auto-rotate.sh
+Environment=PATH=/usr/bin:/bin
