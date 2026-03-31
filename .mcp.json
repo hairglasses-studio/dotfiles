@@ -3,6 +3,18 @@
     "sway": {
       "command": "bash",
       "args": ["-c", "node \"$HOME/hairglasses-studio/sway-mcp/src/index.js\""]
+    },
+    "hyprland": {
+      "command": "bash",
+      "args": ["-c", "\"$HOME/hairglasses-studio/hyprland-mcp/hyprland-mcp\""]
+    },
+    "dotfiles": {
+      "command": "bash",
+      "args": ["-c", "DOTFILES_DIR=\"$HOME/hairglasses-studio/dotfiles\" \"$HOME/hairglasses-studio/dotfiles-mcp/dotfiles-mcp\""]
+    },
+    "shader": {
+      "command": "bash",
+      "args": ["-c", "\"$HOME/hairglasses-studio/shader-mcp/shader-mcp\""]
     }
   }
 }
