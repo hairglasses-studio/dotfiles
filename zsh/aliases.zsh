@@ -496,6 +496,13 @@ if cmd_exists durdraw;        then alias ansi='durdraw'; fi
 if cmd_exists spotify_player; then alias spot='spotify_player'; fi
 if cmd_exists tte;            then alias textfx='tte'; fi
 
+# ── Wallpaper ─────────────────────────────────
+if cmd_exists swww;           then
+  alias wp='wallpaper-cycle.sh next'
+  alias wpr='wallpaper-cycle.sh random'
+  alias wps='wallpaper-cycle.sh set'
+fi
+
 # ── Network hacker tools ──────────────────────
 if cmd_exists trip;           then alias trace='sudo trip'; fi
 if cmd_exists bandwhich;      then alias netwatch='sudo bandwhich'; fi

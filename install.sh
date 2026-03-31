@@ -16,10 +16,18 @@ if [[ "${1:-}" == "--check" ]]; then
 fi
 
 # ── Logging ─────────────────────────────────────
-log_info()    { printf "\033[0;34m[INFO]\033[0m  %s\n" "$1"; }
-log_success() { printf "\033[0;32m[OK]\033[0m    %s\n" "$1"; }
-log_warn()    { printf "\033[0;33m[WARN]\033[0m  %s\n" "$1"; }
-log_error()   { printf "\033[0;31m[ERR]\033[0m   %s\n" "$1"; }
+_has_tte() { command -v tte &>/dev/null && [[ -t 1 ]]; }
+log_info()    { printf "\033[38;2;87;199;255m[INFO]\033[0m  %s\n" "$1"; }
+log_success() { printf "\033[38;2;90;247;142m[OK]\033[0m    %s\n" "$1"; }
+log_warn()    { printf "\033[38;2;243;249;157m[WARN]\033[0m  %s\n" "$1"; }
+log_error()   { printf "\033[38;2;255;92;87m[ERR]\033[0m   %s\n" "$1"; }
+log_phase() {
+  if _has_tte; then
+    echo "$1" | tte decrypt --typing-speed 6 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+  else
+    printf "\n\033[38;2;255;106;193m── %s ──\033[0m\n\n" "$1"
+  fi
+}
 
 # ── Backup ──────────────────────────────────────
 backup_file() {
@@ -235,8 +243,13 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
     elif [[ "$OS" == "Linux" ]]; then
         link_file "$DOTFILES_DIR/sway/config" "$HOME/.config/sway/config"
+        link_file "$DOTFILES_DIR/sway/swaylock.conf" "$HOME/.config/swaylock/config"
         link_file "$DOTFILES_DIR/waybar/config.jsonc" "$HOME/.config/waybar/config"
         link_file "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
+        link_file "$DOTFILES_DIR/mako/config" "$HOME/.config/mako/config"
+        link_file "$DOTFILES_DIR/wofi/config" "$HOME/.config/wofi/config"
+        link_file "$DOTFILES_DIR/wofi/style.css" "$HOME/.config/wofi/style.css"
+        link_file "$DOTFILES_DIR/foot/foot.ini" "$HOME/.config/foot/foot.ini"
     fi
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
@@ -373,9 +386,16 @@ check_symlinks() {
 # ── Main ────────────────────────────────────────
 main() {
     echo ""
-    echo "  dotfiles installer"
-    echo "  ──────────────────"
-    echo "  repo: $DOTFILES_DIR"
+    if _has_tte; then
+        echo "DOTFILES INSTALLER" | tte synthgrid \
+            --grid-gradient-stops 57c7ff ff6ac1 \
+            --text-gradient-stops 57c7ff 5af78e \
+            --max-active-blocks 0.1 2>/dev/null
+    else
+        echo "  dotfiles installer"
+        echo "  ──────────────────"
+    fi
+    log_info "repo: $DOTFILES_DIR"
     echo ""
 
     if $CHECK_ONLY; then
@@ -384,17 +404,24 @@ main() {
     fi
 
     if [[ "$OSTYPE" == "darwin"* ]]; then
+        log_phase "PACKAGE MANAGEMENT"
         install_homebrew
         install_brew_packages
     fi
 
+    log_phase "SHELL ENVIRONMENT"
     install_omz
     install_omz_plugins
+
+    log_phase "EDITOR PLUGINS"
     install_vim_plug
     install_tpm
+
     if [[ "$OS" == "Darwin" ]]; then
         install_retrovisor
     fi
+
+    log_phase "SYMLINK CONFIGURATION"
     create_symlinks
     setup_tattoy_shaders
 
@@ -408,7 +435,15 @@ main() {
     if $BACKUP_CREATED; then
         log_warn "Backups saved to: $BACKUP_DIR"
     fi
-    log_success "Done! Restart your shell or run: source ~/.zshrc"
+
+    if _has_tte; then
+        echo "INSTALLATION COMPLETE" | tte fireworks \
+            --firework-colors 5af78e 57c7ff ff6ac1 \
+            --final-gradient-stops 5af78e 57c7ff \
+            --explode-anywhere 2>/dev/null
+    else
+        log_success "Done! Restart your shell or run: source ~/.zshrc"
+    fi
     echo ""
 }
 
