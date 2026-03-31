@@ -273,7 +273,12 @@ fi
 
 # ── Terminal splash on new shell ──────────────
 if [[ $SHLVL -eq 1 && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" && $- == *i* ]]; then
-  (cd ~/.config/ghosttyfetch && ~/.local/bin/ghosttyfetch)
+  (cd ~/.config/ghosttyfetch && ~/.local/bin/ghosttyfetch) 2>/dev/null
+fi
+
+# ── Cyberpunk boot animation ─────────────────
+if [[ $- == *i* && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" ]]; then
+  [[ -f "$DOTFILES_DIR/scripts/cyberboot.sh" ]] && source "$DOTFILES_DIR/scripts/cyberboot.sh"
 fi
 
 # ── Prompt engine init ──────────────────────────

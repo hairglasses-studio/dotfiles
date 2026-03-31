@@ -1,4 +1,8 @@
+# ── Dotfiles scripts in PATH ───────────────────
+export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}"
+[[ -d "$DOTFILES_DIR/scripts" ]] && export PATH="$DOTFILES_DIR/scripts:$PATH"
+
 if [[ -n $VIRTUAL_ENV && -e "${VIRTUAL_ENV}/bin/activate" ]]; then
   source "${VIRTUAL_ENV}/bin/activate"
 fi
-. "$HOME/.cargo/env"
+[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
