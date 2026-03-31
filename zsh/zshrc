@@ -322,6 +322,16 @@ fi
 # ── Shuffled Ghostty shader per terminal ──────
 shader-next 2>/dev/null
 
+# ── Auto-attach tmux on login (session persistence) ──
+# tmux-continuum restores all saved sessions on first attach after boot.
+# Only auto-attach on the first interactive login shell (not nested).
+if [[ $SHLVL -eq 1 && -z "$TMUX" && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" && $- == *i* ]]; then
+  if command -v tmux &>/dev/null; then
+    # Attach to existing session or create "main"
+    tmux attach-session -t main 2>/dev/null || tmux new-session -s main
+  fi
+fi
+
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
