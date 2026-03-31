@@ -2,6 +2,9 @@
 # eww-workspaces.sh — Compositor-aware workspace listener for eww bar
 # Outputs JSON: [{num, focused, name, urgent}] on each workspace change
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/compositor.sh"
+
 _sway() {
   while true; do
     swaymsg -t get_workspaces | jq -c '[.[] | {num, focused, name, urgent}]'
@@ -26,10 +29,8 @@ _hyprland() {
   done
 }
 
-if [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
-  _hyprland
-elif [[ -n "$SWAYSOCK" ]]; then
-  _sway
-else
-  echo "[]"
-fi
+case "$(compositor_type)" in
+  hyprland) _hyprland ;;
+  sway)     _sway ;;
+  *)        echo "[]" ;;
+esac
