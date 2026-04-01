@@ -119,6 +119,19 @@ $red: #ff5c57;
   font-weight: 500;
 }
 
+// ── Shader status ────────────────────────────
+.bar-shader {
+  padding: 0 4px;
+  border-left: 1px solid rgba(255, 106, 193, 0.15);
+}
+
+.bar-shader-name {
+  color: $magenta;
+  font-size: 10px;
+  font-style: italic;
+  opacity: 0.8;
+}
+
 // ── MPRIS ────────────────────────────────────
 .bar-mpris-text {
   color: $magenta;
@@ -211,6 +224,9 @@ $red: #ff5c57;
 // ── Header ─────────────────────────────────
 .header {
   padding: 4px 0 8px;
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, transparent, $cyan, $magenta, transparent) 1;
+  margin-bottom: 4px;
 
   .header-logo {
     color: $cyan;

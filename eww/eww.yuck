@@ -95,6 +95,15 @@
 
 ; ── Bar polling variables ────────────────────────
 
+(defpoll bar_vol :interval "2s"
+  `wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk '{printf "%.0f", $2*100}' || echo "0"`)
+
+(defpoll bar_shader :interval "10s"
+  `cat ~/.local/state/shader-cycle/current 2>/dev/null | xargs basename 2>/dev/null | sed 's/\.glsl$//' || echo ""`)
+
+(defpoll bar_gpu_power :interval "10s"
+  `nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null | awk '{printf "%.0f", $1}' || echo ""`)
+
 (deflisten bar_workspaces `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh`)
 
 (deflisten bar_window `$HOME/hairglasses-studio/dotfiles/scripts/eww-activewindow.sh`)
@@ -164,6 +173,21 @@
     (label :class "bar-time" :text bar_time)
     (label :class "bar-date" :text bar_date)))
 
+(defwidget bar-vol-display []
+  (box :class "bar-metric" :spacing 4
+    (label :class "bar-icon yellow" :text {bar_vol == "0" ? "󰝟" : bar_vol < "50" ? "󰖀" : "󰕾"})
+    (label :class "bar-metric-val" :text "${bar_vol}%")))
+
+(defwidget bar-shader-display []
+  (box :class "bar-shader" :spacing 4 :visible {bar_shader != ""}
+    (label :class "bar-icon magenta" :text "")
+    (label :class "bar-shader-name" :text bar_shader)))
+
+(defwidget bar-gpu-power-display []
+  (box :class "bar-metric" :spacing 4 :visible {bar_gpu_power != ""}
+    (label :class "bar-icon yellow" :text "⚡")
+    (label :class "bar-metric-val" :text "${bar_gpu_power}W")))
+
 (defwidget bar-sys []
   (box :class "bar-sys" :orientation "h" :spacing 12
     (box :class "bar-metric" :spacing 4
@@ -172,6 +196,8 @@
     (box :class "bar-metric" :spacing 4
       (label :class "bar-icon magenta" :text "")
       (label :class "bar-metric-val" :text "${bar_mem}%"))
+    (bar-gpu-power-display)
+    (bar-vol-display)
     (box :class "bar-metric" :spacing 4
       (label :class "bar-icon green" :text "")
       (label :class "bar-metric-val" :text {bar_net ?: "—"}))))
@@ -212,6 +238,7 @@
 (defwidget bar-right []
   (box :class "bar-right" :orientation "h" :spacing 12 :halign "end"
     (bar-fleet)
+    (bar-shader-display)
     (bar-mpris-display)
     (bar-sys)
     (systray :pack-direction "ltr" :icon-size 20)))
