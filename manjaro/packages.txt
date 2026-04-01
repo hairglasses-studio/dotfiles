@@ -97,5 +97,10 @@ glslang
 protobuf
 grpcurl
 
+# Input devices
+solaar
+
 # Fonts (AUR — install with yay)
 # ttf-jetbrains-mono-nerd
+# logiops
+# makima-bin
