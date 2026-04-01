@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__*",
+      "Bash(*)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Agent"
+    ],
+    "defaultMode": "bypassPermissions"
+  }
+}
