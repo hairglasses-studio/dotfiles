@@ -58,6 +58,7 @@ ghostty-shaders = true
 wallpaper-shaders = true
 refind = true           # Deploy: scripts/refind-deploy.sh (needs sudo)
 plymouth = true         # Deploy: scripts/plymouth-deploy.sh (needs sudo + mkinitcpio)
+system-configs = true   # Deploy: scripts/etc-deploy.sh (needs sudo — sysctl, modprobe)
 
 # ── Keyboard firmware ────────────────────────────
 [keyboard]
