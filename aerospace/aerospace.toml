@@ -67,6 +67,10 @@ alt-j = 'focus down'
 alt-k = 'focus up'
 alt-l = 'focus right'
 
+# Keyboard encoder (Keychron V1 Ultra rotary knob → F13/F14)
+alt-f13 = 'focus left'
+alt-f14 = 'focus right'
+
 # Move windows (alt + shift + hjkl)
 alt-shift-h = 'move left'
 alt-shift-j = 'move down'
