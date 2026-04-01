@@ -7,7 +7,7 @@ macOS development environment managed with symlinks. Config files live here and 
 ### Shader Pipeline
 Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — each `.glsl` must be self-contained.
 
-- **`ghostty/shaders/`** — 132+ GLSL shaders
+- **`ghostty/shaders/`** — 137 GLSL shaders
 - **`ghostty/shaders/shaders.toml`** — Central manifest (single source of truth for shader metadata)
 - **`ghostty/shaders/lib/`** — Shared GLSL libraries (inlined by preprocessor)
 - **`ghostty/shaders/bin/`** — Management scripts:
@@ -57,9 +57,15 @@ sed -e "/^\[shader\]/,/^\[/ s|^enabled = .*|enabled = true|"
 ### AeroSpace Float Rules
 No "ignore app" mode exists. Use `[[on-window-detected]]` with `layout floating`. Apps with no bundle ID (like glslViewer) must be matched by `if.app-name-regex-substring`.
 
-### Shared Libraries
+### Shared Libraries (sourced in zshrc)
 - **`scripts/lib/compositor.sh`** — Compositor detection & IPC abstraction. Detects AeroSpace (macOS) via `uname -s`.
 - **`scripts/lib/config.sh`** — Atomic config operations (`config_atomic_write`, `config_sed_replace`, `config_backup`).
+
+### Repo-consumed Files (not symlinked)
+- **`.claude/`** — Claude Code settings, agents, skills, rules — read from repo working directory
+- **`.mcp.json`** — MCP server definitions — read by Claude Code from repo root
+- **`keyboard/`** — VIA/Keychron firmware JSONs — reference-only, flashed manually
+- **`docs/`** — Sprint plans, resource indexes — documentation only
 
 ### Keyboard Firmware
 - **`keyboard/`** — Drop CTRL v1/v2 + Keychron V1 Ultra VIA keymaps
@@ -67,7 +73,7 @@ No "ignore app" mode exists. Use `[[on-window-detected]]` with `layout floating`
 
 ### MCP Servers
 - **`dotfiles-mcp`** — 4 tools: list configs, validate TOML/JSON, reload service, check symlinks
-- **`shader-mcp`** — 5 tools: list/set/random/test/get_state for 132 shaders
+- **`shader-mcp`** — 5 tools: list/set/random/test/get_state for 137 shaders
 
 ### Claude Code Skills & Agents
 - **Skills:** `/shader-browse` (shader explorer)
@@ -86,7 +92,7 @@ cc, ccr, ccc (Claude Code)
 
 ## Testing
 ```bash
-shader-test                    # compile all 132 shaders via glslangValidator
+shader-test                    # compile all 137 shaders via glslangValidator
 shader-meta validate           # manifest <-> .glsl file consistency
 shader-build --check           # preprocessor dry-run
 ```
