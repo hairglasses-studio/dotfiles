@@ -101,6 +101,24 @@ sketchybar --add item cpu right \
         update_freq=5 \
         script="$PLUGIN_DIR/cpu.sh"
 
+# Uptime
+sketchybar --add item uptime right \
+    --set uptime \
+        icon=󰔟 \
+        icon.color=$GREEN \
+        label.color=$GRAY \
+        update_freq=60 \
+        script="$PLUGIN_DIR/uptime.sh"
+
+# Network throughput
+sketchybar --add item network right \
+    --set network \
+        icon=󰛳 \
+        icon.color=$BLUE \
+        label.color=$GRAY \
+        update_freq=5 \
+        script="$PLUGIN_DIR/network.sh"
+
 # Wi-Fi
 sketchybar --add item wifi right \
     --set wifi \
