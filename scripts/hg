@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# hg — hairglasses dotfiles CLI
+# Usage: hg <module> <command> [options]
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/hg-core.sh"
+
+# ── Auto-discover modules ─────────────────────
+declare -a HG_MODULES=()
+for _mod_file in "$SCRIPT_DIR/hg-modules"/mod-*.sh; do
+  [[ -f "$_mod_file" ]] || continue
+  _mod_name="$(basename "$_mod_file" .sh)"
+  _mod_name="${_mod_name#mod-}"
+  source "$_mod_file"
+  HG_MODULES+=("$_mod_name")
+done
+unset _mod_file _mod_name
+
+# ── Banner ─────────────────────────────────────
+hg_banner() {
+  printf "\n"
+  printf " %shg%s %s— hairglasses dotfiles CLI%s\n" "$HG_BOLD" "$HG_RESET" "$HG_DIM" "$HG_RESET"
+  printf "\n"
+}
+
+# ── Module help ────────────────────────────────
+hg_module_help() {
+  local mod="$1"
+  printf "\n %s%s%s %s— %s%s\n\n" "$HG_BOLD" "$mod" "$HG_RESET" "$HG_DIM" "$("${mod}_description")" "$HG_RESET"
+  printf " %sCOMMANDS%s\n" "$HG_BOLD" "$HG_RESET"
+  "${mod}_commands" | while IFS=$'\t' read -r cmd desc; do
+    printf "  %s%-14s%s %s\n" "$HG_CYAN" "$cmd" "$HG_RESET" "$desc"
+  done
+  printf "\n %sUSAGE%s\n" "$HG_BOLD" "$HG_RESET"
+  printf "  hg %s <command> [options]\n\n" "$mod"
+}
+
+# ── Global help ────────────────────────────────
+hg_help() {
+  hg_banner
+  printf " %sMODULES%s\n" "$HG_BOLD" "$HG_RESET"
+  for mod in "${HG_MODULES[@]}"; do
+    printf "  %s%-14s%s %s\n" "$HG_CYAN" "$mod" "$HG_RESET" "$("${mod}_description")"
+  done
+  printf "\n %sUSAGE%s\n" "$HG_BOLD" "$HG_RESET"
+  printf "  hg <module> <command> [options]\n"
+  printf "  hg <module> --help\n\n"
+}
+
+# ── Dispatch ───────────────────────────────────
+module="${1:-}"
+[[ -z "$module" || "$module" == "--help" || "$module" == "-h" ]] && { hg_help; exit 0; }
+shift
+
+# Validate module exists
+_found=false
+for _m in "${HG_MODULES[@]}"; do
+  [[ "$_m" == "$module" ]] && { _found=true; break; }
+done
+$_found || hg_die "Unknown module: $module. Run 'hg --help' for available modules."
+
+# Handle module-level help
+cmd="${1:-}"
+if [[ -z "$cmd" || "$cmd" == "--help" || "$cmd" == "-h" ]]; then
+  hg_module_help "$module"
+  exit 0
+fi
+
+# Route to module
+"${module}_run" "$@"

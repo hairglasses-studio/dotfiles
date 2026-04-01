@@ -104,6 +104,9 @@
 (defpoll bar_gpu_power :interval "10s"
   `nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null | awk '{printf "%.0f", $1}' || echo ""`)
 
+(defpoll bar_gamepad :interval "5s"
+  `test -e /dev/input/js0 && echo "󰊗" || echo ""`)
+
 (deflisten bar_workspaces `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh`)
 
 (deflisten bar_window `$HOME/hairglasses-studio/dotfiles/scripts/eww-activewindow.sh`)
@@ -188,6 +191,10 @@
     (label :class "bar-icon yellow" :text "⚡")
     (label :class "bar-metric-val" :text "${bar_gpu_power}W")))
 
+(defwidget bar-gamepad-display []
+  (box :class "bar-metric" :spacing 4 :visible {bar_gamepad != ""}
+    (label :class "bar-icon green" :text bar_gamepad)))
+
 (defwidget bar-sys []
   (box :class "bar-sys" :orientation "h" :spacing 12
     (box :class "bar-metric" :spacing 4
@@ -197,6 +204,7 @@
       (label :class "bar-icon magenta" :text "")
       (label :class "bar-metric-val" :text "${bar_mem}%"))
     (bar-gpu-power-display)
+    (bar-gamepad-display)
     (bar-vol-display)
     (box :class "bar-metric" :spacing 4
       (label :class "bar-icon green" :text "")
