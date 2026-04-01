@@ -56,8 +56,8 @@ gh = true
 [visual]
 ghostty-shaders = true
 wallpaper-shaders = true
-refind = false          # Manual deploy (needs sudo for EFI)
-plymouth = false        # Manual deploy (needs mkinitcpio rebuild)
+refind = true           # Deploy: scripts/refind-deploy.sh (needs sudo)
+plymouth = true         # Deploy: scripts/plymouth-deploy.sh (needs sudo + mkinitcpio)
 
 # ── Keyboard firmware ────────────────────────────
 [keyboard]
