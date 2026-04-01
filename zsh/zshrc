@@ -74,6 +74,9 @@ export UPDATE_ZSH_DAYS=7
 DISABLE_MAGIC_FUNCTIONS=true
 CASE_SENSITIVE="true"
 
+# hg CLI completion
+fpath=("$DOTFILES_DIR/zsh" $fpath)
+
 source "$ZSH/oh-my-zsh.sh"
 
 # ── Personal aliases ───────────────────────────
