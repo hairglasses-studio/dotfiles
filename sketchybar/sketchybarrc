@@ -76,6 +76,16 @@ sketchybar --add item front_app left \
 
 # ── Right side (ordered right-to-left) ───────────
 
+# Weather
+sketchybar --add item weather right \
+    --set weather \
+        icon= \
+        icon.color=$YELLOW \
+        label.color=$FG \
+        drawing=off \
+        update_freq=600 \
+        script="$PLUGIN_DIR/weather.sh"
+
 # Clock
 sketchybar --add item clock right \
     --set clock \
@@ -100,6 +110,24 @@ sketchybar --add item cpu right \
         label.color=$GRAY \
         update_freq=5 \
         script="$PLUGIN_DIR/cpu.sh"
+
+# Memory
+sketchybar --add item memory right \
+    --set memory \
+        icon=󰍛 \
+        icon.color=$GREEN \
+        label.color=$GRAY \
+        update_freq=10 \
+        script="$PLUGIN_DIR/memory.sh"
+
+# Disk
+sketchybar --add item disk right \
+    --set disk \
+        icon=󰋊 \
+        icon.color=$GRAY \
+        label.color=$GRAY \
+        update_freq=300 \
+        script="$PLUGIN_DIR/disk.sh"
 
 # Uptime
 sketchybar --add item uptime right \
@@ -137,6 +165,16 @@ sketchybar --add item k8s right \
         label.color=$BLUE \
         update_freq=30 \
         script="$PLUGIN_DIR/k8s_context.sh"
+
+# Docker containers
+sketchybar --add item docker right \
+    --set docker \
+        icon=󰡨 \
+        icon.color=$BLUE \
+        label.color=$BLUE \
+        drawing=off \
+        update_freq=30 \
+        script="$PLUGIN_DIR/docker.sh"
 
 # ── ralphglasses observability ─────────────────
 # All items populated by one plugin call (rg.fleet is the driver)
@@ -183,6 +221,53 @@ sketchybar --add item rg.fleet right \
         label.color=$GREEN \
         update_freq=30 \
         script="$PLUGIN_DIR/ralphglasses.sh"
+
+# ── Power menu ───────────────────────────────────
+sketchybar --add item power right \
+    --set power \
+        icon=⏻ \
+        icon.color=$RED \
+        label.drawing=off \
+        click_script="$PLUGIN_DIR/power.sh"
+
+sketchybar --add item power.lock popup.power \
+    --set power.lock \
+        icon=󰌾 \
+        icon.color=$BLUE \
+        label="Lock" \
+        click_script="pmset displaysleepnow; sketchybar --set power popup.drawing=off"
+
+sketchybar --add item power.sleep popup.power \
+    --set power.sleep \
+        icon=󰤄 \
+        icon.color=$BLUE \
+        label="Sleep" \
+        click_script="pmset sleepnow; sketchybar --set power popup.drawing=off"
+
+sketchybar --add item power.logout popup.power \
+    --set power.logout \
+        icon=󰍃 \
+        icon.color=$YELLOW \
+        label="Logout" \
+        click_script="osascript -e 'tell app \"System Events\" to log out'; sketchybar --set power popup.drawing=off"
+
+sketchybar --add item power.shutdown popup.power \
+    --set power.shutdown \
+        icon=⏻ \
+        icon.color=$RED \
+        label="Shutdown" \
+        click_script="osascript -e 'tell app \"System Events\" to shut down'; sketchybar --set power popup.drawing=off"
+
+# ── Screen Recorder ─────────────────────────────
+sketchybar --add item recorder right \
+    --set recorder \
+        icon=󰑋 \
+        icon.color=$GRAY \
+        label.drawing=off \
+        update_freq=2 \
+        script="$PLUGIN_DIR/recorder.sh" \
+        click_script="$PLUGIN_DIR/recorder.sh" \
+    --subscribe recorder mouse.clicked
 
 # ── Now Playing (center) ────────────────────────
 sketchybar --add item media center \
