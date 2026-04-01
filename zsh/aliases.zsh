@@ -45,6 +45,13 @@ alias .....='cd ../../../..'
 alias ~='cd ~'
 alias -- -='cd -'
 
+# ── Linux / Wayland equivalents ──────────────────────────────
+if [[ "$(uname)" == "Linux" ]]; then
+    alias pbcopy='wl-copy'
+    alias pbpaste='wl-paste'
+    alias open='xdg-open'
+fi
+
 # File operations (cross-platform)
 alias mkdir='mkdir -pv'
 alias cp='cp -iv'
@@ -255,7 +262,11 @@ fi
 
 # Clean up functions
 alias cleanup='find . -type f -name "*.DS_Store" -ls -delete'
-alias emptytrash='rm -rf ~/.Trash/*'
+if [[ "$(uname)" == "Darwin" ]]; then
+    alias emptytrash='rm -rf ~/.Trash/*'
+else
+    alias emptytrash='rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/*'
+fi
 
 # Terraform aliases (if available)
 if cmd_exists terraform; then
@@ -450,8 +461,60 @@ if cmd_exists kubectl; then
 fi
 
 # ── Window management ─────────────────────────
-alias aero-reload='aerospace reload-config'
-alias bar-reload='sketchybar --reload'
+if [[ "$(uname)" == "Darwin" ]]; then
+    alias aero-reload='aerospace reload-config'
+    alias bar-reload='sketchybar --reload'
+fi
+
+# ── Eww dashboard ─────────────────────────────
+if cmd_exists eww; then
+  alias hud='eww open --toggle dashboard'
+  alias hud-reload='eww reload'
+  alias hud-kill='eww kill'
+fi
+
+# ── Email ─────────────────────────────────────
+if cmd_exists aerc;     then alias mail='aerc'; fi
+if cmd_exists himalaya; then
+  alias inbox='himalaya list --folder INBOX | head -20'
+  inbox-cyber() {
+    if cmd_exists tte; then
+      himalaya list --folder INBOX 2>/dev/null | head -20 | tte wipe \
+        --final-gradient-stops 57c7ff ff6ac1 5af78e \
+        --final-gradient-direction horizontal 2>/dev/null
+    else
+      himalaya list --folder INBOX | head -20
+    fi
+  }
+fi
+
+# ── Web browsing ──────────────────────────────
+if cmd_exists browsh; then alias web='browsh'; fi
+if cmd_exists w3m;    then alias www='w3m'; fi
+
+# ── Finance ───────────────────────────────────
+if cmd_exists hledger-ui; then alias budget='hledger-ui'; fi
+if cmd_exists bagels;     then alias expenses='bagels'; fi
+if cmd_exists wtfutil;    then alias dash='wtfutil'; fi
+
+# ── Amazon orders ─────────────────────────────
+if cmd_exists amazon-orders; then
+  orders() {
+    if cmd_exists tte && [[ -t 1 ]]; then
+      amazon-orders --years 1 2>/dev/null | tte decrypt \
+        --typing-speed 3 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+    else
+      amazon-orders --years 1 2>/dev/null
+    fi
+  }
+fi
+
+# ── Claude Code ───────────────────────────────
+if cmd_exists claude; then
+  alias cc='claude'
+  alias ccr='claude --resume'
+  alias ccc='claude --continue'
+fi
 
 # ── New tools ─────────────────────────────────
 alias top='btop'
@@ -460,23 +523,383 @@ alias viz='cava'
 alias md='glow'
 
 # ── Hacker aesthetic / fun ───────────────────
-if cmd_exists pipes.sh;  then alias pipes='pipes.sh'; fi
-if cmd_exists cbonsai;   then alias bonsai='cbonsai -l -t 0.02'; fi
-if cmd_exists tty-clock; then alias clock='tty-clock -s -c -C 4 -b'; fi
-if cmd_exists cmatrix;   then alias matrix='cmatrix -ab -C cyan'; fi
-if cmd_exists figlet;    then alias banner='figlet -f slant'; fi
-if cmd_exists lolcat;    then alias rainbow='lolcat'; fi
-if cmd_exists onefetch;  then alias gitfetch='onefetch'; fi
-alias screensaver='pipes.sh -t 2 -R -r 0 -p 5'
+if cmd_exists pipes.sh;      then alias pipes='pipes.sh -t 2 -R -r 0 -p 5 -c 4'; fi
+if cmd_exists cbonsai;        then alias bonsai='cbonsai -l -t 0.02 -c "  "'; fi
+if cmd_exists tty-clock;      then alias clock='tty-clock -s -c -C 4 -b'; fi
+if cmd_exists cmatrix;        then alias matrix='cmatrix -ab -C cyan'; fi
+if cmd_exists unimatrix;      then alias umatrix='unimatrix -s 96 -l kKaA -c cyan'; fi
+if cmd_exists figlet;         then alias banner='figlet -f slant'; fi
+if cmd_exists toilet;         then alias cyberbanner='toilet -f future --filter border --filter gay'; fi
+if cmd_exists lolcat;         then alias rainbow='lolcat'; fi
+if cmd_exists nms;            then alias decrypt='nms -a -f cyan'; fi
+if cmd_exists asciiquarium;   then alias aquarium='asciiquarium'; fi
+if cmd_exists hollywood;      then alias hwood='hollywood'; fi
+if cmd_exists onefetch;       then alias gitfetch='onefetch'; fi
+if cmd_exists lavat;          then alias lava='lavat -c cyan -s 8 -r 2'; fi
+if cmd_exists rusty-rain;     then alias rain='rusty-rain -C 0,255,255 -H 50 -S'; fi
+if cmd_exists neo-matrix;     then alias neo='neo-matrix --color=cyan --charset=katakana --speed=6 --density=0.75'; fi
+if cmd_exists tmatrix;        then alias tmatrix='tmatrix -c default -s 40'; fi
+if cmd_exists genact;         then alias busy='genact'; fi
+if cmd_exists mapscii;        then alias map='mapscii'; fi
+if cmd_exists arttime;        then alias art='arttime'; fi
+if cmd_exists durdraw;        then alias ansi='durdraw'; fi
+if cmd_exists spotify_player; then alias spot='spotify_player'; fi
+if cmd_exists tte;            then alias textfx='tte'; fi
+
+# ── Wallpaper ─────────────────────────────────
+if cmd_exists swww;           then
+  alias wp='wallpaper-cycle.sh next'
+  alias wpr='wallpaper-cycle.sh random'
+  alias wps='wallpaper-cycle.sh set'
+fi
+
+# ── Network hacker tools ──────────────────────
+if cmd_exists trip;           then alias trace='sudo trip'; fi
+if cmd_exists bandwhich;      then alias netwatch='sudo bandwhich'; fi
+if cmd_exists sniffnet;       then alias sniff='sniffnet'; fi
+
+# ── Animated wrappers ────────────────────────
+ssh() {
+  local target="${@: -1}"
+  if [[ -t 1 ]] && cmd_exists tte; then
+    echo "CONNECTING // $target" | tte decrypt \
+      --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+  fi
+  command ssh "$@"
+}
+
+yay() {
+  if [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
+    echo "PACKAGE ACQUISITION // $*" | tte beams \
+      --beam-delay 2 --beam-gradient-stops 57c7ff 5af78e \
+      --final-gradient-stops 57c7ff 5af78e 2>/dev/null
+  fi
+  command yay "$@"
+  local rc=$?
+  if (( rc == 0 )) && [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
+    echo "PACKAGES SYNCHRONIZED" | tte slide \
+      --movement-speed 1.5 --final-gradient-stops 5af78e 57c7ff 2>/dev/null
+  fi
+  return $rc
+}
+
+command_not_found_handler() {
+  if cmd_exists tte && [[ -t 1 ]]; then
+    echo "UNKNOWN PROTOCOL: $1" | tte errorcorrect \
+      --error-pairs 0.05 --final-gradient-stops ff5c57 ff6ac1 2>/dev/null
+  else
+    printf '\033[38;2;255;92;87mUNKNOWN COMMAND: %s\033[0m\n' "$1"
+  fi
+  return 127
+}
+
 alias weather='curl -s "wttr.in?format=3"'
 alias forecast='curl -s wttr.in'
 cheat() { curl -s "cht.sh/$1"; }
 alias colortest='for i in $(seq 0 255); do printf "\e[48;5;${i}m  %3s  \e[0m" "$i"; (( (i+1) % 16 == 0 )) && echo; done'
 
+# ── Cyberpunk commands ──────────────────────
+hack() {
+  if cmd_exists tte; then
+    echo "INITIATING..." | tte beams --beam-delay 2 --beam-gradient-stops 57c7ff ff6ac1 --final-gradient-stops 57c7ff 5af78e
+  elif cmd_exists toilet && cmd_exists lolcat; then
+    echo "" | toilet -f future "INITIATING..." --filter border 2>/dev/null | lolcat -f -S 50
+  elif cmd_exists figlet; then
+    figlet -f slant "INITIATING..."
+  fi
+  sleep 0.3
+  local lines=(
+    "Bypassing firewall ................. OK"
+    "Decrypting AES-256 ................. OK"
+    "Injecting payload .................. OK"
+    "Elevating privileges ............... OK"
+  )
+  for line in "${lines[@]}"; do
+    if cmd_exists tte; then
+      echo "$line" | tte decrypt --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1
+    elif cmd_exists nms; then
+      echo "$line" | nms -a -f cyan 2>/dev/null
+    else
+      echo "$line"
+    fi
+    sleep 0.1
+  done
+  echo
+  if cmd_exists tte; then
+    echo "ACCESS GRANTED" | tte scattered --final-gradient-stops 5af78e 57c7ff --movement-speed 0.5
+  elif cmd_exists toilet && cmd_exists lolcat; then
+    echo "" | toilet -f future "ACCESS GRANTED" --filter border 2>/dev/null | lolcat -f -S 100
+  fi
+  sleep 0.3
+  cmd_exists fastfetch && fastfetch
+}
+
+dashboard() {
+  tmux new-session -d -s cyber 2>/dev/null || { tmux switch-client -t cyber 2>/dev/null || tmux attach-session -t cyber; return; }
+  # Left: system monitor (60%) — animated banner then btop
+  tmux send-keys -t cyber 'echo "CYBER DASHBOARD" | tte synthgrid --grid-gradient-stops 57c7ff ff6ac1 --text-gradient-stops 57c7ff 5af78e --max-active-blocks 0.1 2>/dev/null; btop' C-m
+  # Right column (40%)
+  tmux split-window -t cyber -h -p 40
+  # Top-right: audio visualizer
+  tmux send-keys -t cyber 'cava 2>/dev/null || cmatrix -ab -C cyan' C-m
+  # Mid-right: network monitor or matrix rain
+  tmux split-window -t cyber -v -p 66
+  if cmd_exists bandwhich; then
+    tmux send-keys -t cyber 'sudo bandwhich 2>/dev/null || cmatrix -ab -C cyan' C-m
+  elif cmd_exists rusty-rain; then
+    tmux send-keys -t cyber 'rusty-rain -C 0,255,255 -H 50 -S' C-m
+  else
+    tmux send-keys -t cyber 'cmatrix -ab -C cyan' C-m
+  fi
+  # Bottom-right: lava lamp or screensaver
+  tmux split-window -t cyber -v -p 50
+  if cmd_exists lavat; then
+    tmux send-keys -t cyber 'lavat -c cyan -s 8 -r 2' C-m
+  elif cmd_exists pipes.sh; then
+    tmux send-keys -t cyber 'pipes.sh -t 2 -R -r 0 -p 5 -c 4' C-m
+  else
+    tmux send-keys -t cyber 'tty-clock -s -c -C 4 -b 2>/dev/null || date' C-m
+  fi
+  tmux attach-session -t cyber 2>/dev/null || tmux switch-client -t cyber
+}
+
+screensaver() {
+  local cmds=()
+  cmd_exists cmatrix      && cmds+=("cmatrix -ab -C cyan")
+  cmd_exists unimatrix    && cmds+=("unimatrix -s 96 -l kKaA -c cyan")
+  cmd_exists pipes.sh     && cmds+=("pipes.sh -t 2 -R -r 0 -p 5 -c 4")
+  cmd_exists asciiquarium && cmds+=("asciiquarium")
+  cmd_exists cbonsai      && cmds+=("cbonsai -l -t 0.02")
+  cmd_exists lavat        && cmds+=("lavat -c cyan -s 8 -r 2")
+  cmd_exists rusty-rain   && cmds+=("rusty-rain -C 0,255,255 -H 50 -S")
+  cmd_exists neo-matrix   && cmds+=("neo-matrix --color=cyan --charset=katakana --speed=6 --density=0.75")
+  cmd_exists tty-clock    && cmds+=("tty-clock -s -c -C 4 -b")
+  (( ${#cmds[@]} == 0 )) && { echo "No screensavers installed"; return 1; }
+  eval "${cmds[$((RANDOM % ${#cmds[@]} + 1))]}"
+}
+
+# ── MOTD / fun combos ────────────────────────
+alias motd='fortune -s | cowsay -f small | lolcat'
+alias wisdom='fortune | toilet -f term --gay 2>/dev/null || fortune | lolcat'
+alias hackermode='cmatrix -ab -C cyan'
+
+# Cockpit — ambient dashboard layout in tmux (lightweight alternative to dashboard)
+cockpit() {
+  tmux new-session -d -s cockpit 'btop' \; \
+    split-window -h 'cava' \; \
+    split-window -v 'tty-clock -s -c -C 4 -b' \; \
+    select-pane -t 0 \; \
+    resize-pane -R 20 \; \
+    attach
+}
+
+# ── TTE pipe presets ─────────────────────────────
+if cmd_exists tte; then
+  alias encrypt='tte decrypt --typing-speed 1 --ciphertext-colors 57c7ff ff6ac1'
+  alias redact='tte burn --burn-colors ffffff f3f99d ff5c57 8A003C --final-gradient-stops ff5c57 ff6ac1'
+  alias reveal='tte scattered --final-gradient-stops 5af78e 57c7ff --movement-speed 0.5'
+  alias glitch='tte vhstape --glitch-line-colors 57c7ff ff6ac1 --noise-colors 686868 --final-gradient-stops 57c7ff ff6ac1'
+  alias summon='tte blackhole --star-colors 57c7ff ff6ac1 5af78e --final-gradient-stops 57c7ff ff6ac1 5af78e'
+  alias materialize='tte synthgrid --grid-gradient-stops 57c7ff ff6ac1 --text-gradient-stops 57c7ff 5af78e'
+fi
+
+# ── scan — network reconnaissance ───────────────
+scan() {
+  local target="${1:?Usage: scan <hostname|ip>}"
+  local C='\033[38;2;87;199;255m' M='\033[38;2;255;106;193m' G='\033[38;2;90;247;142m' R='\033[0m'
+
+  _scan_header() {
+    if cmd_exists tte; then
+      echo "$1" | tte decrypt --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+    else
+      printf "${M}%s${R}\n" "$1"
+    fi
+  }
+
+  _scan_header "▸ TARGET ACQUISITION: $target"
+  echo
+
+  _scan_header "▸ DNS RESOLUTION"
+  if cmd_exists dig; then
+    dig +short "$target" 2>/dev/null | while read -r line; do
+      printf "  ${C}%s${R}\n" "$line"
+    done
+  else
+    printf "  ${C}%s${R}\n" "$(host "$target" 2>/dev/null | head -3)"
+  fi
+  echo
+
+  _scan_header "▸ ROUTE TRACE"
+  if cmd_exists trip; then
+    sudo trip "$target" --mode tui 2>/dev/null
+  elif cmd_exists traceroute; then
+    traceroute -m 15 "$target" 2>/dev/null
+  else
+    printf "  %s\n" "traceroute not available"
+  fi
+}
+
+# ── deploy — dramatic git push ──────────────────
+deploy() {
+  local cmd="${*:-git push}"
+  local C='57c7ff' M='ff6ac1' G='5af78e' R='ff5c57'
+
+  if cmd_exists tte; then
+    echo "DEPLOYING" | tte synthgrid \
+      --grid-gradient-stops $C $M \
+      --text-gradient-stops $C $G \
+      --max-active-blocks 0.1 2>/dev/null
+  elif cmd_exists figlet; then
+    figlet -f slant "DEPLOYING" | lolcat -f 2>/dev/null
+  fi
+
+  local stages=(
+    "Compiling artifacts ............... "
+    "Running preflight checks .......... "
+    "Authenticating deploy key ......... "
+    "Pushing to remote ................. "
+  )
+  for stage in "${stages[@]}"; do
+    if cmd_exists tte; then
+      echo "$stage" | tte print --print-speed 4 \
+        --final-gradient-stops $C $M 2>/dev/null
+    else
+      printf '\033[38;2;87;199;255m%s\033[0m\n' "$stage"
+    fi
+  done
+
+  echo
+  if eval "$cmd"; then
+    echo
+    if cmd_exists tte; then
+      echo "DEPLOY SUCCESSFUL" | tte fireworks \
+        --firework-colors $G $C $M \
+        --final-gradient-stops $G $C \
+        --explode-anywhere 2>/dev/null
+    else
+      printf '\033[38;2;90;247;142mDEPLOY SUCCESSFUL\033[0m\n'
+    fi
+  else
+    echo
+    if cmd_exists tte; then
+      echo "DEPLOY FAILED" | tte burn \
+        --burn-colors ffffff f3f99d $R 8A003C \
+        --final-gradient-stops $R $M 2>/dev/null
+    else
+      printf '\033[38;2;255;92;87mDEPLOY FAILED\033[0m\n'
+    fi
+    return 1
+  fi
+}
+
+# ── briefing — animated daily dashboard ─────────
+briefing() {
+  local C='57c7ff' M='ff6ac1' G='5af78e' Y='f3f99d'
+
+  # Header
+  if cmd_exists tte; then
+    echo "DAILY BRIEFING // $(date '+%Y-%m-%d %H:%M')" | tte beams \
+      --beam-gradient-stops $C $M \
+      --final-gradient-stops $C $G \
+      --beam-delay 2 2>/dev/null
+  else
+    printf '\033[38;2;87;199;255mDAILY BRIEFING // %s\033[0m\n' "$(date '+%Y-%m-%d %H:%M')"
+  fi
+  echo
+
+  # System info
+  if cmd_exists fastfetch; then
+    if cmd_exists tte; then
+      fastfetch 2>/dev/null | tte sweep \
+        --final-gradient-stops $C $M $G \
+        --final-gradient-direction horizontal 2>/dev/null
+    else
+      fastfetch 2>/dev/null
+    fi
+  fi
+  echo
+
+  # Git status of key repos
+  local repos=("$HOME/hairglasses-studio" "$HOME/dotfiles")
+  for repo in "${repos[@]}"; do
+    [[ -d "$repo/.git" ]] || continue
+    local repo_name="${repo##*/}"
+    local branch=$(git -C "$repo" branch --show-current 2>/dev/null)
+    local status=$(git -C "$repo" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+    local line="▸ $repo_name ($branch) — $status uncommitted"
+    if cmd_exists tte; then
+      echo "$line" | tte decrypt --typing-speed 6 --ciphertext-colors $C $M 2>/dev/null
+    else
+      printf '\033[38;2;255;106;193m%s\033[0m\n' "$line"
+    fi
+  done
+  echo
+
+  # Weather
+  if cmd_exists tte; then
+    curl -s "wttr.in?format=3" 2>/dev/null | tte slide \
+      --movement-speed 1.5 \
+      --final-gradient-stops $Y $C 2>/dev/null
+  else
+    curl -s "wttr.in?format=3" 2>/dev/null
+  fi
+}
+
+# ── cls — animated clear ────────────────────────
+cls() {
+  if cmd_exists tte && [[ -t 1 ]] && (( COLUMNS > 40 )); then
+    printf '\033[2J\033[H'
+    echo "BUFFER CLEARED // $(date '+%H:%M:%S')" | tte sweep \
+      --final-gradient-stops 57c7ff 1a1a1a 000000 \
+      --final-gradient-direction vertical 2>/dev/null
+  else
+    command clear
+  fi
+}
+
+# ── SSH connection animation ───────────────────
+ssh() {
+  local target="${@: -1}"
+  if [[ -t 1 ]] && cmd_exists tte; then
+    echo "CONNECTING // $target" | tte decrypt \
+      --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
+  fi
+  command ssh "$@"
+}
+
+# ── Command not found handler ──────────────────
+command_not_found_handler() {
+  if cmd_exists tte && [[ -t 1 ]]; then
+    echo "UNKNOWN PROTOCOL: $1" | tte errorcorrect \
+      --final-gradient-stops ff5c57 ff6ac1 2>/dev/null
+  else
+    printf '\033[38;2;255;92;87mUNKNOWN COMMAND: %s\033[0m\n' "$1"
+  fi
+  return 127
+}
+
+# ── Package management wrapper ─────────────────
+yay() {
+  if [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
+    echo "PACKAGE ACQUISITION // $*" | tte beams \
+      --beam-delay 2 --beam-gradient-stops 57c7ff 5af78e \
+      --final-gradient-stops 57c7ff 5af78e 2>/dev/null
+  fi
+  command yay "$@"
+  local rc=$?
+  if (( rc == 0 )) && [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
+    echo "PACKAGES SYNCHRONIZED" | tte slide \
+      --movement-speed 1.5 --final-gradient-stops 5af78e 57c7ff 2>/dev/null
+  fi
+  return $rc
+}
+
 # ── CRT / Shader effects ────────────────────────
-alias crt-on='open -a RetroVisor'
-alias crt-off='pkill -x RetroVisor'
-alias crt-toggle='pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVisor'
+if [[ "$(uname)" == "Darwin" ]]; then
+    alias crt-on='open -a RetroVisor'
+    alias crt-off='pkill -x RetroVisor'
+    alias crt-toggle='pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVisor'
+fi
 
 # ── MCP / Ralph ────────────────────────────────
 alias hgs='cd ~/hairglasses-studio'
@@ -489,7 +912,7 @@ shader-crt() {
   sed -e "s|^custom-shader = .*|custom-shader = $HOME/.config/ghostty/shaders/green-crt.glsl|" \
       -e "s|^custom-shader-animation = .*|custom-shader-animation = true|" \
       "$cfg" > "$tmp"
-  mv "$tmp" "$cfg"
+  command mv -f "$tmp" "$cfg"
 }
 shader-none() {
   local cfg="$HOME/.config/ghostty/config" tmp
@@ -497,8 +920,59 @@ shader-none() {
   sed -e "s|^custom-shader = .*|# custom-shader = disabled|" \
       -e "s|^custom-shader-animation = .*|custom-shader-animation = false|" \
       "$cfg" > "$tmp"
-  mv "$tmp" "$cfg"
+  command mv -f "$tmp" "$cfg"
 }
+# Toggle shader on/off — remembers the last active shader
+shader-toggle() {
+  local cfg="$HOME/.config/ghostty/config"
+  local state="$HOME/.local/state/ghostty/shader-toggle.last"
+  mkdir -p "$(dirname "$state")"
+  if grep -q '^custom-shader = ' "$cfg" && ! grep -q '^# custom-shader' "$cfg"; then
+    # Shader is ON — save it, then disable
+    grep '^custom-shader = ' "$cfg" | head -1 > "$state"
+    grep '^custom-shader-animation = ' "$cfg" | head -1 >> "$state"
+    shader-none
+    echo "Shader OFF (saved state)"
+  else
+    # Shader is OFF — restore last shader
+    if [[ -f "$state" ]] && [[ -s "$state" ]]; then
+      local tmp; tmp="$(mktemp "${cfg}.XXXXXX")"
+      local last_shader last_anim
+      last_shader="$(grep '^custom-shader = ' "$state" | head -1)"
+      last_anim="$(grep '^custom-shader-animation = ' "$state" | head -1)"
+      sed -e "s|^# custom-shader.*|${last_shader}|" \
+          -e "s|^custom-shader-animation = .*|${last_anim}|" \
+          "$cfg" > "$tmp"
+      command mv -f "$tmp" "$cfg"
+      echo "Shader ON: ${last_shader#custom-shader = }"
+    else
+      echo "No previous shader saved — use a shader-* alias first"
+      return 1
+    fi
+  fi
+}
+# Quick-switch helper (atomic write, auto-detects animation)
+_shader-set() {
+  local name="$1" cfg="$HOME/.config/ghostty/config"
+  local path="$HOME/.config/ghostty/shaders/${name}.glsl"
+  [[ -f "$path" ]] || { echo "Shader not found: $path"; return 1; }
+  local anim=false
+  grep -qE '(iTime|ghostty_time|u_time)' "$path" 2>/dev/null && anim=true
+  local tmp; tmp="$(mktemp "${cfg}.XXXXXX")"
+  sed -e "s|^custom-shader = .*|custom-shader = $path|" \
+      -e "s|^# custom-shader.*|custom-shader = $path|" \
+      -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
+      "$cfg" > "$tmp"
+  command mv -f "$tmp" "$cfg"
+  echo "Shader: $name (animation=$anim)"
+}
+# Cyberpunk collection quick-switches
+alias shader-synthwave='_shader-set synthwave-horizon'
+alias shader-holo='_shader-set holo-display'
+alias shader-hexgrid='_shader-set neon-hex-grid'
+alias shader-circuit='_shader-set circuit-trace'
+alias shader-rain='_shader-set rain-on-glass'
+alias shader-glitchholo='_shader-set cyber-glitch-holo'
 # Interactive shader audition — test each shader one-by-one with keep/skip
 alias shader-audit='bash ~/.config/ghostty/shaders/bin/shader-audit.sh'
 
@@ -512,7 +986,9 @@ alias shader-test='bash ~/.config/ghostty/shaders/bin/shader-test.sh'
 alias shader-cycle='bash ~/.config/ghostty/shaders/bin/shader-cycle.sh'
 
 # Peekaboo — macOS screen capture for visual review
-alias peek='peekaboo'
+if [[ "$(uname)" == "Darwin" ]]; then
+    alias peek='peekaboo'
+fi
 
 # Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
 source "$HOME/.config/ghostty/shaders/bin/shader-playlist.sh" 2>/dev/null
@@ -558,17 +1034,26 @@ shader-status() {
   local active_pl="low-intensity"
   [[ -f "$sd/auto-rotate-playlist" ]] && active_pl="$(< "$sd/auto-rotate-playlist")"
   printf "%-20s %s\n" "Active playlist:" "$active_pl"
-  if launchctl list com.dotfiles.shader-rotate &>/dev/null; then
-    printf "%-20s %s\n" "Timer:" "running"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if launchctl list com.dotfiles.shader-rotate &>/dev/null; then
+      printf "%-20s %s\n" "Timer:" "running"
+    else
+      printf "%-20s %s\n" "Timer:" "stopped"
+    fi
   else
-    printf "%-20s %s\n" "Timer:" "stopped"
+    if systemctl --user is-active shader-rotate.timer &>/dev/null; then
+      printf "%-20s %s\n" "Timer:" "running"
+    else
+      printf "%-20s %s\n" "Timer:" "stopped"
+    fi
   fi
 }
 
-# Automatic timed shader rotation via launchd
+# Automatic timed shader rotation via launchd (macOS) or systemd timer (Linux)
 # shader-auto start [minutes]  — start rotating every N minutes (default 30)
 # shader-auto stop             — stop automatic rotation
 # shader-auto status           — check if timer is running
+if [[ "$(uname)" == "Darwin" ]]; then
 shader-auto() {
   local plist="$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
   local label="com.dotfiles.shader-rotate"
@@ -598,6 +1083,7 @@ shader-auto() {
       ;;
   esac
 }
+fi
 
 # Best-of shader showcase — curated playlist of the most impressive effects
 # shader-best start [minutes]  — activate best-of rotation (default 15 min)
