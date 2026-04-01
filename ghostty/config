@@ -5,15 +5,15 @@ quick-terminal-screen = main
 quick-terminal-animation-duration = 0.12
 
 # ── Font ────────────────────────────────────────
-font-family = MonoidNerdFontMono
-font-family-bold = MonoidNerdFontMono
-font-family-italic = MapleMono-NF
-font-family-bold-italic = MapleMono-NF
+font-family = Monaspace Neon
+font-family-bold = Monaspace Neon
+font-family-italic = Monaspace Neon
+font-family-bold-italic = Monaspace Neon
 font-style = Regular
 font-style-bold = Bold
 font-style-italic = Italic
 font-style-bold-italic = Bold Italic
-font-size = 9
+font-size = 18
 font-feature = calt
 font-feature = liga
 adjust-cell-height = 2
@@ -48,28 +48,31 @@ palette = 14=#9aedfe
 palette = 15=#eff0eb
 
 # ── Window ──────────────────────────────────────
-background-opacity = 0.85
+background-opacity = 1
 window-decoration = true
 window-padding-x = 4
 window-padding-y = 2
 window-padding-balance = true
-macos-titlebar-style = hidden
+# macos-titlebar-style = hidden  # macOS-only
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /Users/mitchnotmitchell/.config/ghostty/shaders/star-nest.glsl
+custom-shader = /Users/mitch/.config/ghostty/shaders/underwater.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
 link-url = true
 
 # ── Terminal behavior ───────────────────────────
+gtk-single-instance = false
 scrollback-limit = 10000
 copy-on-select = clipboard
 mouse-hide-while-typing = true
 cursor-style = bar
 cursor-style-blink = false
 shell-integration = zsh
+window-save-state = always
+desktop-notifications = true
 
 # ── Splits ─────────────────────────────────────
 keybind = super+d=new_split:right
