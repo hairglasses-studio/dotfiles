@@ -1,7 +1,7 @@
 [user]
     name = hairglasses
     email = mitch@galileo.ai
-    signingkey = A24C0C8CA217C787
+	signingkey = 54F700788C9F9F1C
 [core]
     editor = nvim
     pager = delta
