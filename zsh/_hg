@@ -5,8 +5,11 @@ _hg() {
   if (( CURRENT == 2 )); then
     local -a modules
     modules=(
+      'bt:Bluetooth — list, connect, disconnect, scan'
       'config:Dotfiles config — reload, backup, check, list'
+      'input:Input devices — logiops, solaar, makima'
       'media:Terminal video & ASCII art — play, convert, stream'
+      'rice:Rice health — status, services, palette, reload-all'
       'screenshot:Screenshots — crop, full, window, list, open'
       'shader:132+ GLSL shaders — browse, pick, cycle, test'
       'wallpaper:Static & shader wallpapers — swww + shaderbg'
@@ -83,6 +86,29 @@ _hg() {
           'jump:Switch to workspace N'
           'dispatch:Send compositor command'
         ) ;;
+      bt)
+        cmds=(
+          'status:Adapter state and connected devices'
+          'list:List paired devices with connection state'
+          'connect:Connect to device by MAC or name'
+          'disconnect:Disconnect a device or all'
+          'scan:Scan for nearby devices'
+        ) ;;
+      input)
+        cmds=(
+          'status:Show running state of input services'
+          'deploy:Deploy logiops config to /etc/'
+          'sync-solaar:Copy live solaar config back to dotfiles'
+          'restart:Restart input services'
+          'devices:List makima-detected evdev devices'
+        ) ;;
+      rice)
+        cmds=(
+          'status:Comprehensive rice status dashboard'
+          'services:Check which services are running'
+          'palette:Scan configs for non-Snazzy colors'
+          'reload-all:Reload all compositor services'
+        ) ;;
     esac
     _describe 'command' cmds
     return
@@ -136,6 +162,10 @@ _hg() {
       _values 'shader subcommand' next random set stop list ;;
     wm/jump)
       _values 'workspace' 1 2 3 4 5 6 7 8 9 10 ;;
+    bt/connect|bt/disconnect)
+      local -a devices
+      devices=(${(f)"$(bluetoothctl devices 2>/dev/null | awk '{print $2}')"})
+      _describe 'device' devices ;;
   esac
 }
 
