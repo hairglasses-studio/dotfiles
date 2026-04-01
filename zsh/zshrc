@@ -350,3 +350,7 @@ fi
 
 # Codex stashapp full-access wrapper
 source "/home/hg/.zshrc.d/codex-stashapp-full-access.zsh"
+
+# Android SDK (kirkwood dev)
+export ANDROID_HOME="$HOME/Android/Sdk"
+export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
