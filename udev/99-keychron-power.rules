@@ -1,0 +1,3 @@
+# Keychron Ultra-Link 8K 2.4GHz wireless dongle — disable USB autosuspend
+# Prevents the dongle from entering power-saving mode which causes input timeouts
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="3434", ATTR{idProduct}=="d028", RUN+="/bin/sh -c 'echo on > /sys$devpath/power/control; echo -1 > /sys$devpath/power/autosuspend_delay_ms; echo -1 > /sys$devpath/power/autosuspend'"
