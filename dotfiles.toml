@@ -64,6 +64,12 @@ plymouth = true         # Deploy: scripts/plymouth-deploy.sh (needs sudo + mkini
 keychron-v1-ultra = false   # Manual flash via Keychron Launcher
 drop-ctrl = false           # Manual flash via VIA
 
+# ── Input devices ────────────────────────────────
+[input]
+logiops = true              # Deploy: scripts/logiops-deploy.sh (needs sudo)
+solaar = true
+makima = true
+
 # ── MCP servers (separate repos, binaries) ───────
 [mcp]
 hyprland-mcp = true
