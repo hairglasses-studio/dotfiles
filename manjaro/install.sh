@@ -237,6 +237,29 @@ setup_input_devices() {
         warn "logiops config tracked in dotfiles/logiops/logid.cfg"
         warn "Deploy to /etc/: ./scripts/logiops-deploy.sh (needs sudo)"
     fi
+
+    # udev rules (Keychron USB power, etc.)
+    if [[ -d "$DOTFILES/udev" ]]; then
+        for rule in "$DOTFILES/udev/"*.rules; do
+            [[ -f "$rule" ]] || continue
+            local dest="/etc/udev/rules.d/$(basename "$rule")"
+            if ! diff -q "$rule" "$dest" &>/dev/null; then
+                sudo cp "$rule" "$dest"
+                info "  Installed udev rule: $(basename "$rule")"
+            fi
+        done
+        sudo udevadm control --reload-rules
+    fi
+}
+
+# ── MCP server registration ──────────────────────────────────
+setup_mcp() {
+    # Symlink .mcp.json to parent workspace so Claude Code finds it
+    local workspace
+    workspace="$(dirname "$DOTFILES")"
+    if [[ -f "$DOTFILES/.mcp.json" ]] && [[ -d "$workspace" ]]; then
+        link_file "$DOTFILES/.mcp.json" "$workspace/.mcp.json"
+    fi
 }
 
 # ── Symlinks ──────────────────────────────────────────────────
@@ -436,6 +459,7 @@ main() {
     install_tpm
     create_symlinks
     setup_input_devices
+    setup_mcp
     setup_tattoy_shaders
     install_systemd_services
     setup_shaders
