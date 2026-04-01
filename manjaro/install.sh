@@ -119,9 +119,9 @@ install_packages() {
 
     if command -v yay &>/dev/null; then
         info "Installing AUR packages..."
-        yay -S --needed --noconfirm ttf-jetbrains-mono-nerd
+        yay -S --needed --noconfirm ttf-jetbrains-mono-nerd logiops makima-bin
     else
-        warn "yay not found — skipping AUR packages (ttf-jetbrains-mono-nerd)"
+        warn "yay not found — skipping AUR packages (ttf-jetbrains-mono-nerd, logiops, makima-bin)"
         warn "Install yay: https://github.com/Jguer/yay"
     fi
 }
@@ -212,6 +212,33 @@ setup_tattoy_shaders() {
     fi
 }
 
+# ── Input devices ────────────────────────────────────────────
+setup_input_devices() {
+    info "Setting up input device configs..."
+
+    # Solaar — copy (not symlink) because solaar writes runtime state
+    if is_enabled solaar && [[ -f "$DOTFILES/solaar/config.yaml" ]]; then
+        local solaar_dir="$HOME/.config/solaar"
+        mkdir -p "$solaar_dir"
+        if [[ -f "$solaar_dir/config.yaml" ]]; then
+            backup_file "$solaar_dir/config.yaml"
+        fi
+        cp "$DOTFILES/solaar/config.yaml" "$solaar_dir/config.yaml"
+        success "Copied solaar config"
+    fi
+
+    # makima — symlink the config directory
+    if is_enabled makima && [[ -d "$DOTFILES/makima" ]]; then
+        link_file "$DOTFILES/makima" "$HOME/.config/makima"
+    fi
+
+    # logiops — remind about deploy script (needs sudo)
+    if is_enabled logiops && [[ -f "$DOTFILES/logiops/logid.cfg" ]]; then
+        warn "logiops config tracked in dotfiles/logiops/logid.cfg"
+        warn "Deploy to /etc/: ./scripts/logiops-deploy.sh (needs sudo)"
+    fi
+}
+
 # ── Symlinks ──────────────────────────────────────────────────
 create_symlinks() {
     info "Creating symlinks (profile: ${PROFILE:-dotfiles.toml})..."
@@ -276,6 +303,12 @@ install_systemd_services() {
             systemctl --user enable --now shader-rotate.timer
             info "  shader-rotate timer enabled"
         fi
+
+        # Enable makima system service (provided by makima-bin package)
+        if is_enabled makima && [[ -f "/usr/lib/systemd/system/makima.service" ]]; then
+            sudo systemctl enable makima.service
+            info "  makima service enabled"
+        fi
     fi
 }
 
@@ -331,6 +364,28 @@ check_install() {
     check_link "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
     check_link "$DOTFILES/tattoy/tattoy.toml" "$HOME/.config/tattoy/tattoy.toml"
 
+    # ── Input devices ──
+    check_link "$DOTFILES/makima" "$HOME/.config/makima"
+
+    if systemctl is-active logid.service &>/dev/null; then
+        success "logid service active"
+    else
+        error "logid service not active"
+        errors=$((errors + 1))
+    fi
+
+    if systemctl is-enabled makima.service &>/dev/null; then
+        success "makima service enabled"
+    else
+        warn "makima service not enabled"
+    fi
+
+    if [[ -f "$HOME/.config/solaar/config.yaml" ]]; then
+        success "solaar config present"
+    else
+        warn "solaar config missing"
+    fi
+
     info "Checking pacman packages..."
     local missing=0
     while IFS= read -r pkg; do
@@ -380,6 +435,7 @@ main() {
     install_vim_plug
     install_tpm
     create_symlinks
+    setup_input_devices
     setup_tattoy_shaders
     install_systemd_services
     setup_shaders
