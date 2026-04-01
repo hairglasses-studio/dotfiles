@@ -57,11 +57,31 @@ sed -e "/^\[shader\]/,/^\[/ s|^enabled = .*|enabled = true|"
 ### AeroSpace Float Rules
 No "ignore app" mode exists. Use `[[on-window-detected]]` with `layout floating`. Apps with no bundle ID (like glslViewer) must be matched by `if.app-name-regex-substring`.
 
+### Shared Libraries
+- **`scripts/lib/compositor.sh`** — Compositor detection & IPC abstraction. Detects AeroSpace (macOS) via `uname -s`.
+- **`scripts/lib/config.sh`** — Atomic config operations (`config_atomic_write`, `config_sed_replace`, `config_backup`).
+
+### Keyboard Firmware
+- **`keyboard/`** — Drop CTRL v1/v2 + Keychron V1 Ultra VIA keymaps
+- PrtSc/ScrLk/Pause trio remapped to F13/Enter/F14 for window focus control
+
+### MCP Servers
+- **`dotfiles-mcp`** — 4 tools: list configs, validate TOML/JSON, reload service, check symlinks
+- **`shader-mcp`** — 5 tools: list/set/random/test/get_state for 132 shaders
+
+### Claude Code Skills & Agents
+- **Skills:** `/shader-browse` (shader explorer)
+- **Agents:** `config-validator` (fast syntax check, haiku)
+- **Rules:** `snazzy-palette.md` (color enforcement), `shaders.md` (self-contained GLSL)
+
 ## Aliases
 ```
 shader-meta, shader-build, shader-test, shader-cycle, shader-bench
 peek (peekaboo screen capture)
 crt-on, crt-off, crt-toggle (RetroVisor)
+viz (cava audio visualizer)
+hack, dashboard, scan, deploy, briefing (cyberpunk functions)
+cc, ccr, ccc (Claude Code)
 ```
 
 ## Testing
