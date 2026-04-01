@@ -1,0 +1,85 @@
+#compdef hg
+# ZSH completion for the hg dotfiles CLI
+
+_hg() {
+  local -a modules
+
+  if (( CURRENT == 2 )); then
+    modules=(
+      'shader:132+ GLSL shaders — browse, pick, cycle, test'
+      'media:Terminal video & ASCII art — play, convert, stream'
+    )
+    _describe 'module' modules
+    return
+  fi
+
+  local module="${words[2]}"
+
+  if (( CURRENT == 3 )); then
+    local -a cmds
+    case "$module" in
+      shader)
+        cmds=(
+          'current:Show currently active shader'
+          'set:Set active shader by name'
+          'random:Pick a random shader'
+          'cycle:Cycle through curated shader list'
+          'next:Advance shader playlist'
+          'pick:Interactive fzf shader picker'
+          'list:List shaders with optional filters'
+          'info:Show shader metadata'
+          'audit:Audition shaders one-by-one'
+          'test:Run shader compilation tests'
+          'build:Inline shared GLSL libraries'
+          'status:Show shader state and timer info'
+        ) ;;
+      media)
+        cmds=(
+          'play:Play video URL or file'
+          'image:Display image in terminal'
+          'ascii:ASCII art shortcut'
+          'webcam:Stream webcam to terminal'
+          'yt:Search YouTube and play'
+          'tools:Show installed media tools'
+        ) ;;
+    esac
+    _describe 'command' cmds
+    return
+  fi
+
+  # Position 4+: context-sensitive completion
+  local cmd="${words[3]}"
+  case "$module/$cmd" in
+    shader/set|shader/info|shader/test)
+      local shader_dir="$HOME/.config/ghostty/shaders"
+      local -a shaders
+      shaders=(${(f)"$(command ls "$shader_dir"/*.glsl 2>/dev/null | xargs -I{} basename {} .glsl)"})
+      _describe 'shader' shaders ;;
+    shader/list)
+      _arguments \
+        '--category[Filter by category]:category:(CRT Cursor Post-FX Background Watercolor Cyberpunk)' \
+        '--cost[Filter by cost]:cost:(LOW MED HIGH)' ;;
+    shader/cycle)
+      _arguments '--prev[Go to previous]' '--show[Show current without advancing]' ;;
+    shader/build)
+      _arguments '--all[Build all shaders]' '--check[Dry-run mode]' ;;
+    shader/audit)
+      _arguments \
+        '--category[Filter by category]:category:(CRT Cursor Post-FX Background Watercolor Cyberpunk)' \
+        '--resume[Resume from last session]' ;;
+    media/play)
+      _arguments \
+        '--mode[Rendering mode]:mode:(ascii blocks sixel kitty tct)' \
+        ':target:_files' ;;
+    media/image)
+      _arguments \
+        '--mode[Rendering mode]:mode:(ascii braille sixel kitty blocks)' \
+        ':file:_files' ;;
+    media/ascii)
+      _files ;;
+    media/webcam)
+      _arguments '--mode[Rendering mode]:mode:(ascii blocks)' ;;
+  esac
+}
+
+_hg "$@"
