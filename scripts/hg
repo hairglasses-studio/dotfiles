@@ -43,14 +43,78 @@ hg_help() {
   for mod in "${HG_MODULES[@]}"; do
     printf "  %s%-14s%s %s\n" "$HG_CYAN" "$mod" "$HG_RESET" "$("${mod}_description")"
   done
+  printf "\n %sBUILT-IN%s\n" "$HG_BOLD" "$HG_RESET"
+  printf "  %s%-14s%s %s\n" "$HG_GREEN" "doctor" "$HG_RESET" "Health check — modules, tools, symlinks, compositor"
+  printf "  %s%-14s%s %s\n" "$HG_GREEN" "--version" "$HG_RESET" "Print version"
   printf "\n %sUSAGE%s\n" "$HG_BOLD" "$HG_RESET"
   printf "  hg <module> <command> [options]\n"
   printf "  hg <module> --help\n\n"
 }
 
+# ── Doctor ─────────────────────────────────────
+hg_doctor() {
+  printf "\n %s%shg doctor%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
+
+  printf " %sMODULES%s\n" "$HG_BOLD" "$HG_RESET"
+  for mod in "${HG_MODULES[@]}"; do
+    if declare -F "${mod}_run" &>/dev/null && declare -F "${mod}_description" &>/dev/null; then
+      printf "  %s%-14s%s %sok%s\n" "$HG_CYAN" "$mod" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+    else
+      printf "  %s%-14s%s %sbroken%s\n" "$HG_CYAN" "$mod" "$HG_RESET" "$HG_RED" "$HG_RESET"
+    fi
+  done
+
+  printf "\n %sTOOLS%s\n" "$HG_BOLD" "$HG_RESET"
+  local -a _tools=(fzf jq grim slurp wl-copy notify-send swww chafa tplay timg mpv yt-dlp ascii-image-converter)
+  for _t in "${_tools[@]}"; do
+    if command -v "$_t" &>/dev/null; then
+      printf "  %s%-24s%s %sfound%s\n" "$HG_CYAN" "$_t" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+    else
+      printf "  %s%-24s%s %smissing%s\n" "$HG_CYAN" "$_t" "$HG_RESET" "$HG_RED" "$HG_RESET"
+    fi
+  done
+
+  printf "\n %sSYMLINKS%s\n" "$HG_BOLD" "$HG_RESET"
+  local -a _links=(
+    "$HOME/.config/ghostty:ghostty"
+    "$HOME/.config/hypr:hyprland"
+    "$HOME/.config/eww:eww"
+    "$HOME/.config/mako:mako"
+  )
+  for _entry in "${_links[@]}"; do
+    local _path="${_entry%%:*}" _name="${_entry#*:}"
+    if [[ -L "$_path" ]]; then
+      printf "  %s%-18s%s %slinked%s\n" "$HG_CYAN" "$_name" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+    elif [[ -d "$_path" ]]; then
+      printf "  %s%-18s%s %sexists (not symlink)%s\n" "$HG_CYAN" "$_name" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+    else
+      printf "  %s%-18s%s %smissing%s\n" "$HG_CYAN" "$_name" "$HG_RESET" "$HG_RED" "$HG_RESET"
+    fi
+  done
+
+  printf "\n %sCOMPOSITOR%s\n" "$HG_BOLD" "$HG_RESET"
+  source "$SCRIPT_DIR/lib/compositor.sh" 2>/dev/null
+  local _comp
+  _comp="$(compositor_type 2>/dev/null || echo "unknown")"
+  if [[ "$_comp" != "unknown" ]]; then
+    printf "  %s%-18s%s %s%s%s\n" "$HG_CYAN" "compositor" "$HG_RESET" "$HG_GREEN" "$_comp" "$HG_RESET"
+  else
+    printf "  %s%-18s%s %snot detected%s\n" "$HG_CYAN" "compositor" "$HG_RESET" "$HG_RED" "$HG_RESET"
+  fi
+  printf "\n"
+}
+
 # ── Dispatch ───────────────────────────────────
 module="${1:-}"
 [[ -z "$module" || "$module" == "--help" || "$module" == "-h" ]] && { hg_help; exit 0; }
+
+case "$module" in
+  --version|-V)
+    printf "hg %s\n" "$(git -C "$HG_DOTFILES" rev-parse --short HEAD 2>/dev/null || echo "dev")"
+    exit 0 ;;
+  doctor)
+    hg_doctor; exit 0 ;;
+esac
 shift
 
 # Validate module exists
