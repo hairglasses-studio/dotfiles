@@ -91,7 +91,7 @@ Removes all symlinks created by the installer. Does not uninstall Homebrew packa
 | `bat/` | Custom Snazzy tmTheme, Go/Terraform/proto syntax mappings |
 | `fastfetch/` | Custom skull ASCII art, Snazzy colors — OS, kernel, WM, GPU, display, battery, packages |
 | `git/` | Snazzy delta diffs, 1Password SSH signing, URL shortcuts, PR aliases |
-| `cava/` | Audio visualizer — 4-color Snazzy gradient |
+| `cava/` | Audio visualizer — 8-color Snazzy gradient with Monstercat smoothing |
 | `glow/` | Markdown renderer, dark style |
 | `gh/` | GitHub CLI (SSH protocol) |
 | `ssh/` | 1Password SSH agent |
