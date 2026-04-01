@@ -2,14 +2,21 @@
 # ZSH completion for the hg dotfiles CLI
 
 _hg() {
-  local -a modules
-
   if (( CURRENT == 2 )); then
+    local -a modules
     modules=(
-      'shader:132+ GLSL shaders — browse, pick, cycle, test'
+      'config:Dotfiles config — reload, backup, check, list'
       'media:Terminal video & ASCII art — play, convert, stream'
+      'screenshot:Screenshots — crop, full, window, list, open'
+      'shader:132+ GLSL shaders — browse, pick, cycle, test'
+      'wallpaper:Static & shader wallpapers — swww + shaderbg'
+      'wm:Window manager — compositor abstraction layer'
     )
-    _describe 'module' modules
+    local -a builtins
+    builtins=(
+      'doctor:Health check — modules, tools, symlinks, compositor'
+    )
+    _describe 'module' modules -- builtins
     return
   fi
 
@@ -18,6 +25,30 @@ _hg() {
   if (( CURRENT == 3 )); then
     local -a cmds
     case "$module" in
+      config)
+        cmds=(
+          'reload:Reload a component config'
+          'backup:Backup a config file'
+          'check:Validate symlinks and flags'
+          'list:Show managed components'
+        ) ;;
+      media)
+        cmds=(
+          'play:Play video URL or file'
+          'image:Display image in terminal'
+          'ascii:ASCII art shortcut'
+          'webcam:Stream webcam to terminal'
+          'yt:Search YouTube and play'
+          'tools:Show installed media tools'
+        ) ;;
+      screenshot)
+        cmds=(
+          'crop:Crop-select region screenshot'
+          'full:Full screen or monitor screenshot'
+          'window:Active window screenshot'
+          'list:List recent screenshots'
+          'open:Open a recent screenshot'
+        ) ;;
       shader)
         cmds=(
           'current:Show currently active shader'
@@ -33,14 +64,24 @@ _hg() {
           'build:Inline shared GLSL libraries'
           'status:Show shader state and timer info'
         ) ;;
-      media)
+      wallpaper)
         cmds=(
-          'play:Play video URL or file'
-          'image:Display image in terminal'
-          'ascii:ASCII art shortcut'
-          'webcam:Stream webcam to terminal'
-          'yt:Search YouTube and play'
-          'tools:Show installed media tools'
+          'current:Show current wallpaper'
+          'next:Next wallpaper in rotation'
+          'random:Random wallpaper'
+          'set:Set wallpaper by path'
+          'shader:Animated shader wallpaper'
+          'static:Switch from shader to static'
+        ) ;;
+      wm)
+        cmds=(
+          'type:Show compositor type'
+          'reload:Reload compositor config'
+          'windows:List all windows'
+          'workspaces:List workspaces'
+          'active:Show active window info'
+          'jump:Switch to workspace N'
+          'dispatch:Send compositor command'
         ) ;;
     esac
     _describe 'command' cmds
@@ -50,6 +91,28 @@ _hg() {
   # Position 4+: context-sensitive completion
   local cmd="${words[3]}"
   case "$module/$cmd" in
+    config/reload)
+      _values 'component' hyprland mako eww waybar sway tmux ;;
+    config/backup)
+      _files ;;
+    media/play)
+      _arguments \
+        '--mode[Rendering mode]:mode:(ascii blocks sixel kitty tct)' \
+        ':target:_files' ;;
+    media/image)
+      _arguments \
+        '--mode[Rendering mode]:mode:(ascii braille sixel kitty blocks)' \
+        ':file:_files' ;;
+    media/ascii)
+      _files ;;
+    media/webcam)
+      _arguments '--mode[Rendering mode]:mode:(ascii blocks)' ;;
+    screenshot/full)
+      local -a monitors
+      monitors=(${(f)"$(hyprctl monitors -j 2>/dev/null | jq -r '.[].name' 2>/dev/null)"})
+      [[ ${#monitors} -gt 0 ]] && _describe 'monitor' monitors ;;
+    screenshot/open)
+      _message 'screenshot number (1=most recent)' ;;
     shader/set|shader/info|shader/test)
       local shader_dir="$HOME/.config/ghostty/shaders"
       local -a shaders
@@ -67,18 +130,12 @@ _hg() {
       _arguments \
         '--category[Filter by category]:category:(CRT Cursor Post-FX Background Watercolor Cyberpunk)' \
         '--resume[Resume from last session]' ;;
-    media/play)
-      _arguments \
-        '--mode[Rendering mode]:mode:(ascii blocks sixel kitty tct)' \
-        ':target:_files' ;;
-    media/image)
-      _arguments \
-        '--mode[Rendering mode]:mode:(ascii braille sixel kitty blocks)' \
-        ':file:_files' ;;
-    media/ascii)
+    wallpaper/set)
       _files ;;
-    media/webcam)
-      _arguments '--mode[Rendering mode]:mode:(ascii blocks)' ;;
+    wallpaper/shader)
+      _values 'shader subcommand' next random set stop list ;;
+    wm/jump)
+      _values 'workspace' 1 2 3 4 5 6 7 8 9 10 ;;
   esac
 }
 
