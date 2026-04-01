@@ -92,6 +92,10 @@ alias catn='bat --paging=never'
 [[ -f "$DOTFILES_DIR/zsh/aliases.zsh" ]] && source "$DOTFILES_DIR/zsh/aliases.zsh"
 [[ -f "$DOTFILES_DIR/zsh/zshopt" ]] && source "$DOTFILES_DIR/zsh/zshopt"
 
+# ── Cross-platform libraries ──────────────────
+[[ -f "$DOTFILES_DIR/scripts/lib/compositor.sh" ]] && source "$DOTFILES_DIR/scripts/lib/compositor.sh"
+[[ -f "$DOTFILES_DIR/scripts/lib/config.sh" ]] && source "$DOTFILES_DIR/scripts/lib/config.sh"
+
 # ── Environment ─────────────────────────────────
 export EDITOR=nvim
 export VISUAL=nvim
