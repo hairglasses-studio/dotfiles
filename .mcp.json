@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "dotfiles": {
+      "command": "bash",
+      "args": ["-c", "DOTFILES_DIR=\"$HOME/hairglasses-studio/dotfiles\" \"$HOME/hairglasses-studio/dotfiles-mcp/dotfiles-mcp\""]
+    },
+    "shader": {
+      "command": "bash",
+      "args": ["-c", "\"$HOME/hairglasses-studio/shader-mcp/shader-mcp\""]
+    }
+  }
+}
