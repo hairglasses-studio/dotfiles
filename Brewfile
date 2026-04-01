@@ -81,8 +81,11 @@ brew "toilet"
 brew "cowsay"
 brew "fortune"
 brew "cmatrix"
+brew "lavat"
 brew "onefetch"
 brew "terminal-notifier"
+# neo-matrix: not on Homebrew — install via `cargo install neo-matrix`
+# tte (terminal text effects): not on Homebrew — install via `pipx install terminaltexteffects`
 
 # Casks
 cask "ghostty"
