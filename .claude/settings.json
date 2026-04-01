@@ -11,5 +11,18 @@
       "Agent"
     ],
     "defaultMode": "bypassPermissions"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/hairglasses-studio/dotfiles/scripts/lib/claude-post-tool-reload.sh"
+          }
+        ]
+      }
+    ]
   }
 }

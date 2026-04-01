@@ -107,6 +107,9 @@
 (defpoll bar_gamepad :interval "5s"
   `test -e /dev/input/js0 && echo "󰊗" || echo ""`)
 
+(defpoll bar_bt :interval "10s"
+  `bluetoothctl devices Connected 2>/dev/null | wc -l | tr -d ' '`)
+
 (deflisten bar_workspaces `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh`)
 
 (deflisten bar_window `$HOME/hairglasses-studio/dotfiles/scripts/eww-activewindow.sh`)
@@ -178,7 +181,7 @@
 
 (defwidget bar-vol-display []
   (box :class "bar-metric" :spacing 4
-    (label :class "bar-icon yellow" :text {bar_vol == "0" ? "󰝟" : bar_vol < "50" ? "󰖀" : "󰕾"})
+    (label :class "bar-icon yellow" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
     (label :class "bar-metric-val" :text "${bar_vol}%")))
 
 (defwidget bar-shader-display []
@@ -195,6 +198,11 @@
   (box :class "bar-metric" :spacing 4 :visible {bar_gamepad != ""}
     (label :class "bar-icon green" :text bar_gamepad)))
 
+(defwidget bar-bt-display []
+  (box :class "bar-metric" :spacing 4 :visible {bar_bt > 0}
+    (label :class "bar-icon cyan" :text "󰂯")
+    (label :class "bar-metric-val" :text bar_bt)))
+
 (defwidget bar-sys []
   (box :class "bar-sys" :orientation "h" :spacing 12
     (box :class "bar-metric" :spacing 4
@@ -205,6 +213,7 @@
       (label :class "bar-metric-val" :text "${bar_mem}%"))
     (bar-gpu-power-display)
     (bar-gamepad-display)
+    (bar-bt-display)
     (bar-vol-display)
     (box :class "bar-metric" :spacing 4
       (label :class "bar-icon green" :text "")
