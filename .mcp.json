@@ -15,6 +15,10 @@
     "shader": {
       "command": "bash",
       "args": ["-c", "\"$HOME/hairglasses-studio/shader-mcp/shader-mcp\""]
+    },
+    "input": {
+      "command": "bash",
+      "args": ["-c", "DOTFILES_DIR=\"$HOME/hairglasses-studio/dotfiles\" \"$HOME/hairglasses-studio/input-mcp/input-mcp\""]
     }
   }
 }
