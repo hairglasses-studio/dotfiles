@@ -23,10 +23,10 @@ fastfetch = true
 macchina = true
 ghosttyfetch = true
 
-# ── Desktop (Linux — Hyprland primary, Sway fallback) ─
+# ── Desktop (Linux — Hyprland only) ──────────────
 [desktop.linux]
 hyprland = true
-sway = true
+sway = false
 eww = true
 waybar = true
 mako = true
@@ -75,7 +75,7 @@ makima = true
 hyprland-mcp = true
 dotfiles-mcp = true
 shader-mcp = true
-sway-mcp = true
+sway-mcp = false
 
 # ── Profiles ─────────────────────────────────────
 # Use: ./manjaro/install.sh --profile <name>
