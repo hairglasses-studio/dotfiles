@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Cybernet
+Description=Cyberpunk Snazzy boot splash — cyan neon on black with animated progress
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/cybernet
+ScriptFile=/usr/share/plymouth/themes/cybernet/cybernet.script

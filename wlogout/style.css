@@ -2,6 +2,13 @@
 
 window {
     background-color: rgba(0, 0, 0, 0.75);
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(87, 199, 255, 0.02) 2px,
+        rgba(87, 199, 255, 0.02) 4px
+    );
     font-family: "JetBrainsMono Nerd Font", monospace;
 }
 
