@@ -66,8 +66,8 @@ _media_play() {
     case "$mode" in
       blocks) hg_require tplay;  exec tplay "$target" --char-map "$_CYBER_CHARMAP" ;;
       ascii)  hg_require tplay;  exec tplay "$target" ;;
-      sixel)  hg_require yt-dlp chafa; yt-dlp -q -o - "$target" | exec chafa --format sixel - ;;
-      kitty)  hg_require yt-dlp timg;  yt-dlp -q -o - "$target" | exec timg --pixelation=kitty - ;;
+      sixel)  hg_require yt-dlp chafa; yt-dlp -q -o - "$target" | chafa --format sixel - ;;
+      kitty)  hg_require yt-dlp timg;  yt-dlp -q -o - "$target" | timg --pixelation=kitty - ;;
       tct)    hg_require mpv;    exec mpv --vo=tct --vo-tct-algo=half-blocks "$target" ;;
       *)      hg_die "Unknown mode: $mode (ascii|blocks|sixel|kitty|tct)" ;;
     esac
@@ -129,22 +129,19 @@ _media_ascii() {
 
 _media_webcam() {
   hg_require tplay
-  local mode="${1:-}"
-  local device="/dev/video0"
+  local mode="" device="/dev/video0"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --mode) mode="$2"; shift 2 ;;
+      *)      shift ;;
+    esac
+  done
   [[ -e "$device" ]] || hg_die "No webcam found at $device"
-
+  mode="${mode:-blocks}"
   case "$mode" in
-    --mode)
-      shift
-      case "${1:-blocks}" in
-        blocks) exec tplay "$device" --char-map "$_CYBER_CHARMAP" ;;
-        ascii)  exec tplay "$device" ;;
-        *)      hg_die "Unknown mode: $1 (ascii|blocks)" ;;
-      esac
-      ;;
-    *)
-      exec tplay "$device" --char-map "$_CYBER_CHARMAP"
-      ;;
+    blocks) exec tplay "$device" --char-map "$_CYBER_CHARMAP" ;;
+    ascii)  exec tplay "$device" ;;
+    *)      hg_die "Unknown mode: $mode (ascii|blocks)" ;;
   esac
 }
 

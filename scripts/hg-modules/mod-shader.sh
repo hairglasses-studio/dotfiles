@@ -66,7 +66,7 @@ _shader_set() {
 
   # Atomic update
   local tmp
-  tmp="$(mktemp "${_GHOSTTY_CONFIG}.XXXXXX")"
+  tmp="$(mktemp "${_GHOSTTY_CONFIG}.XXXXXX")" || hg_die "mktemp failed"
   sed -e "s|^#* *custom-shader = .*|custom-shader = $shader_path|" \
       -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
       "$_GHOSTTY_CONFIG" > "$tmp"
