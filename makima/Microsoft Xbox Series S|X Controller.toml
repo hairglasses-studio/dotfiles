@@ -1,0 +1,38 @@
+# makima — Xbox Series S|X Controller :: Hyprland Desktop
+# Face buttons dispatch hyprctl commands directly
+# Sticks: left=cursor, right=scroll. Triggers: left/right click.
+# Per-app override: com.mitchellh.ghostty.toml (Claude Code mode)
+
+[commands]
+BTN_SOUTH = ["hyprctl dispatch fullscreen 0"]
+BTN_EAST = ["hyprctl dispatch killactive"]
+BTN_WEST = ["ghostty --gtk-single-instance=false"]
+BTN_NORTH = ["wofi --show drun"]
+BTN_TL = ["hyprctl dispatch workspace e-1"]
+BTN_TR = ["hyprctl dispatch workspace e+1"]
+BTN_SELECT = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-screenshot.sh"]
+BTN_START = ["wlogout -b 5"]
+BTN_MODE = ["hyprctl dispatch togglespecialworkspace dashboard"]
+BTN_THUMBL = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-shader-random.sh"]
+BTN_THUMBR = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-wallpaper-next.sh"]
+
+[remap]
+BTN_DPAD_UP = ["KEY_LEFTMETA", "KEY_UP"]
+BTN_DPAD_DOWN = ["KEY_LEFTMETA", "KEY_DOWN"]
+BTN_DPAD_LEFT = ["KEY_LEFTMETA", "KEY_LEFT"]
+BTN_DPAD_RIGHT = ["KEY_LEFTMETA", "KEY_RIGHT"]
+ABS_Z = ["BTN_LEFT"]
+ABS_RZ = ["BTN_RIGHT"]
+
+[settings]
+LSTICK = "cursor"
+RSTICK = "scroll"
+LSTICK_SENSITIVITY = "6"
+LSTICK_DEADZONE = "5"
+RSTICK_SENSITIVITY = "6"
+RSTICK_DEADZONE = "10"
+CURSOR_SPEED = "10"
+CURSOR_ACCEL = "0.5"
+SCROLL_SPEED = "8"
+16_BIT_AXIS = "true"
+GRAB_DEVICE = "false"
