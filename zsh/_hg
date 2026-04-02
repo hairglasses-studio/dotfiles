@@ -105,9 +105,9 @@ _hg() {
         ) ;;
       gamepad)
         cmds=(
-          'status:Controller connection and AntiMicroX state'
-          'profile:Switch AntiMicroX profile by name'
-          'profiles:List available profiles'
+          'status:Controller connection and makima state'
+          'profiles:List Xbox controller profiles'
+          'restart:Restart makima service'
           'test:Quick button test via evtest'
         ) ;;
       rice)
@@ -170,10 +170,6 @@ _hg() {
       _values 'shader subcommand' next random set stop list ;;
     wm/jump)
       _values 'workspace' 1 2 3 4 5 6 7 8 9 10 ;;
-    gamepad/profile)
-      local -a profiles
-      profiles=(${(f)"$(command ls "$HOME/.config/antimicrox"/*.gamecontroller.amgp 2>/dev/null | xargs -I{} basename {} .gamecontroller.amgp)"})
-      _describe 'profile' profiles ;;
     bt/connect|bt/disconnect)
       local -a devices
       devices=(${(f)"$(bluetoothctl devices 2>/dev/null | awk '{print $2}')"})
