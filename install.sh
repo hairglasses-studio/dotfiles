@@ -252,6 +252,7 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/foot/foot.ini" "$HOME/.config/foot/foot.ini"
         link_file "$DOTFILES_DIR/hyprland" "$HOME/.config/hypr"
         link_file "$DOTFILES_DIR/eww" "$HOME/.config/eww"
+        link_file "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
     fi
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"

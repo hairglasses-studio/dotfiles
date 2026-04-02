@@ -11,7 +11,7 @@
     "modules-right": [
         "custom/rg-fleet", "custom/rg-loops", "custom/rg-cost",
         "custom/rg-models", "custom/rg-repos", "custom/rg-iters",
-        "custom/k8s", "mpris", "network", "cpu", "custom/mx-battery", "battery"
+        "custom/k8s", "mpris", "network", "cpu", "battery"
     ],
 
     // ── System modules ───────────────────────────────────
@@ -58,14 +58,6 @@
     "hyprland/workspaces": {
         "disable-scroll": false,
         "all-outputs": false
-    },
-
-    // -- MX Master 4 battery ──────────────────────────────
-    "custom/mx-battery": {
-        "exec": "mx-battery.sh",
-        "return-type": "json",
-        "interval": 300,
-        "tooltip": true
     },
 
     // ── Kubernetes ────────────────────────────────────────
