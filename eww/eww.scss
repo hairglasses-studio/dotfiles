@@ -53,6 +53,11 @@ $red: #ff5c57;
   animation: text-glow-red 1s ease-in-out infinite;
 }
 
+.bar-ws-empty {
+  color: rgba(104, 104, 104, 0.4);
+  font-size: 10px;
+}
+
 @keyframes text-glow-red {
   0%   { text-shadow: 0 0 4px rgba(255, 92, 87, 0.4); }
   50%  { text-shadow: 0 0 10px rgba(255, 92, 87, 0.8); }
@@ -111,12 +116,22 @@ $red: #ff5c57;
   &.magenta { color: $magenta; }
   &.green   { color: $green; }
   &.yellow  { color: $yellow; }
+  &.red     { color: $red; text-shadow: 0 0 4px rgba(255, 92, 87, 0.6); }
 }
 
 .bar-metric-val {
   color: $fg;
   font-size: 12px;
   font-weight: 500;
+
+  &.metric-warn {
+    color: $yellow;
+  }
+
+  &.metric-crit {
+    color: $red;
+    text-shadow: 0 0 6px rgba(255, 92, 87, 0.6);
+  }
 }
 
 // ── MX Master 4 battery ─────────────────────
