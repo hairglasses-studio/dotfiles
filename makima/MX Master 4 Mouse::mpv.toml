@@ -1,0 +1,6 @@
+# makima — MX Master 4 Mouse :: mpv
+# Frame-step navigation on thumb buttons
+
+[remap]
+BTN_SIDE = ["KEY_COMMA"]
+BTN_EXTRA = ["KEY_DOT"]
