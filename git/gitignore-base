@@ -1,0 +1,26 @@
+# ── Secrets ───────────────────────────────────
+.env
+.env.*
+.envrc
+*.pem
+*.key
+
+# ── OS ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editors ───────────────────────────────────
+*.swp
+*.swo
+*~
+.vscode/settings.json
+.idea/
+
+# ── AI agents ─────────────────────────────────
+.claude/settings.local.json
+.codex/sessions/
+.codex/cache/
+
+# ── Logs ──────────────────────────────────────
+logs/
+*.log

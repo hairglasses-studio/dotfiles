@@ -1,0 +1,20 @@
+# ── Go binaries ───────────────────────────────
+/bin/
+/dist/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ── Go test/coverage ─────────────────────────
+coverage.out
+coverage.html
+*.test
+*.prof
+
+# ── Go modules ───────────────────────────────
+vendor/
+
+# ── Ralph runtime ────────────────────────────
+.ralph/
+.rdloop_*
