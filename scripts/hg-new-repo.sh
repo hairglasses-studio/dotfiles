@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 
 DOTFILES="$HOME/hairglasses-studio/dotfiles"
-TEMPLATES="$DOTFILES/github-templates"
+ORG_GITHUB="$HOME/hairglasses-studio/.github"
 STUDIO="$HOME/hairglasses-studio"
 
 NAME="${1:-}"
@@ -39,41 +39,76 @@ hg_ok "Symlinked .editorconfig, .golangci.yml"
 "$SCRIPT_DIR/hg-gitignore.sh" "$LANG" > .gitignore
 hg_ok "Generated .gitignore ($LANG)"
 
-# ── Governance files ─────────────────────────
-cp "$TEMPLATES/LICENSE" .
-sed "s/{PROJECT_NAME}/$NAME/g" "$TEMPLATES/CONTRIBUTING.md" > CONTRIBUTING.md
-cp "$TEMPLATES/CODEOWNERS" .
-mkdir -p .github/ISSUE_TEMPLATE
-cp "$TEMPLATES/.github/ISSUE_TEMPLATE/bug_report.md" .github/ISSUE_TEMPLATE/
-cp "$TEMPLATES/.github/ISSUE_TEMPLATE/feature_request.md" .github/ISSUE_TEMPLATE/
-cp "$TEMPLATES/.github/pull_request_template.md" .github/
-hg_ok "Copied LICENSE, CONTRIBUTING.md, CODEOWNERS, issue/PR templates"
+# ── Governance ───────────────────────────────
+# LICENSE is per-repo (different copyright holders possible)
+cat > LICENSE << 'LICEOF'
+MIT License
+
+Copyright (c) 2024-2026 hairglasses-studio
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+LICEOF
+# CONTRIBUTING.md per-repo (org .github provides default; override with repo-specific)
+sed "s/<repo>/$NAME/g" "$ORG_GITHUB/CONTRIBUTING.md" > CONTRIBUTING.md
+# CODEOWNERS, issue/PR templates inherited from org .github repo — no local copies needed
+hg_ok "Created LICENSE, CONTRIBUTING.md (issue/PR templates inherited from org)"
 
 # ── CI workflows ─────────────────────────────
 mkdir -p .github/workflows
-# Copy the 3 standard workflows from any existing repo
+# Copy standard workflows from a reference repo
 for wf in claude-review.yml claude-security.yml dependabot-auto-merge.yml; do
   src="$STUDIO/mcpkit/.github/workflows/$wf"
-  if [[ -f "$src" ]]; then
-    cp "$src" ".github/workflows/$wf"
-  fi
+  [[ -f "$src" ]] && command cp -f "$src" ".github/workflows/$wf"
 done
 
-# Generate ci.yml that calls reusable workflow
+# CI workflow (standalone template — dotfiles is private, can't use reusable workflows)
 if [[ "$LANG" == "go" ]]; then
-  cat > .github/workflows/ci.yml << 'CIEOF'
-name: CI
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-jobs:
-  ci:
-    uses: hairglasses-studio/dotfiles/.github/workflows/ci-go.yml@main
-CIEOF
+  command cp -f "$DOTFILES/make/ci-go.yml" .github/workflows/ci.yml 2>/dev/null || \
+  command cp -f "$ORG_GITHUB/workflow-templates/ci-go.yml" .github/workflows/ci.yml 2>/dev/null || true
 fi
-hg_ok "Created CI workflows"
+
+# Dependabot config
+cat > .github/dependabot.yml << 'DEPEOF'
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Los_Angeles
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps(go)"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(actions)"
+DEPEOF
+hg_ok "Created CI workflows + dependabot.yml"
 
 # ── .codex config ────────────────────────────
 mkdir -p .codex
