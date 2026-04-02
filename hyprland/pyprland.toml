@@ -1,6 +1,15 @@
+[pyprland]
+plugins = ["scratchpads"]
+
 [scratchpads.term]
 command = "ghostty --class=scratchpad"
 class = "scratchpad"
+size = [80, 70]
+animation = "fromTop"
+
+[scratchpads.keybinds]
+command = "ghostty --class=keybinds -e $HOME/hairglasses-studio/dotfiles/scripts/hypr-keybinds.sh"
+class = "keybinds"
 size = [80, 70]
 animation = "fromTop"
 
