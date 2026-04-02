@@ -85,7 +85,11 @@ else
 fi
 
 # ── Propagate session identity to Ghostty window title ──
-_title="Claude: ${SESSION:+$SESSION — }${SLUG}"
+if [[ -n "$SESSION" ]]; then
+  _title="────${SESSION}────${SLUG}"
+else
+  _title="────${SLUG}────"
+fi
 printf '\033]0;%s\007' "$_title" > /proc/$PPID/fd/0 2>/dev/null
 
 # ── Build segments ─────────────────────────────
