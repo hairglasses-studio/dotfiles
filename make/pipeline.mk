@@ -15,7 +15,7 @@ PIPELINE_HAS_GO  ?= $(shell test -f go.mod && echo yes || echo no)
 PIPELINE_HAS_NODE ?= $(shell test -f package.json && echo yes || echo no)
 PIPELINE_HAS_PY  ?= $(shell test -f pyproject.toml && echo yes || echo no)
 
-.PHONY: pipeline-build pipeline-test pipeline-vet pipeline-lint pipeline-check pipeline-info pipeline-detect
+.PHONY: pipeline-build pipeline-test pipeline-vet pipeline-lint pipeline-check pipeline-info pipeline-detect install-hooks
 
 pipeline-build:
 	$(PIPELINE_GO) build ./...
@@ -40,3 +40,6 @@ pipeline-info:
 	@printf '{"repo":"%s","binary":"%s","is_mcp":"%s","has_mcp_cmd":"%s","go":"%s","node":"%s","python":"%s"}\n' \
 		"$(PIPELINE_REPO)" "$(PIPELINE_BINARY)" "$(PIPELINE_IS_MCP)" "$(PIPELINE_MCP_CMD)" \
 		"$(PIPELINE_HAS_GO)" "$(PIPELINE_HAS_NODE)" "$(PIPELINE_HAS_PY)"
+
+install-hooks:
+	@$(HOME)/hairglasses-studio/dotfiles/scripts/hg-install-hooks.sh
