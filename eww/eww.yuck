@@ -110,6 +110,9 @@
 (defpoll bar_bt :interval "10s"
   `bluetoothctl devices Connected 2>/dev/null | wc -l | tr -d ' '`)
 
+(defpoll bar_updates :interval "3600s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/eww-updates.sh`)
+
 (deflisten bar_workspaces_dp1 `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh DP-1`)
 (deflisten bar_workspaces_dp2 `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh DP-2`)
 
@@ -169,7 +172,7 @@
 (defwidget bar-workspaces [workspaces]
   (box :class "bar-workspaces" :orientation "h" :spacing 4
     (for ws in {workspaces ?: "[]"}
-      (button :class "bar-ws ${ws.focused ? 'bar-ws-active' : ''} ${ws.urgent ? 'bar-ws-urgent' : ''}"
+      (button :class "bar-ws ${ws.focused ? 'bar-ws-active' : ''} ${ws.urgent ? 'bar-ws-urgent' : ''} ${!ws.occupied && !ws.focused ? 'bar-ws-empty' : ''}"
               :onclick "if [ -n \"$HYPRLAND_INSTANCE_SIGNATURE\" ]; then hyprctl dispatch workspace ${ws.num}; else swaymsg workspace number ${ws.num}; fi"
         "${ws.num}"))))
 
@@ -182,19 +185,22 @@
   (label :class "bar-title" :text {bar_window ?: ""} :limit-width 40))
 
 (defwidget bar-clock []
-  (box :class "bar-clock" :orientation "v" :space-evenly false :valign "center"
-    (label :class "bar-time" :text bar_time)
-    (label :class "bar-date" :text bar_date)))
+  (eventbox :onclick "eww open --toggle dashboard"
+    (box :class "bar-clock" :orientation "v" :space-evenly false :valign "center"
+      (label :class "bar-time" :text bar_time)
+      (label :class "bar-date" :text bar_date))))
 
 (defwidget bar-vol-display []
-  (box :class "bar-metric" :spacing 4
-    (label :class "bar-icon yellow" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
-    (label :class "bar-metric-val" :text "${bar_vol}%")))
+  (eventbox :onclick "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    (box :class "bar-metric" :spacing 4
+      (label :class "bar-icon yellow" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
+      (label :class "bar-metric-val" :text "${bar_vol}%"))))
 
 (defwidget bar-shader-display []
-  (box :class "bar-shader" :spacing 4 :visible {bar_shader != ""}
-    (label :class "bar-icon magenta" :text "")
-    (label :class "bar-shader-name" :text bar_shader)))
+  (eventbox :onclick "shader-cycle.sh next" :onmiddleclick "shader-random.sh"
+    (box :class "bar-shader" :spacing 4 :visible {bar_shader != ""}
+      (label :class "bar-icon magenta" :text "")
+      (label :class "bar-shader-name" :text bar_shader))))
 
 (defwidget bar-gpu-power-display []
   (box :class "bar-metric" :spacing 4 :visible {bar_gpu_power != ""}
@@ -206,9 +212,16 @@
     (label :class "bar-icon green" :text bar_gamepad)))
 
 (defwidget bar-bt-display []
-  (box :class "bar-metric" :spacing 4 :visible {bar_bt > 0}
-    (label :class "bar-icon cyan" :text "󰂯")
-    (label :class "bar-metric-val" :text bar_bt)))
+  (eventbox :onclick "ghostty --gtk-single-instance=false -e bluetoothctl"
+    (box :class "bar-metric" :spacing 4 :visible {bar_bt > 0}
+      (label :class "bar-icon cyan" :text "󰂯")
+      (label :class "bar-metric-val" :text bar_bt))))
+
+(defwidget bar-updates-display []
+  (eventbox :onclick "ghostty --gtk-single-instance=false -e yay"
+    (box :class "bar-metric" :spacing 4 :visible {bar_updates != ""}
+      (label :class "bar-icon yellow" :text "")
+      (label :class "bar-metric-val" :text bar_updates))))
 
 (defwidget bar-mx-battery []
   (box :class "bar-mx-battery" :spacing 4 :visible {bar_mx_battery != ""}
@@ -218,24 +231,29 @@
 
 (defwidget bar-sys []
   (box :class "bar-sys" :orientation "h" :spacing 12
-    (box :class "bar-metric" :spacing 4
-      (label :class "bar-icon cyan" :text "")
-      (label :class "bar-metric-val" :text "${bar_cpu}%"))
-    (box :class "bar-metric" :spacing 4
-      (label :class "bar-icon magenta" :text "")
-      (label :class "bar-metric-val" :text "${bar_mem}%"))
+    (eventbox :onclick "ghostty --gtk-single-instance=false -e htop"
+      (box :class "bar-metric" :spacing 4
+        (label :class "bar-icon ${bar_cpu >= 90 ? 'red' : bar_cpu >= 70 ? 'yellow' : 'cyan'}" :text "")
+        (label :class "bar-metric-val ${bar_cpu >= 90 ? 'metric-crit' : bar_cpu >= 70 ? 'metric-warn' : ''}" :text "${bar_cpu}%")))
+    (eventbox :onclick "ghostty --gtk-single-instance=false -e btop"
+      (box :class "bar-metric" :spacing 4
+        (label :class "bar-icon ${bar_mem >= 90 ? 'red' : bar_mem >= 70 ? 'yellow' : 'magenta'}" :text "")
+        (label :class "bar-metric-val ${bar_mem >= 90 ? 'metric-crit' : bar_mem >= 70 ? 'metric-warn' : ''}" :text "${bar_mem}%")))
     (bar-gpu-power-display)
     (bar-gamepad-display)
     (bar-bt-display)
+    (bar-updates-display)
     (bar-mx-battery)
     (bar-vol-display)
-    (box :class "bar-metric" :spacing 4
-      (label :class "bar-icon green" :text "")
-      (label :class "bar-metric-val" :text {bar_net ?: "—"}))))
+    (eventbox :onclick "ghostty --gtk-single-instance=false -e nmtui"
+      (box :class "bar-metric" :spacing 4
+        (label :class "bar-icon green" :text "")
+        (label :class "bar-metric-val" :text {bar_net ?: "—"})))))
 
 (defwidget bar-mpris-display []
-  (box :class "bar-mpris" :visible {bar_mpris != ""}
-    (label :class "bar-mpris-text" :text "♫ ${bar_mpris}" :limit-width 30)))
+  (eventbox :onclick "playerctl play-pause" :onmiddleclick "playerctl next"
+    (box :class "bar-mpris" :visible {bar_mpris != ""}
+      (label :class "bar-mpris-text" :text "♫ ${bar_mpris}" :limit-width 30))))
 
 (defwidget rg-segment [label value color]
   (box :class "rg-seg" :spacing 4
