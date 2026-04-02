@@ -133,7 +133,6 @@ _rice_reload_all() {
   config_reload_service hyprland
   config_reload_service mako
   config_reload_service eww
-  config_reload_service waybar
   hg_ok "All services reloaded"
 }
 
