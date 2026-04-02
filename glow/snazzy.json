@@ -1,0 +1,125 @@
+{
+  "document": {
+    "block_prefix": "\n",
+    "block_suffix": "\n",
+    "color": "#f1f1f0",
+    "margin": 1
+  },
+  "block_quote": {
+    "indent": 1,
+    "indent_token": "│ ",
+    "color": "#686868"
+  },
+  "paragraph": {},
+  "list": {
+    "level_indent": 2
+  },
+  "heading": {
+    "block_suffix": "\n",
+    "color": "#57c7ff",
+    "bold": true
+  },
+  "h1": {
+    "prefix": " ",
+    "suffix": " ",
+    "color": "#000000",
+    "background_color": "#57c7ff",
+    "bold": true
+  },
+  "h2": {
+    "prefix": "── ",
+    "suffix": " ",
+    "color": "#ff6ac1",
+    "bold": true
+  },
+  "h3": {
+    "prefix": "",
+    "color": "#5af78e"
+  },
+  "h4": {
+    "prefix": "",
+    "color": "#f3f99d"
+  },
+  "text": {},
+  "strikethrough": {
+    "crossed_out": true
+  },
+  "emph": {
+    "italic": true,
+    "color": "#f3f99d"
+  },
+  "strong": {
+    "bold": true,
+    "color": "#5af78e"
+  },
+  "hr": {
+    "color": "#686868",
+    "format": "\n────────\n"
+  },
+  "item": {
+    "block_prefix": "• "
+  },
+  "enumeration": {
+    "block_prefix": ". "
+  },
+  "link": {
+    "color": "#57c7ff",
+    "underline": true
+  },
+  "link_text": {
+    "color": "#ff6ac1",
+    "bold": true
+  },
+  "code": {
+    "prefix": " ",
+    "suffix": " ",
+    "color": "#5af78e",
+    "background_color": "#1a1a1a"
+  },
+  "code_block": {
+    "color": "#f1f1f0",
+    "margin": 1,
+    "chroma": {
+      "text": {
+        "color": "#f1f1f0"
+      },
+      "comment": {
+        "color": "#686868"
+      },
+      "keyword": {
+        "color": "#57c7ff"
+      },
+      "keyword_reserved": {
+        "color": "#ff6ac1"
+      },
+      "operator": {
+        "color": "#ff5c57"
+      },
+      "punctuation": {
+        "color": "#f3f99d"
+      },
+      "name_function": {
+        "color": "#5af78e"
+      },
+      "literal_string": {
+        "color": "#f3f99d"
+      },
+      "literal_number": {
+        "color": "#5af78e"
+      },
+      "background": {
+        "background_color": "#1a1a1a"
+      }
+    }
+  },
+  "table": {
+    "color": "#f1f1f0"
+  },
+  "definition_list": {},
+  "definition_term": {},
+  "definition_description": {
+    "block_prefix": "\n→ "
+  },
+  "html_block": {},
+  "html_span": {}
+}

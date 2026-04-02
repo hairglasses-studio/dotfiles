@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # claude-session-picker.sh — Focus a Claude Code session by name via wofi
-# Queries Hyprland IPC for Ghostty windows with "Claude:" title prefix,
+# Queries Hyprland IPC for Ghostty windows with divider-styled titles,
 # presents them sorted A-Z, and focuses the selected one.
 
 windows=$(hyprctl clients -j | jq -r '
-  .[] | select(.class == "com.mitchellh.ghostty" and (.title | startswith("Claude:")))
+  .[] | select(.class == "com.mitchellh.ghostty" and (.title | test("^────")))
   | "\(.address)\t\(.title)"
 ' | sort -t$'\t' -k2)
 

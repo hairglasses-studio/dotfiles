@@ -49,7 +49,7 @@ palette = 15=#eff0eb
 
 # ── Window ──────────────────────────────────────
 background-opacity = 1
-window-decoration = true
+window-decoration = false
 window-subtitle = working-directory
 window-padding-x = 4
 window-padding-y = 2
@@ -58,8 +58,8 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /home/hg/.config/ghostty/shaders/ascii-overlay.glsl
-custom-shader-animation = false
+custom-shader = /home/hg/.config/ghostty/shaders/sparks-from-fire-shadertoy.glsl
+custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
 link-url = true
