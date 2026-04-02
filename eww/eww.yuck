@@ -94,11 +94,26 @@ except: print(0)
 
 (defwidget system-metrics []
   (box :class "metrics-row" :orientation "h" :spacing 12
-    (metric :label "CPU" :value cpu_usage :color "cyan")
-    (metric :label "RAM" :value mem_usage :color "magenta")
-    (metric :label "GPU" :value gpu_temp :unit "°C" :color "green")
-    (metric :label "GPU%" :value gpu_util :color "green")
-    (metric :label "DISK" :value {replace(disk_usage, "%", "")} :color "yellow")))
+    (box :class "metric" :orientation "v" :space-evenly false
+      (label :class "metric-label" :text "CPU")
+      (graph :class "metric-graph cyan" :value cpu_usage :time-range "60000" :thickness 2 :line-style "round" :min 0 :max 100)
+      (label :class "metric-value" :text "${cpu_usage}%"))
+    (box :class "metric" :orientation "v" :space-evenly false
+      (label :class "metric-label" :text "RAM")
+      (graph :class "metric-graph magenta" :value mem_usage :time-range "60000" :thickness 2 :line-style "round" :min 0 :max 100)
+      (label :class "metric-value" :text "${mem_usage}%"))
+    (box :class "metric" :orientation "v" :space-evenly false
+      (label :class "metric-label" :text "GPU")
+      (graph :class "metric-graph green" :value gpu_temp :time-range "60000" :thickness 2 :line-style "round" :min 0 :max 120)
+      (label :class "metric-value" :text "${gpu_temp}°C"))
+    (box :class "metric" :orientation "v" :space-evenly false
+      (label :class "metric-label" :text "GPU%")
+      (graph :class "metric-graph green" :value gpu_util :time-range "60000" :thickness 2 :line-style "round" :min 0 :max 100)
+      (label :class "metric-value" :text "${gpu_util}%"))
+    (box :class "metric" :orientation "v" :space-evenly false
+      (label :class "metric-label" :text "DISK")
+      (graph :class "metric-graph yellow" :value {replace(disk_usage, "%", "")} :time-range "60000" :thickness 2 :line-style "round" :min 0 :max 100)
+      (label :class "metric-value" :text "${disk_usage}"))))
 
 (defwidget network-stats []
   (box :class "network" :orientation "h" :space-evenly true
@@ -279,13 +294,14 @@ except: print(0)
   `$HOME/hairglasses-studio/dotfiles/scripts/k8s-context.sh 2>/dev/null | jq -r '.text // ""'`)
 
 (defvar vol_hover false)
+(defvar sys_hover false)
 
 ; ── Bar widgets ──────────────────────────────────
 
 (defwidget bar-workspaces [workspaces]
   (box :class "bar-workspaces" :orientation "h" :spacing 4
     (for ws in {workspaces ?: "[]"}
-      (button :class "bar-ws ${ws.focused ? 'bar-ws-active' : ''} ${ws.urgent ? 'bar-ws-urgent' : ''} ${!ws.occupied && !ws.focused ? 'bar-ws-empty' : ''}"
+      (button :class "bar-ws ${ws.focused ? 'bar-ws-active' : ''} ${ws.urgent ? 'bar-ws-urgent' : ''} ${!ws.occupied && !ws.focused ? 'bar-ws-empty' : ''} ${ws.prev_empty ? 'round-left' : ''} ${ws.next_empty ? 'round-right' : ''}"
               :onclick "if [ -n \"$HYPRLAND_INSTANCE_SIGNATURE\" ]; then hyprctl dispatch workspace ${ws.num}; else swaymsg workspace number ${ws.num}; fi"
         "${ws.num}"))))
 
@@ -298,7 +314,7 @@ except: print(0)
   (label :class "bar-title" :text {bar_window ?: ""} :limit-width 40))
 
 (defwidget bar-clock []
-  (eventbox :onclick "eww open --toggle sidebar"
+  (eventbox :onclick "eww open --toggle sidebar" :onrightclick "eww open --toggle calendar-popup"
     (box :class "bar-clock" :orientation "v" :space-evenly false :valign "center"
       (label :class "bar-time" :text bar_time)
       (label :class "bar-date" :text bar_date))))
@@ -352,26 +368,30 @@ except: print(0)
     (label :class "bar-icon cyan" :text {bar_weather ?: ""})))
 
 (defwidget bar-sys []
-  (box :class "bar-sys" :orientation "h" :spacing 12
-    (eventbox :onclick "ghostty --gtk-single-instance=false -e htop"
-      (box :class "bar-metric" :spacing 4
-        (label :class "bar-icon ${bar_cpu >= 90 ? 'red' : bar_cpu >= 70 ? 'yellow' : 'cyan'}" :text "")
-        (label :class "bar-metric-val ${bar_cpu >= 90 ? 'metric-crit' : bar_cpu >= 70 ? 'metric-warn' : ''}" :text "${bar_cpu}%")))
-    (eventbox :onclick "ghostty --gtk-single-instance=false -e btop"
-      (box :class "bar-metric" :spacing 4
-        (label :class "bar-icon ${bar_mem >= 90 ? 'red' : bar_mem >= 70 ? 'yellow' : 'magenta'}" :text "")
-        (label :class "bar-metric-val ${bar_mem >= 90 ? 'metric-crit' : bar_mem >= 70 ? 'metric-warn' : ''}" :text "${bar_mem}%")))
-    (bar-gpu-power-display)
-    (bar-gamepad-display)
-    (bar-bt-display)
-    (bar-updates-display)
-    (bar-mx-battery)
-    (bar-vol-display)
-    (bar-weather-display)
-    (eventbox :onclick "ghostty --gtk-single-instance=false -e nmtui"
-      (box :class "bar-metric" :spacing 4
-        (label :class "bar-icon green" :text "")
-        (label :class "bar-metric-val" :text {bar_net ?: "—"})))))
+  (eventbox :onhover "eww update sys_hover=true" :onhoverlost "eww update sys_hover=false"
+    (box :class "bar-sys" :orientation "h" :spacing 12
+      (eventbox :onclick "ghostty --gtk-single-instance=false -e htop"
+        (box :class "bar-metric" :spacing 4
+          (label :class "bar-icon ${bar_cpu >= 90 ? 'red' : bar_cpu >= 70 ? 'yellow' : 'cyan'}" :text "")
+          (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
+            (label :class "bar-metric-val ${bar_cpu >= 90 ? 'metric-crit' : bar_cpu >= 70 ? 'metric-warn' : ''}" :text "${bar_cpu}%"))))
+      (eventbox :onclick "ghostty --gtk-single-instance=false -e btop"
+        (box :class "bar-metric" :spacing 4
+          (label :class "bar-icon ${bar_mem >= 90 ? 'red' : bar_mem >= 70 ? 'yellow' : 'magenta'}" :text "")
+          (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
+            (label :class "bar-metric-val ${bar_mem >= 90 ? 'metric-crit' : bar_mem >= 70 ? 'metric-warn' : ''}" :text "${bar_mem}%"))))
+      (bar-gpu-power-display)
+      (bar-gamepad-display)
+      (bar-bt-display)
+      (bar-updates-display)
+      (bar-mx-battery)
+      (bar-vol-display)
+      (bar-weather-display)
+      (eventbox :onclick "ghostty --gtk-single-instance=false -e nmtui"
+        (box :class "bar-metric" :spacing 4
+          (label :class "bar-icon green" :text "")
+          (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
+            (label :class "bar-metric-val" :text {bar_net ?: "—"})))))))
 
 (defwidget bar-mpris-display []
   (eventbox :onclick "playerctl play-pause" :onmiddleclick "playerctl next"
@@ -418,6 +438,15 @@ except: print(0)
     (bar-left :workspaces workspaces)
     (bar-center)
     (bar-right)))
+
+(defwindow calendar-popup
+  :monitor 0
+  :geometry (geometry :x "0px" :y "40px" :width "280px" :height "280px" :anchor "top center")
+  :stacking "overlay"
+  :exclusive false
+  :focusable false
+  (box :class "calendar-popup"
+    (calendar :class "cal" :show-heading true :show-day-names true)))
 
 ; ── Bar window ───────────────────────────────────
 

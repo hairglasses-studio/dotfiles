@@ -18,7 +18,7 @@ $red: #ff5c57;
   background-color: $bg-dark;
   border-bottom: 1px solid rgba(87, 199, 255, 0.3);
   padding: 0 12px;
-  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-family: "Maple Mono NF CN", monospace;
   font-size: 12px;
   color: $fg;
 }
@@ -56,6 +56,16 @@ $red: #ff5c57;
 .bar-ws-empty {
   color: rgba(104, 104, 104, 0.4);
   font-size: 10px;
+}
+
+.bar-ws.round-left {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.bar-ws.round-right {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 @keyframes text-glow-red {
@@ -99,6 +109,24 @@ $red: #ff5c57;
   color: $dim;
   font-size: 9px;
   letter-spacing: 1px;
+}
+
+// ── Calendar popup ──────────────────────────
+.calendar-popup {
+  background-color: $bg-dark;
+  border: 1px solid rgba(87, 199, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.cal {
+  color: $fg;
+  font-size: 12px;
+
+  &:selected { color: $cyan; font-weight: bold; }
+  &:indeterminate { color: $dim; }
+
+  .header { color: $cyan; font-weight: bold; font-size: 13px; }
 }
 
 // ── System metrics ───────────────────────────
@@ -370,7 +398,7 @@ $red: #ff5c57;
   animation: scanline 8s linear infinite, border-breathe 6s ease-in-out infinite;
   border-left: 2px solid $cyan;
   padding: 16px;
-  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-family: "Maple Mono NF CN", monospace;
   color: $fg;
   transition: all 300ms ease;
 }
@@ -495,6 +523,18 @@ $red: #ff5c57;
   &.magenta highlight { background-color: $magenta; animation: pulse-bar 2.5s ease-in-out infinite; }
   &.green highlight { background-color: $green; animation: pulse-bar 3s ease-in-out infinite; }
   &.yellow highlight { background-color: $yellow; animation: pulse-bar 3.5s ease-in-out infinite; }
+}
+
+.metric-graph {
+  min-height: 30px;
+  min-width: 60px;
+  border-radius: 4px;
+  background-color: rgba(104, 104, 104, 0.15);
+
+  &.cyan { color: $cyan; }
+  &.magenta { color: $magenta; }
+  &.green { color: $green; }
+  &.yellow { color: $yellow; }
 }
 
 // ── Network ────────────────────────────────
