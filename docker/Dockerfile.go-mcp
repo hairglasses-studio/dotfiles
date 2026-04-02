@@ -1,0 +1,43 @@
+# Dockerfile.go-mcp — Shared base for hairglasses-studio Go MCP servers.
+# Usage: Copy to repo and customize the BINARY and CMD_PATH args.
+#
+# Simple (single binary):
+#   docker build --build-arg BINARY=shader-mcp --build-arg CMD_PATH=./... -t shader-mcp .
+#
+# Complex (with cloud tools):
+#   See mesmer/Dockerfile for example with kubectl/gcloud/awscli layers.
+
+# ── Build args ───────────────────────────────
+ARG GO_VERSION=1.26
+ARG BINARY=server
+ARG CMD_PATH=./cmd/server
+
+# ── Build stage ──────────────────────────────
+FROM golang:${GO_VERSION}-alpine AS builder
+RUN apk add --no-cache git
+WORKDIR /app
+COPY go.mod go.sum ./
+ENV GOTOOLCHAIN=auto
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+COPY . .
+ARG BINARY
+ARG CMD_PATH
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /app/${BINARY} ${CMD_PATH}
+
+# ── Runtime stage ────────────────────────────
+FROM alpine:3.21
+RUN apk add --no-cache ca-certificates wget && \
+    adduser -D -u 1000 appuser
+ARG BINARY
+COPY --from=builder /app/${BINARY} /usr/local/bin/${BINARY}
+
+ENV MCP_MODE=sse PORT=8080
+EXPOSE 8080
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:${PORT}/health || exit 1
+
+ENTRYPOINT ["/usr/local/bin/${BINARY}"]
