@@ -1,74 +1,98 @@
-/* Cyberpunk Snazzy wlogout theme */
+/* Cyberpunk Snazzy wlogout theme — Nerd Font icons */
 
 window {
-    background-color: rgba(0, 0, 0, 0.75);
-    background-image: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(87, 199, 255, 0.02) 2px,
-        rgba(87, 199, 255, 0.02) 4px
-    );
-    font-family: "JetBrainsMono Nerd Font", monospace;
+    background-color: rgba(0, 0, 0, 0.85);
+    font-family: "Maple Mono NF CN", monospace;
+    color: #f1f1f0;
 }
 
 button {
-    background-color: rgba(0, 0, 0, 0.6);
-    border: 2px solid #57c7ff;
-    border-radius: 8px;
+    background-color: #1a1a1a;
+    border: 2px solid #686868;
+    border-radius: 12px;
     color: #f1f1f0;
-    font-size: 18px;
-    font-weight: bold;
-    letter-spacing: 3px;
-    margin: 8px;
-    padding: 16px;
+    font-size: 48px;
+    margin: 12px;
+    padding: 24px 48px;
     transition: all 0.3s ease;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0;
+}
+
+button:focus {
+    outline: none;
 }
 
 button:hover {
-    background-color: rgba(87, 199, 255, 0.08);
+    border-width: 3px;
 }
 
 button:active {
-    background-color: rgba(87, 199, 255, 0.15);
+    opacity: 0.8;
 }
 
+/* --- Lock: Cyan --- */
 #lock {
-    border-color: #57c7ff;
     color: #57c7ff;
 }
 #lock:hover {
-    box-shadow: 0 0 20px rgba(87, 199, 255, 0.5);
+    border-color: #57c7ff;
+    background-color: rgba(87, 199, 255, 0.08);
+    box-shadow: 0 0 24px rgba(87, 199, 255, 0.4),
+                0 0 48px rgba(87, 199, 255, 0.15),
+                inset 0 0 12px rgba(87, 199, 255, 0.05);
+    text-shadow: 0 0 12px rgba(87, 199, 255, 0.6);
 }
 
-#suspend {
-    border-color: #f3f99d;
-    color: #f3f99d;
-}
-#suspend:hover {
-    box-shadow: 0 0 20px rgba(243, 249, 157, 0.5);
-}
-
+/* --- Logout: Magenta --- */
 #logout {
-    border-color: #ff6ac1;
     color: #ff6ac1;
 }
 #logout:hover {
-    box-shadow: 0 0 20px rgba(255, 106, 193, 0.5);
+    border-color: #ff6ac1;
+    background-color: rgba(255, 106, 193, 0.08);
+    box-shadow: 0 0 24px rgba(255, 106, 193, 0.4),
+                0 0 48px rgba(255, 106, 193, 0.15),
+                inset 0 0 12px rgba(255, 106, 193, 0.05);
+    text-shadow: 0 0 12px rgba(255, 106, 193, 0.6);
 }
 
+/* --- Suspend: Yellow --- */
+#suspend {
+    color: #f3f99d;
+}
+#suspend:hover {
+    border-color: #f3f99d;
+    background-color: rgba(243, 249, 157, 0.08);
+    box-shadow: 0 0 24px rgba(243, 249, 157, 0.4),
+                0 0 48px rgba(243, 249, 157, 0.15),
+                inset 0 0 12px rgba(243, 249, 157, 0.05);
+    text-shadow: 0 0 12px rgba(243, 249, 157, 0.6);
+}
+
+/* --- Reboot: Green --- */
 #reboot {
-    border-color: #5af78e;
     color: #5af78e;
 }
 #reboot:hover {
-    box-shadow: 0 0 20px rgba(90, 247, 142, 0.5);
+    border-color: #5af78e;
+    background-color: rgba(90, 247, 142, 0.08);
+    box-shadow: 0 0 24px rgba(90, 247, 142, 0.4),
+                0 0 48px rgba(90, 247, 142, 0.15),
+                inset 0 0 12px rgba(90, 247, 142, 0.05);
+    text-shadow: 0 0 12px rgba(90, 247, 142, 0.6);
 }
 
+/* --- Shutdown: Red --- */
 #shutdown {
-    border-color: #ff5c57;
     color: #ff5c57;
 }
 #shutdown:hover {
-    box-shadow: 0 0 20px rgba(255, 92, 87, 0.5);
+    border-color: #ff5c57;
+    background-color: rgba(255, 92, 87, 0.08);
+    box-shadow: 0 0 24px rgba(255, 92, 87, 0.4),
+                0 0 48px rgba(255, 92, 87, 0.15),
+                inset 0 0 12px rgba(255, 92, 87, 0.05);
+    text-shadow: 0 0 12px rgba(255, 92, 87, 0.6);
 }

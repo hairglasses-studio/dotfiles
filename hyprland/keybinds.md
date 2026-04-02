@@ -167,7 +167,7 @@
 | `Super+Shift+Ctrl+W` | Wallpaper random |
 | `Super+Shift+Alt+W` | Wallpaper static |
 | `Super+Shift+D` | Toggle dashboard |
-| `Super+Shift+E` | Exit Hyprland |
+| `Super+Shift+E` | Power menu |
 
 ## 󰎟 Scratchpads
 

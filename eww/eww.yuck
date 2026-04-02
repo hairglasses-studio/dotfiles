@@ -288,6 +288,14 @@ except: print(0)
 
 (deflisten bar_mode `$HOME/hairglasses-studio/dotfiles/scripts/eww-mode.sh`)
 
+; ── Shader indicator (reads directly from Ghostty config) ──
+(defpoll current_shader :interval "5s" :initial ""
+  `grep '^custom-shader' ~/.config/ghostty/config 2>/dev/null | sed 's|.*/||;s|\.glsl||' | head -1`)
+
+; ── Submap/mode indicator (listens to Hyprland socket) ──
+(deflisten active_submap :initial ""
+  `bash -c 'socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | stdbuf -oL grep --line-buffered "^submap>>" | stdbuf -oL sed -u "s/^submap>>//"'`)
+
 (defpoll bar_time :interval "1s"
   `date '+%H:%M'`)
 
@@ -351,6 +359,18 @@ except: print(0)
   (box :class "bar-mode ${bar_mode != 'default' ? 'bar-mode-active' : ''}"
        :visible {bar_mode != "default"}
     (label :text "${bar_mode}")))
+
+(defwidget shader-indicator []
+  (eventbox :onclick "shader-cycle.sh next"
+            :onrightclick "shader-random.sh"
+    (box :class "shader-indicator" :space-evenly false :spacing 4
+      (label :text "" :class "shader-icon")
+      (label :text {current_shader ?: "none"} :class "shader-name" :limit-width 18))))
+
+(defwidget mode-indicator []
+  (box :class "mode-indicator ${active_submap != '' ? 'active' : ''}"
+       :visible {active_submap != ""}
+    (label :text "󰌌 ${active_submap}" :class "mode-text")))
 
 (defwidget bar-window-title []
   (label :class "bar-title" :text {bar_window ?: ""} :limit-width 40))
@@ -461,6 +481,7 @@ except: print(0)
   (box :class "bar-left" :orientation "h" :spacing 8 :halign "start"
     (bar-workspaces :workspaces workspaces)
     (bar-mode-display)
+    (mode-indicator)
     (bar-window-title)))
 
 (defwidget bar-center []
@@ -470,6 +491,7 @@ except: print(0)
 (defwidget bar-right []
   (box :class "bar-right" :orientation "h" :spacing 12 :halign "end"
     (bar-fleet)
+    (shader-indicator)
     (bar-shader-display)
     (bar-mpris-display)
     (bar-cava)
