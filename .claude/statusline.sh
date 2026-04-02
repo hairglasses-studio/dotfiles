@@ -84,6 +84,10 @@ else
   PATH_DISPLAY="$SLUG"
 fi
 
+# ── Propagate session identity to Ghostty window title ──
+_title="Claude: ${SESSION:+$SESSION — }${SLUG}"
+printf '\033]0;%s\007' "$_title" > /proc/$PPID/fd/0 2>/dev/null
+
 # ── Build segments ─────────────────────────────
 session_seg=""
 if [[ -n "$SESSION" ]]; then
