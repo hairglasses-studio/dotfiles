@@ -1,0 +1,7 @@
+[Unit]
+Description=Sync Google Calendar events for eww sidebar
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/eww-calendar-sync.sh
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
