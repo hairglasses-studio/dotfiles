@@ -2,12 +2,12 @@
 # Thumb wheel divert must be enabled: solaar config "MX Master 4" thumb-scroll-mode on
 # Displacement parameter = scroll threshold (higher = slower, more deliberate)
 
-# Thumbwheel left (scroll up) -> previous tab (Ctrl+PageUp)
+# Thumbwheel left (scroll up) -> next tab (Ctrl+PageDown)
 - Rule:
   - Test: [thumb_wheel_up, 15]
-  - KeyPress: [Control_L, Page_Up]
+  - KeyPress: [Control_L, Page_Down]
 
-# Thumbwheel right (scroll down) -> next tab (Ctrl+PageDown)
+# Thumbwheel right (scroll down) -> previous tab (Ctrl+PageUp)
 - Rule:
   - Test: [thumb_wheel_down, 15]
-  - KeyPress: [Control_L, Page_Down]
+  - KeyPress: [Control_L, Page_Up]
