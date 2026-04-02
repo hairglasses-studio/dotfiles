@@ -1,0 +1,7 @@
+[Unit]
+Description=MX Master 4 battery check
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/mx-battery-notify.sh
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
