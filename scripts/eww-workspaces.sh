@@ -13,9 +13,17 @@ _sway() {
     if [[ -n "$mon_filter" ]]; then
       swaymsg -t get_workspaces | jq -c \
         --arg mon "$mon_filter" \
-        '[.[] | select(.output == $mon) | {num, focused, name, urgent}]'
+        '[.[] | select(.output == $mon) | {num, focused, name, urgent, occupied: (.representation != null)}] | sort_by(.num)
+        | . as $arr | [range(length) | . as $i | $arr[$i] + {
+          prev_empty: (if $i == 0 then true elif ($arr[$i-1].occupied | not) then true else false end),
+          next_empty: (if $i == (($arr|length)-1) then true elif ($arr[$i+1].occupied | not) then true else false end)
+        }]'
     else
-      swaymsg -t get_workspaces | jq -c '[.[] | {num, focused, name, urgent}]'
+      swaymsg -t get_workspaces | jq -c '[.[] | {num, focused, name, urgent, occupied: (.representation != null)}] | sort_by(.num)
+        | . as $arr | [range(length) | . as $i | $arr[$i] + {
+          prev_empty: (if $i == 0 then true elif ($arr[$i-1].occupied | not) then true else false end),
+          next_empty: (if $i == (($arr|length)-1) then true elif ($arr[$i+1].occupied | not) then true else false end)
+        }]'
     fi
   }
 
@@ -60,19 +68,31 @@ _hyprland() {
             ([$workspaces[] | select(.id == $id and .monitor == $mon)] | first // null) as $ws |
             {num: $id, focused: ($id == $active), name: ($ws.name // "\($id)"), urgent: false,
              occupied: ($ws != null)}
-          ] | sort_by(.num)'
+          ] | sort_by(.num)
+          | . as $arr | [range(length) | . as $i | $arr[$i] + {
+            prev_empty: (if $i == 0 then true elif ($arr[$i-1].occupied | not) then true else false end),
+            next_empty: (if $i == (($arr|length)-1) then true elif ($arr[$i+1].occupied | not) then true else false end)
+          }]'
       else
         hyprctl workspaces -j 2>/dev/null | jq -c \
           --argjson active "$active_id" \
           --arg mon "$mon_filter" \
-          '[.[] | select(.monitor == $mon) | {num: .id, focused: (.id == $active), name: (.name // "\(.id)"), urgent: false, occupied: true}] | sort_by(.num)'
+          '[.[] | select(.monitor == $mon) | {num: .id, focused: (.id == $active), name: (.name // "\(.id)"), urgent: false, occupied: true}] | sort_by(.num)
+          | . as $arr | [range(length) | . as $i | $arr[$i] + {
+            prev_empty: (if $i == 0 then true elif ($arr[$i-1].occupied | not) then true else false end),
+            next_empty: (if $i == (($arr|length)-1) then true elif ($arr[$i+1].occupied | not) then true else false end)
+          }]'
       fi
     else
       active_id=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.id // 0')
 
       hyprctl workspaces -j 2>/dev/null | jq -c \
         --argjson active "$active_id" \
-        '[.[] | {num: .id, focused: (.id == $active), name: (.name // "\(.id)"), urgent: false, occupied: true}] | sort_by(.num)'
+        '[.[] | {num: .id, focused: (.id == $active), name: (.name // "\(.id)"), urgent: false, occupied: true}] | sort_by(.num)
+        | . as $arr | [range(length) | . as $i | $arr[$i] + {
+          prev_empty: (if $i == 0 then true elif ($arr[$i-1].occupied | not) then true else false end),
+          next_empty: (if $i == (($arr|length)-1) then true elif ($arr[$i+1].occupied | not) then true else false end)
+        }]'
     fi
   }
 
