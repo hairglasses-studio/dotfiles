@@ -119,6 +119,28 @@ $red: #ff5c57;
   font-weight: 500;
 }
 
+// ── MX Master 4 battery ─────────────────────
+.bar-mx-battery {
+  padding: 0 2px;
+}
+
+.mx-normal {
+  color: $green;
+}
+
+.mx-warning {
+  color: $yellow;
+}
+
+.mx-critical {
+  color: $red;
+  text-shadow: 0 0 4px rgba(255, 92, 87, 0.6);
+}
+
+.mx-disconnected {
+  color: $dim;
+}
+
 // ── Shader status ────────────────────────────
 .bar-shader {
   padding: 0 4px;
