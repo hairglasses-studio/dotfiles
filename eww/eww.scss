@@ -264,11 +264,99 @@ $red: #ff5c57;
   to   { opacity: 1; }
 }
 
+// ── Elenapan-inspired animations ──────────────
+@keyframes flicker {
+  0%   { opacity: 0.3; }
+  10%  { opacity: 0.3; }
+  11%  { opacity: 1; }
+  20%  { opacity: 0.3; }
+  21%  { opacity: 1; }
+  50%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+@keyframes rainbow {
+  0%    { color: $red; }
+  17%   { color: $yellow; }
+  33%   { color: $green; }
+  50%   { color: $cyan; }
+  67%   { color: $magenta; }
+  83%   { color: $red; }
+  100%  { color: $red; }
+}
+
+@keyframes opacity-pulse {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
 @keyframes pulse-bar {
   0%   { opacity: 0.8; }
   50%  { opacity: 1.0; }
   100% { opacity: 0.8; }
 }
+
+// ══════════════════════════════════════════════════
+// ── POWER MENU ──────────────────────────────────
+// ══════════════════════════════════════════════════
+
+.powermenu {
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+.pm-header {
+  color: $magenta;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  margin-bottom: 32px;
+  animation: text-glow-magenta 3s ease-in-out infinite;
+}
+
+.pm-buttons {
+  margin: 24px 0;
+}
+
+.pm-button {
+  padding: 24px 32px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: all 300ms ease;
+  min-width: 100px;
+
+  &:hover {
+    background-color: rgba(87, 199, 255, 0.1);
+  }
+
+  &.cyan { border-color: $cyan; &:hover { background-color: rgba(87, 199, 255, 0.15); border-color: $cyan; box-shadow: 0 0 12px rgba(87, 199, 255, 0.3); } }
+  &.magenta { border-color: $magenta; &:hover { background-color: rgba(255, 106, 193, 0.15); border-color: $magenta; box-shadow: 0 0 12px rgba(255, 106, 193, 0.3); } }
+  &.green { border-color: $green; &:hover { background-color: rgba(90, 247, 142, 0.15); border-color: $green; box-shadow: 0 0 12px rgba(90, 247, 142, 0.3); } }
+  &.yellow { border-color: $yellow; &:hover { background-color: rgba(243, 249, 157, 0.15); border-color: $yellow; box-shadow: 0 0 12px rgba(243, 249, 157, 0.3); } }
+  &.red { border-color: $red; &:hover { background-color: rgba(255, 92, 87, 0.15); border-color: $red; box-shadow: 0 0 12px rgba(255, 92, 87, 0.3); } }
+}
+
+.pm-icon {
+  font-size: 28px;
+  color: inherit;
+}
+
+.pm-label {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: $dim;
+}
+
+.pm-hint {
+  color: $dim;
+  font-size: 10px;
+  margin-top: 32px;
+  letter-spacing: 2px;
+}
+
+// ══════════════════════════════════════════════════
+// ── DASHBOARD OVERLAY ───────────────────────────
+// ══════════════════════════════════════════════════
 
 .dashboard {
   background-color: $bg;
