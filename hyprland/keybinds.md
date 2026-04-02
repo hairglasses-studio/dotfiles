@@ -1,0 +1,193 @@
+# 󰌌 Keybinds
+
+##  Launch
+
+| Key | Action |
+|-----|--------|
+| `Super+Enter` | New terminal |
+| `Super+D` | App launcher |
+| `Super+`` | Keybind reference |
+| `Super+P` | Toggle powermenu |
+
+##  Navigation
+
+| Key | Action |
+|-----|--------|
+| `Super+H` | Focus left (hjkl) |
+| `Super+J` | Focus down (hjkl) |
+| `Super+K` | Focus up (hjkl) |
+| `Super+L` | Focus right (hjkl) |
+| `Super+←` | Focus left (arrow) |
+| `Super+→` | Focus right (arrow) |
+| `Super+↓` | Focus down (arrow) |
+| `Super+↑` | Focus up (arrow) |
+
+## 󰸪 Rotary encoder
+
+| Key | Action |
+|-----|--------|
+| `F13` | Encoder: focus left |
+| `F14` | Encoder: focus right |
+
+## 󰆾 Move windows
+
+| Key | Action |
+|-----|--------|
+| `Super+Shift+H` | Move window left (hjkl) |
+| `Super+Shift+J` | Move window down (hjkl) |
+| `Super+Shift+K` | Move window up (hjkl) |
+| `Super+Shift+L` | Move window right (hjkl) |
+| `Super+Shift+←` | Move window left (arrow) |
+| `Super+Shift+→` | Move window right (arrow) |
+| `Super+Shift+↓` | Move window down (arrow) |
+| `Super+Shift+↑` | Move window up (arrow) |
+
+##  Master layout
+
+| Key | Action |
+|-----|--------|
+| `Super+F` | Fullscreen |
+| `Super+Shift+Space` | Toggle float |
+| `Super+Space` | Cycle focus |
+| `Super+A` | Focus urgent/last |
+| `Super+\\` | Cycle orientation |
+| `Super+-` | Swap with master |
+| `Super+Shift+-` | Add master |
+| `Super+Ctrl+-` | Remove master |
+| `Super+]` | Increase master ratio |
+| `Super+[` | Decrease master ratio |
+| `Super+M` | Focus master |
+| `Super+,` | Roll stack forward |
+| `Super+.` | Roll stack backward |
+
+##  Workspaces
+
+| Key | Action |
+|-----|--------|
+| `Super+1` | Workspace 1 |
+| `Super+2` | Workspace 2 |
+| `Super+3` | Workspace 3 |
+| `Super+4` | Workspace 4 |
+| `Super+5` | Workspace 5 |
+| `Super+6` | Workspace 6 |
+| `Super+7` | Workspace 7 |
+| `Super+8` | Workspace 8 |
+| `Super+9` | Workspace 9 |
+| `Super+Shift+1` | Move to workspace 1 |
+| `Super+Shift+2` | Move to workspace 2 |
+| `Super+Shift+3` | Move to workspace 3 |
+| `Super+Shift+4` | Move to workspace 4 |
+| `Super+Shift+5` | Move to workspace 5 |
+| `Super+Shift+6` | Move to workspace 6 |
+| `Super+Shift+7` | Move to workspace 7 |
+| `Super+Shift+8` | Move to workspace 8 |
+| `Super+Shift+9` | Move to workspace 9 |
+
+##  Window management
+
+| Key | Action |
+|-----|--------|
+| `Super+Shift+Q` | Close window |
+| `Super+Tab` | Workspace overview |
+| `Super+Shift+R` | Reload config |
+| `Super+Shift+Tab` | Send to other monitor |
+
+## 󰩨 Resize
+
+| Key | Action |
+|-----|--------|
+| `Super+Shift+;` | Enter resize mode |
+| `H` | *resize:* Shrink width |
+| `J` | *resize:* Grow height |
+| `K` | *resize:* Shrink height |
+| `L` | *resize:* Grow width |
+| `Shift+H` | *resize:* Move left |
+| `Shift+J` | *resize:* Move down |
+| `Shift+K` | *resize:* Move up |
+| `Shift+L` | *resize:* Move right |
+| `Enter` | *resize:* Exit resize (Enter) |
+| `Esc` | *resize:* Exit resize (Esc) |
+
+##  Screenshots
+
+| Key | Action |
+|-----|--------|
+| `Super+S` | Screenshot full |
+| `Super+Shift+S` | Screenshot region |
+| `Super+Ctrl+S` | Screenshot crop |
+
+##  Clipboard & Color
+
+| Key | Action |
+|-----|--------|
+| `Super+V` | Clipboard history |
+| `Super+Shift+C` | Color picker |
+
+## 󰎆 Media
+
+| Key | Action |
+|-----|--------|
+| `XF86AudioPlay` | Play/pause |
+| `XF86AudioNext` | Next track |
+| `XF86AudioPrev` | Previous track |
+| `XF86AudioMute` | Toggle mute |
+| `XF86AudioRaiseVolume` | Volume up |
+| `XF86AudioLowerVolume` | Volume down |
+| `XF86MonBrightnessUp` | Brightness up |
+| `XF86MonBrightnessDown` | Brightness down |
+
+##  Night light
+
+| Key | Action |
+|-----|--------|
+| `Super+Shift+T` | Toggle night light |
+
+##  Shaders & Ghostty
+
+| Key | Action |
+|-----|--------|
+| `Super+Shift+N` | Shader next (Shift+N) |
+| `Super+Shift+P` | Shader prev |
+| `Super+G` | Shader next (G) |
+| `Super+Shift+G` | Shader random |
+| `Super+Ctrl+G` | Reload Ghostty |
+
+## 󰚩 Claude Code
+
+| Key | Action |
+|-----|--------|
+| `Super+Ctrl+C` | Claude session picker |
+
+##  System
+
+| Key | Action |
+|-----|--------|
+| `Super+Shift+X` | Lock screen |
+| `Super+Shift+W` | Wallpaper next |
+| `Super+Shift+Ctrl+W` | Wallpaper random |
+| `Super+Shift+Alt+W` | Wallpaper static |
+| `Super+Shift+D` | Toggle dashboard |
+| `Super+Shift+E` | Exit Hyprland |
+
+## 󰎟 Scratchpads
+
+| Key | Action |
+|-----|--------|
+| `Super+Shift+Enter` | Scratchpad: terminal |
+| `Super+Shift+V` | Scratchpad: volume |
+| `Super+Shift+F` | Scratchpad: files |
+
+## 󰍽 Mouse
+
+| Key | Action |
+|-----|--------|
+| `Super+LMB` | Move window (drag) |
+| `Super+RMB` | Resize window (drag) |
+
+##  Special workspaces
+
+| Key | Action |
+|-----|--------|
+| `Super+O` | Toggle dashboard workspace |
+| `Super+Shift+O` | Move to dashboard |
+
