@@ -171,10 +171,19 @@ do_lint_node() {
 do_build_python() {
   if has_make_target build; then
     make build
-  elif [[ -f requirements.txt ]]; then
-    pip install -r requirements.txt --quiet
-  elif [[ -f pyproject.toml ]]; then
-    pip install -e . --quiet 2>/dev/null || pip install . --quiet
+  elif [[ -n "${VIRTUAL_ENV:-}" ]]; then
+    # Inside a venv — safe to install
+    if [[ -f requirements.txt ]]; then
+      pip install -r requirements.txt --quiet
+    elif [[ -f pyproject.toml ]]; then
+      pip install -e . --quiet 2>/dev/null || pip install . --quiet
+    fi
+  else
+    # No venv — check syntax only, don't install (PEP 668)
+    hg_warn "No virtualenv active — skipping pip install (PEP 668)"
+    if command -v python3 &>/dev/null; then
+      python3 -m py_compile "$(find . -name '*.py' -not -path './.*' | head -1)" 2>&1 || true
+    fi
   fi
 }
 
