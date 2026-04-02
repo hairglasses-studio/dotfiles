@@ -10,31 +10,31 @@
 (defpoll mem_usage :interval "5s" :initial "0"
   `free -m | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
 
-(defpoll gpu_temp :interval "5s"
+(defpoll gpu_temp :interval "5s" :initial "0"
   `nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null || echo "N/A"`)
 
 (defpoll gpu_util :interval "5s" :initial "0"
   `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo "0"`)
 
-(defpoll net_down :interval "2s"
+(defpoll net_down :interval "2s" :initial "0.0"
   `awk 'NR>2{d+=$2}END{printf "%.1f", d/1024/1024}' /proc/net/dev`)
 
-(defpoll net_up :interval "2s"
+(defpoll net_up :interval "2s" :initial "0.0"
   `awk 'NR>2{u+=$10}END{printf "%.1f", u/1024/1024}' /proc/net/dev`)
 
 (defpoll disk_usage :interval "30s"
   `df -h / | awk 'NR==2{print $5}'`)
 
-(defpoll uptime_val :interval "60s"
+(defpoll uptime_val :interval "60s" :initial ""
   `uptime -p | sed 's/up //'`)
 
-(defpoll datetime :interval "1s"
+(defpoll datetime :interval "1s" :initial "00:00:00"
   `date '+%H:%M:%S'`)
 
-(defpoll datestr :interval "60s"
+(defpoll datestr :interval "60s" :initial ""
   `date '+%Y-%m-%d'`)
 
-(defpoll now_playing :interval "3s"
+(defpoll now_playing :interval "3s" :initial ""
   `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
 
 ; ── MPRIS variables (sidebar media page) ─────────
@@ -279,8 +279,10 @@ except: print(0)
 (defpoll bar_updates :interval "3600s"
   `$HOME/hairglasses-studio/dotfiles/scripts/eww-updates.sh`)
 
-(deflisten bar_workspaces_dp1 `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh DP-1`)
-(deflisten bar_workspaces_dp2 `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh DP-2`)
+(deflisten bar_workspaces_dp1
+  `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh "$(hyprctl monitors -j 2>/dev/null | jq -r 'sort_by(.x) | .[0].name // "DP-1"')"`)
+(deflisten bar_workspaces_dp2
+  `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh "$(hyprctl monitors -j 2>/dev/null | jq -r 'sort_by(.x) | .[1].name // "DP-2"')"`)
 
 (deflisten bar_window `$HOME/hairglasses-studio/dotfiles/scripts/eww-activewindow.sh`)
 
