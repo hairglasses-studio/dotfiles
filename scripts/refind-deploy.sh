@@ -49,11 +49,36 @@ sudo cp "$DOTFILES/scripts/refind-kernel-sync.sh" /usr/local/bin/
 sudo chmod +x /usr/local/bin/refind-boot-guard.sh /usr/local/bin/refind-kernel-sync.sh
 green "  Hooks deployed"
 
-# ── Phase 4: Set fallback bootloader ─────────────────
+# ── Phase 4: Set fallback bootloader + theme ─────────
 cyan "Setting fallback bootloader to rEFInd..."
 sudo cp "$REFIND_DIR/refind_x64.efi" "$BOOT_DIR/bootx64.efi"
 sudo cp "$DOTFILES/refind/refind-fallback.conf" "$BOOT_DIR/refind.conf"
-green "  Fallback set"
+# Deploy theme to Boot/ so the fallback path also looks themed
+sudo mkdir -p "$BOOT_DIR/themes/matrix/icons"
+sudo rsync -rlpt --delete --exclude='.git' \
+    "$DOTFILES/refind/themes/matrix/" "$BOOT_DIR/themes/matrix/"
+# Deploy btrfs driver to Boot/ for fallback
+sudo mkdir -p "$BOOT_DIR/drivers_x64"
+sudo cp "$REFIND_DIR/drivers_x64/btrfs_x64.efi" "$BOOT_DIR/drivers_x64/" 2>/dev/null || true
+green "  Fallback set (with theme)"
+
+# ── Phase 4b: Verify GRUB is not replaced by rEFInd ──
+cyan "Checking GRUB integrity..."
+GRUB_PATH="/boot/efi/EFI/Manjaro/grubx64.efi"
+if [[ -f "$GRUB_PATH" ]]; then
+    GRUB_SIZE=$(stat -c%s "$GRUB_PATH")
+    REFIND_CHECK=$(stat -c%s "$REFIND_DIR/refind_x64.efi")
+    if [[ "$GRUB_SIZE" == "$REFIND_CHECK" ]]; then
+        red "  WARNING: grubx64.efi appears to be rEFInd (size=$GRUB_SIZE matches refind_x64.efi)!"
+        red "  GRUB may have been overwritten. Check EFI/Manjaro/grubx64.efi.bak"
+    else
+        green "  GRUB binary OK (${GRUB_SIZE} bytes, differs from rEFInd ${REFIND_CHECK})"
+    fi
+    # Remove any rEFInd artifacts that don't belong in Manjaro dir
+    for stale in "$GRUB_PATH/../refind.conf" "$GRUB_PATH/../refind_linux.conf"; do
+        [[ -f "$stale" ]] && sudo rm "$stale" && warn "  Removed stale: $(basename "$stale") from Manjaro dir"
+    done
+fi
 
 # ── Phase 5: Set boot order ─────────────────────────
 cyan "Setting UEFI boot order..."
