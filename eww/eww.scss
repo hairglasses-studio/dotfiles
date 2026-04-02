@@ -355,10 +355,10 @@ $red: #ff5c57;
 }
 
 // ══════════════════════════════════════════════════
-// ── DASHBOARD OVERLAY ───────────────────────────
+// ── SIDEBAR (elenapan-inspired) ─────────────────
 // ══════════════════════════════════════════════════
 
-.dashboard {
+.sidebar {
   background-color: $bg;
   background-image: repeating-linear-gradient(
     0deg,
@@ -368,11 +368,45 @@ $red: #ff5c57;
     rgba(87, 199, 255, 0.04) 4px
   );
   animation: scanline 8s linear infinite, border-breathe 6s ease-in-out infinite;
-  border: 2px solid $cyan;
-  border-radius: 8px;
+  border-left: 2px solid $cyan;
   padding: 16px;
   font-family: "JetBrainsMono Nerd Font", monospace;
   color: $fg;
+  transition: all 300ms ease;
+}
+
+// ── Sidebar tabs ──────────────────────────
+.sidebar-tabs {
+  padding: 8px 0 12px;
+  border-bottom: 1px solid rgba(87, 199, 255, 0.15);
+  margin-bottom: 8px;
+}
+
+.sidebar-tab {
+  color: $dim;
+  font-size: 16px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  border-bottom: 2px solid transparent;
+  transition: all 200ms ease;
+
+  &:hover {
+    color: $fg;
+    background-color: rgba(87, 199, 255, 0.1);
+  }
+
+  &.active {
+    color: $cyan;
+    border-bottom: 2px solid $cyan;
+    text-shadow: 0 0 8px rgba(87, 199, 255, 0.6);
+    box-shadow: 0 4px 8px rgba(87, 199, 255, 0.15);
+  }
+}
+
+// ── Sidebar pages ─────────────────────────
+.sidebar-page {
+  padding: 4px 0;
+  transition: all 300ms ease;
 }
 
 // ── Header ─────────────────────────────────
@@ -503,4 +537,228 @@ $red: #ff5c57;
   color: $dim;
   font-size: 10px;
   letter-spacing: 1px;
+}
+
+// ══════════════════════════════════════════════════
+// ── PAGE 2: MEDIA ──────────────────────────────
+// ══════════════════════════════════════════════════
+
+.media-header-text {
+  color: $magenta;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  animation: text-glow-magenta 3s ease-in-out infinite;
+}
+
+.media-art-placeholder {
+  min-height: 80px;
+  min-width: 80px;
+  border: 1px solid rgba(255, 106, 193, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 106, 193, 0.05);
+  margin: 8px 0;
+}
+
+.media-art-icon {
+  font-size: 36px;
+  color: $magenta;
+  animation: opacity-pulse 3s ease-in-out infinite;
+}
+
+.media-info {
+  padding: 4px 0;
+}
+
+.media-title {
+  color: $fg;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.media-artist {
+  color: $cyan;
+  font-size: 12px;
+}
+
+.media-album {
+  color: $dim;
+  font-size: 10px;
+  font-style: italic;
+}
+
+.media-progress {
+  padding: 8px 16px;
+}
+
+.media-progress-bar {
+  min-height: 4px;
+
+  trough {
+    min-height: 4px;
+    background-color: rgba(104, 104, 104, 0.3);
+    border-radius: 2px;
+  }
+
+  highlight {
+    min-height: 4px;
+    background-color: $magenta;
+    border-radius: 2px;
+  }
+
+  slider {
+    min-width: 8px;
+    min-height: 8px;
+    border-radius: 50%;
+    background-color: $fg;
+  }
+}
+
+.media-times {
+  padding: 2px 0;
+}
+
+.media-time {
+  color: $dim;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+.media-controls {
+  padding: 12px 0;
+}
+
+.media-btn {
+  color: $fg;
+  font-size: 18px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(104, 104, 104, 0.3);
+  transition: all 200ms ease;
+
+  &:hover {
+    color: $cyan;
+    background-color: rgba(87, 199, 255, 0.1);
+    border-color: rgba(87, 199, 255, 0.3);
+    box-shadow: 0 0 8px rgba(87, 199, 255, 0.2);
+  }
+}
+
+.media-btn-play {
+  font-size: 24px;
+  border-color: $magenta;
+  color: $magenta;
+
+  &:hover {
+    color: $magenta;
+    background-color: rgba(255, 106, 193, 0.15);
+    border-color: $magenta;
+    box-shadow: 0 0 12px rgba(255, 106, 193, 0.3);
+  }
+}
+
+.media-volume {
+  padding: 8px 16px;
+}
+
+.media-vol-icon {
+  color: $yellow;
+  font-size: 14px;
+}
+
+.media-vol-slider {
+  min-width: 160px;
+
+  trough {
+    min-height: 4px;
+    background-color: rgba(104, 104, 104, 0.3);
+    border-radius: 2px;
+  }
+
+  highlight {
+    min-height: 4px;
+    background-color: $yellow;
+    border-radius: 2px;
+  }
+
+  slider {
+    min-width: 10px;
+    min-height: 10px;
+    border-radius: 50%;
+    background-color: $fg;
+  }
+}
+
+.media-vol-val {
+  color: $dim;
+  font-size: 11px;
+  min-width: 36px;
+}
+
+// ══════════════════════════════════════════════════
+// ── PAGE 3: FLEET ──────────────────────────────
+// ══════════════════════════════════════════════════
+
+.fleet-header-text {
+  color: $green;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  animation: text-glow-green 3s ease-in-out infinite;
+}
+
+.fleet-section {
+  padding: 8px 0;
+}
+
+.fleet-section-label {
+  color: $dim;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.fleet-divider {
+  min-height: 1px;
+  background-color: rgba(87, 199, 255, 0.15);
+  margin: 4px 0;
+}
+
+.fleet-row {
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: all 150ms ease;
+
+  &:hover {
+    background-color: rgba(87, 199, 255, 0.05);
+  }
+}
+
+.fleet-icon {
+  font-size: 14px;
+  min-width: 20px;
+
+  &.green   { color: $green; }
+  &.magenta { color: $magenta; }
+  &.cyan    { color: $cyan; }
+  &.yellow  { color: $yellow; }
+  &.dim     { color: $dim; }
+}
+
+.fleet-label {
+  color: $dim;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.fleet-value {
+  color: $fg;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.fleet-dim {
+  color: $dim;
+  opacity: 0.5;
 }
