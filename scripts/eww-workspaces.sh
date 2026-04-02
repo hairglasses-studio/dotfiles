@@ -36,11 +36,31 @@ _sway() {
 _hyprland() {
   local monitor="${1:-}"
 
-  # Static workspace-to-monitor mapping (matches monitors.conf)
-  declare -A WS_MAP=(
-    [DP-1]="1 2 3"
-    [DP-2]="4 5 6 7 8 9"
-  )
+  # Build workspace-to-monitor mapping dynamically from Hyprland config.
+  # workspacerules returns desc: strings; resolve to connector names via monitors.
+  declare -A WS_MAP
+  local _monitors_init
+  _monitors_init=$(hyprctl monitors -j 2>/dev/null)
+
+  while IFS= read -r line; do
+    local ws_id rule_mon resolved
+    ws_id=$(echo "$line" | jq -r '.id')
+    rule_mon=$(echo "$line" | jq -r '.monitor')
+
+    # Resolve desc:... to connector name (e.g. "desc:XEC ES-G32C1Q" -> "DP-1")
+    if [[ "$rule_mon" == desc:* ]]; then
+      local desc_substr="${rule_mon#desc:}"
+      resolved=$(printf '%s' "$_monitors_init" | jq -r \
+        --arg d "$desc_substr" \
+        '[.[] | select(.description | startswith($d))] | .[0].name // empty')
+    else
+      resolved="$rule_mon"
+    fi
+
+    if [[ -n "$resolved" ]]; then
+      WS_MAP[$resolved]="${WS_MAP[$resolved]:+${WS_MAP[$resolved]} }$ws_id"
+    fi
+  done < <(hyprctl workspacerules -j 2>/dev/null | jq -c '.[] | select(.monitor != "") | {id: (.workspaceString | tonumber? // empty), monitor}' 2>/dev/null)
 
   _hypr_workspaces() {
     local mon_filter="$1"
