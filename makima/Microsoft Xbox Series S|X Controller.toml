@@ -1,26 +1,51 @@
 # makima — Xbox Series S|X Controller :: Hyprland Desktop
-# Face buttons dispatch hyprctl commands directly
-# Sticks: left=cursor, right=scroll. Triggers: left/right click.
+# Steam browser-inspired layout with direct hyprctl dispatch
 # Per-app override: com.mitchellh.ghostty.toml (Claude Code mode)
+#
+# ── Quick reference ──────────────────────────────────────
+#   A       = select / click (left mouse)
+#   B       = close window (killactive)
+#   X       = open terminal (ghostty)
+#   Y       = app launcher (wofi)
+#   LB/RB   = move window focus left/right
+#   LT/RT   = left/right mouse click
+#   Start   = wlogout power menu
+#   Select  = screenshot → clipboard
+#   Guide   = toggle dashboard workspace
+#   L3      = shader random
+#   R3      = wallpaper next
+#   D-Pad   = workspace prev/next (L/R), fullscreen (U), floating (D)
+#   L-Stick = mouse cursor
+#   R-Stick = scroll
 
 [commands]
-BTN_SOUTH = ["hyprctl dispatch fullscreen 0"]
+# Face buttons — primary actions
+BTN_SOUTH = ["hyprctl dispatch focusurgentorlast"]
 BTN_EAST = ["hyprctl dispatch killactive"]
 BTN_WEST = ["ghostty --gtk-single-instance=false"]
 BTN_NORTH = ["wofi --show drun"]
-BTN_TL = ["hyprctl dispatch workspace e-1"]
-BTN_TR = ["hyprctl dispatch workspace e+1"]
+
+# Bumpers — window focus left/right ($mod+Shift+Left/Right equivalent)
+BTN_TL = ["hyprctl dispatch movefocus l"]
+BTN_TR = ["hyprctl dispatch movefocus r"]
+
+# Center buttons
 BTN_SELECT = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-screenshot.sh"]
 BTN_START = ["wlogout -b 5"]
 BTN_MODE = ["hyprctl dispatch togglespecialworkspace dashboard"]
+
+# Stick clicks — rice controls
 BTN_THUMBL = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-shader-random.sh"]
 BTN_THUMBR = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-wallpaper-next.sh"]
 
+# D-Pad — workspace navigation + window state
+BTN_DPAD_LEFT = ["hyprctl dispatch workspace e-1"]
+BTN_DPAD_RIGHT = ["hyprctl dispatch workspace e+1"]
+BTN_DPAD_UP = ["hyprctl dispatch fullscreen 0"]
+BTN_DPAD_DOWN = ["hyprctl dispatch togglefloating"]
+
 [remap]
-BTN_DPAD_UP = ["KEY_LEFTMETA", "KEY_UP"]
-BTN_DPAD_DOWN = ["KEY_LEFTMETA", "KEY_DOWN"]
-BTN_DPAD_LEFT = ["KEY_LEFTMETA", "KEY_LEFT"]
-BTN_DPAD_RIGHT = ["KEY_LEFTMETA", "KEY_RIGHT"]
+# Triggers — mouse clicks (analog, pressure-sensitive)
 ABS_Z = ["BTN_LEFT"]
 ABS_RZ = ["BTN_RIGHT"]
 
