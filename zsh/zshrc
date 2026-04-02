@@ -199,6 +199,12 @@ autoload -Uz add-zsh-hook
 add-zsh-hook preexec _cmd_timer_preexec
 add-zsh-hook precmd _cmd_timer_precmd
 
+# ── Terminal title (cwd in Ghostty titlebar) ──
+_set_terminal_title_precmd() {
+  print -Pn "\e]0;%~\a"
+}
+add-zsh-hook precmd _set_terminal_title_precmd
+
 # ── fzf-tab config ─────────────────────────────
 zstyle ':fzf-tab:complete:*:*' extra-opts --preview='
 if [[ -d $realpath ]]; then
