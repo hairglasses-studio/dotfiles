@@ -7,6 +7,7 @@ _hg() {
     modules=(
       'bt:Bluetooth — list, connect, disconnect, scan'
       'config:Dotfiles config — reload, backup, check, list'
+      'gamepad:Xbox controller — profiles, status, test'
       'input:Input devices — logiops, solaar, makima'
       'media:Terminal video & ASCII art — play, convert, stream'
       'rice:Rice health — status, services, palette, reload-all'
@@ -102,6 +103,13 @@ _hg() {
           'restart:Restart input services'
           'devices:List makima-detected evdev devices'
         ) ;;
+      gamepad)
+        cmds=(
+          'status:Controller connection and AntiMicroX state'
+          'profile:Switch AntiMicroX profile by name'
+          'profiles:List available profiles'
+          'test:Quick button test via evtest'
+        ) ;;
       rice)
         cmds=(
           'status:Comprehensive rice status dashboard'
@@ -162,6 +170,10 @@ _hg() {
       _values 'shader subcommand' next random set stop list ;;
     wm/jump)
       _values 'workspace' 1 2 3 4 5 6 7 8 9 10 ;;
+    gamepad/profile)
+      local -a profiles
+      profiles=(${(f)"$(command ls "$HOME/.config/antimicrox"/*.gamecontroller.amgp 2>/dev/null | xargs -I{} basename {} .gamecontroller.amgp)"})
+      _describe 'profile' profiles ;;
     bt/connect|bt/disconnect)
       local -a devices
       devices=(${(f)"$(bluetoothctl devices 2>/dev/null | awk '{print $2}')"})

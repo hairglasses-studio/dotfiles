@@ -514,6 +514,8 @@ if cmd_exists claude; then
   alias cc='claude'
   alias ccr='claude --resume'
   alias ccc='claude --continue'
+  alias ccplan='claude --permission-mode plan'
+  alias ccfast='claude --permission-mode acceptEdits'
 fi
 
 # ── New tools ─────────────────────────────────
