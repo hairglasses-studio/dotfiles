@@ -167,6 +167,8 @@
 (defpoll k8s_ctx :interval "30s"
   `$HOME/hairglasses-studio/dotfiles/scripts/k8s-context.sh 2>/dev/null | jq -r '.text // ""'`)
 
+(defvar vol_hover false)
+
 ; ── Bar widgets ──────────────────────────────────
 
 (defwidget bar-workspaces [workspaces]
@@ -191,10 +193,15 @@
       (label :class "bar-date" :text bar_date))))
 
 (defwidget bar-vol-display []
-  (eventbox :onclick "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-    (box :class "bar-metric" :spacing 4
+  (eventbox :onhover "eww update vol_hover=true" :onhoverlost "eww update vol_hover=false"
+            :onclick "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    (box :class "bar-metric bar-vol" :spacing 4
       (label :class "bar-icon yellow" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
-      (label :class "bar-metric-val" :text "${bar_vol}%"))))
+      (label :class "bar-metric-val" :text "${bar_vol}%")
+      (revealer :transition "slideleft" :reveal vol_hover :duration "150ms"
+        (scale :class "bar-vol-slider" :min 0 :max 101 :value bar_vol
+               :orientation "h"
+               :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ {}%")))))
 
 (defwidget bar-shader-display []
   (eventbox :onclick "shader-cycle.sh next" :onmiddleclick "shader-random.sh"
@@ -256,10 +263,9 @@
       (label :class "bar-mpris-text" :text "♫ ${bar_mpris}" :limit-width 30))))
 
 (defwidget rg-segment [label value color]
-  (box :class "rg-seg" :spacing 4
-       :visible {value != "" && value != "idle" && value != "offline"}
-    (label :class "rg-icon ${color}" :text label)
-    (label :class "rg-val" :text value)))
+  (box :class "rg-seg ${value == '' || value == 'idle' || value == 'offline' ? 'rg-idle' : ''}" :spacing 4
+    (label :class "rg-icon ${value == '' || value == 'idle' || value == 'offline' ? 'dim' : color}" :text label)
+    (label :class "rg-val" :text {value == "" || value == "idle" ? "—" : value == "offline" ? "off" : value})))
 
 (defwidget bar-fleet []
   (box :class "bar-fleet" :orientation "h" :spacing 8
@@ -269,10 +275,9 @@
     (rg-segment :label "󰧑" :value rg_models :color "yellow")
     (rg-segment :label "🔍" :value rg_repos :color "cyan")
     (rg-segment :label "󰔚" :value rg_iters :color "dim")
-    (box :class "rg-seg" :spacing 4
-         :visible {k8s_ctx != "" && k8s_ctx != "offline"}
-      (label :class "rg-icon cyan" :text "⎈")
-      (label :class "rg-val" :text k8s_ctx))))
+    (box :class "rg-seg ${k8s_ctx == '' || k8s_ctx == 'offline' ? 'rg-idle' : ''}" :spacing 4
+      (label :class "rg-icon ${k8s_ctx == '' || k8s_ctx == 'offline' ? 'dim' : 'cyan'}" :text "⎈")
+      (label :class "rg-val" :text {k8s_ctx == "" || k8s_ctx == "offline" ? "—" : k8s_ctx}))))
 
 (defwidget bar-left [workspaces]
   (box :class "bar-left" :orientation "h" :spacing 8 :halign "start"

@@ -156,6 +156,31 @@ $red: #ff5c57;
   color: $dim;
 }
 
+// ── Volume slider (hover-reveal) ─────────────
+.bar-vol-slider {
+  min-width: 80px;
+  margin-left: 4px;
+
+  trough {
+    min-height: 4px;
+    background-color: rgba(104, 104, 104, 0.3);
+    border-radius: 2px;
+  }
+
+  highlight {
+    min-height: 4px;
+    background-color: $yellow;
+    border-radius: 2px;
+  }
+
+  slider {
+    min-width: 8px;
+    min-height: 8px;
+    border-radius: 50%;
+    background-color: $fg;
+  }
+}
+
 // ── Shader status ────────────────────────────
 .bar-shader {
   padding: 0 4px;
@@ -184,6 +209,10 @@ $red: #ff5c57;
 
 .rg-seg {
   padding: 0 2px;
+}
+
+.rg-idle {
+  opacity: 0.4;
 }
 
 .rg-icon {
