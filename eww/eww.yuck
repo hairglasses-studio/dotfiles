@@ -1,6 +1,7 @@
-; ── Cyberpunk dashboard overlay ────────────────────
-; Launch: eww open dashboard
-; Close:  eww close dashboard
+; ── Cyberpunk sidebar (elenapan-inspired) ──────────
+; Launch: eww open sidebar
+; Close:  eww close sidebar
+; Pages:  0=Home  1=Media  2=Fleet
 
 ; ── Polling variables ─────────────────────────────
 (defpoll cpu_usage :interval "2s"
@@ -35,6 +36,38 @@
 
 (defpoll now_playing :interval "3s"
   `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
+
+; ── MPRIS variables (sidebar media page) ─────────
+(defpoll mpris_artist :interval "3s"
+  `playerctl metadata artist 2>/dev/null || echo ""`)
+
+(defpoll mpris_title :interval "3s"
+  `playerctl metadata title 2>/dev/null || echo ""`)
+
+(defpoll mpris_album :interval "3s"
+  `playerctl metadata album 2>/dev/null || echo ""`)
+
+(defpoll mpris_status :interval "2s"
+  `playerctl status 2>/dev/null || echo "Stopped"`)
+
+(defpoll mpris_position :interval "1s"
+  `playerctl position --format '{{duration(position)}}' 2>/dev/null || echo "0:00"`)
+
+(defpoll mpris_length :interval "3s"
+  `playerctl metadata --format '{{duration(mpris:length)}}' 2>/dev/null || echo "0:00"`)
+
+(defpoll mpris_progress :interval "1s"
+  `python3 -c "
+import subprocess
+try:
+    pos = float(subprocess.check_output(['playerctl','position'], stderr=subprocess.DEVNULL).strip())
+    length = float(subprocess.check_output(['playerctl','metadata','mpris:length'], stderr=subprocess.DEVNULL).strip()) / 1000000
+    print(int(pos/length*100) if length > 0 else 0)
+except: print(0)
+" 2>/dev/null || echo "0"`)
+
+; ── Sidebar state variables ──────────────────────
+(defvar sidebar-page 0)
 
 ; ── Widgets ───────────────────────────────────────
 
@@ -80,8 +113,18 @@
   (box :class "footer" :orientation "h" :space-evenly true
     (label :class "footer-text" :text "UPTIME: ${uptime_val}")))
 
-(defwidget dashboard-content []
-  (box :class "dashboard" :orientation "v" :spacing 8
+; ── Sidebar tabs ─────────────────────────────────
+
+(defwidget sidebar-tabs []
+  (box :class "sidebar-tabs" :orientation "h" :spacing 8 :halign "center"
+    (button :class "sidebar-tab ${sidebar-page == 0 ? 'active' : ''}" :onclick "eww update sidebar-page=0" "")
+    (button :class "sidebar-tab ${sidebar-page == 1 ? 'active' : ''}" :onclick "eww update sidebar-page=1" "")
+    (button :class "sidebar-tab ${sidebar-page == 2 ? 'active' : ''}" :onclick "eww update sidebar-page=2" "↻")))
+
+; ── Page 1: Home (System Metrics) ────────────────
+
+(defwidget sidebar-home []
+  (box :class "sidebar-page" :orientation "v" :spacing 8 :visible {sidebar-page == 0}
     (header)
     (clock-widget)
     (system-metrics)
@@ -89,14 +132,82 @@
     (now-playing-widget)
     (footer)))
 
+; ── Page 2: Media (MPRIS Controls) ───────────────
+
+(defwidget sidebar-media []
+  (box :class "sidebar-page sidebar-media" :orientation "v" :spacing 12 :visible {sidebar-page == 1}
+    (box :class "media-header" :halign "center"
+      (label :class "media-header-text" :text "MEDIA CONTROL"))
+    (box :class "media-art-placeholder" :halign "center" :valign "center"
+      (label :class "media-art-icon" :text {mpris_status == "Playing" ? "" : mpris_status == "Paused" ? "" : ""}))
+    (box :class "media-info" :orientation "v" :space-evenly false :halign "center"
+      (label :class "media-title" :text {mpris_title != "" ? mpris_title : "Nothing playing"} :limit-width 35)
+      (label :class "media-artist" :text {mpris_artist != "" ? mpris_artist : "—"} :limit-width 35)
+      (label :class "media-album" :text {mpris_album != "" ? mpris_album : ""} :limit-width 35 :visible {mpris_album != ""}))
+    (box :class "media-progress" :orientation "v" :space-evenly false
+      (scale :class "media-progress-bar" :min 0 :max 101 :value mpris_progress :orientation "h")
+      (box :class "media-times" :orientation "h" :space-evenly true
+        (label :class "media-time" :text mpris_position :halign "start")
+        (label :class "media-time" :text mpris_length :halign "end")))
+    (box :class "media-controls" :orientation "h" :spacing 24 :halign "center"
+      (button :class "media-btn" :onclick "playerctl previous" "")
+      (button :class "media-btn media-btn-play" :onclick "playerctl play-pause"
+        {mpris_status == "Playing" ? "" : ""})
+      (button :class "media-btn" :onclick "playerctl next" ""))
+    (box :class "media-volume" :orientation "h" :spacing 8 :halign "center"
+      (label :class "media-vol-icon" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
+      (scale :class "media-vol-slider" :min 0 :max 101 :value bar_vol
+             :orientation "h"
+             :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ {}%")
+      (label :class "media-vol-val" :text "${bar_vol}%"))))
+
+; ── Page 3: Fleet (Ralphglasses Status) ──────────
+
+(defwidget fleet-row [icon label value color]
+  (box :class "fleet-row" :orientation "h" :spacing 12
+    (label :class "fleet-icon ${color}" :text icon)
+    (label :class "fleet-label" :text label)
+    (label :class "fleet-value ${value == '' || value == 'idle' || value == 'offline' ? 'fleet-dim' : ''}"
+           :text {value == "" || value == "idle" ? "—" : value == "offline" ? "OFFLINE" : value}
+           :halign "end" :hexpand true)))
+
+(defwidget sidebar-fleet []
+  (box :class "sidebar-page sidebar-fleet" :orientation "v" :spacing 8 :visible {sidebar-page == 2}
+    (box :class "fleet-header" :halign "center"
+      (label :class "fleet-header-text" :text "RALPHGLASSES FLEET"))
+    (box :class "fleet-section" :orientation "v" :spacing 6
+      (fleet-row :icon "↻" :label "Fleet Status" :value rg_fleet :color "green")
+      (fleet-row :icon "⟳" :label "Active Loops" :value rg_loops :color "magenta")
+      (fleet-row :icon "$" :label "Session Cost" :value rg_cost :color "green")
+      (fleet-row :icon "󰧑" :label "Models" :value rg_models :color "yellow")
+      (fleet-row :icon "🔍" :label "Repositories" :value rg_repos :color "cyan")
+      (fleet-row :icon "󰔚" :label "Iterations" :value rg_iters :color "dim"))
+    (box :class "fleet-divider")
+    (box :class "fleet-section" :orientation "v" :spacing 6
+      (box :class "fleet-section-title"
+        (label :class "fleet-section-label" :text "INFRASTRUCTURE"))
+      (fleet-row :icon "⎈" :label "K8s Context" :value k8s_ctx :color "cyan"))))
+
+; ── Sidebar container ────────────────────────────
+
+(defwidget sidebar-content []
+  (eventbox :onscroll "[ '{}' = 'up' ] && eww update sidebar-page=$(( (${sidebar-page} + 2) % 3 )) || eww update sidebar-page=$(( (${sidebar-page} + 1) % 3 ))"
+    (box :class "sidebar" :orientation "v" :spacing 8
+      (sidebar-tabs)
+      (sidebar-home)
+      (sidebar-media)
+      (sidebar-fleet))))
+
 ; ══════════════════════════════════════════════════
 ; ── STATUS BAR (replaces waybar) ─────────────────
 ; ══════════════════════════════════════════════════
 
 ; ── Bar polling variables ────────────────────────
 
-(defpoll bar_vol :interval "2s"
-  `wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk '{printf "%.0f", $2*100}' || echo "0"`)
+(deflisten bar_vol `$HOME/hairglasses-studio/dotfiles/scripts/eww-volume.sh`)
+
+(defpoll bar_weather :interval "1800s"
+  `$HOME/hairglasses-studio/dotfiles/scripts/eww-weather.sh 2>/dev/null || echo ""`)
 
 (defpoll bar_shader :interval "10s"
   `cat ~/.local/state/shader-cycle/current 2>/dev/null | xargs basename 2>/dev/null | sed 's/\.glsl$//' || echo ""`)
@@ -187,7 +298,7 @@
   (label :class "bar-title" :text {bar_window ?: ""} :limit-width 40))
 
 (defwidget bar-clock []
-  (eventbox :onclick "eww open --toggle dashboard"
+  (eventbox :onclick "eww open --toggle sidebar"
     (box :class "bar-clock" :orientation "v" :space-evenly false :valign "center"
       (label :class "bar-time" :text bar_time)
       (label :class "bar-date" :text bar_date))))
@@ -236,6 +347,10 @@
            :text {bar_mx_battery == "" ? "" : bar_mx_battery <= 20 ? "󰁺" : bar_mx_battery <= 50 ? "󰁾" : "󰂂"})
     (label :class "bar-metric-val mx-${bar_mx_class}" :text "${bar_mx_battery}%")))
 
+(defwidget bar-weather-display []
+  (box :class "bar-metric" :spacing 4 :visible {bar_weather != ""}
+    (label :class "bar-icon cyan" :text {bar_weather ?: ""})))
+
 (defwidget bar-sys []
   (box :class "bar-sys" :orientation "h" :spacing 12
     (eventbox :onclick "ghostty --gtk-single-instance=false -e htop"
@@ -252,6 +367,7 @@
     (bar-updates-display)
     (bar-mx-battery)
     (bar-vol-display)
+    (bar-weather-display)
     (eventbox :onclick "ghostty --gtk-single-instance=false -e nmtui"
       (box :class "bar-metric" :spacing 4
         (label :class "bar-icon green" :text "")
@@ -326,17 +442,46 @@
   (bar-layout :workspaces bar_workspaces_dp2))
 
 ; ══════════════════════════════════════════════════
-; ── DASHBOARD OVERLAY ────────────────────────────
+; ── POWER MENU ───────────────────────────────────
 ; ══════════════════════════════════════════════════
 
-; ── Window ────────────────────────────────────────
+(defvar powermenu-visible false)
 
-(defwindow dashboard
+(defwidget powermenu-button [label icon command color]
+  (button :class "pm-button ${color}" :onclick "${command} & eww update powermenu-visible=false"
+    (box :orientation "v" :spacing 8 :space-evenly false
+      (label :class "pm-icon" :text icon)
+      (label :class "pm-label" :text label))))
+
+(defwidget powermenu-content []
+  (box :class "powermenu" :orientation "v" :space-evenly false :valign "center" :halign "center"
+    (label :class "pm-header" :text "⟨ SESSION ⟩")
+    (box :class "pm-buttons" :orientation "h" :spacing 24 :halign "center"
+      (powermenu-button :label "Lock" :icon "" :command "hyprlock" :color "cyan")
+      (powermenu-button :label "Logout" :icon "󰍃" :command "hyprctl dispatch exit" :color "magenta")
+      (powermenu-button :label "Suspend" :icon "󰒲" :command "systemctl suspend" :color "green")
+      (powermenu-button :label "Reboot" :icon "" :command "systemctl reboot" :color "yellow")
+      (powermenu-button :label "Shutdown" :icon "⏻" :command "systemctl poweroff" :color "red"))
+    (label :class "pm-hint" :text "ESC to cancel")))
+
+(defwindow powermenu
   :monitor 0
-  :geometry (geometry :x "20px" :y "50px"
-                      :width "340px" :height "360px"
+  :geometry (geometry :x "0px" :y "0px" :width "100%" :height "100%" :anchor "center center")
+  :stacking "overlay"
+  :exclusive false
+  :focusable true
+  (powermenu-content))
+
+; ══════════════════════════════════════════════════
+; ── SIDEBAR ──────────────────────────────────────
+; ══════════════════════════════════════════════════
+
+(defwindow sidebar
+  :monitor 0
+  :geometry (geometry :x "0px" :y "40px"
+                      :width "360px" :height "100%"
                       :anchor "top right")
   :stacking "overlay"
   :exclusive false
   :focusable false
-  (dashboard-content))
+  (sidebar-content))
