@@ -58,13 +58,23 @@ compositor_output() {
   esac
 }
 
+# Get Hyprland socket2 path (supports XDG_RUNTIME_DIR and /tmp fallback)
+hypr_socket2() {
+  local xdg="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+  local sig="$HYPRLAND_INSTANCE_SIGNATURE"
+  for path in "$xdg/hypr/$sig/.socket2.sock" "/tmp/hypr/$sig/.socket2.sock"; do
+    [[ -S "$path" ]] && echo "$path" && return
+  done
+  echo "/tmp/hypr/$sig/.socket2.sock"
+}
+
 # Subscribe to compositor events (blocking, pipe-friendly)
 # Usage: compositor_subscribe workspace | while read -r line; do ...; done
 compositor_subscribe() {
   local events="$1"
   case "$(compositor_type)" in
     hyprland)
-      socat -u "UNIX-CONNECT:/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" - 2>/dev/null
+      socat -u "UNIX-CONNECT:$(hypr_socket2)" - 2>/dev/null
       ;;
     sway)
       swaymsg -t subscribe "[\"$events\"]" 2>/dev/null
