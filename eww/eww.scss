@@ -802,3 +802,211 @@ $red: #ff5c57;
   color: $dim;
   opacity: 0.5;
 }
+
+// ══════════════════════════════════════════════════
+// ── WS1: CIRCULAR PROGRESS RINGS ────────────────
+// ══════════════════════════════════════════════════
+
+.metric-ring {
+  min-width: 54px;
+  min-height: 70px;
+  padding: 4px;
+}
+
+.ring-bg {
+  color: rgba(255, 255, 255, 0.08);
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.ring-cyan    { color: $cyan; min-width: 48px; min-height: 48px; }
+.ring-magenta { color: $magenta; min-width: 48px; min-height: 48px; }
+.ring-green   { color: $green; min-width: 48px; min-height: 48px; }
+.ring-yellow  { color: $yellow; min-width: 48px; min-height: 48px; }
+.ring-red     { color: $red; min-width: 48px; min-height: 48px; }
+
+.ring-value {
+  color: $fg;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.ring-label {
+  color: $dim;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+
+// ══════════════════════════════════════════════════
+// ── WS2: CALENDAR PAGE ──────────────────────────
+// ══════════════════════════════════════════════════
+
+.sidebar-calendar {
+  padding: 12px;
+}
+
+.cal-header {
+  padding: 8px 0;
+}
+
+.cal-header-text {
+  color: $cyan;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-shadow: 0 0 6px rgba(87, 199, 255, 0.4);
+}
+
+.cal-days-header {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(87, 199, 255, 0.2);
+}
+
+.cal-day-name {
+  color: $cyan;
+  font-size: 10px;
+  font-weight: bold;
+  min-width: 36px;
+
+  &.dim { color: $dim; }
+}
+
+.cal-week {
+  padding: 2px 0;
+}
+
+.cal-day {
+  color: $fg;
+  font-size: 11px;
+  min-width: 36px;
+  min-height: 28px;
+  border-radius: 4px;
+  transition: all 150ms ease;
+}
+
+.cal-today {
+  color: $bg-dark;
+  background-color: $cyan;
+  font-weight: bold;
+  text-shadow: none;
+  border-radius: 50%;
+}
+
+.cal-other {
+  color: transparent;
+}
+
+.cal-events {
+  padding: 8px 0;
+  border-top: 1px solid rgba(87, 199, 255, 0.2);
+  margin-top: 8px;
+}
+
+.cal-events-header {
+  color: $dim;
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding-bottom: 4px;
+}
+
+.cal-event {
+  padding: 4px 0;
+}
+
+.cal-event-time {
+  color: $cyan;
+  font-size: 10px;
+  font-weight: bold;
+  min-width: 48px;
+}
+
+.cal-event-title {
+  color: $fg;
+  font-size: 11px;
+}
+
+// ══════════════════════════════════════════════════
+// ── WS3: ANIMATION POLISH ───────────────────────
+// ══════════════════════════════════════════════════
+
+// Hover glow on interactive bar elements
+.bar-shader-name {
+  transition: text-shadow 300ms ease;
+}
+
+.bar-shader:hover .bar-shader-name {
+  text-shadow: 0 0 8px rgba(255, 106, 193, 0.7);
+}
+
+.bar-mpris:hover .bar-mpris-text {
+  text-shadow: 0 0 8px rgba(255, 106, 193, 0.6);
+}
+
+// Workspace active scale bump
+.bar-ws-active {
+  transition: all 200ms ease;
+  font-weight: bold;
+}
+
+// Power menu button hover scale
+.pm-button:hover {
+  transition: all 200ms ease;
+
+  .pm-icon {
+    font-size: 32px;
+  }
+}
+
+// RG fleet segment hover reveal (dim → bright)
+.rg-seg {
+  transition: opacity 200ms ease;
+}
+
+.rg-idle:hover {
+  opacity: 0.8 !important;
+}
+
+.rg-idle:hover .rg-val {
+  color: $fg;
+}
+
+// Sidebar tab active glow spread
+.sidebar-tab.active {
+  text-shadow: 0 0 10px rgba(87, 199, 255, 0.6), 0 0 20px rgba(87, 199, 255, 0.3);
+}
+
+// Smooth metric threshold color transitions
+.bar-metric-val {
+  transition: color 400ms ease, text-shadow 400ms ease;
+}
+
+// ══════════════════════════════════════════════════
+// ── WS4: CAVA AUDIO VISUALIZATION ───────────────
+// ══════════════════════════════════════════════════
+
+.bar-cava {
+  padding: 0 4px;
+  min-height: 20px;
+  margin: 8px 0;
+}
+
+.cava-bar {
+  min-width: 2px;
+  border-radius: 1px;
+}
+
+.cava-fill {
+  min-width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(to top, $cyan, $magenta);
+  transition: min-height 50ms ease;
+}
+
+// ══════════════════════════════════════════════════
+// ── WS5: DYNAMIC THEMING ────────────────────────
+// ══════════════════════════════════════════════════
+
+// Theme overrides are loaded from theme-colors.scss when generated
+// by eww-theme-gen.sh after wallpaper changes. If the file doesn't
+// exist, Snazzy palette defaults above are used.
+// Usage: $theme-primary, $theme-secondary, $theme-tertiary
