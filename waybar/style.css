@@ -109,27 +109,8 @@ window#waybar {
     color: #686868;
 }
 
-#custom-mx-battery {
-    color: #5af78e;
-    transition: all 300ms ease;
-}
-
-#custom-mx-battery.warning {
-    color: #f3f99d;
-}
-
-#custom-mx-battery.critical {
-    color: #ff5c57;
-    text-shadow: 0 0 4px #ff5c57;
-}
-
-#custom-mx-battery.disconnected {
-    color: #686868;
-}
-
 /* ── Module spacing ─────────────────────────────── */
 
-#custom-mx-battery,
 #battery,
 #cpu,
 #network,
