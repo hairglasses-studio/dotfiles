@@ -7,6 +7,8 @@ set -euo pipefail
 
 SHADER_DIR="${HOME}/.config/ghostty/shaders"
 CONFIG="${HOME}/.config/ghostty/config"
+BAR_STATE_DIR="$HOME/.local/state/shader-cycle"
+BAR_STATE_FILE="$BAR_STATE_DIR/current"
 
 # Collect all .glsl files
 shaders=()
@@ -40,3 +42,7 @@ sed "s|^custom-shader = .*|custom-shader = ${pick}|" "$CONFIG" \
   | sed "s|^custom-shader-animation = .*|custom-shader-animation = ${anim}|" \
   > "$tmp"
 mv "$tmp" "$CONFIG"
+
+# Write state for eww bar
+mkdir -p "$BAR_STATE_DIR" 2>/dev/null
+printf '%s' "$pick" > "$BAR_STATE_FILE"

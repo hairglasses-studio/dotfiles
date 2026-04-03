@@ -18,6 +18,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHADERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 STATE_DIR="$HOME/.local/state/ghostty"
 CYCLE_FILE="$STATE_DIR/cycle-index"
+BAR_STATE_DIR="$HOME/.local/state/shader-cycle"
+BAR_STATE_FILE="$BAR_STATE_DIR/current"
 GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
 if [[ "$(uname)" == "Darwin" ]]; then
     TATTOY_CONFIG="$HOME/Library/Application Support/tattoy/tattoy.toml"
@@ -44,7 +46,7 @@ CYCLE=(
 
 CYCLE_LEN=${#CYCLE[@]}
 
-mkdir -p "$STATE_DIR" 2>/dev/null
+mkdir -p "$STATE_DIR" "$BAR_STATE_DIR" 2>/dev/null
 
 # ── Read current index ──────────────────────────
 idx=0
@@ -123,9 +125,11 @@ set_tattoy_shader() {
 if [[ "$entry" == "tattoo" || "$entry" == "tattoy" ]]; then
   clear_ghostty_shader
   set_tattoy_shader "true"
+  printf '%s' "tattoy" > "$BAR_STATE_FILE"
   echo "→ tattoy (shader + cursor layers)"
 else
   apply_ghostty_shader "$entry"
   set_tattoy_shader "false"
+  printf '%s' "$SHADERS_DIR/$entry" > "$BAR_STATE_FILE"
   echo "→ $entry"
 fi
