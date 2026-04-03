@@ -285,6 +285,12 @@
 (defpoll bar_mx_class :interval "300s" :initial "disconnected"
   `$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r '.class // "disconnected"' || echo "disconnected"`)
 
+; ── MCP audit summary ──
+(defpoll audit_summary :interval "60s" :initial ""
+  `jq -s 'length as $total | [.[] | select(.error)] | length as $errs |
+   if $total > 0 then "\($total) calls \($errs) err" else "" end'
+   ${XDG_STATE_HOME:-$HOME/.local/state}/mcpkit/audit.jsonl 2>/dev/null || echo ""`)
+
 ; ── Ralphglasses fleet variables (single cache read) ──
 
 (defpoll rg_data :interval "30s" :initial '{"fleet":"","loops":"","cost":"","models":"","repos":"","iters":""}'
