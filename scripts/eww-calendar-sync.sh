@@ -16,7 +16,7 @@ END=$(date -d "+7 days" +%Y-%m-%d)
 fetch_gcalcli() {
   # gcalcli agenda output: date time - time title
   # Parse into JSON with python
-  gcalcli agenda "$TODAY" "$END" --tsv 2>/dev/null | python3 -c "
+  gcalcli agenda "$TODAY" "$END" --tsv 2>/dev/null | tail -n +2 | python3 -c "
 import sys, json, datetime
 
 events = []
