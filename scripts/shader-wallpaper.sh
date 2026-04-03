@@ -14,6 +14,9 @@ FPS="${SHADER_WALLPAPER_FPS:-30}"
 
 mkdir -p "$(dirname "$STATE_FILE")"
 
+# ── Pre-flight: require shaderbg ──────────────
+command -v shaderbg &>/dev/null || { echo "error: shaderbg not found in PATH" >&2; exit 1; }
+
 _get_output() {
   compositor_output
 }

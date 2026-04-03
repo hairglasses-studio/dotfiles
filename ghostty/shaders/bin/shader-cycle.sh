@@ -48,6 +48,9 @@ CYCLE_LEN=${#CYCLE[@]}
 
 mkdir -p "$STATE_DIR" "$BAR_STATE_DIR" 2>/dev/null
 
+# ── Pre-flight checks ─────────────────────────
+[[ -f "$GHOSTTY_CONFIG" ]] || { echo "error: ghostty config not found: $GHOSTTY_CONFIG" >&2; exit 1; }
+
 # ── Read current index ──────────────────────────
 idx=0
 if [[ -f "$CYCLE_FILE" ]]; then
