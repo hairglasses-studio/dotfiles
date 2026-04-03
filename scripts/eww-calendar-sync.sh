@@ -5,6 +5,14 @@
 # Designed to run as a oneshot via systemd timer (every 5 min).
 set -euo pipefail
 
+# Load credentials for gcalcli
+ENV_FILE="$HOME/hairglasses-studio/.env"
+[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+
+GCALCLI_ARGS=()
+[[ -n "${GOOGLE_CALENDAR_CLIENT_ID:-}" ]] && GCALCLI_ARGS+=(--client-id "$GOOGLE_CALENDAR_CLIENT_ID")
+[[ -n "${GOOGLE_CALENDAR_CLIENT_SECRET:-}" ]] && GCALCLI_ARGS+=(--client-secret "$GOOGLE_CALENDAR_CLIENT_SECRET")
+
 STATE_DIR="$HOME/.local/state/hg"
 CACHE="$STATE_DIR/calendar-events.json"
 
@@ -16,7 +24,7 @@ END=$(date -d "+7 days" +%Y-%m-%d)
 fetch_gcalcli() {
   # gcalcli agenda output: date time - time title
   # Parse into JSON with python
-  gcalcli agenda "$TODAY" "$END" --tsv 2>/dev/null | tail -n +2 | python3 -c "
+  gcalcli "${GCALCLI_ARGS[@]}" agenda "$TODAY" "$END" --tsv 2>/dev/null | tail -n +2 | python3 -c "
 import sys, json, datetime
 
 events = []
