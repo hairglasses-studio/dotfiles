@@ -372,21 +372,9 @@ fi
 shader-next 2>/dev/null
 
 # ── Auto-attach tmux on login (session persistence) ──
-# tmux-continuum restores all saved sessions on first attach after boot.
-# Only auto-attach if no client is already attached to "main" (prevents duplicate views).
-if [[ $SHLVL -eq 1 && -z "$TMUX" && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" && $- == *i* ]]; then
-  if command -v tmux &>/dev/null; then
-    if timeout 5 tmux has-session -t main 2>/dev/null; then
-      local attached
-      attached=$(timeout 5 tmux list-clients -t main 2>/dev/null | wc -l)
-      if (( attached == 0 )); then
-        timeout 5 tmux attach-session -t main
-      fi
-    else
-      timeout 5 tmux new-session -s main
-    fi
-  fi
-fi
+# Disabled — prefer fresh terminals at ~/hairglasses-studio.
+# tmux-resurrect restores old session dirs which overrides the cd above.
+# Run `tmux attach -t main` or `tmux new` manually when needed.
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
