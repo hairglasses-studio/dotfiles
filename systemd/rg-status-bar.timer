@@ -1,0 +1,16 @@
+# rg-status-bar.timer — Periodic fleet status refresh
+#
+# Triggers rg-status-bar.service every 30 seconds to keep the
+# eww bar fleet widgets fresh via cache.
+#
+# Enable: systemctl --user enable --now rg-status-bar.timer
+
+[Unit]
+Description=Refresh ralphglasses fleet status every 30s
+
+[Timer]
+OnBootSec=10
+OnUnitActiveSec=30
+
+[Install]
+WantedBy=timers.target
