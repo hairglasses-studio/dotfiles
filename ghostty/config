@@ -58,7 +58,7 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /home/hg/.config/ghostty/shaders/starfield-alt.glsl
+custom-shader = /home/hg/.config/ghostty/shaders/underwater.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
@@ -67,12 +67,12 @@ link-url = true
 # ── Terminal behavior ───────────────────────────
 gtk-single-instance = false
 scrollback-limit = 10000
-copy-on-select = clipboard
+copy-on-select = true
 mouse-hide-while-typing = true
 cursor-style = bar
 cursor-style-blink = false
 shell-integration = zsh
-window-save-state = always
+window-save-state = never
 desktop-notifications = true
 
 # ── Splits ─────────────────────────────────────
@@ -90,6 +90,8 @@ font-thicken = true
 clipboard-read = allow
 clipboard-write = allow
 clipboard-paste-protection = false
+keybind = ctrl+c=copy_to_clipboard
+keybind = ctrl+v=paste_from_clipboard
 
 # ── Tab keybinds ───────────────────────────────
 keybind = super+shift+left_bracket=previous_tab
@@ -97,4 +99,3 @@ keybind = super+shift+right_bracket=next_tab
 
 # ── Window management ─────────────────────────
 keybind = super+enter=toggle_fullscreen
-window-save-state = always
