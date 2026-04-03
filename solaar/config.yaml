@@ -17,7 +17,7 @@
   hires-smooth-invert: false
   hires-smooth-resolution: true
   reprogrammable-keys: {82: 82, 83: 83, 86: 86, 195: 195, 196: 196, 416: 416}
-  scroll-ratchet: 1
+  scroll-ratchet: 2
   scroll-ratchet-torque: 75
   smart-shift: 1
   thumb-scroll-invert: false
