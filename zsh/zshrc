@@ -12,13 +12,18 @@ if [[ "$PROMPT_ENGINE" == "p10k" ]]; then
   fi
 fi
 
-# ── Safe eval (timeout protection for shell startup) ──
-_safe_eval() {
-  local secs=$1; shift
-  local output
-  output=$(timeout "$secs" "$@" 2>/dev/null) && eval "$output" || {
-    printf '\e[38;5;243m[zshrc] timed out: %s\e[0m\n' "$*" >&2
-  }
+# ── Cached eval (24h cache for shell init scripts) ──
+_cached_eval() {
+  local name=$1; shift
+  local cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh-eval-cache/${name}.zsh"
+  if [[ ! -f "$cache" ]] || [[ -n "$(find "$cache" -mmin +1440 2>/dev/null)" ]]; then
+    mkdir -p "${cache%/*}"
+    timeout 3 "$@" > "$cache" 2>/dev/null || {
+      printf '\e[38;5;243m[zshrc] cache gen failed: %s\e[0m\n' "$*" >&2
+      return 1
+    }
+  fi
+  source "$cache"
 }
 
 # ── PATH ────────────────────────────────────────
@@ -55,18 +60,11 @@ plugins=(
     zsh-autosuggestions
     zsh-completions
     you-should-use
-    z
     fzf
     fzf-tab
 
     # Productivity
     vi-mode
-    dotenv
-    catimg
-
-    # macOS
-    brew
-    macos
 
     # Stack-specific
     aws
@@ -75,7 +73,6 @@ plugins=(
     1password
     jsontools
     encode64
-    kubectx
     tmux
 )
 
@@ -90,7 +87,7 @@ source "$ZSH/oh-my-zsh.sh"
 
 # ── Personal aliases ───────────────────────────
 alias claude='claude --dangerously-skip-permissions'
-alias ralph="bash /Users/mitchnotmitchell/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
+alias ralph="bash $HOME/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
 
 # ── Modern CLI replacements ─────────────────────
 alias ls='eza --icons --group-directories-first'
@@ -173,14 +170,6 @@ _cmd_timer_precmd() {
   if [[ -n "$_CMD_START_TIME" ]]; then
     local elapsed=$(( EPOCHSECONDS - _CMD_START_TIME ))
     if (( elapsed > 30 )) && [[ -t 1 ]]; then
-      # System notification (macOS)
-      if command -v terminal-notifier &>/dev/null; then
-        terminal-notifier \
-          -title "Command Complete" \
-          -message "${_CMD_NAME} finished (${elapsed}s)" \
-          -sound Glass \
-          -group "zsh-timer" &>/dev/null
-      fi
       # Animated terminal celebration
       if command -v tte &>/dev/null; then
         if (( last_status == 0 )); then
@@ -225,18 +214,13 @@ zstyle ':fzf-tab:*' insert-space false
 zstyle ':fzf-tab:complete:cd:*' extra-opts --preview='ls -la $realpath 2>/dev/null'
 
 # ── Zoxide (smart cd) ──────────────────────────
-_safe_eval 3 zoxide init zsh
+_cached_eval zoxide zoxide init zsh
 
 # ── direnv (per-directory env vars) ────────────
-command -v direnv &>/dev/null && _safe_eval 3 direnv hook zsh
-
-# ── onefetch on entering git repos ───────────
-# Disabled — prefer minimal startup (run `onefetch` manually)
-# _onefetch_chpwd() { ... }
-# chpwd_functions+=(_onefetch_chpwd)
+command -v direnv &>/dev/null && _cached_eval direnv direnv hook zsh
 
 # ── fzf (fuzzy finder) ─────────────────────────
-_safe_eval 3 fzf --zsh
+_cached_eval fzf fzf --zsh
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='
   --color=bg+:#1a1a1a,bg:#000000,spinner:#ff6ac1,hl:#57c7ff
@@ -332,7 +316,7 @@ fi
 
 # ── Prompt engine init ──────────────────────────
 if [[ "$PROMPT_ENGINE" == "starship" ]]; then
-  _safe_eval 3 starship init zsh
+  _cached_eval starship starship init zsh
 elif [[ "$PROMPT_ENGINE" == "p10k" ]]; then
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 fi
@@ -369,18 +353,13 @@ fi
 [[ -d "$HOME/hairglasses-studio" ]] && cd "$HOME/hairglasses-studio"
 
 # ── Shuffled Ghostty shader per terminal ──────
-shader-next 2>/dev/null
-
-# ── Auto-attach tmux on login (session persistence) ──
-# Disabled — prefer fresh terminals at ~/hairglasses-studio.
-# tmux-resurrect restores old session dirs which overrides the cd above.
-# Run `tmux attach -t main` or `tmux new` manually when needed.
+{ timeout 2 shader-next 2>/dev/null & } 2>/dev/null
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 
 # Codex stashapp full-access wrapper
-source "/home/hg/.zshrc.d/codex-stashapp-full-access.zsh"
+[[ -f "$HOME/.zshrc.d/codex-stashapp-full-access.zsh" ]] && source "$HOME/.zshrc.d/codex-stashapp-full-access.zsh"
 
 # Android SDK (kirkwood dev)
 export ANDROID_HOME="$HOME/Android/Sdk"
