@@ -1046,5 +1046,8 @@ shader-pick() {
   echo "Shader set to: $shader_name (animation=$anim)"
 }
 
+# MCP audit dashboard
+alias audit='$HOME/hairglasses-studio/dotfiles/scripts/audit-dashboard.sh'
+
 # Load local aliases if they exist
 [[ -f "$HOME/.aliases.local" ]] && source "$HOME/.aliases.local"
