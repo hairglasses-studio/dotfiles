@@ -116,14 +116,18 @@ _hyprland() {
     fi
   }
 
-  _hypr_workspaces "$monitor"
-  socat -u "UNIX-CONNECT:$(hypr_socket2)" - 2>/dev/null | while read -r line; do
-    case "$line" in
-      workspace*|createworkspace*|destroyworkspace*|focusedmon*|moveworkspace*|activespecial*)
-        _hypr_workspaces "$monitor"
-        ;;
-    esac
-  done
+  _hypr_listen() {
+    _hypr_workspaces "$monitor"
+    socat -u "UNIX-CONNECT:$(hypr_socket2)" - 2>/dev/null | while read -r line; do
+      case "$line" in
+        workspace*|createworkspace*|destroyworkspace*|focusedmon*|moveworkspace*|activespecial*)
+          _hypr_workspaces "$monitor"
+          ;;
+      esac
+    done
+  }
+
+  resilient_listen _hypr_listen
 }
 
 case "$(compositor_type)" in

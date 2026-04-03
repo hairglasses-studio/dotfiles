@@ -54,7 +54,7 @@ declare -A ICONS=(
   [395]=""   # Thunder + heavy snow
 )
 
-weather=$(curl -sf "https://wttr.in/?format=j1" 2>/dev/null) || exit 0
+weather=$(curl -sf --connect-timeout 5 --max-time 10 "https://wttr.in/?format=j1" 2>/dev/null) || exit 0
 
 temp=$(echo "$weather" | jq -r '.current_condition[0].temp_C // empty' 2>/dev/null) || exit 0
 code=$(echo "$weather" | jq -r '.current_condition[0].weatherCode // empty' 2>/dev/null) || exit 0

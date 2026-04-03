@@ -22,7 +22,7 @@
 (defpoll net_up :interval "2s" :initial "0.0"
   `awk 'NR>2{u+=$10}END{printf "%.1f", u/1024/1024}' /proc/net/dev`)
 
-(defpoll disk_usage :interval "30s"
+(defpoll disk_usage :interval "30s" :initial ""
   `df -h / | awk 'NR==2{print $5}'`)
 
 (defpoll uptime_val :interval "60s" :initial ""
@@ -38,22 +38,22 @@
   `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
 
 ; ── MPRIS variables (sidebar media page) ─────────
-(defpoll mpris_artist :interval "3s"
+(defpoll mpris_artist :interval "3s" :initial ""
   `playerctl metadata artist 2>/dev/null || echo ""`)
 
-(defpoll mpris_title :interval "3s"
+(defpoll mpris_title :interval "3s" :initial ""
   `playerctl metadata title 2>/dev/null || echo ""`)
 
-(defpoll mpris_album :interval "3s"
+(defpoll mpris_album :interval "3s" :initial ""
   `playerctl metadata album 2>/dev/null || echo ""`)
 
-(defpoll mpris_status :interval "2s"
+(defpoll mpris_status :interval "2s" :initial "Stopped"
   `playerctl status 2>/dev/null || echo "Stopped"`)
 
-(defpoll mpris_position :interval "1s"
+(defpoll mpris_position :interval "1s" :initial "0:00"
   `playerctl position --format '{{duration(position)}}' 2>/dev/null || echo "0:00"`)
 
-(defpoll mpris_length :interval "3s"
+(defpoll mpris_length :interval "3s" :initial "0:00"
   `playerctl metadata --format '{{duration(mpris:length)}}' 2>/dev/null || echo "0:00"`)
 
 (defpoll mpris_progress :interval "1s" :initial "0"
@@ -67,10 +67,10 @@ except: print(0)
 " 2>/dev/null || echo "0"`)
 
 ; ── Calendar variables ───────────────────────────
-(defpoll cal_data :interval "60s"
+(defpoll cal_data :interval "60s" :initial "{}"
   `$HOME/hairglasses-studio/dotfiles/scripts/eww-calendar.sh 2>/dev/null || echo '{}'`)
 
-(defpoll cal_events :interval "300s"
+(defpoll cal_events :interval "300s" :initial "[]"
   `$HOME/hairglasses-studio/dotfiles/scripts/eww-events.sh 2>/dev/null || echo '[]'`)
 
 ; ── Cava audio visualization ────────────────────
@@ -261,22 +261,22 @@ except: print(0)
 
 (deflisten bar_vol `$HOME/hairglasses-studio/dotfiles/scripts/eww-volume.sh`)
 
-(defpoll bar_weather :interval "1800s"
+(defpoll bar_weather :interval "1800s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/eww-weather.sh 2>/dev/null || echo ""`)
 
-(defpoll bar_shader :interval "10s"
+(defpoll bar_shader :interval "10s" :initial ""
   `cat ~/.local/state/shader-cycle/current 2>/dev/null | xargs basename 2>/dev/null | sed 's/\.glsl$//' || echo ""`)
 
-(defpoll bar_gpu_power :interval "10s"
+(defpoll bar_gpu_power :interval "10s" :initial ""
   `nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null | awk '{printf "%.0f", $1}' || echo ""`)
 
-(defpoll bar_gamepad :interval "5s"
+(defpoll bar_gamepad :interval "5s" :initial ""
   `test -e /dev/input/js0 && echo "󰊗" || echo ""`)
 
 (defpoll bar_bt :interval "10s" :initial "0"
   `bluetoothctl devices Connected 2>/dev/null | wc -l | tr -d ' '`)
 
-(defpoll bar_updates :interval "3600s"
+(defpoll bar_updates :interval "3600s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/eww-updates.sh`)
 
 (deflisten bar_workspaces_dp1
@@ -296,10 +296,10 @@ except: print(0)
 (deflisten active_submap :initial ""
   `bash -c 'socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | stdbuf -oL grep --line-buffered "^submap>>" | stdbuf -oL sed -u "s/^submap>>//"'`)
 
-(defpoll bar_time :interval "1s"
+(defpoll bar_time :interval "1s" :initial "00:00"
   `date '+%H:%M'`)
 
-(defpoll bar_date :interval "60s"
+(defpoll bar_date :interval "60s" :initial ""
   `date '+%a %b %d'`)
 
 (defpoll bar_cpu :interval "3s" :initial "0"
@@ -308,39 +308,39 @@ except: print(0)
 (defpoll bar_mem :interval "5s" :initial "0"
   `free -m | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
 
-(defpoll bar_net :interval "5s"
+(defpoll bar_net :interval "5s" :initial ""
   `ip -j route get 1.1.1.1 2>/dev/null | jq -r '.[0].dev // "none"'`)
 
-(defpoll bar_mpris :interval "3s"
+(defpoll bar_mpris :interval "3s" :initial ""
   `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
 
-(defpoll bar_mx_battery :interval "300s"
+(defpoll bar_mx_battery :interval "300s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r '.percentage // empty' || echo ""`)
 
-(defpoll bar_mx_class :interval "300s"
+(defpoll bar_mx_class :interval "300s" :initial "disconnected"
   `$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r '.class // "disconnected"' || echo "disconnected"`)
 
 ; ── Ralphglasses fleet variables ─────────────────
 
-(defpoll rg_fleet :interval "30s"
+(defpoll rg_fleet :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment fleet --waybar 2>/dev/null | jq -r '.text // ""'`)
 
-(defpoll rg_loops :interval "30s"
+(defpoll rg_loops :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment loops --waybar 2>/dev/null | jq -r '.text // ""'`)
 
-(defpoll rg_cost :interval "30s"
+(defpoll rg_cost :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment cost --waybar 2>/dev/null | jq -r '.text // ""'`)
 
-(defpoll rg_models :interval "30s"
+(defpoll rg_models :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment models --waybar 2>/dev/null | jq -r '.text // ""'`)
 
-(defpoll rg_repos :interval "30s"
+(defpoll rg_repos :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment repos --waybar 2>/dev/null | jq -r '.text // ""'`)
 
-(defpoll rg_iters :interval "30s"
+(defpoll rg_iters :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment iters --waybar 2>/dev/null | jq -r '.text // ""'`)
 
-(defpoll k8s_ctx :interval "30s"
+(defpoll k8s_ctx :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/k8s-context.sh 2>/dev/null | jq -r '.text // ""'`)
 
 (defvar vol_hover false)
