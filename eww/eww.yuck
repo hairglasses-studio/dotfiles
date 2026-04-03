@@ -4,11 +4,7 @@
 ; Pages:  0=Home  1=Media  2=Fleet
 
 ; ── Polling variables ─────────────────────────────
-(defpoll cpu_usage :interval "2s" :initial "0"
-  `awk '/^cpu /{printf "%.0f", ($2+$4)/($2+$4+$5)*100}' /proc/stat`)
-
-(defpoll mem_usage :interval "5s" :initial "0"
-  `free -m | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
+; Sidebar reuses bar_cpu, bar_mem, bar_time, bar_date, bar_mpris (defined below)
 
 (defpoll gpu_temp :interval "5s" :initial "0"
   `nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null || echo "N/A"`)
@@ -16,26 +12,14 @@
 (defpoll gpu_util :interval "5s" :initial "0"
   `nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo "0"`)
 
-(defpoll net_down :interval "2s" :initial "0.0"
-  `awk 'NR>2{d+=$2}END{printf "%.1f", d/1024/1024}' /proc/net/dev`)
-
-(defpoll net_up :interval "2s" :initial "0.0"
-  `awk 'NR>2{u+=$10}END{printf "%.1f", u/1024/1024}' /proc/net/dev`)
+(defpoll net_traffic :interval "5s" :initial "0.0 0.0"
+  `awk 'NR>2{d+=$2;u+=$10}END{printf "%.1f %.1f", d/1024/1024, u/1024/1024}' /proc/net/dev`)
 
 (defpoll disk_usage :interval "30s" :initial ""
   `df -h / | awk 'NR==2{print $5}'`)
 
 (defpoll uptime_val :interval "60s" :initial ""
   `uptime -p | sed 's/up //'`)
-
-(defpoll datetime :interval "1s" :initial "00:00:00"
-  `date '+%H:%M:%S'`)
-
-(defpoll datestr :interval "60s" :initial ""
-  `date '+%Y-%m-%d'`)
-
-(defpoll now_playing :interval "3s" :initial ""
-  `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
 
 ; ── MPRIS variables (sidebar media page) ─────────
 (defpoll mpris_artist :interval "3s" :initial ""
@@ -50,13 +34,13 @@
 (defpoll mpris_status :interval "2s" :initial "Stopped"
   `playerctl status 2>/dev/null || echo "Stopped"`)
 
-(defpoll mpris_position :interval "1s" :initial "0:00"
+(defpoll mpris_position :interval "2s" :initial "0:00"
   `playerctl position --format '{{duration(position)}}' 2>/dev/null || echo "0:00"`)
 
 (defpoll mpris_length :interval "3s" :initial "0:00"
   `playerctl metadata --format '{{duration(mpris:length)}}' 2>/dev/null || echo "0:00"`)
 
-(defpoll mpris_progress :interval "1s" :initial "0"
+(defpoll mpris_progress :interval "2s" :initial "0"
   `python3 -c "
 import subprocess
 try:
@@ -107,25 +91,25 @@ except: print(0)
 
 (defwidget clock-widget []
   (box :class "clock-box" :orientation "v" :space-evenly false :halign "center"
-    (label :class "clock-time" :text datetime)
-    (label :class "clock-date" :text datestr)))
+    (label :class "clock-time" :text bar_time)
+    (label :class "clock-date" :text bar_date)))
 
 (defwidget system-metrics []
   (box :class "metrics-row" :orientation "h" :spacing 8 :halign "center"
-    (metric-ring :value cpu_usage :color "cyan" :label "CPU")
-    (metric-ring :value mem_usage :color "magenta" :label "RAM")
+    (metric-ring :value bar_cpu :color "cyan" :label "CPU")
+    (metric-ring :value bar_mem :color "magenta" :label "RAM")
     (metric-ring :value gpu_temp :color "green" :label "GPU" :unit "°")
     (metric-ring :value gpu_util :color "green" :label "GPU%")
     (metric-ring :value {replace(disk_usage, "%", "")} :color "yellow" :label "DISK")))
 
 (defwidget network-stats []
   (box :class "network" :orientation "h" :space-evenly true
-    (label :class "net-down" :text "↓ ${net_down} MB")
-    (label :class "net-up" :text "↑ ${net_up} MB")))
+    (label :class "net-down" :text "↓ ${strsplit(net_traffic, " ")[0]} MB")
+    (label :class "net-up" :text "↑ ${strsplit(net_traffic, " ")[1]} MB")))
 
 (defwidget now-playing-widget []
-  (box :class "now-playing" :visible {now_playing != ""}
-    (label :class "np-text" :text "♫ ${now_playing}" :limit-width 40)))
+  (box :class "now-playing" :visible {bar_mpris != ""}
+    (label :class "np-text" :text "♫ ${bar_mpris}" :limit-width 40)))
 
 (defwidget footer []
   (box :class "footer" :orientation "h" :space-evenly true
@@ -270,7 +254,7 @@ except: print(0)
 (defpoll bar_gpu_power :interval "10s" :initial ""
   `nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null | awk '{printf "%.0f", $1}' || echo ""`)
 
-(defpoll bar_gamepad :interval "5s" :initial ""
+(defpoll bar_gamepad :interval "30s" :initial ""
   `test -e /dev/input/js0 && echo "󰊗" || echo ""`)
 
 (defpoll bar_bt :interval "10s" :initial "0"
@@ -320,25 +304,28 @@ except: print(0)
 (defpoll bar_mx_class :interval "300s" :initial "disconnected"
   `$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r '.class // "disconnected"' || echo "disconnected"`)
 
-; ── Ralphglasses fleet variables ─────────────────
+; ── Ralphglasses fleet variables (read from cache, 6→1 poll) ──
+
+(defpoll rg_status :interval "30s" :initial "{}"
+  `cat /tmp/rg-status.json 2>/dev/null || echo '{}'`)
 
 (defpoll rg_fleet :interval "30s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment fleet --waybar 2>/dev/null | jq -r '.text // ""'`)
+  `jq -r '"\(.fleet.running // 0)/\(.fleet.total // 0) 󰑮"' /tmp/rg-status.json 2>/dev/null || echo ""`)
 
 (defpoll rg_loops :interval "30s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment loops --waybar 2>/dev/null | jq -r '.text // ""'`)
+  `jq -r '"\(.loops.total_runs // 0) loops"' /tmp/rg-status.json 2>/dev/null || echo ""`)
 
 (defpoll rg_cost :interval "30s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment cost --waybar 2>/dev/null | jq -r '.text // ""'`)
+  `jq -r '"$\(.cost.total_spend_usd // 0)"' /tmp/rg-status.json 2>/dev/null || echo ""`)
 
 (defpoll rg_models :interval "30s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment models --waybar 2>/dev/null | jq -r '.text // ""'`)
+  `jq -r '[.models[]? | "\(.count)\(.model[0:3])"] | join(" ")' /tmp/rg-status.json 2>/dev/null || echo ""`)
 
 (defpoll rg_repos :interval "30s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment repos --waybar 2>/dev/null | jq -r '.text // ""'`)
+  `jq -r '"\(.repos.scanned // 0)/\(.repos.targeted // 0) repos"' /tmp/rg-status.json 2>/dev/null || echo ""`)
 
 (defpoll rg_iters :interval "30s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --segment iters --waybar 2>/dev/null | jq -r '.text // ""'`)
+  `jq -r '"\(.iters.total // 0) iters"' /tmp/rg-status.json 2>/dev/null || echo ""`)
 
 (defpoll k8s_ctx :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/k8s-context.sh 2>/dev/null | jq -r '.text // ""'`)
