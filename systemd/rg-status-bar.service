@@ -1,0 +1,18 @@
+# rg-status-bar.service — Refresh fleet status cache for eww bar
+#
+# Runs rg-status-bar.sh --all --json and writes to /tmp/rg-status.json.
+# eww reads from this cache file instead of invoking ralphglasses directly,
+# preventing bar freezes during slow MCP calls.
+#
+# Paired with rg-status-bar.timer (30s interval).
+
+[Unit]
+Description=Refresh ralphglasses fleet status cache for eww bar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '%h/hairglasses-studio/dotfiles/scripts/rg-status-bar.sh --all --json > /tmp/rg-status.json 2>/dev/null || true'
+MemoryMax=64M
+CPUQuota=10%
