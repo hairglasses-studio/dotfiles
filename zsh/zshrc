@@ -12,6 +12,15 @@ if [[ "$PROMPT_ENGINE" == "p10k" ]]; then
   fi
 fi
 
+# ── Safe eval (timeout protection for shell startup) ──
+_safe_eval() {
+  local secs=$1; shift
+  local output
+  output=$(timeout "$secs" "$@" 2>/dev/null) && eval "$output" || {
+    printf '\e[38;5;243m[zshrc] timed out: %s\e[0m\n' "$*" >&2
+  }
+}
+
 # ── PATH ────────────────────────────────────────
 export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.cargo/bin:$PATH"
 [[ "$OSTYPE" == "darwin"* ]] && export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
@@ -216,10 +225,10 @@ zstyle ':fzf-tab:*' insert-space false
 zstyle ':fzf-tab:complete:cd:*' extra-opts --preview='ls -la $realpath 2>/dev/null'
 
 # ── Zoxide (smart cd) ──────────────────────────
-eval "$(zoxide init zsh)"
+_safe_eval 3 zoxide init zsh
 
 # ── direnv (per-directory env vars) ────────────
-command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
+command -v direnv &>/dev/null && _safe_eval 3 direnv hook zsh
 
 # ── onefetch on entering git repos ───────────
 _onefetch_chpwd() {
@@ -242,7 +251,7 @@ _onefetch_chpwd() {
 chpwd_functions+=(_onefetch_chpwd)
 
 # ── fzf (fuzzy finder) ─────────────────────────
-source <(fzf --zsh)
+_safe_eval 3 fzf --zsh
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='
   --color=bg+:#1a1a1a,bg:#000000,spinner:#ff6ac1,hl:#57c7ff
@@ -261,15 +270,34 @@ export FZF_CTRL_R_OPTS="--layout=reverse --preview-window hidden"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 
 # ── Language managers ───────────────────────────
-# NVM
+# NVM (lazy-loaded — sourced on first use)
 export NVM_DIR="$HOME/.nvm"
-[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  _nvm_lazy_load() {
+    unset -f nvm node npm npx yarn pnpm corepack 2>/dev/null
+    source "$NVM_DIR/nvm.sh"
+    [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+  }
+  for _cmd in nvm node npm npx yarn pnpm corepack; do
+    unalias "$_cmd" 2>/dev/null
+    eval "${_cmd}() { _nvm_lazy_load; ${_cmd} \"\$@\"; }"
+  done
+  unset _cmd
+fi
 
-# Pyenv
+# Pyenv (lazy-loaded — initialized on first use)
 if command -v pyenv > /dev/null; then
-    export PYENV_ROOT="$HOME/.pyenv"
-    export PATH="$PYENV_ROOT/bin:$PATH"
+  export PYENV_ROOT="$HOME/.pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  _pyenv_lazy_load() {
+    unset -f pyenv python python3 pip pip3 2>/dev/null
     eval "$(pyenv init -)"
+  }
+  for _cmd in pyenv python python3 pip pip3; do
+    unalias "$_cmd" 2>/dev/null
+    eval "${_cmd}() { _pyenv_lazy_load; ${_cmd} \"\$@\"; }"
+  done
+  unset _cmd
 fi
 
 # Go
@@ -295,7 +323,7 @@ fi
 
 # ── Prompt engine init ──────────────────────────
 if [[ "$PROMPT_ENGINE" == "starship" ]]; then
-  eval "$(starship init zsh)"
+  _safe_eval 3 starship init zsh
 elif [[ "$PROMPT_ENGINE" == "p10k" ]]; then
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 fi
@@ -339,23 +367,20 @@ shader-next 2>/dev/null
 # Only auto-attach if no client is already attached to "main" (prevents duplicate views).
 if [[ $SHLVL -eq 1 && -z "$TMUX" && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" && $- == *i* ]]; then
   if command -v tmux &>/dev/null; then
-    if tmux has-session -t main 2>/dev/null; then
-      # Only attach if no one else is already viewing it
+    if timeout 5 tmux has-session -t main 2>/dev/null; then
       local attached
-      attached=$(tmux list-clients -t main 2>/dev/null | wc -l)
+      attached=$(timeout 5 tmux list-clients -t main 2>/dev/null | wc -l)
       if (( attached == 0 )); then
-        tmux attach-session -t main
+        timeout 5 tmux attach-session -t main
       fi
-      # Otherwise: skip attach, give a fresh shell
     else
-      tmux new-session -s main
+      timeout 5 tmux new-session -s main
     fi
   fi
 fi
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # Codex stashapp full-access wrapper
 source "/home/hg/.zshrc.d/codex-stashapp-full-access.zsh"
