@@ -1,1 +1,0 @@
-../ghostty/shaders/bin/shader-cycle.sh

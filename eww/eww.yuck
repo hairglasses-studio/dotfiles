@@ -21,34 +21,9 @@
 (defpoll uptime_val :interval "60s" :initial ""
   `uptime -p | sed 's/up //'`)
 
-; ── MPRIS variables (sidebar media page) ─────────
-(defpoll mpris_artist :interval "3s" :initial ""
-  `playerctl metadata artist 2>/dev/null || echo ""`)
-
-(defpoll mpris_title :interval "3s" :initial ""
-  `playerctl metadata title 2>/dev/null || echo ""`)
-
-(defpoll mpris_album :interval "3s" :initial ""
-  `playerctl metadata album 2>/dev/null || echo ""`)
-
-(defpoll mpris_status :interval "2s" :initial "Stopped"
-  `playerctl status 2>/dev/null || echo "Stopped"`)
-
-(defpoll mpris_position :interval "2s" :initial "0:00"
-  `playerctl position --format '{{duration(position)}}' 2>/dev/null || echo "0:00"`)
-
-(defpoll mpris_length :interval "3s" :initial "0:00"
-  `playerctl metadata --format '{{duration(mpris:length)}}' 2>/dev/null || echo "0:00"`)
-
-(defpoll mpris_progress :interval "2s" :initial "0"
-  `python3 -c "
-import subprocess
-try:
-    pos = float(subprocess.check_output(['playerctl','position'], stderr=subprocess.DEVNULL).strip())
-    length = float(subprocess.check_output(['playerctl','metadata','mpris:length'], stderr=subprocess.DEVNULL).strip()) / 1000000
-    print(int(pos/length*100) if length > 0 else 0)
-except: print(0)
-" 2>/dev/null || echo "0"`)
+; ── MPRIS variables (sidebar media page, single poll) ─────────
+(defpoll mpris_data :interval "2s" :initial '{"artist":"","title":"","album":"","status":"Stopped","position":"0:00","length":"0:00","progress":0}'
+  `playerctl metadata --format '{"artist":"{{artist}}","title":"{{title}}","album":"{{album}}","status":"{{status}}","position":"{{duration(position)}}","length":"{{duration(mpris:length)}}","progress":0}' 2>/dev/null || echo '{"artist":"","title":"","album":"","status":"Stopped","position":"0:00","length":"0:00","progress":0}'`)
 
 ; ── Calendar variables ───────────────────────────
 (defpoll cal_data :interval "60s" :initial "{}"
@@ -142,20 +117,20 @@ except: print(0)
     (box :class "media-header" :halign "center"
       (label :class "media-header-text" :text "MEDIA CONTROL"))
     (box :class "media-art-placeholder" :halign "center" :valign "center"
-      (label :class "media-art-icon" :text {mpris_status == "Playing" ? "" : mpris_status == "Paused" ? "" : ""}))
+      (label :class "media-art-icon" :text {mpris_data.status == "Playing" ? "" : mpris_data.status == "Paused" ? "" : ""}))
     (box :class "media-info" :orientation "v" :space-evenly false :halign "center"
-      (label :class "media-title" :text {mpris_title != "" ? mpris_title : "Nothing playing"} :limit-width 35)
-      (label :class "media-artist" :text {mpris_artist != "" ? mpris_artist : "—"} :limit-width 35)
-      (label :class "media-album" :text {mpris_album != "" ? mpris_album : ""} :limit-width 35 :visible {mpris_album != ""}))
+      (label :class "media-title" :text {mpris_data.title != "" ? mpris_data.title : "Nothing playing"} :limit-width 35)
+      (label :class "media-artist" :text {mpris_data.artist != "" ? mpris_data.artist : "—"} :limit-width 35)
+      (label :class "media-album" :text {mpris_data.album != "" ? mpris_data.album : ""} :limit-width 35 :visible {mpris_data.album != ""}))
     (box :class "media-progress" :orientation "v" :space-evenly false
-      (scale :class "media-progress-bar" :min 0 :max 101 :value mpris_progress :orientation "h")
+      (scale :class "media-progress-bar" :min 0 :max 101 :value mpris_data.progress :orientation "h")
       (box :class "media-times" :orientation "h" :space-evenly true
-        (label :class "media-time" :text mpris_position :halign "start")
-        (label :class "media-time" :text mpris_length :halign "end")))
+        (label :class "media-time" :text mpris_data.position :halign "start")
+        (label :class "media-time" :text mpris_data.length :halign "end")))
     (box :class "media-controls" :orientation "h" :spacing 24 :halign "center"
       (button :class "media-btn" :onclick "playerctl previous" "")
       (button :class "media-btn media-btn-play" :onclick "playerctl play-pause"
-        {mpris_status == "Playing" ? "" : ""})
+        {mpris_data.status == "Playing" ? "" : ""})
       (button :class "media-btn" :onclick "playerctl next" ""))
     (box :class "media-volume" :orientation "h" :spacing 8 :halign "center"
       (label :class "media-vol-icon" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
@@ -179,12 +154,12 @@ except: print(0)
     (box :class "fleet-header" :halign "center"
       (label :class "fleet-header-text" :text "RALPHGLASSES FLEET"))
     (box :class "fleet-section" :orientation "v" :spacing 6
-      (fleet-row :icon "↻" :label "Fleet Status" :value rg_fleet :color "green")
-      (fleet-row :icon "⟳" :label "Active Loops" :value rg_loops :color "magenta")
-      (fleet-row :icon "$" :label "Session Cost" :value rg_cost :color "green")
-      (fleet-row :icon "󰧑" :label "Models" :value rg_models :color "yellow")
-      (fleet-row :icon "🔍" :label "Repositories" :value rg_repos :color "cyan")
-      (fleet-row :icon "󰔚" :label "Iterations" :value rg_iters :color "dim"))
+      (fleet-row :icon "↻" :label "Fleet Status" :value rg_data.fleet :color "green")
+      (fleet-row :icon "⟳" :label "Active Loops" :value rg_data.loops :color "magenta")
+      (fleet-row :icon "$" :label "Session Cost" :value rg_data.cost :color "green")
+      (fleet-row :icon "󰧑" :label "Models" :value rg_data.models :color "yellow")
+      (fleet-row :icon "🔍" :label "Repositories" :value rg_data.repos :color "cyan")
+      (fleet-row :icon "󰔚" :label "Iterations" :value rg_data.iters :color "dim"))
     (box :class "fleet-divider")
     (box :class "fleet-section" :orientation "v" :spacing 6
       (box :class "fleet-section-title"
@@ -278,7 +253,7 @@ except: print(0)
 
 ; ── Submap/mode indicator (listens to Hyprland socket) ──
 (deflisten active_submap :initial ""
-  `bash -c 'socat -U - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | stdbuf -oL grep --line-buffered "^submap>>" | stdbuf -oL sed -u "s/^submap>>//"'`)
+  `bash -c 'socat -U -T 10 - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | stdbuf -oL grep --line-buffered "^submap>>" | stdbuf -oL sed -u "s/^submap>>//"'`)
 
 (defpoll bar_time :interval "1s" :initial "00:00"
   `date '+%H:%M'`)
@@ -287,10 +262,10 @@ except: print(0)
   `date '+%a %b %d'`)
 
 (defpoll bar_cpu :interval "3s" :initial "0"
-  `awk '/^cpu /{printf "%.0f", ($2+$4)/($2+$4+$5)*100}' /proc/stat`)
+  `awk '/^cpu /{printf "%.0f", ($2+$4)/($2+$4+$5)*100}' /proc/stat 2>/dev/null || echo "0"`)
 
 (defpoll bar_mem :interval "5s" :initial "0"
-  `free -m | awk '/Mem:/{printf "%.0f", $3/$2*100}'`)
+  `free -m 2>/dev/null | awk '/Mem:/{printf "%.0f", $3/$2*100}' || echo "0"`)
 
 (defpoll bar_net :interval "5s" :initial ""
   `ip -j route get 1.1.1.1 2>/dev/null | jq -r '.[0].dev // "none"'`)
@@ -304,28 +279,17 @@ except: print(0)
 (defpoll bar_mx_class :interval "300s" :initial "disconnected"
   `$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r '.class // "disconnected"' || echo "disconnected"`)
 
-; ── Ralphglasses fleet variables (read from cache, 6→1 poll) ──
+; ── Ralphglasses fleet variables (single cache read) ──
 
-(defpoll rg_status :interval "30s" :initial "{}"
-  `cat /tmp/rg-status.json 2>/dev/null || echo '{}'`)
-
-(defpoll rg_fleet :interval "30s" :initial ""
-  `jq -r '"\(.fleet.running // 0)/\(.fleet.total // 0) 󰑮"' /tmp/rg-status.json 2>/dev/null || echo ""`)
-
-(defpoll rg_loops :interval "30s" :initial ""
-  `jq -r '"\(.loops.total_runs // 0) loops"' /tmp/rg-status.json 2>/dev/null || echo ""`)
-
-(defpoll rg_cost :interval "30s" :initial ""
-  `jq -r '"$\(.cost.total_spend_usd // 0)"' /tmp/rg-status.json 2>/dev/null || echo ""`)
-
-(defpoll rg_models :interval "30s" :initial ""
-  `jq -r '[.models[]? | "\(.count)\(.model[0:3])"] | join(" ")' /tmp/rg-status.json 2>/dev/null || echo ""`)
-
-(defpoll rg_repos :interval "30s" :initial ""
-  `jq -r '"\(.repos.scanned // 0)/\(.repos.targeted // 0) repos"' /tmp/rg-status.json 2>/dev/null || echo ""`)
-
-(defpoll rg_iters :interval "30s" :initial ""
-  `jq -r '"\(.iters.total // 0) iters"' /tmp/rg-status.json 2>/dev/null || echo ""`)
+(defpoll rg_data :interval "30s" :initial '{"fleet":"","loops":"","cost":"","models":"","repos":"","iters":""}'
+  `jq -c '{
+    fleet: "\(.fleet.running // 0)/\(.fleet.total // 0) 󰑮",
+    loops: "\(.loops.total_runs // 0) loops",
+    cost: "$\(.cost.total_spend_usd // 0)",
+    models: ([.models[]? | "\(.count)\(.model[0:3])"] | join(" ")),
+    repos: "\(.repos.scanned // 0)/\(.repos.targeted // 0) repos",
+    iters: "\(.iters.total // 0) iters"
+  }' /tmp/rg-status.json 2>/dev/null || echo '{"fleet":"","loops":"","cost":"","models":"","repos":"","iters":""}'`)
 
 (defpoll k8s_ctx :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/k8s-context.sh 2>/dev/null | jq -r '.text // ""'`)
@@ -454,12 +418,12 @@ except: print(0)
 
 (defwidget bar-fleet []
   (box :class "bar-fleet" :orientation "h" :spacing 8
-    (rg-segment :label "↻" :value rg_fleet :color "green")
-    (rg-segment :label "⟳" :value rg_loops :color "magenta")
-    (rg-segment :label "$" :value rg_cost :color "green")
-    (rg-segment :label "󰧑" :value rg_models :color "yellow")
-    (rg-segment :label "🔍" :value rg_repos :color "cyan")
-    (rg-segment :label "󰔚" :value rg_iters :color "dim")
+    (rg-segment :label "↻" :value rg_data.fleet :color "green")
+    (rg-segment :label "⟳" :value rg_data.loops :color "magenta")
+    (rg-segment :label "$" :value rg_data.cost :color "green")
+    (rg-segment :label "󰧑" :value rg_data.models :color "yellow")
+    (rg-segment :label "🔍" :value rg_data.repos :color "cyan")
+    (rg-segment :label "󰔚" :value rg_data.iters :color "dim")
     (box :class "rg-seg ${k8s_ctx == '' || k8s_ctx == 'offline' ? 'rg-idle' : ''}" :spacing 4
       (label :class "rg-icon ${k8s_ctx == '' || k8s_ctx == 'offline' ? 'dim' : 'cyan'}" :text "⎈")
       (label :class "rg-val" :text {k8s_ctx == "" || k8s_ctx == "offline" ? "—" : k8s_ctx}))))
