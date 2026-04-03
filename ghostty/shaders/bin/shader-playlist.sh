@@ -5,6 +5,8 @@
 _shader_playlist_dir="${0:A:h:h}/playlists"
 _shader_state_dir="$HOME/.local/state/ghostty"
 _shader_base_dir="$HOME/.config/ghostty/shaders"
+_shader_bar_state_dir="$HOME/.local/state/shader-cycle"
+_shader_bar_state_file="$_shader_bar_state_dir/current"
 _ghostty_config="$HOME/.config/ghostty/config"
 if [[ "$(uname)" == "Darwin" ]]; then
   _tattoy_config="$HOME/Library/Application Support/tattoy/tattoy.toml"
@@ -122,6 +124,10 @@ shader-playlist-next() {
       -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
       "$_ghostty_config" > "$tmp"
   command mv -f "$tmp" "$_ghostty_config"
+
+  # Write state for eww bar
+  command mkdir -p "$_shader_bar_state_dir" 2>/dev/null
+  printf '%s' "$shader_path" > "$_shader_bar_state_file"
 }
 
 # Advance both Tattoy playlists (cursor + background) and update tattoy.toml
