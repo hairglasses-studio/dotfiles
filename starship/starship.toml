@@ -23,6 +23,7 @@ $kubernetes\
 $aws\
 $gcloud\
 $env_var\
+$custom\
 $cmd_duration\
 $jobs\
 $fill\
@@ -188,3 +189,17 @@ style = "#f3f99d"
 format = "[$env_value]($style) "
 variable = "VIRTUAL_ENV"
 default = ""
+
+[env_var.CLAUDE_SESSION]
+symbol = "⚡"
+style = "bold #57c7ff"
+format = "[$symbol$env_value]($style) "
+variable = "CLAUDE_SESSION_NAME"
+default = ""
+
+[custom.agent]
+command = "jq -r '\"\\(.name) $\\(.cost)\"' /tmp/ralphglasses-active.json 2>/dev/null"
+when = "test -f /tmp/ralphglasses-active.json"
+symbol = "󰪚 "
+style = "bold #ff6ac1"
+format = "[$symbol$output]($style) "
