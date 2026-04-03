@@ -54,7 +54,14 @@ declare -A ICONS=(
   [395]=""   # Thunder + heavy snow
 )
 
-weather=$(curl -sf --connect-timeout 5 --max-time 10 "https://wttr.in/?format=j1" 2>/dev/null) || exit 0
+# Fetch with retry + exponential backoff (max 3 attempts)
+weather=""
+for _attempt in 1 2 3; do
+  weather=$(curl -sf --connect-timeout 5 --max-time 10 "https://wttr.in/?format=j1" 2>/dev/null) && break
+  weather=""
+  (( _attempt < 3 )) && sleep $(( _attempt * 2 ))
+done
+[[ -n "$weather" ]] || exit 0
 
 temp=$(echo "$weather" | jq -r '.current_condition[0].temp_C // empty' 2>/dev/null) || exit 0
 code=$(echo "$weather" | jq -r '.current_condition[0].weatherCode // empty' 2>/dev/null) || exit 0

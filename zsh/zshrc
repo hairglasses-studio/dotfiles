@@ -89,16 +89,11 @@ source "$ZSH/oh-my-zsh.sh"
 alias claude='claude --dangerously-skip-permissions'
 alias ralph="bash $HOME/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
 
-# ── Modern CLI replacements ─────────────────────
-alias ls='eza --icons --group-directories-first'
-alias ll='eza --icons --group-directories-first -la'
-alias la='eza --icons --group-directories-first -la'
-alias lt='eza --icons --tree --level=2'
-alias cat='bat --paging=never --style=plain'
-alias catn='bat --paging=never'
-
 # ── Dotfiles aliases + options ──────────────────
+# (ls/ll/la/lt/cat defined in aliases.zsh — not duplicated here)
 [[ -f "$DOTFILES_DIR/zsh/aliases.zsh" ]] && source "$DOTFILES_DIR/zsh/aliases.zsh"
+[[ "$OSTYPE" == "darwin"* ]] && [[ -f "$DOTFILES_DIR/zsh/aliases.darwin.zsh" ]] && source "$DOTFILES_DIR/zsh/aliases.darwin.zsh"
+[[ "$OSTYPE" == "linux"* ]]  && [[ -f "$DOTFILES_DIR/zsh/aliases.linux.zsh" ]]  && source "$DOTFILES_DIR/zsh/aliases.linux.zsh"
 [[ -f "$DOTFILES_DIR/zsh/zshopt" ]] && source "$DOTFILES_DIR/zsh/zshopt"
 
 # ── Environment ─────────────────────────────────
