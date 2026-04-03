@@ -231,24 +231,9 @@ _safe_eval 3 zoxide init zsh
 command -v direnv &>/dev/null && _safe_eval 3 direnv hook zsh
 
 # ── onefetch on entering git repos ───────────
-_onefetch_chpwd() {
-  if [[ -d .git ]] && command -v onefetch &>/dev/null; then
-    if command -v tte &>/dev/null; then
-      onefetch --no-color-palette 2>/dev/null | tte wipe \
-        --wipe-delay 0 \
-        --final-gradient-stops 57c7ff ff6ac1 5af78e \
-        --final-gradient-direction horizontal 2>/dev/null
-    else
-      onefetch --no-color-palette 2>/dev/null
-    fi
-  elif [[ -f Makefile || -f Dockerfile || -f go.mod || -f package.json || -f Cargo.toml ]] \
-    && command -v tte &>/dev/null && [[ -t 1 ]]; then
-    echo "PROJECT // ${PWD##*/}" | tte slide \
-      --movement-speed 2.0 --grouping row \
-      --final-gradient-stops 686868 57c7ff 2>/dev/null
-  fi
-}
-chpwd_functions+=(_onefetch_chpwd)
+# Disabled — prefer minimal startup (run `onefetch` manually)
+# _onefetch_chpwd() { ... }
+# chpwd_functions+=(_onefetch_chpwd)
 
 # ── fzf (fuzzy finder) ─────────────────────────
 _safe_eval 3 fzf --zsh
@@ -311,14 +296,24 @@ fi
 # Rust
 [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
-# ── Terminal splash on new shell ──────────────
-if [[ $SHLVL -eq 1 && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" && $- == *i* ]]; then
-  (cd ~/.config/ghosttyfetch && ~/.local/bin/ghosttyfetch) 2>/dev/null
-fi
-
-# ── Cyberpunk boot animation ─────────────────
+# ── Terminal splash (random arttime piece) ────
 if [[ $- == *i* && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" ]]; then
-  [[ -f "$DOTFILES_DIR/scripts/cyberboot.sh" ]] && source "$DOTFILES_DIR/scripts/cyberboot.sh"
+  _arttime_dir="/usr/share/arttime/textart"
+  if [[ -d "$_arttime_dir" ]]; then
+    _art_files=("$_arttime_dir"/*(N))
+    if (( ${#_art_files} )); then
+      _pick="${_art_files[RANDOM % ${#_art_files} + 1]}"
+      # Skip first line (message placeholder), colorize with Snazzy cyan
+      tail -n +2 "$_pick" | head -20 | sed "s/^/  /" | \
+        if command -v lolcat &>/dev/null; then
+          lolcat -f -S $RANDOM -p 2
+        else
+          sed $'s/.*/\033[38;5;6m&\033[0m/'
+        fi
+      echo
+    fi
+    unset _art_files _pick _arttime_dir
+  fi
 fi
 
 # ── Prompt engine init ──────────────────────────
