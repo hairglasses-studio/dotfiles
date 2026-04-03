@@ -45,12 +45,9 @@ alias .....='cd ../../../..'
 alias ~='cd ~'
 alias -- -='cd -'
 
-# ── Linux / Wayland equivalents ──────────────────────────────
-if [[ "$(uname)" == "Linux" ]]; then
-    alias pbcopy='wl-copy'
-    alias pbpaste='wl-paste'
-    alias open='xdg-open'
-fi
+# Platform-specific aliases loaded separately:
+#   aliases.darwin.zsh — macOS (AeroSpace, SketchyBar, brew, etc.)
+#   aliases.linux.zsh  — Linux (wl-copy, hyprctl, pacman/yay, etc.)
 
 # File operations (cross-platform)
 alias mkdir='mkdir -pv'
@@ -68,9 +65,11 @@ alias egrep='egrep --color=auto'
 # Text processing
 if cmd_exists bat; then
     alias cat='bat --paging=never'
+    alias catn='bat --paging=never'
     alias less='bat --paging=always'
 elif cmd_exists batcat; then
     alias cat='batcat --paging=never'
+    alias catn='batcat --paging=never'
     alias less='batcat --paging=always'
 fi
 
@@ -192,15 +191,7 @@ if cmd_exists node; then
     alias npmu='npm update'
 fi
 
-# System information (cross-platform)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    alias top='top -o cpu'
-    alias mem='memory_pressure'
-    alias cpu='top -l 1 | grep "CPU usage"'
-else
-    alias mem='free -h'
-    alias cpu='grep "cpu " /proc/stat | awk "{usage=(\$2+\$4)*100/(\$2+\$3+\$4+\$5)} END {print usage \"%\"}"'
-fi
+# System information (platform-specific aliases in aliases.{darwin,linux}.zsh)
 
 # Network utilities (cross-platform)
 alias ports='netstat -tuln'
@@ -262,11 +253,7 @@ fi
 
 # Clean up functions
 alias cleanup='find . -type f -name "*.DS_Store" -ls -delete'
-if [[ "$(uname)" == "Darwin" ]]; then
-    alias emptytrash='rm -rf ~/.Trash/*'
-else
-    alias emptytrash='rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/*'
-fi
+# emptytrash defined per-platform in aliases.{darwin,linux}.zsh
 
 # Terraform aliases (if available)
 if cmd_exists terraform; then
@@ -460,11 +447,7 @@ if cmd_exists kubectl; then
     alias kingress='kubectl get ingress --all-namespaces'
 fi
 
-# ── Window management ─────────────────────────
-if [[ "$(uname)" == "Darwin" ]]; then
-    alias aero-reload='aerospace reload-config'
-    alias bar-reload='sketchybar --reload'
-fi
+# ── Window management (per-platform in aliases.{darwin,linux}.zsh) ──
 
 # ── Eww dashboard ─────────────────────────────
 if cmd_exists eww; then
@@ -560,40 +543,7 @@ if cmd_exists trip;           then alias trace='sudo trip'; fi
 if cmd_exists bandwhich;      then alias netwatch='sudo bandwhich'; fi
 if cmd_exists sniffnet;       then alias sniff='sniffnet'; fi
 
-# ── Animated wrappers ────────────────────────
-ssh() {
-  local target="${@: -1}"
-  if [[ -t 1 ]] && cmd_exists tte; then
-    echo "CONNECTING // $target" | tte decrypt \
-      --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
-  fi
-  command ssh "$@"
-}
-
-yay() {
-  if [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
-    echo "PACKAGE ACQUISITION // $*" | tte beams \
-      --beam-delay 2 --beam-gradient-stops 57c7ff 5af78e \
-      --final-gradient-stops 57c7ff 5af78e 2>/dev/null
-  fi
-  command yay "$@"
-  local rc=$?
-  if (( rc == 0 )) && [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
-    echo "PACKAGES SYNCHRONIZED" | tte slide \
-      --movement-speed 1.5 --final-gradient-stops 5af78e 57c7ff 2>/dev/null
-  fi
-  return $rc
-}
-
-command_not_found_handler() {
-  if cmd_exists tte && [[ -t 1 ]]; then
-    echo "UNKNOWN PROTOCOL: $1" | tte errorcorrect \
-      --error-pairs 0.05 --final-gradient-stops ff5c57 ff6ac1 2>/dev/null
-  else
-    printf '\033[38;2;255;92;87mUNKNOWN COMMAND: %s\033[0m\n' "$1"
-  fi
-  return 127
-}
+# ── Animated wrappers (duplicates removed — canonical versions below) ──
 
 alias weather='curl -s "wttr.in?format=3"'
 alias forecast='curl -s wttr.in'
@@ -880,28 +830,9 @@ command_not_found_handler() {
   return 127
 }
 
-# ── Package management wrapper ─────────────────
-yay() {
-  if [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
-    echo "PACKAGE ACQUISITION // $*" | tte beams \
-      --beam-delay 2 --beam-gradient-stops 57c7ff 5af78e \
-      --final-gradient-stops 57c7ff 5af78e 2>/dev/null
-  fi
-  command yay "$@"
-  local rc=$?
-  if (( rc == 0 )) && [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
-    echo "PACKAGES SYNCHRONIZED" | tte slide \
-      --movement-speed 1.5 --final-gradient-stops 5af78e 57c7ff 2>/dev/null
-  fi
-  return $rc
-}
+# ── Package management wrapper (in aliases.linux.zsh) ──
 
-# ── CRT / Shader effects ────────────────────────
-if [[ "$(uname)" == "Darwin" ]]; then
-    alias crt-on='open -a RetroVisor'
-    alias crt-off='pkill -x RetroVisor'
-    alias crt-toggle='pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVisor'
-fi
+# ── CRT / Shader effects (macOS: aliases.darwin.zsh) ──
 
 # ── MCP / Ralph ────────────────────────────────
 alias hgs='cd ~/hairglasses-studio'
@@ -987,10 +918,7 @@ alias shader-build='bash ~/.config/ghostty/shaders/bin/shader-build.sh'
 alias shader-test='bash ~/.config/ghostty/shaders/bin/shader-test.sh'
 alias shader-cycle='bash ~/.config/ghostty/shaders/bin/shader-cycle.sh'
 
-# Peekaboo — macOS screen capture for visual review
-if [[ "$(uname)" == "Darwin" ]]; then
-    alias peek='peekaboo'
-fi
+# Peekaboo — macOS screen capture (in aliases.darwin.zsh)
 
 # Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
 source "$HOME/.config/ghostty/shaders/bin/shader-playlist.sh" 2>/dev/null
@@ -1055,37 +983,7 @@ shader-status() {
 # shader-auto start [minutes]  — start rotating every N minutes (default 30)
 # shader-auto stop             — stop automatic rotation
 # shader-auto status           — check if timer is running
-if [[ "$(uname)" == "Darwin" ]]; then
-shader-auto() {
-  local plist="$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
-  local label="com.dotfiles.shader-rotate"
-  case "${1:-status}" in
-    start)
-      local interval=$(( ${2:-30} * 60 ))
-      local tmp; tmp="$(mktemp "${plist}.XXXXXX")"
-      sed "s|<integer>[0-9]*</integer>|<integer>${interval}</integer>|" "$plist" > "$tmp"
-      mv -f "$tmp" "$plist"
-      launchctl unload "$plist" 2>/dev/null
-      launchctl load "$plist"
-      echo "Shader auto-rotate started (every ${2:-30} minutes)"
-      ;;
-    stop)
-      launchctl unload "$plist" 2>/dev/null
-      echo "Shader auto-rotate stopped"
-      ;;
-    status)
-      if launchctl list "$label" &>/dev/null; then
-        echo "Shader auto-rotate: running"
-      else
-        echo "Shader auto-rotate: stopped"
-      fi
-      ;;
-    *)
-      echo "Usage: shader-auto {start [minutes]|stop|status}"
-      ;;
-  esac
-}
-fi
+# Platform-specific shader-auto() defined in aliases.{darwin,linux}.zsh
 
 # Best-of shader showcase — curated playlist of the most impressive effects
 # shader-best start [minutes]  — activate best-of rotation (default 15 min)
