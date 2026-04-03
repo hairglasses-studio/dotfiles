@@ -68,6 +68,19 @@ hypr_socket2() {
   echo "/tmp/hypr/$sig/.socket2.sock"
 }
 
+# Resilient listener wrapper — restarts the given command on exit with backoff.
+# Usage: resilient_listen <command> [args...]
+# The command is expected to block (e.g. socat, pactl subscribe, cava).
+# On exit, waits with exponential backoff (1s → 30s cap) before restart.
+resilient_listen() {
+  local backoff=1
+  while true; do
+    "$@" && backoff=1 || true
+    sleep "$backoff"
+    backoff=$(( backoff < 30 ? backoff * 2 : 30 ))
+  done
+}
+
 # Subscribe to compositor events (blocking, pipe-friendly)
 # Usage: compositor_subscribe workspace | while read -r line; do ...; done
 compositor_subscribe() {

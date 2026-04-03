@@ -12,14 +12,18 @@ _sway() {
 }
 
 _hyprland() {
-  hyprctl activewindow -j 2>/dev/null | jq -r '.title // ""'
-  socat -u "UNIX-CONNECT:$(hypr_socket2)" - 2>/dev/null | while read -r line; do
-    case "$line" in
-      activewindow\>*|activewindowv2\>*)
-        hyprctl activewindow -j 2>/dev/null | jq -r '.title // ""'
-        ;;
-    esac
-  done
+  _hypr_listen() {
+    hyprctl activewindow -j 2>/dev/null | jq -r '.title // ""'
+    socat -u "UNIX-CONNECT:$(hypr_socket2)" - 2>/dev/null | while read -r line; do
+      case "$line" in
+        activewindow\>*|activewindowv2\>*)
+          hyprctl activewindow -j 2>/dev/null | jq -r '.title // ""'
+          ;;
+      esac
+    done
+  }
+
+  resilient_listen _hypr_listen
 }
 
 case "$(compositor_type)" in

@@ -15,10 +15,15 @@ update() {
   eww update bar_vol="$vol" 2>/dev/null
 }
 
-# Initial update
-update
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/compositor.sh"
 
-# Event-driven: watch PipeWire/PulseAudio sink changes
-pactl subscribe 2>/dev/null | grep --line-buffered "sink" | while read -r _; do
+_volume_listen() {
   update
-done
+  pactl subscribe 2>/dev/null | grep --line-buffered "sink" | while read -r _; do
+    update
+  done
+}
+
+# Resilient: pactl subscribe dies on PipeWire restarts
+resilient_listen _volume_listen
