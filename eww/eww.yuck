@@ -163,6 +163,12 @@
     (box :class "fleet-divider")
     (box :class "fleet-section" :orientation "v" :spacing 6
       (box :class "fleet-section-title"
+        (label :class "fleet-section-label" :text "HEALTH"))
+      (fleet-row :icon "⚡" :label "Circuit" :value {rg_health.state ?: "closed"} :color {rg_health.state == "open" ? "red" : rg_health.state == "half-open" ? "yellow" : "green"})
+      (label :class "fleet-sparkline" :text {rg_health.cost_spark ?: ""} :visible {rg_health.cost_spark != ""}))
+    (box :class "fleet-divider")
+    (box :class "fleet-section" :orientation "v" :spacing 6
+      (box :class "fleet-section-title"
         (label :class "fleet-section-label" :text "INFRASTRUCTURE"))
       (fleet-row :icon "⎈" :label "K8s Context" :value k8s_ctx :color "cyan"))))
 
@@ -293,6 +299,13 @@
 
 (defpoll k8s_ctx :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/k8s-context.sh 2>/dev/null | jq -r '.text // ""'`)
+
+; ── Fleet health (circuit breaker + cost sparkline) ──
+(defpoll rg_health :interval "30s" :initial '{"state":"closed","cost_spark":""}'
+  `jq -c '{
+    state: (.circuit_state // "closed"),
+    cost_spark: ([.loops[]?.spend_usd // 0] | if length > 0 then map(. * 8 | floor | if . < 0 then 0 elif . > 7 then 7 else . end) | map(["▁","▂","▃","▄","▅","▆","▇","█"][.]) | join("") else "" end)
+  }' /tmp/rg-status.json 2>/dev/null || echo '{"state":"closed","cost_spark":""}'`)
 
 (defvar vol_hover false)
 (defvar sys_hover false)
