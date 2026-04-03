@@ -23,17 +23,24 @@ data_format = ascii
 ascii_max_range = 100
 EOF
 
-# Run cava and format output as JSON arrays
-cava -p "$CAVA_CONFIG" 2>/dev/null | while IFS=';' read -r -a bars; do
-  # Convert semicolon-separated values to JSON array
-  json="["
-  for i in "${!bars[@]}"; do
-    val="${bars[$i]}"
-    val="${val%%[[:space:]]*}"  # trim whitespace
-    [[ -z "$val" ]] && val="0"
-    [[ $i -gt 0 ]] && json+=","
-    json+="$val"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/compositor.sh"
+
+_cava_listen() {
+  cava -p "$CAVA_CONFIG" 2>/dev/null | while IFS=';' read -r -a bars; do
+    # Convert semicolon-separated values to JSON array
+    json="["
+    for i in "${!bars[@]}"; do
+      val="${bars[$i]}"
+      val="${val%%[[:space:]]*}"  # trim whitespace
+      [[ -z "$val" ]] && val="0"
+      [[ $i -gt 0 ]] && json+=","
+      json+="$val"
+    done
+    json+="]"
+    echo "$json"
   done
-  json+="]"
-  echo "$json"
-done
+}
+
+# Resilient: cava can crash or exit on audio device changes
+resilient_listen _cava_listen
