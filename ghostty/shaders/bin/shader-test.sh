@@ -190,9 +190,19 @@ validate_shader() {
 
   # 7. glslangValidator compilation check (if available)
   if $HAS_GLSLANG && [[ "$status" != "FAIL" ]]; then
-    # Ghostty shaders are fragment shaders; glslangValidator needs a stage hint
+    # Ghostty shaders are fragment shaders; glslangValidator needs a stage hint.
+    # Most Ghostty shaders omit #version (Ghostty's transpiler handles it),
+    # so we prepend #version 460 for shaders that lack one.
+    local glslang_target="$shader_path"
+    local glslang_tmp=""
+    if ! grep -qE '^#version' "$shader_path" 2>/dev/null; then
+      glslang_tmp="$(mktemp /tmp/shader-test-XXXXXX.frag)"
+      { echo '#version 460'; cat "$shader_path"; } > "$glslang_tmp"
+      glslang_target="$glslang_tmp"
+    fi
     local glslang_out
-    glslang_out=$(glslangValidator --stdin -S frag < "$shader_path" 2>&1) || true
+    glslang_out=$(glslangValidator -S frag "$glslang_target" 2>&1) || true
+    [[ -n "$glslang_tmp" ]] && rm -f "$glslang_tmp"
     if echo "$glslang_out" | grep -qi "error"; then
       # Many Ghostty shaders use Shadertoy-style uniforms that glslangValidator
       # doesn't know about — only flag as WARN, not FAIL
