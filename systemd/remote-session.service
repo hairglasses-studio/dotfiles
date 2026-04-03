@@ -1,0 +1,25 @@
+# remote-session.service — LAN-only fleet status HTTP endpoint
+#
+# Serves fleet diagnostics on port 9876.
+# WARNING: Do NOT expose to the internet without authentication.
+# Set REMOTE_SESSION_BIND=0.0.0.0 to listen on all interfaces (LAN only).
+
+[Unit]
+Description=Fleet status HTTP endpoint (LAN diagnostic)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/remote-session.sh start
+ExecStop=%h/hairglasses-studio/dotfiles/scripts/remote-session.sh stop
+PIDFile=/tmp/remote-session.pid
+Restart=on-failure
+RestartSec=5
+Environment=REMOTE_SESSION_BIND=127.0.0.1
+Environment=REMOTE_SESSION_PORT=9876
+MemoryMax=32M
+CPUQuota=5%
+
+[Install]
+WantedBy=default.target
