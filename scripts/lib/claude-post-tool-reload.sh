@@ -25,4 +25,28 @@ case "$file_path" in
   # ghostty, starship, tattoy auto-reload via file watchers — no action needed
 esac
 
+# --- Snazzy palette enforcement (non-blocking warning) ---
+case "$file_path" in
+  *.conf | *.toml | *.scss | *.yuck | *.ini)
+    if [[ -f "$file_path" ]]; then
+      # Snazzy palette + common accent/base colors
+      snazzy_palette="000000 1a1a1a 1a1b26 ff5c57 5af78e f3f99d 57c7ff ff6ac1 9aedfe f1f1f0 686868 eff0eb d4d4d4 264f78 ffffff f8f8f2 282a36"
+      # Extract all 6-digit hex color codes from the file
+      hex_colors="$(grep -oiE '#[0-9a-fA-F]{6}' "$file_path" 2>/dev/null | sed 's/#//' | tr '[:upper:]' '[:lower:]' | sort -u)"
+      for color in $hex_colors; do
+        match=false
+        for ok in $snazzy_palette; do
+          if [[ "$color" == "$ok" ]]; then
+            match=true
+            break
+          fi
+        done
+        if [[ "$match" == false ]]; then
+          echo "[palette] non-Snazzy color #$color in $file_path" >&2
+        fi
+      done
+    fi
+    ;;
+esac
+
 exit 0
