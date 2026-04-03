@@ -43,7 +43,7 @@ Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — 
 
 ### Claude Code Integration
 - **PostToolUse hook** — Auto-reloads Hyprland/mako/eww/waybar when Claude writes config files
-- **MCP servers** — `sway-mcp` for Wayland desktop control (screenshot, input, windows). `hyprland-mcp` (9 tools), `dotfiles-mcp` (4 tools), `shader-mcp` (5 tools) — Go binaries in sibling repos, registered in `.mcp.json`.
+- **MCP servers** — `dotfiles-mcp` (82 tools, consolidated from 4 servers), `systemd-mcp`, `tmux-mcp`, `process-mcp` — Go binaries in sibling repos, registered in `.mcp.json`.
 
 ### Wallpaper Shaders
 Live animated wallpapers via Shadertoy-compatible GLSL rendered by `shaderbg`:
@@ -56,11 +56,11 @@ Live animated wallpapers via Shadertoy-compatible GLSL rendered by `shaderbg`:
 - **Plymouth** — Animated boot splash (proxzima cyberpunk theme) between rEFInd and login
 - **Kernel params:** `quiet splash loglevel=3 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1`
 
-### MCP Servers (Go binaries, built separately)
-- **`hyprland-mcp`** — 9 tools: screenshot, windows, workspaces, input (ydotool/wtype), config reload
-- **`dotfiles-mcp`** — 4 tools: list configs, validate TOML/JSON, reload service, check symlinks
-- **`shader-mcp`** — 5 tools: list/set/random/test/get_state for 132 shaders
-- **`sway-mcp`** — Node.js: screenshot, windows, input, clipboard for Sway/Wayland
+### MCP Server (unified dotfiles-mcp)
+- **`dotfiles-mcp`** — 82 tools across 8 modules: dotfiles config management (30), Hyprland desktop control (12), input devices/BT/controllers/MIDI (26), Ghostty shader pipeline (14). Single Go binary, stdio transport.
+- **`systemd-mcp`** — systemd unit management
+- **`tmux-mcp`** — tmux session management
+- **`process-mcp`** — process management
 
 ### Claude Code Skills & Agents
 - **Skills:** `/rice-check` (validate rice), `/screenshot-review` (visual analysis), `/shader-browse` (shader explorer)
