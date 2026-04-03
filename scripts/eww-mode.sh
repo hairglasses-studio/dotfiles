@@ -10,17 +10,21 @@ _sway() {
 }
 
 _hyprland() {
-  echo "default"
-  socat -u "UNIX-CONNECT:$(hypr_socket2)" - 2>/dev/null | while read -r line; do
-    case "$line" in
-      submap\>\>)
-        echo "default"
-        ;;
-      submap\>\>*)
-        echo "${line#submap>>}"
-        ;;
-    esac
-  done
+  _hypr_listen() {
+    echo "default"
+    socat -u "UNIX-CONNECT:$(hypr_socket2)" - 2>/dev/null | while read -r line; do
+      case "$line" in
+        submap\>\>)
+          echo "default"
+          ;;
+        submap\>\>*)
+          echo "${line#submap>>}"
+          ;;
+      esac
+    done
+  }
+
+  resilient_listen _hypr_listen
 }
 
 case "$(compositor_type)" in
