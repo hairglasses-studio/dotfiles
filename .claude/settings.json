@@ -23,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $HOME/hairglasses-studio/dotfiles/scripts/lib/claude-pre-tool-validate.sh"
+            "command": "bash $HOME/hairglasses-studio/dotfiles/scripts/lib/agent-pre-tool-validate.sh"
           }
         ]
       }
@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $HOME/hairglasses-studio/dotfiles/scripts/lib/claude-post-tool-reload.sh"
+            "command": "bash $HOME/hairglasses-studio/dotfiles/scripts/lib/agent-post-tool-reload.sh"
           }
         ]
       }

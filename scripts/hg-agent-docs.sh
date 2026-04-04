@@ -45,6 +45,18 @@ extract_section() {
 # Get the first line (title)
 TITLE=$(head -1 CLAUDE.md | sed 's/^# //')
 
+normalize_title() {
+  local title="$1"
+  title="${title% — Claude Code Instructions}"
+  title="${title% - Claude Code Instructions}"
+  printf '%s\n' "$title"
+}
+
+TITLE="$(normalize_title "$TITLE")"
+if [[ -z "$TITLE" ]]; then
+  TITLE="$REPO_NAME"
+fi
+
 # Get the first paragraph after the title (summary)
 SUMMARY=$(awk '
   NR==1 { next }
