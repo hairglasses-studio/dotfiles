@@ -1,6 +1,6 @@
 [user]
     name = hairglasses
-    email = mitch@galileo.ai
+    email = mitch@hairglasses.studio
 	signingkey = A24C0C8CA217C787
 [core]
     editor = nvim
