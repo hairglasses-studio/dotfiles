@@ -78,7 +78,7 @@ source "$ZSH/oh-my-zsh.sh"
 
 # ── Personal aliases ───────────────────────────
 alias claude='claude --dangerously-skip-permissions'
-alias ralph="bash /Users/mitchnotmitchell/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
+alias ralph="bash $HOME/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
 
 # ── Modern CLI replacements ─────────────────────
 alias ls='eza --icons --group-directories-first'
@@ -95,6 +95,9 @@ alias catn='bat --paging=never'
 # ── Cross-platform libraries ──────────────────
 [[ -f "$DOTFILES_DIR/scripts/lib/compositor.sh" ]] && source "$DOTFILES_DIR/scripts/lib/compositor.sh"
 [[ -f "$DOTFILES_DIR/scripts/lib/config.sh" ]] && source "$DOTFILES_DIR/scripts/lib/config.sh"
+
+# ── direnv (per-directory env vars) ────────────
+command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 
 # ── Environment ─────────────────────────────────
 export EDITOR=nvim

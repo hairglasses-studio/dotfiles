@@ -7,7 +7,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/zsh</string>
-        <string>/Users/mitchnotmitchell/.config/ghostty/shaders/bin/shader-auto-rotate.sh</string>
+        <string>/Users/mitch/.config/ghostty/shaders/bin/shader-auto-rotate.sh</string>
     </array>
     <key>StartInterval</key>
     <integer>1800</integer>
