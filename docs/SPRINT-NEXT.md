@@ -1,18 +1,27 @@
-# Sprint 3 — Museum-Inspired Mac Branch Enhancements
+# Sprint 4 — Mac Branch Audit & Comprehensive Fixes
 
-Inspired by analyzing 28 r/unixporn repos in `hairglasses-studio/dotfile-museum`. Patterns that appeared across the community's best rices (AwesomeWM, i3, Hyprland, Openbox) adapted to our macOS stack.
+Full-branch audit after 3 sprints of migration and museum-inspired enhancements. Identified and fixed critical bugs, closed parity gaps with main branch, added quality-of-life improvements.
 
 ## Completed
 
-- [x] **SketchyBar RAM/memory widget** — `memory.sh`, green 󰍛 icon, 10s refresh (inspired by crylia, eromatiya, elenapan)
-- [x] **SketchyBar weather widget** — `weather.sh`, yellow  icon, 10min refresh via wttr.in, hides offline (inspired by elenapan, eromatiya)
-- [x] **SketchyBar disk usage widget** — `disk.sh`, gray 󰋊 icon, 5min refresh, escalates to red >90% (inspired by barbaross93, elenapan)
-- [x] **SketchyBar Docker container count** — `docker.sh`, blue 󰡨 icon, hides when Docker not running (inspired by codeheister)
-- [x] **SketchyBar power/session menu** — `power.sh`, red ⏻ icon with popup: Lock, Sleep, Logout, Shutdown (inspired by evankoe STFU mode, eromatiya, nekorosys wlogout)
-- [x] **SketchyBar screen recorder toggle** — `recorder.sh`, click to start/stop `screencapture -v`, red REC indicator (inspired by eromatiya)
-- [x] **Custom fastfetch ASCII art** — cyberpunk HG-STUDIO logo in cyan/magenta, replaces blank `"type": "none"` (inspired by jinpots, alba4k, syndrizzle)
+- [x] **Remove duplicate functions in aliases.zsh** — ssh(), command_not_found_handler(), yay() were defined twice (lines 562-594 and 861-895). Removed duplicates.
+- [x] **Fix nvimconfig alias** — `init.vim` → `init.lua`
+- [x] **Migrate 7 cyberpunk shaders from main** — synthwave-horizon, holo-display, neon-hex-grid, circuit-trace, rain-on-glass, cyber-glitch-holo, lib/hex.glsl. Fixes broken shader quick-switch aliases.
+- [x] **Fix hardcoded username in plist** — `com.dotfiles.shader-rotate.plist` referenced `/Users/mitchnotmitchell/`, corrected to `/Users/mitch/`
+- [x] **Fix hardcoded username in zshrc** — ralph alias used absolute path, changed to `$HOME`
+- [x] **Fix tmux GPU temp for macOS** — Replaced Linux-only `nvidia-smi`/`/sys/class/drm/` with `system_profiler SPDisplaysDataType` chipset query
+- [x] **Port Claude Code rice-developer agent** — Adapted from Hyprland/eww to AeroSpace/SketchyBar/Ghostty
+- [x] **Port rice-check skill** — macOS service checks (AeroSpace, SketchyBar, borders), shader pipeline validation
+- [x] **Port screenshot-review skill** — `screencapture` instead of `grim`, SketchyBar instead of eww
+- [x] **Add direnv hook** — `eval "$(direnv hook zsh)"` in zshrc (was on main, missing from mac)
+- [x] **Auto-LS on cd** — `chpwd() { ls }` in aliases.zsh (museum pattern from alba4k)
 
 ## Previous Sprints
+
+### Sprint 3 — Museum-Inspired Enhancements
+- SketchyBar widgets: memory, weather, disk, docker, power menu, screen recorder
+- Custom fastfetch ASCII art (cyberpunk HG-STUDIO logo)
+- Analyzed 28 r/unixporn repos in dotfile-museum
 
 ### Sprint 2 — Polish & Parity
 - AeroSpace F13/F14 encoder keybinds
@@ -32,3 +41,5 @@ Inspired by analyzing 28 r/unixporn repos in `hairglasses-studio/dotfile-museum`
 - RetroVisor version pinning in install.sh
 - Smart bar auto-hide (static/dynamic/hover modes — nekorosys-inspired)
 - `unimatrix` in tmux screensaver rotation
+- Dark mode toggle function (nekorosys-inspired)
+- Theme state management / persistence
