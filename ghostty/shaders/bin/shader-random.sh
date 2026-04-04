@@ -5,6 +5,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../../../scripts/lib/notify.sh"
+
 SHADER_DIR="${HOME}/.config/ghostty/shaders"
 CONFIG="${HOME}/.config/ghostty/config"
 BAR_STATE_DIR="$HOME/.local/state/shader-cycle"
@@ -46,3 +49,5 @@ mv "$tmp" "$CONFIG"
 # Write state for eww bar
 mkdir -p "$BAR_STATE_DIR" 2>/dev/null
 printf '%s' "$pick" > "$BAR_STATE_FILE"
+
+hg_notify_low "Shader" "→ $(basename "$pick" .glsl)"

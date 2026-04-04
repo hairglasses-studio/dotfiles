@@ -58,7 +58,7 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /home/hg/.config/ghostty/shaders/cursor_smear_alt.glsl
+custom-shader = /home/hg/hairglasses-studio/dotfiles/ghostty/shaders/starfield-colors.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────

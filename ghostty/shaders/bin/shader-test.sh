@@ -13,7 +13,9 @@ set -uo pipefail
 #   bash test-shaders.sh bloom.glsl        # validate a single shader
 #   bash test-shaders.sh --list            # print the full catalog
 
-SHADERS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SHADERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/../../../scripts/lib/notify.sh"
 DURATION=3
 LOG_DIR="/tmp/ghostty-shader-tests"
 SINGLE=""
@@ -336,6 +338,13 @@ for entry in "${RESULTS[@]}"; do
 done
 
 printf "\n  Logs saved to: %s\n\n" "$LOG_DIR"
+
+# Desktop notification with summary
+if [[ $FAIL -gt 0 ]]; then
+  hg_notify "Shader" "Test: ${FAIL} failed, ${PASS} passed / ${TOTAL} total"
+else
+  hg_notify_low "Shader" "Test: ${PASS} passed, ${WARN_COUNT} warnings / ${TOTAL} total"
+fi
 
 # Exit with failure if any shader failed
 [[ $FAIL -eq 0 ]]
