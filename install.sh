@@ -334,6 +334,8 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/sway/config" "$HOME/.config/sway/config"
         check_link "$DOTFILES_DIR/waybar/config.jsonc" "$HOME/.config/waybar/config"
         check_link "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
+        check_link "$DOTFILES_DIR/hyprland" "$HOME/.config/hypr"
+        check_link "$DOTFILES_DIR/eww" "$HOME/.config/eww"
     fi
     check_link "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     check_link "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
