@@ -24,3 +24,6 @@ Thumbs.db
 .*.un~
 .vagrant/
 .envrc
+# Claude Code artifacts
+.claude-audit-report.md
+.claude/worktrees/

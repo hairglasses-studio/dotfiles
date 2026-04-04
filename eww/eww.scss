@@ -545,17 +545,6 @@ $red: #ff5c57;
   &.yellow highlight { background-color: $yellow; animation: pulse-bar 3.5s ease-in-out infinite; }
 }
 
-.metric-graph {
-  min-height: 30px;
-  min-width: 60px;
-  border-radius: 4px;
-  background-color: rgba(104, 104, 104, 0.15);
-
-  &.cyan { color: $cyan; }
-  &.magenta { color: $magenta; }
-  &.green { color: $green; }
-  &.yellow { color: $yellow; }
-}
 
 // ── Network ────────────────────────────────
 .network {
