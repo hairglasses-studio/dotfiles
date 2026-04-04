@@ -30,13 +30,13 @@ BTN_TL = ["hyprctl dispatch movefocus l"]
 BTN_TR = ["hyprctl dispatch movefocus r"]
 
 # Center buttons
-BTN_SELECT = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-screenshot.sh"]
+BTN_SELECT = ["$DOTFILES_DIR/scripts/gamepad/controller-screenshot.sh"]
 BTN_START = ["wlogout -b 5"]
 BTN_MODE = ["hyprctl dispatch togglespecialworkspace dashboard"]
 
 # Stick clicks — rice controls
-BTN_THUMBL = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-shader-random.sh"]
-BTN_THUMBR = ["/home/hg/hairglasses-studio/dotfiles/scripts/gamepad/controller-wallpaper-next.sh"]
+BTN_THUMBL = ["$DOTFILES_DIR/scripts/gamepad/controller-shader-random.sh"]
+BTN_THUMBR = ["$DOTFILES_DIR/scripts/gamepad/controller-wallpaper-next.sh"]
 
 # D-Pad — workspace navigation + window state
 BTN_DPAD_LEFT = ["hyprctl dispatch workspace e-1"]
