@@ -466,7 +466,13 @@
     (bar-mpris-display)
     (bar-cava)
     (bar-sys)
+    (bar-audit)
     (systray :pack-direction "ltr" :icon-size 20)))
+
+(defwidget bar-audit []
+  (box :class "bar-metric" :spacing 4 :visible {audit_summary != ""}
+    (label :class "bar-icon dim" :text "󰒋")
+    (label :class "bar-metric-val" :text audit_summary)))
 
 (defwidget bar-layout [workspaces]
   (centerbox :class "bar-container" :orientation "h"
