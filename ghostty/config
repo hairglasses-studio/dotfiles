@@ -58,8 +58,8 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /home/hg/hairglasses-studio/dotfiles/ghostty/shaders/starfield-colors.glsl
-custom-shader-animation = true
+custom-shader = shaders/ascii-overlay.glsl
+custom-shader-animation = false
 
 # ── Links ───────────────────────────────────────
 link-url = true
