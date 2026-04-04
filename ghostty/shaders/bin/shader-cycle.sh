@@ -16,6 +16,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHADERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/../../../scripts/lib/notify.sh"
 STATE_DIR="$HOME/.local/state/ghostty"
 CYCLE_FILE="$STATE_DIR/cycle-index"
 BAR_STATE_DIR="$HOME/.local/state/shader-cycle"
@@ -130,9 +131,11 @@ if [[ "$entry" == "tattoo" || "$entry" == "tattoy" ]]; then
   set_tattoy_shader "true"
   printf '%s' "tattoy" > "$BAR_STATE_FILE"
   echo "→ tattoy (shader + cursor layers)"
+  hg_notify_low "Shader" "→ tattoy"
 else
   apply_ghostty_shader "$entry"
   set_tattoy_shader "false"
   printf '%s' "$SHADERS_DIR/$entry" > "$BAR_STATE_FILE"
   echo "→ $entry"
+  hg_notify_low "Shader" "→ ${entry%.glsl}"
 fi

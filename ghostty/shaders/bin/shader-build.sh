@@ -15,6 +15,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHADERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 LIB_DIR="$SHADERS_DIR/lib"
+source "$SCRIPT_DIR/../../../scripts/lib/notify.sh"
 
 CHECK_ONLY=false
 STRIP_MODE=false
@@ -182,5 +183,9 @@ exit_code=0
 for f in "${FILES[@]}"; do
   process_shader "$f" || exit_code=1
 done
+
+if (( exit_code != 0 )); then
+  hg_notify "Shader" "Build failed — check output"
+fi
 
 exit $exit_code
