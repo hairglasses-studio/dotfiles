@@ -5,13 +5,13 @@
       "args": ["-c", "export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}; export HYPRLAND_INSTANCE_SIGNATURE=${HYPRLAND_INSTANCE_SIGNATURE:-$(ls /run/user/$(id -u)/hypr/ 2>/dev/null | head -1)}; export DOTFILES_DIR=\"$HOME/hairglasses-studio/dotfiles\"; exec \"$HOME/hairglasses-studio/dotfiles-mcp/dotfiles-mcp\""]
     },
     "systemd": {
-      "command": "/home/hg/hairglasses-studio/systemd-mcp/systemd-mcp"
+      "command": "systemd-mcp"
     },
     "tmux": {
-      "command": "/home/hg/hairglasses-studio/tmux-mcp/tmux-mcp"
+      "command": "tmux-mcp"
     },
     "process": {
-      "command": "/home/hg/hairglasses-studio/process-mcp/process-mcp"
+      "command": "process-mcp"
     }
   }
 }
