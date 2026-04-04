@@ -8,6 +8,7 @@
 | `Super+D` | App launcher |
 | `Super+`` | Keybind reference |
 | `Super+P` | Toggle powermenu |
+| `Super+F` | Toggle fleet sidebar |
 
 ##  Navigation
 
@@ -89,6 +90,7 @@
 |-----|--------|
 | `Super+Shift+Q` | Close window |
 | `Super+Tab` | Workspace overview |
+| `Alt+Tab` | App switcher (wofi) |
 | `Super+Shift+R` | Reload config |
 | `Super+Shift+Tab` | Send to other monitor |
 

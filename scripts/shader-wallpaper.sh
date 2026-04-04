@@ -7,6 +7,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/compositor.sh"
+source "$SCRIPT_DIR/lib/notify.sh"
 
 SHADER_DIR="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}/wallpaper-shaders"
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/shader-wallpaper/current"
@@ -49,6 +50,7 @@ _set_shader() {
   disown
 
   echo "$shader" > "$STATE_FILE"
+  hg_notify_low "Wallpaper" "$(basename "$shader" .frag)"
 
   if command -v tte &>/dev/null && [[ -t 1 ]]; then
     echo "SHADER // $(basename "$shader" .frag)" | tte beams \
