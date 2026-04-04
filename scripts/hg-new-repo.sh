@@ -71,9 +71,10 @@ hg_ok "Created LICENSE, CONTRIBUTING.md (issue/PR templates inherited from org)"
 
 # ── CI workflows ─────────────────────────────
 mkdir -p .github/workflows
-# Copy standard workflows from a reference repo
-for wf in claude-review.yml claude-security.yml dependabot-auto-merge.yml; do
-  src="$STUDIO/mcpkit/.github/workflows/$wf"
+# Copy standard workflows from the org templates
+for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml dependabot-auto-merge.yml; do
+  src="$ORG_GITHUB/workflow-templates/$wf"
+  [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
   [[ -f "$src" ]] && command cp -f "$src" ".github/workflows/$wf"
 done
 
@@ -200,6 +201,10 @@ TODO: Describe the project structure.
 TODO: Document conventions specific to this project.
 CLEOF
 hg_ok "Created CLAUDE.md skeleton"
+
+# ── Derived agent docs ───────────────────────
+"$SCRIPT_DIR/hg-agent-docs.sh" "$REPO_DIR"
+hg_ok "Generated AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
 
 # ── Pre-commit hooks ─────────────────────────
 "$SCRIPT_DIR/hg-install-hooks.sh"

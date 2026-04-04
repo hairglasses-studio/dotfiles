@@ -26,8 +26,10 @@ done
 # ── Canonical workflow sources ───────────────
 declare -A CANONICAL
 CANONICAL[ci.yml]="$DOTFILES/make/ci-go.yml"
-CANONICAL[claude-review.yml]="$STUDIO/mcpkit/.github/workflows/claude-review.yml"
-CANONICAL[claude-security.yml]="$STUDIO/mcpkit/.github/workflows/claude-security.yml"
+CANONICAL[claude-review.yml]="$ORG_GITHUB/workflow-templates/claude-review.yml"
+CANONICAL[claude-security.yml]="$ORG_GITHUB/workflow-templates/claude-security.yml"
+CANONICAL[codex-review.yml]="$ORG_GITHUB/workflow-templates/codex-review.yml"
+CANONICAL[codex-security.yml]="$ORG_GITHUB/workflow-templates/codex-security.yml"
 CANONICAL[dependabot-auto-merge.yml]="$STUDIO/mcpkit/.github/workflows/dependabot-auto-merge.yml"
 
 hg_info "Workflow sync — comparing against canonical sources"
@@ -78,11 +80,9 @@ for d in "$STUDIO"/*/; do
 
   if $REPO_CHANGES && $COMMIT; then
     cd "$d"
-    git add .github/workflows/ 2>/dev/null
+      git add .github/workflows/ 2>/dev/null
     if ! git diff --cached --quiet 2>/dev/null; then
-      git commit -q -m "ci: sync workflows via hg-workflow-sync.sh
-
-Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
+      git commit -q -m "ci: sync workflows via hg-workflow-sync.sh"
       if $PUSH; then
         git pull --rebase -q 2>/dev/null
         git push -q 2>&1 && printf "%s  → pushed%s\n" "$HG_DIM" "$HG_RESET" || printf "%s  → push failed%s\n" "$HG_RED" "$HG_RESET"

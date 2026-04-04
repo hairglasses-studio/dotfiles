@@ -86,7 +86,7 @@ fpath=("$DOTFILES_DIR/zsh" $fpath)
 source "$ZSH/oh-my-zsh.sh"
 
 # ── Personal aliases ───────────────────────────
-alias claude='claude --dangerously-skip-permissions'
+alias claude='env -u ANTHROPIC_API_KEY -u ANTHROPIC_AUTH_TOKEN claude --dangerously-skip-permissions'
 alias ralph="bash $HOME/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
 
 # ── Dotfiles aliases + options ──────────────────
@@ -359,3 +359,6 @@ fi
 # Android SDK (kirkwood dev)
 export ANDROID_HOME="$HOME/Android/Sdk"
 export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+
+# Managed by rotate_anthropic_key_from_1password.sh
+# ANTHROPIC_API_KEY moved to ~/.claude/anthropic-api-key and read via Claude Code apiKeyHelper
