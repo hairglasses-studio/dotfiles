@@ -2,6 +2,8 @@
 # mod-bt.sh — hg bt module
 # Bluetooth device management via bluetoothctl
 
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)/notify.sh"
+
 bt_description() {
   echo "Bluetooth — list, connect, disconnect, scan"
 }
@@ -78,7 +80,14 @@ _bt_connect() {
   fi
 
   hg_info "Connecting to $mac..."
-  bluetoothctl connect "$mac" 2>&1 | tail -1
+  local output
+  output="$(bluetoothctl connect "$mac" 2>&1)"
+  echo "$output" | tail -1
+  if echo "$output" | grep -qi "successful"; then
+    local name
+    name="$(bluetoothctl info "$mac" 2>/dev/null | grep -oP 'Name: \K.*' || echo "$mac")"
+    hg_notify_low "Bluetooth" "Connected: $name"
+  fi
 }
 
 _bt_disconnect() {
@@ -90,6 +99,7 @@ _bt_disconnect() {
     bluetoothctl devices Connected 2>/dev/null | while read -r _ mac name; do
       bluetoothctl disconnect "$mac" &>/dev/null
       hg_ok "Disconnected $name"
+      hg_notify_low "Bluetooth" "Disconnected: $name"
     done
   else
     local mac="$target"
@@ -97,8 +107,11 @@ _bt_disconnect() {
       mac="$(bluetoothctl devices 2>/dev/null | grep -i "$target" | awk '{print $2}' | head -1)"
       [[ -n "$mac" ]] || hg_die "Device not found: $target"
     fi
+    local name
+    name="$(bluetoothctl info "$mac" 2>/dev/null | grep -oP 'Name: \K.*' || echo "$mac")"
     bluetoothctl disconnect "$mac" &>/dev/null
     hg_ok "Disconnected $mac"
+    hg_notify_low "Bluetooth" "Disconnected: $name"
   fi
 }
 

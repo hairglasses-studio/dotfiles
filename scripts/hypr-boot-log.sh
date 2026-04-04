@@ -52,10 +52,17 @@ sleep 5
 # Desktop notification with summary
 ERROR_COUNT=$(grep -ciE "\[ERR\]|error|fail|critical" "$REPORT" 2>/dev/null || echo 0)
 WARN_COUNT=$(grep -ciE "\[WRN\]|warn" "$REPORT" 2>/dev/null || echo 0)
-notify-send -a "Hyprland Boot" \
-    "Boot log captured" \
-    "${ERROR_COUNT} errors, ${WARN_COUNT} warnings — ${REPORT}" \
-    2>/dev/null || true
+if (( ERROR_COUNT > 0 )); then
+  notify-send -u critical -a "Hyprland Boot" \
+      "Boot log: ${ERROR_COUNT} errors" \
+      "${ERROR_COUNT} errors, ${WARN_COUNT} warnings — ${REPORT}" \
+      2>/dev/null || true
+else
+  notify-send -u low -a "Hyprland Boot" \
+      "Boot log captured" \
+      "${WARN_COUNT} warnings — ${REPORT}" \
+      2>/dev/null || true
+fi
 
 # Keep only last 10 boot logs
 ls -t "$LOG_DIR"/boot-*.log 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true

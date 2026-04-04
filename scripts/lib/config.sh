@@ -2,6 +2,8 @@
 # config.sh — Shared atomic config operations
 # Source this file: source "$(dirname "$0")/lib/config.sh"
 
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/notify.sh"
+
 # Atomic write: writes content to file via mktemp+mv (no partial reads)
 # Usage: config_atomic_write <file> <content>
 config_atomic_write() {
@@ -44,4 +46,5 @@ config_reload_service() {
     tmux)          tmux source-file ~/.tmux.conf 2>/dev/null ;;
     # ghostty and tattoy auto-reload via file watching
   esac
+  hg_notify_low "Config" "Reloaded $component"
 }
