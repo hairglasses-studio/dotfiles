@@ -161,17 +161,37 @@ if [[ "$LANG" == "python" ]]; then
 fi
 
 # ── Standard workflows (all repos) ──────────
-if [[ -d .github ]]; then
-  mkdir -p .github/workflows
-  for wf in claude-review.yml claude-security.yml dependabot-auto-merge.yml; do
-    if [[ ! -f ".github/workflows/$wf" ]]; then
-      src="$STUDIO/mcpkit/.github/workflows/$wf"
-      if [[ -f "$src" ]]; then
-        $DRY_RUN || command cp -f "$src" ".github/workflows/$wf"
-        add_file ".github/workflows/$wf"
-      fi
+$DRY_RUN || mkdir -p .github/workflows
+for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml dependabot-auto-merge.yml; do
+  if [[ ! -f ".github/workflows/$wf" ]]; then
+    src="$ORG_GITHUB/workflow-templates/$wf"
+    [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
+    if [[ -f "$src" ]]; then
+      $DRY_RUN || command cp -f "$src" ".github/workflows/$wf"
+      add_file ".github/workflows/$wf"
     fi
-  done
+  fi
+done
+
+# ── Codex config ─────────────────────────────
+if [[ ! -f .codex/config.toml ]]; then
+  if $DRY_RUN; then
+    add_file ".codex/config.toml"
+  else
+    mkdir -p .codex
+    printf 'model = "gpt-5.4-xhigh"\n' > .codex/config.toml
+    add_file ".codex/config.toml"
+  fi
+fi
+
+# ── Derived agent docs ───────────────────────
+if [[ -f CLAUDE.md ]] && { [[ ! -f AGENTS.md ]] || [[ ! -f GEMINI.md ]] || [[ ! -f .github/copilot-instructions.md ]]; }; then
+  if $DRY_RUN; then
+    add_file "AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
+  else
+    "$SCRIPT_DIR/hg-agent-docs.sh" "$PWD" >/dev/null
+    add_file "AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
+  fi
 fi
 
 # ── Pre-commit hooks ────────────────────────

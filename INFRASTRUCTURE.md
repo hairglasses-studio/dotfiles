@@ -41,7 +41,7 @@ dotfiles/                          .github/ (org repo)
 | **Makefile include** | `-include $(HOME)/.../dotfiles/make/pipeline.mk` | Yes (instant) |
 | **Script call** | `make install-hooks` (calls hg-install-hooks.sh) | Yes (instant) |
 | **GitHub inheritance** | `.github/` org repo → all repos | Yes (instant) |
-| **Copy** | CI workflows (ci.yml, claude-review.yml, etc.) | No (use hg-workflow-sync.sh) |
+| **Copy** | CI workflows (ci.yml, claude-review.yml, codex-review.yml, etc.) | No (use hg-workflow-sync.sh) |
 | **Copy** | dependabot.yml | No (manual or hg-new-repo.sh) |
 
 ## Shared Components
@@ -61,8 +61,8 @@ dotfiles/                          .github/ (org repo)
 | Script | Purpose | Usage |
 |--------|---------|-------|
 | `hg-pipeline.sh` | Universal build+test for Go/Node/Python | `make pipeline-check` or `/pipeline` skill |
-| `hg-new-repo.sh` | Scaffold new repo with all standard files | `hg-new-repo.sh <name> [go\|node\|python]` |
-| `hg-agent-docs.sh` | Generate AGENTS.md + GEMINI.md from CLAUDE.md | Run after editing CLAUDE.md |
+| `hg-new-repo.sh` | Scaffold new repo with standard governance, workflows, and agent docs | `hg-new-repo.sh <name> [go\|node\|python]` |
+| `hg-agent-docs.sh` | Generate AGENTS.md, GEMINI.md, and copilot instructions from CLAUDE.md | Run after editing CLAUDE.md |
 | `hg-go-sync.sh` | Sync Go version across all repos | `hg-go-sync.sh [--dry-run] [--tidy]` |
 | `hg-gitignore.sh` | Assemble .gitignore from templates | `hg-gitignore.sh go > .gitignore` |
 | `hg-install-hooks.sh` | Install language-appropriate pre-commit hooks | `make install-hooks` |
@@ -96,7 +96,7 @@ See `scripts/lib/README.md` for usage examples.
 ~/hairglasses-studio/dotfiles/scripts/hg-new-repo.sh my-new-project go
 ```
 
-Creates: go.mod, Makefile (with pipeline.mk include), .editorconfig (symlink), .golangci.yml (symlink), .gitignore, LICENSE, CONTRIBUTING.md, CI workflows, dependabot.yml, .codex/config.toml, CLAUDE.md skeleton, pre-commit hooks. One command, fully standard.
+Creates: go.mod, Makefile (with pipeline.mk include), .editorconfig (symlink), .golangci.yml (symlink), .gitignore, LICENSE, CONTRIBUTING.md, CI workflows, dependabot.yml, `.codex/config.toml`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `.github/copilot-instructions.md`, and pre-commit hooks. One command, fully standard.
 
 ## Updating Shared Components
 
@@ -113,3 +113,9 @@ Creates: go.mod, Makefile (with pipeline.mk include), .editorconfig (symlink), .
 - **`/pipeline [check|ship|loop]`** — 6-step pipeline skill: build → test → reconnect MCP → verify → push → loop/propose
 - **`/go-check`** — Quick health check: build + vet + test + lint in parallel
 - **PostToolUse hook** — Auto-reloads Hyprland/mako/eww/waybar when config files are written
+
+## Provider Notes
+
+- Repo scaffolding now emits provider-neutral instruction files alongside `CLAUDE.md`.
+- Workflow sync treats `claude-*` and `codex-*` review templates as canonical artifacts.
+- Local hook automation in `dotfiles/.claude/` is still deeper than Codex parity; track those gaps in `docs/codex-migration/`.
