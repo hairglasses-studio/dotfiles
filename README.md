@@ -1,5 +1,9 @@
 # dotfiles
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Shaders](https://img.shields.io/badge/GLSL_Shaders-132+-purple)](ghostty/shaders/)
+[![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
+
 Full macOS rice — Snazzy-on-black palette from the desktop layer down to every TUI.
 
 AeroSpace + SketchyBar + JankyBorders + Ghostty + Starship + Oh My Zsh + Neovim + k9s + tmux + lazygit + btop + yazi + bat + delta + RetroVisor + Tattoy.
