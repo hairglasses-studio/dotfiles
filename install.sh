@@ -243,10 +243,8 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
         link_file "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
     elif [[ "$OS" == "Linux" ]]; then
-        link_file "$DOTFILES_DIR/waybar/config.jsonc" "$HOME/.config/waybar/config"
-        link_file "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
-        link_file "$DOTFILES_DIR/waybar/colors.css" "$HOME/.config/waybar/colors.css"
-        link_file "$DOTFILES_DIR/mako/config" "$HOME/.config/mako/config"
+        # waybar quarantined — eww is primary bar
+        # mako quarantined — swaync is primary notification daemon
         link_file "$DOTFILES_DIR/swaync/config.json" "$HOME/.config/swaync/config.json"
         link_file "$DOTFILES_DIR/swaync/style.css" "$HOME/.config/swaync/style.css"
         link_file "$DOTFILES_DIR/wofi/config" "$HOME/.config/wofi/config"
@@ -357,16 +355,12 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
         check_link "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
     elif [[ "$OS" == "Linux" ]]; then
-        check_link "$DOTFILES_DIR/waybar/config.jsonc" "$HOME/.config/waybar/config"
-        check_link "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
-        check_link "$DOTFILES_DIR/waybar/colors.css" "$HOME/.config/waybar/colors.css"
-        check_link "$DOTFILES_DIR/mako/config" "$HOME/.config/mako/config"
+        # waybar, mako, rofi quarantined
         check_link "$DOTFILES_DIR/wofi/config" "$HOME/.config/wofi/config"
         check_link "$DOTFILES_DIR/wofi/style.css" "$HOME/.config/wofi/style.css"
         check_link "$DOTFILES_DIR/foot/foot.ini" "$HOME/.config/foot/foot.ini"
         check_link "$DOTFILES_DIR/hyprland" "$HOME/.config/hypr"
         check_link "$DOTFILES_DIR/eww" "$HOME/.config/eww"
-        check_link "$DOTFILES_DIR/rofi" "$HOME/.config/rofi"
         check_link "$DOTFILES_DIR/helix/config.toml" "$HOME/.config/helix/config.toml"
         check_link "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
         check_link "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"

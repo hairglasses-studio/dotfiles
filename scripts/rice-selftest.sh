@@ -56,7 +56,7 @@ test_plugins() {
   local count
   count="$(echo "$plugins" | wc -l)"
 
-  for p in borders-plus-plus hyprbars hyprexpo hyprfocus hyprwinwrap split-monitor-workspaces Hypr-DarkWindow dynamic-cursors Hyprspace; do
+  for p in borders-plus-plus hyprbars hyprexpo hyprfocus hyprwinwrap split-monitor-workspaces dynamic-cursors; do
     if echo "$plugins" | grep -q "$p"; then
       add_result plugins "$p" pass "loaded"
     else
@@ -98,30 +98,12 @@ test_fonts() {
     add_result fonts "ghostty_font" warn "could not query"
   fi
 
-  # Font-mix profile
-  local profile="unknown"
-  if [[ -f "$HOME/.local/state/font-mix/current" ]]; then
-    local codes
-    codes="$(cat "$HOME/.local/state/font-mix/current")"
-    # Map known presets
-    case "$codes" in
-      "Ne Xe Ar Kr") profile="cyberpunk" ;;
-      "Kr Xe Rn Ne") profile="hacker" ;;
-      "Ar Xe Rn Kr") profile="writer" ;;
-      "Ne Ne Ne Ne") profile="mono" ;;
-      *) profile="custom ($codes)" ;;
-    esac
+  # Check standard font (Maple Mono NF CN) is installed
+  if fc-list : family | grep -q "Maple Mono NF CN"; then
+    add_result fonts "maple_mono_nf_cn" pass "installed"
+  else
+    add_result fonts "maple_mono_nf_cn" fail "missing — standard font not found"
   fi
-  add_result fonts "font_mix_profile" pass "$profile"
-
-  # Check all Monaspace variants installed
-  for v in MonaspiceNe MonaspiceAr MonaspiceRn MonaspiceKr MonaspiceXe; do
-    if find /usr/share/fonts -name "${v}NerdFontMono-Regular.*" 2>/dev/null | grep -q .; then
-      add_result fonts "${v}_nerd_font" pass "installed"
-    else
-      add_result fonts "${v}_nerd_font" fail "missing"
-    fi
-  done
 }
 
 # ── Section: Symlinks ──────────────────────────────
