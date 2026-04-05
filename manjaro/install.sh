@@ -119,9 +119,9 @@ install_packages() {
 
     if command -v yay &>/dev/null; then
         info "Installing AUR packages..."
-        yay -S --needed --noconfirm ttf-jetbrains-mono-nerd logiops makima-bin
+        yay -S --needed --noconfirm ttf-maple-nerd-font logiops makima-bin
     else
-        warn "yay not found — skipping AUR packages (ttf-jetbrains-mono-nerd, logiops, makima-bin)"
+        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, logiops, makima-bin)"
         warn "Install yay: https://github.com/Jguer/yay"
     fi
 }
