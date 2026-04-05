@@ -165,6 +165,15 @@ ${inventory_md}
 EOF
 fi
 
+if [[ "$WRITE_JSON" -eq 1 ]]; then
+  docs_dir="$ROOT/docs/codex-migration"
+  wiki_docs_dir="$(wiki_docs_dir_default)"
+  mkdir -p "$docs_dir" "$wiki_docs_dir"
+
+  printf '%s\n' "$inventory_json" >"$docs_dir/repo-inventory.json"
+  printf '%s\n' "$inventory_json" >"$wiki_docs_dir/repo-inventory.json"
+fi
+
 if [[ "$WRITE_WIKI_DOCS" -eq 1 ]]; then
   wiki_docs_dir="$(wiki_docs_dir_default)"
   mkdir -p "$wiki_docs_dir"

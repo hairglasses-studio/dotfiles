@@ -58,7 +58,7 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/flicker.glsl
+custom-shader = /home/hg/.config/ghostty/shaders/vaporwave.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
