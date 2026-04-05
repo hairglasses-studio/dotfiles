@@ -1,56 +1,55 @@
-# golangci-lint — shared configuration for hairglasses-studio Go repos.
+# golangci-lint v2 — shared configuration for hairglasses-studio Go repos.
 # Symlink: ln -sf ../../dotfiles/make/golangci.yml .golangci.yml
 # Run: golangci-lint run ./...
+
+version: "2"
 
 run:
   timeout: 5m
   tests: true
 
 linters:
-  disable-all: true
+  default: none
   enable:
     - errcheck
     - govet
-    - gosimple
     - staticcheck
     - unused
     - ineffassign
-    - typecheck
     - gocritic
     - misspell
 
-linters-settings:
-  errcheck:
-    exclude-functions:
-      - fmt.Fprintf
-      - fmt.Fprintln
-      - fmt.Printf
-      - fmt.Println
-      - (io.Closer).Close
-      - (net/http.ResponseWriter).Write
-      - (*database/sql.Rows).Close
+  settings:
+    errcheck:
+      exclude-functions:
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Printf
+        - fmt.Println
+        - (io.Closer).Close
+        - (net/http.ResponseWriter).Write
+        - (*database/sql.Rows).Close
 
-  govet:
-    enable-all: false
-    enable:
-      - assign
-      - bools
-      - buildtag
-      - composites
-      - copylocks
-      - httpresponse
-      - nilfunc
-      - printf
-      - stringintconv
-      - tests
-      - unmarshal
-      - unreachable
-      - unusedresult
+    govet:
+      enable:
+        - assign
+        - bools
+        - buildtag
+        - composites
+        - copylocks
+        - httpresponse
+        - nilfunc
+        - printf
+        - stringintconv
+        - tests
+        - unmarshal
+        - unreachable
+        - unusedresult
 
-  staticcheck:
-    checks:
-      - "all"
-      - "-SA1019"   # Allow deprecated usage for controlled migration
+    staticcheck:
+      checks:
+        - "all"
+        - "-SA1019"   # Allow deprecated usage for controlled migration
 
 issues:
   max-issues-per-linter: 0
