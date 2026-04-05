@@ -41,7 +41,8 @@ grep -qE '(ghostty_time|iTime|u_time)' "$pick" 2>/dev/null && anim="true"
 
 # Atomic config update: write to temp file, then replace
 tmp="$(mktemp "${CONFIG}.XXXXXX")"
-sed "s|^custom-shader = .*|custom-shader = ${pick}|" "$CONFIG" \
+relative_pick="shaders/$(basename "$pick")"
+sed "s|^custom-shader = .*|custom-shader = ${relative_pick}|" "$CONFIG" \
   | sed "s|^custom-shader-animation = .*|custom-shader-animation = ${anim}|" \
   > "$tmp"
 mv "$tmp" "$CONFIG"

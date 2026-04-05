@@ -7,7 +7,7 @@ Cross-platform development environment (macOS + Manjaro Linux) managed with syml
 ### Shader Pipeline
 Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — each `.glsl` must be self-contained.
 
-- **`ghostty/shaders/`** — 132+ GLSL shaders
+- **`ghostty/shaders/`** — 138 GLSL shaders
 - **`ghostty/shaders/shaders.toml`** — Central manifest (single source of truth for shader metadata)
 - **`ghostty/shaders/lib/`** — Shared GLSL libraries (inlined by preprocessor)
 - **`ghostty/shaders/bin/`** — Management scripts:
@@ -95,7 +95,7 @@ crt-on, crt-off, crt-toggle (RetroVisor)
 
 ## Testing
 ```bash
-shader-test                    # compile all 132 shaders via glslangValidator
+shader-test                    # compile all 138 shaders via glslangValidator
 shader-meta validate           # manifest <-> .glsl file consistency
 shader-build --check           # preprocessor dry-run
 ```
