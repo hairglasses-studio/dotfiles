@@ -510,6 +510,8 @@ if cmd_exists claude; then
   alias ccc='claude --continue'
   alias ccplan='claude --permission-mode plan'
   alias ccfast='claude --permission-mode acceptEdits'
+  # Global session browser (source so cd affects current shell)
+  function ccg() { source "$HOME/hairglasses-studio/dotfiles/scripts/ccg.sh" "$@" }
 fi
 
 # ── New tools ─────────────────────────────────
