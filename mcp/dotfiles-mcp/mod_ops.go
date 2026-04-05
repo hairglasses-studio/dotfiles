@@ -1,0 +1,1506 @@
+// mod_ops.go — Standardized SDLC operations for autonomous Claude Code development loops
+package main
+
+import (
+	"bufio"
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/hairglasses-studio/mcpkit/handler"
+	"github.com/hairglasses-studio/mcpkit/registry"
+)
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const (
+	opsBuildTimeout = 120 * time.Second
+	opsTestTimeout  = 120 * time.Second
+	opsCIPollMax    = 300 * time.Second
+	opsCIPollDelay  = 15 * time.Second
+)
+
+// ---------------------------------------------------------------------------
+// Session state
+// ---------------------------------------------------------------------------
+
+var (
+	opsSessionMu sync.RWMutex
+	opsSessions  = make(map[string]*OpsSession)
+)
+
+type OpsSession struct {
+	ID          string            `json:"id"`
+	Repo        string            `json:"repo"`
+	Branch      string            `json:"branch"`
+	Description string            `json:"description,omitempty"`
+	CreatedAt   time.Time         `json:"created_at"`
+	Iterations  []IterationRecord `json:"iterations"`
+}
+
+type IterationRecord struct {
+	Number      int   `json:"number"`
+	StartedAt   int64 `json:"started_at"`
+	DurationMs  int64 `json:"duration_ms"`
+	Status      string `json:"status"`
+	ErrorCount  int   `json:"error_count"`
+	BuildOK     bool  `json:"build_ok"`
+	TestsPassed int   `json:"tests_passed"`
+	TestsFailed int   `json:"tests_failed"`
+}
+
+type IterationSummary struct {
+	Number     int    `json:"number"`
+	Status     string `json:"status"`
+	ErrorCount int    `json:"error_count"`
+	DurationMs int64  `json:"duration_ms"`
+}
+
+func opsID() string {
+	b := make([]byte, 4)
+	rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+// ---------------------------------------------------------------------------
+// Shared types
+// ---------------------------------------------------------------------------
+
+type CompileError struct {
+	File    string `json:"file"`
+	Line    int    `json:"line"`
+	Column  int    `json:"column,omitempty"`
+	Message string `json:"message"`
+	Package string `json:"package,omitempty"`
+}
+
+type TestFailure struct {
+	Package string  `json:"package"`
+	Test    string  `json:"test"`
+	Output  string  `json:"output"`
+	Elapsed float64 `json:"elapsed_sec"`
+}
+
+type AnalyzedIssue struct {
+	Category   string `json:"category"`
+	File       string `json:"file"`
+	Line       int    `json:"line,omitempty"`
+	Message    string `json:"message"`
+	Suggestion string `json:"suggestion"`
+	Severity   string `json:"severity"`
+}
+
+type ChangedFile struct {
+	Path       string `json:"path"`
+	Status     string `json:"status"`
+	Insertions int    `json:"insertions"`
+	Deletions  int    `json:"deletions"`
+	GoPackage  string `json:"go_package,omitempty"`
+}
+
+type CICheck struct {
+	Name       string `json:"name"`
+	Status     string `json:"status"`
+	Conclusion string `json:"conclusion,omitempty"`
+	URL        string `json:"url,omitempty"`
+	DurationMs int64  `json:"duration_ms,omitempty"`
+}
+
+type PrePushStep struct {
+	Name       string `json:"name"`
+	Status     string `json:"status"`
+	DurationMs int64  `json:"duration_ms"`
+	ErrorCount int    `json:"error_count,omitempty"`
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+var compileErrorRe = regexp.MustCompile(`^(.+):(\d+):(\d+): (.+)$`)
+var conventionalRe = regexp.MustCompile(`^(feat|fix|chore|docs|refactor|test|ci|perf|build)(\(.+\))?: .+`)
+
+func opsResolveRepo(repo string) (string, error) {
+	if repo != "" {
+		abs, err := filepath.Abs(repo)
+		if err != nil {
+			return "", fmt.Errorf("[%s] invalid repo path: %w", handler.ErrInvalidParam, err)
+		}
+		return abs, nil
+	}
+	return os.Getwd()
+}
+
+func opsDetectLanguage(repoPath string) string {
+	if _, err := os.Stat(filepath.Join(repoPath, "go.mod")); err == nil {
+		return "go"
+	}
+	if _, err := os.Stat(filepath.Join(repoPath, "package.json")); err == nil {
+		return "node"
+	}
+	if _, err := os.Stat(filepath.Join(repoPath, "pyproject.toml")); err == nil {
+		return "python"
+	}
+	return "unknown"
+}
+
+func opsDefaultBase(repoPath string) string {
+	if out, err := runGit(repoPath, "rev-parse", "--verify", "main"); err == nil && out != "" {
+		// Check if we're on main — if so, diff against HEAD
+		branch, _ := runGit(repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+		if strings.TrimSpace(branch) == "main" {
+			return "HEAD"
+		}
+		return "main"
+	}
+	if _, err := runGit(repoPath, "rev-parse", "--verify", "master"); err == nil {
+		return "master"
+	}
+	return "HEAD"
+}
+
+func opsCurrentBranch(repoPath string) string {
+	out, err := runGit(repoPath, "rev-parse", "--abbrev-ref", "HEAD")
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(out)
+}
+
+func opsRunWithTimeout(timeout time.Duration, repoPath, name string, args ...string) (string, string, int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, name, args...)
+	cmd.Dir = repoPath
+	var stdout, stderr strings.Builder
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	exitCode := 0
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		} else {
+			return stdout.String(), stderr.String(), -1, err
+		}
+	}
+	return stdout.String(), stderr.String(), exitCode, nil
+}
+
+func opsParseCompileErrors(stderr string) []CompileError {
+	var errors []CompileError
+	for _, line := range strings.Split(stderr, "\n") {
+		m := compileErrorRe.FindStringSubmatch(strings.TrimSpace(line))
+		if m != nil {
+			lineNum, _ := strconv.Atoi(m[2])
+			col, _ := strconv.Atoi(m[3])
+			errors = append(errors, CompileError{
+				File:    m[1],
+				Line:    lineNum,
+				Column:  col,
+				Message: m[4],
+			})
+		}
+	}
+	return errors
+}
+
+type goTestEvent struct {
+	Action  string  `json:"Action"`
+	Package string  `json:"Package"`
+	Test    string  `json:"Test"`
+	Output  string  `json:"Output"`
+	Elapsed float64 `json:"Elapsed"`
+}
+
+func opsParseGoTestJSON(output string) (passed []string, failures []TestFailure, skipped int) {
+	// Collect output per test
+	testOutput := make(map[string]*strings.Builder)
+	scanner := bufio.NewScanner(strings.NewReader(output))
+	for scanner.Scan() {
+		var evt goTestEvent
+		if err := json.Unmarshal(scanner.Bytes(), &evt); err != nil {
+			continue
+		}
+		if evt.Test == "" {
+			continue // package-level event
+		}
+		key := evt.Package + "/" + evt.Test
+		switch evt.Action {
+		case "output":
+			if testOutput[key] == nil {
+				testOutput[key] = &strings.Builder{}
+			}
+			testOutput[key].WriteString(evt.Output)
+		case "pass":
+			passed = append(passed, key)
+		case "fail":
+			out := ""
+			if b := testOutput[key]; b != nil {
+				out = b.String()
+			}
+			failures = append(failures, TestFailure{
+				Package: evt.Package,
+				Test:    evt.Test,
+				Output:  out,
+				Elapsed: evt.Elapsed,
+			})
+		case "skip":
+			skipped++
+		}
+	}
+	return
+}
+
+func opsCategorizeError(msg string) string {
+	lower := strings.ToLower(msg)
+	switch {
+	case strings.Contains(lower, "undefined:") || strings.Contains(lower, "undeclared name"):
+		return "type_error"
+	case strings.Contains(lower, "cannot use") || strings.Contains(lower, "not enough arguments") || strings.Contains(lower, "too many arguments"):
+		return "type_error"
+	case strings.Contains(lower, "cannot find package") || strings.Contains(lower, "no required module"):
+		return "missing_dep"
+	case strings.Contains(lower, "import cycle"):
+		return "import_cycle"
+	case strings.Contains(lower, "context deadline exceeded") || strings.Contains(lower, "test timed out"):
+		return "timeout"
+	case strings.Contains(lower, "panic:") || strings.Contains(lower, "fail"):
+		return "test_assertion"
+	default:
+		return "compile_error"
+	}
+}
+
+func opsChangedGoPackages(repoPath, base string) ([]string, []string, error) {
+	// Get changed files
+	out, err := runGit(repoPath, "diff", "--name-only", base)
+	if err != nil {
+		// Fallback: unstaged changes
+		out, err = runGit(repoPath, "diff", "--name-only")
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	var changedFiles []string
+	pkgSet := make(map[string]bool)
+	for _, f := range strings.Split(strings.TrimSpace(out), "\n") {
+		f = strings.TrimSpace(f)
+		if f == "" {
+			continue
+		}
+		changedFiles = append(changedFiles, f)
+		if strings.HasSuffix(f, ".go") {
+			pkg := "./" + filepath.Dir(f)
+			pkgSet[pkg] = true
+		}
+	}
+	var pkgs []string
+	for p := range pkgSet {
+		pkgs = append(pkgs, p)
+	}
+	if len(pkgs) == 0 {
+		pkgs = []string{"./..."}
+	}
+	return pkgs, changedFiles, nil
+}
+
+// ---------------------------------------------------------------------------
+// Input/Output types
+// ---------------------------------------------------------------------------
+
+type OpsBuildInput struct {
+	Repo string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+}
+type OpsBuildOutput struct {
+	Repo       string         `json:"repo"`
+	Language   string         `json:"language"`
+	Success    bool           `json:"success"`
+	DurationMs int64          `json:"duration_ms"`
+	Errors     []CompileError `json:"errors,omitempty"`
+	ErrorCount int            `json:"error_count"`
+}
+
+type OpsTestSmartInput struct {
+	Repo    string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Base    string `json:"base,omitempty" jsonschema:"description=Git ref to diff against. Default: auto (HEAD or main)."`
+	All     bool   `json:"all,omitempty" jsonschema:"description=Run all tests instead of only changed packages."`
+	Verbose bool   `json:"verbose,omitempty" jsonschema:"description=Include passing test names in output."`
+	Timeout string `json:"timeout,omitempty" jsonschema:"description=Per-package timeout (e.g. 60s 5m). Default: 120s."`
+}
+type OpsTestSmartOutput struct {
+	Repo           string        `json:"repo"`
+	Strategy       string        `json:"strategy"`
+	BaseRef        string        `json:"base_ref"`
+	PackagesTested int           `json:"packages_tested"`
+	Passed         int           `json:"passed"`
+	Failed         int           `json:"failed"`
+	Skipped        int           `json:"skipped"`
+	DurationMs     int64         `json:"duration_ms"`
+	Failures       []TestFailure `json:"failures,omitempty"`
+	PassedTests    []string      `json:"passed_tests,omitempty"`
+	ChangedFiles   []string      `json:"changed_files,omitempty"`
+}
+
+type OpsChangedFilesInput struct {
+	Repo   string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Base   string `json:"base,omitempty" jsonschema:"description=Git ref to diff against. Default: auto."`
+	Staged bool   `json:"staged,omitempty" jsonschema:"description=Only show staged changes."`
+}
+type OpsChangedFilesOutput struct {
+	Repo         string        `json:"repo"`
+	BaseRef      string        `json:"base_ref"`
+	Files        []ChangedFile `json:"files"`
+	TotalChanged int           `json:"total_changed"`
+	GoPackages   []string      `json:"go_packages,omitempty"`
+	Insertions   int           `json:"insertions"`
+	Deletions    int           `json:"deletions"`
+}
+
+type OpsAnalyzeInput struct {
+	BuildErrors  []CompileError `json:"build_errors,omitempty" jsonschema:"description=Compile errors from ops_build"`
+	TestFailures []TestFailure  `json:"test_failures,omitempty" jsonschema:"description=Test failures from ops_test_smart"`
+}
+type OpsAnalyzeOutput struct {
+	Summary        string           `json:"summary"`
+	TotalIssues    int              `json:"total_issues"`
+	Categories     map[string]int   `json:"categories"`
+	Issues         []AnalyzedIssue  `json:"issues"`
+	AffectedFiles  []string         `json:"affected_files"`
+	SuggestedOrder []string         `json:"suggested_fix_order"`
+}
+
+type OpsBranchInput struct {
+	Repo   string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Name   string `json:"name" jsonschema:"required,description=Branch name (auto-prefixed with type/ if no slash)"`
+	Type   string `json:"type,omitempty" jsonschema:"description=Branch type prefix,enum=feat,enum=fix,enum=chore,enum=docs,enum=refactor"`
+	From   string `json:"from,omitempty" jsonschema:"description=Base ref. Default: main."`
+	DryRun bool   `json:"dry_run,omitempty" jsonschema:"description=Preview without creating. Default: true."`
+}
+type OpsBranchOutput struct {
+	Branch     string `json:"branch"`
+	BaseBranch string `json:"base_branch"`
+	Created    bool   `json:"created"`
+	DryRun     bool   `json:"dry_run"`
+}
+
+type OpsCommitInput struct {
+	Repo    string   `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Message string   `json:"message" jsonschema:"required,description=Commit message (conventional: feat: fix: chore: etc.)"`
+	Files   []string `json:"files,omitempty" jsonschema:"description=Specific files to stage. Default: all modified tracked files."`
+	DryRun  bool     `json:"dry_run,omitempty" jsonschema:"description=Preview without committing. Default: true."`
+}
+type OpsCommitOutput struct {
+	SHA         string   `json:"sha,omitempty"`
+	Message     string   `json:"message"`
+	FilesStaged []string `json:"files_staged"`
+	Insertions  int      `json:"insertions"`
+	Deletions   int      `json:"deletions"`
+	DryRun      bool     `json:"dry_run"`
+	Warnings    []string `json:"warnings,omitempty"`
+}
+
+type OpsPRCreateInput struct {
+	Repo   string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Title  string `json:"title" jsonschema:"required,description=PR title (under 70 chars)"`
+	Body   string `json:"body,omitempty" jsonschema:"description=PR body markdown"`
+	Base   string `json:"base,omitempty" jsonschema:"description=Base branch. Default: main."`
+	Draft  bool   `json:"draft,omitempty" jsonschema:"description=Create as draft PR"`
+	DryRun bool   `json:"dry_run,omitempty" jsonschema:"description=Preview without creating. Default: true."`
+}
+type OpsPRCreateOutput struct {
+	URL     string `json:"url,omitempty"`
+	Number  int    `json:"number,omitempty"`
+	Title   string `json:"title"`
+	Base    string `json:"base"`
+	Head    string `json:"head"`
+	Commits int    `json:"commits"`
+	DryRun  bool   `json:"dry_run"`
+	Pushed  bool   `json:"pushed"`
+}
+
+type OpsCIStatusInput struct {
+	Repo   string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Branch string `json:"branch,omitempty" jsonschema:"description=Branch to check. Default: current branch."`
+	PR     int    `json:"pr,omitempty" jsonschema:"description=PR number to check."`
+	Wait   bool   `json:"wait,omitempty" jsonschema:"description=Wait up to 5 minutes for checks to complete."`
+}
+type OpsCIStatusOutput struct {
+	Branch    string    `json:"branch"`
+	SHA       string    `json:"sha"`
+	Overall   string    `json:"overall"`
+	Checks    []CICheck `json:"checks"`
+	WaitedSec int       `json:"waited_sec,omitempty"`
+}
+
+type OpsPrePushInput struct {
+	Repo     string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	SkipLint bool   `json:"skip_lint,omitempty" jsonschema:"description=Skip golangci-lint."`
+}
+type OpsPrePushOutput struct {
+	Repo       string         `json:"repo"`
+	Overall    string         `json:"overall"`
+	DurationMs int64          `json:"duration_ms"`
+	Steps      []PrePushStep  `json:"steps"`
+	FailedStep string         `json:"failed_step,omitempty"`
+	Errors     []CompileError `json:"errors,omitempty"`
+	Failures   []TestFailure  `json:"failures,omitempty"`
+}
+
+type OpsIterateInput struct {
+	Repo      string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	SessionID string `json:"session_id,omitempty" jsonschema:"description=Ops session ID. Auto-created if empty."`
+}
+type OpsIterateOutput struct {
+	SessionID  string              `json:"session_id"`
+	Iteration  int                 `json:"iteration"`
+	Build      *OpsBuildOutput     `json:"build"`
+	Test       *OpsTestSmartOutput `json:"test,omitempty"`
+	Analysis   *OpsAnalyzeOutput   `json:"analysis,omitempty"`
+	Status     string              `json:"status"`
+	DurationMs int64               `json:"duration_ms"`
+	History    []IterationSummary  `json:"history"`
+	NextActions []string           `json:"next_actions"`
+}
+
+type OpsShipInput struct {
+	Repo    string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Message string `json:"message" jsonschema:"required,description=Conventional commit message"`
+	Title   string `json:"title,omitempty" jsonschema:"description=PR title. Defaults to commit message."`
+	Body    string `json:"body,omitempty" jsonschema:"description=PR body markdown."`
+	Draft   bool   `json:"draft,omitempty" jsonschema:"description=Create PR as draft."`
+	DryRun  bool   `json:"dry_run,omitempty" jsonschema:"description=Preview all steps. Default: true."`
+}
+type OpsShipOutput struct {
+	DryRun    bool               `json:"dry_run"`
+	PrePush   *OpsPrePushOutput  `json:"pre_push"`
+	Commit    *OpsCommitOutput   `json:"commit,omitempty"`
+	PR        *OpsPRCreateOutput `json:"pr,omitempty"`
+	Overall   string             `json:"overall"`
+	BlockedAt string             `json:"blocked_at,omitempty"`
+}
+
+type OpsSessionCreateInput struct {
+	Repo        string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Description string `json:"description,omitempty" jsonschema:"description=What this SDLC cycle is working on"`
+}
+type OpsSessionCreateOutput struct {
+	SessionID string `json:"session_id"`
+	Repo      string `json:"repo"`
+	Branch    string `json:"branch"`
+	CreatedAt string `json:"created_at"`
+}
+
+type OpsSessionStatusInput struct {
+	SessionID string `json:"session_id" jsonschema:"required,description=Ops session ID"`
+}
+type OpsSessionStatusOutput struct {
+	SessionID   string             `json:"session_id"`
+	Repo        string             `json:"repo"`
+	Branch      string             `json:"branch"`
+	Iterations  int                `json:"iterations"`
+	TotalTimeMs int64              `json:"total_time_ms"`
+	CurrentState string            `json:"current_state"`
+	ErrorTrend  []int              `json:"error_trend"`
+	Converging  bool               `json:"converging"`
+	History     []IterationSummary `json:"history"`
+}
+
+type OpsSessionListInput struct{}
+type OpsSessionListOutput struct {
+	Sessions []SessionSummary `json:"sessions"`
+}
+type SessionSummary struct {
+	SessionID   string `json:"session_id"`
+	Repo        string `json:"repo"`
+	Branch      string `json:"branch"`
+	Iterations  int    `json:"iterations"`
+	State       string `json:"state"`
+	StartedAt   string `json:"started_at"`
+	Description string `json:"description,omitempty"`
+}
+
+// ---------------------------------------------------------------------------
+// Module
+// ---------------------------------------------------------------------------
+
+type OpsModule struct{}
+
+func (m *OpsModule) Name() string { return "ops" }
+func (m *OpsModule) Description() string {
+	return "SDLC operations for autonomous development loops: build, test, analyze, commit, ship"
+}
+
+func (m *OpsModule) Tools() []registry.ToolDefinition {
+	return []registry.ToolDefinition{
+		// Atomic — Build & Test
+		handler.TypedHandler[OpsBuildInput, OpsBuildOutput](
+			"ops_build",
+			"Run go build and parse compiler errors into structured JSON with file, line, column, message, and package. Returns success/failure with error count.",
+			opsBuild,
+		),
+		handler.TypedHandler[OpsTestSmartInput, OpsTestSmartOutput](
+			"ops_test_smart",
+			"Run go test -json on only changed packages (via git diff), returning per-test pass/fail/skip results. Use all=true to test everything. Smart filtering avoids running the full suite on every iteration.",
+			opsTestSmart,
+		),
+		handler.TypedHandler[OpsChangedFilesInput, OpsChangedFilesOutput](
+			"ops_changed_files",
+			"List changed files with diff stats and Go package mapping. Useful for understanding what was modified before building or testing.",
+			opsChangedFiles,
+		),
+		// Atomic — Analysis
+		handler.TypedHandler[OpsAnalyzeInput, OpsAnalyzeOutput](
+			"ops_analyze_failures",
+			"Categorize build/test failures into types (compile_error, type_error, missing_dep, test_assertion, timeout, import_cycle) with suggested fix order. Pass build_errors from ops_build and/or test_failures from ops_test_smart.",
+			opsAnalyze,
+		),
+		// Atomic — Git & GitHub
+		handler.TypedHandler[OpsBranchInput, OpsBranchOutput](
+			"ops_branch_create",
+			"Create a feature branch with conventional naming (feat/fix/chore prefix). Dry-run by default — pass dry_run=false to create.",
+			opsBranchCreate,
+		),
+		handler.TypedHandler[OpsCommitInput, OpsCommitOutput](
+			"ops_commit",
+			"Stage changed files and create a conventional commit. Validates message format, never amends. Dry-run by default — pass dry_run=false to commit.",
+			opsCommit,
+		),
+		handler.TypedHandler[OpsPRCreateInput, OpsPRCreateOutput](
+			"ops_pr_create",
+			"Push branch and create a GitHub PR via gh CLI. Returns PR URL and number. Dry-run by default — pass dry_run=false to create.",
+			opsPRCreate,
+		),
+		// Atomic — CI
+		handler.TypedHandler[OpsCIStatusInput, OpsCIStatusOutput](
+			"ops_ci_status",
+			"Check GitHub Actions check status for a branch or PR. Returns per-check pass/fail with overall verdict. Use wait=true to poll until all checks complete (up to 5 minutes).",
+			opsCIStatus,
+		),
+		// Composed
+		handler.TypedHandler[OpsPrePushInput, OpsPrePushOutput](
+			"ops_pre_push",
+			"Pre-push gate: run vet → lint → build → test (changed packages only). Short-circuits on first failure. Returns structured per-step results.",
+			opsPrePush,
+		),
+		handler.TypedHandler[OpsIterateInput, OpsIterateOutput](
+			"ops_iterate",
+			"Core SDLC loop tool: build → test (changed packages) → analyze failures → track iteration. Call this after each round of edits. Returns structured next_actions with files to fix. Tracks iteration count and error trends for convergence detection.",
+			opsIterate,
+		),
+		handler.TypedHandler[OpsShipInput, OpsShipOutput](
+			"ops_ship",
+			"Ship changes: pre-push gate → commit → push → create PR. Only proceeds if gate passes. Dry-run by default — pass dry_run=false to ship.",
+			opsShip,
+		),
+		// Sessions
+		handler.TypedHandler[OpsSessionCreateInput, OpsSessionCreateOutput](
+			"ops_session_create",
+			"Create a new SDLC session for iteration tracking. Optional — ops_iterate auto-creates one if absent.",
+			opsSessionCreate,
+		),
+		handler.TypedHandler[OpsSessionStatusInput, OpsSessionStatusOutput](
+			"ops_session_status",
+			"Get SDLC session status: iteration count, error trend, convergence detection, total time spent.",
+			opsSessionStatus,
+		),
+		handler.TypedHandler[OpsSessionListInput, OpsSessionListOutput](
+			"ops_session_list",
+			"List all active SDLC sessions with summary stats.",
+			opsSessionList,
+		),
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Atomic handlers — Build & Test
+// ---------------------------------------------------------------------------
+
+func opsBuild(_ context.Context, input OpsBuildInput) (OpsBuildOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsBuildOutput{}, err
+	}
+	lang := opsDetectLanguage(repo)
+	if lang != "go" {
+		return OpsBuildOutput{}, fmt.Errorf("[%s] ops_build currently supports Go only (detected: %s)", handler.ErrInvalidParam, lang)
+	}
+
+	start := time.Now()
+	_, stderr, exitCode, err := opsRunWithTimeout(opsBuildTimeout, repo, "go", "build", "./...")
+	if err != nil {
+		return OpsBuildOutput{}, fmt.Errorf("build command failed: %w", err)
+	}
+	duration := time.Since(start).Milliseconds()
+
+	errors := opsParseCompileErrors(stderr)
+
+	return OpsBuildOutput{
+		Repo:       repo,
+		Language:   lang,
+		Success:    exitCode == 0,
+		DurationMs: duration,
+		Errors:     errors,
+		ErrorCount: len(errors),
+	}, nil
+}
+
+func opsTestSmart(_ context.Context, input OpsTestSmartInput) (OpsTestSmartOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsTestSmartOutput{}, err
+	}
+
+	base := input.Base
+	if base == "" {
+		base = opsDefaultBase(repo)
+	}
+
+	timeout := opsTestTimeout
+	if input.Timeout != "" {
+		if d, err := time.ParseDuration(input.Timeout); err == nil {
+			timeout = d
+		}
+	}
+
+	strategy := "changed_packages"
+	var pkgs []string
+	var changedFiles []string
+
+	if input.All {
+		strategy = "all"
+		pkgs = []string{"./..."}
+	} else {
+		pkgs, changedFiles, err = opsChangedGoPackages(repo, base)
+		if err != nil {
+			strategy = "all"
+			pkgs = []string{"./..."}
+		}
+	}
+
+	start := time.Now()
+	args := append([]string{"test", "-json", "-count=1", "-timeout", timeout.String()}, pkgs...)
+	stdout, _, _, _ := opsRunWithTimeout(timeout+10*time.Second, repo, "go", args...)
+	duration := time.Since(start).Milliseconds()
+
+	passed, failures, skipped := opsParseGoTestJSON(stdout)
+
+	out := OpsTestSmartOutput{
+		Repo:           repo,
+		Strategy:       strategy,
+		BaseRef:        base,
+		PackagesTested: len(pkgs),
+		Passed:         len(passed),
+		Failed:         len(failures),
+		Skipped:        skipped,
+		DurationMs:     duration,
+		Failures:       failures,
+		ChangedFiles:   changedFiles,
+	}
+	if input.Verbose {
+		out.PassedTests = passed
+	}
+	return out, nil
+}
+
+func opsChangedFiles(_ context.Context, input OpsChangedFilesInput) (OpsChangedFilesOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsChangedFilesOutput{}, err
+	}
+
+	base := input.Base
+	if base == "" {
+		base = opsDefaultBase(repo)
+	}
+
+	diffArgs := []string{"diff", "--numstat", base}
+	if input.Staged {
+		diffArgs = []string{"diff", "--numstat", "--cached"}
+	}
+
+	out, err := runGit(repo, diffArgs...)
+	if err != nil {
+		return OpsChangedFilesOutput{}, fmt.Errorf("git diff: %w", err)
+	}
+
+	var files []ChangedFile
+	pkgSet := make(map[string]bool)
+	totalIns, totalDel := 0, 0
+
+	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+		if line == "" {
+			continue
+		}
+		parts := strings.Fields(line)
+		if len(parts) < 3 {
+			continue
+		}
+		ins, _ := strconv.Atoi(parts[0])
+		del, _ := strconv.Atoi(parts[1])
+		path := parts[2]
+		totalIns += ins
+		totalDel += del
+
+		cf := ChangedFile{
+			Path:       path,
+			Status:     "modified",
+			Insertions: ins,
+			Deletions:  del,
+		}
+		if strings.HasSuffix(path, ".go") {
+			pkg := "./" + filepath.Dir(path)
+			cf.GoPackage = pkg
+			pkgSet[pkg] = true
+		}
+		files = append(files, cf)
+	}
+
+	var pkgs []string
+	for p := range pkgSet {
+		pkgs = append(pkgs, p)
+	}
+
+	return OpsChangedFilesOutput{
+		Repo:         repo,
+		BaseRef:      base,
+		Files:        files,
+		TotalChanged: len(files),
+		GoPackages:   pkgs,
+		Insertions:   totalIns,
+		Deletions:    totalDel,
+	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Atomic handlers — Analysis
+// ---------------------------------------------------------------------------
+
+func opsAnalyze(_ context.Context, input OpsAnalyzeInput) (OpsAnalyzeOutput, error) {
+	categories := make(map[string]int)
+	var issues []AnalyzedIssue
+	fileSet := make(map[string]bool)
+
+	for _, ce := range input.BuildErrors {
+		cat := opsCategorizeError(ce.Message)
+		categories[cat]++
+		fileSet[ce.File] = true
+		issues = append(issues, AnalyzedIssue{
+			Category:   cat,
+			File:       ce.File,
+			Line:       ce.Line,
+			Message:    ce.Message,
+			Suggestion: suggestFix(cat, ce.Message),
+			Severity:   "blocker",
+		})
+	}
+
+	for _, tf := range input.TestFailures {
+		cat := opsCategorizeError(tf.Output)
+		categories[cat]++
+		// Extract file from package path
+		pkgDir := strings.TrimPrefix(tf.Package, "github.com/")
+		if idx := strings.Index(pkgDir, "/"); idx > 0 {
+			pkgDir = pkgDir[strings.Index(pkgDir[idx+1:], "/")+idx+2:]
+		}
+		fileSet[pkgDir] = true
+		issues = append(issues, AnalyzedIssue{
+			Category:   cat,
+			File:       pkgDir,
+			Message:    fmt.Sprintf("Test %s failed", tf.Test),
+			Suggestion: suggestFix(cat, tf.Output),
+			Severity:   "blocker",
+		})
+	}
+
+	var affected []string
+	for f := range fileSet {
+		affected = append(affected, f)
+	}
+
+	summary := fmt.Sprintf("%d issue(s): ", len(issues))
+	for cat, count := range categories {
+		summary += fmt.Sprintf("%s(%d) ", cat, count)
+	}
+
+	return OpsAnalyzeOutput{
+		Summary:        strings.TrimSpace(summary),
+		TotalIssues:    len(issues),
+		Categories:     categories,
+		Issues:         issues,
+		AffectedFiles:  affected,
+		SuggestedOrder: affected, // simplified: just the affected files
+	}, nil
+}
+
+func suggestFix(category, msg string) string {
+	switch category {
+	case "type_error":
+		return "Check type signatures and function arguments"
+	case "missing_dep":
+		return "Run 'go mod tidy' or add the missing import"
+	case "import_cycle":
+		return "Break the import cycle by extracting shared types to a separate package"
+	case "timeout":
+		return "Check for infinite loops, slow external calls, or increase test timeout"
+	case "test_assertion":
+		return "Review the test assertion and expected vs actual values"
+	default:
+		return "Fix the compile error"
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Atomic handlers — Git & GitHub
+// ---------------------------------------------------------------------------
+
+func opsBranchCreate(_ context.Context, input OpsBranchInput) (OpsBranchOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsBranchOutput{}, err
+	}
+
+	branchType := input.Type
+	if branchType == "" {
+		branchType = "feat"
+	}
+	branch := input.Name
+	if !strings.Contains(branch, "/") {
+		branch = branchType + "/" + branch
+	}
+
+	base := input.From
+	if base == "" {
+		base = opsDefaultBase(repo)
+		if base == "HEAD" {
+			base = "main"
+		}
+	}
+
+	if input.DryRun {
+		return OpsBranchOutput{
+			Branch:     branch,
+			BaseBranch: base,
+			Created:    false,
+			DryRun:     true,
+		}, nil
+	}
+
+	if _, err := runGit(repo, "checkout", "-b", branch, base); err != nil {
+		return OpsBranchOutput{}, fmt.Errorf("git checkout -b: %w", err)
+	}
+
+	return OpsBranchOutput{
+		Branch:     branch,
+		BaseBranch: base,
+		Created:    true,
+		DryRun:     false,
+	}, nil
+}
+
+func opsCommit(_ context.Context, input OpsCommitInput) (OpsCommitOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsCommitOutput{}, err
+	}
+
+	var warnings []string
+	if !conventionalRe.MatchString(input.Message) {
+		warnings = append(warnings, "Message doesn't follow conventional commit format (feat:, fix:, chore:, etc.)")
+	}
+
+	// Stage files
+	if len(input.Files) > 0 {
+		args := append([]string{"add"}, input.Files...)
+		if _, err := runGit(repo, args...); err != nil {
+			return OpsCommitOutput{}, fmt.Errorf("git add: %w", err)
+		}
+	} else {
+		if _, err := runGit(repo, "add", "-u"); err != nil {
+			return OpsCommitOutput{}, fmt.Errorf("git add -u: %w", err)
+		}
+	}
+
+	// Get staged files
+	staged, _ := runGit(repo, "diff", "--cached", "--name-only")
+	stagedFiles := strings.Split(strings.TrimSpace(staged), "\n")
+	if len(stagedFiles) == 1 && stagedFiles[0] == "" {
+		stagedFiles = nil
+	}
+
+	// Get stats
+	stat, _ := runGit(repo, "diff", "--cached", "--stat")
+	ins, del := 0, 0
+	for _, line := range strings.Split(stat, "\n") {
+		if strings.Contains(line, "insertion") || strings.Contains(line, "deletion") {
+			parts := strings.Fields(line)
+			for i, p := range parts {
+				if strings.HasPrefix(p, "insertion") && i > 0 {
+					ins, _ = strconv.Atoi(parts[i-1])
+				}
+				if strings.HasPrefix(p, "deletion") && i > 0 {
+					del, _ = strconv.Atoi(parts[i-1])
+				}
+			}
+		}
+	}
+
+	if input.DryRun {
+		// Unstage in dry-run mode
+		runGit(repo, "reset", "HEAD")
+		return OpsCommitOutput{
+			Message:     input.Message,
+			FilesStaged: stagedFiles,
+			Insertions:  ins,
+			Deletions:   del,
+			DryRun:      true,
+			Warnings:    warnings,
+		}, nil
+	}
+
+	// Commit
+	if _, err := runGit(repo, "commit", "-m", input.Message); err != nil {
+		return OpsCommitOutput{}, fmt.Errorf("git commit: %w", err)
+	}
+
+	sha, _ := runGit(repo, "rev-parse", "--short", "HEAD")
+
+	return OpsCommitOutput{
+		SHA:         strings.TrimSpace(sha),
+		Message:     input.Message,
+		FilesStaged: stagedFiles,
+		Insertions:  ins,
+		Deletions:   del,
+		DryRun:      false,
+		Warnings:    warnings,
+	}, nil
+}
+
+func opsPRCreate(_ context.Context, input OpsPRCreateInput) (OpsPRCreateOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsPRCreateOutput{}, err
+	}
+
+	head := opsCurrentBranch(repo)
+	base := input.Base
+	if base == "" {
+		base = "main"
+	}
+
+	// Count commits ahead of base
+	countOut, _ := runGit(repo, "rev-list", "--count", base+".."+head)
+	commits, _ := strconv.Atoi(strings.TrimSpace(countOut))
+
+	if input.DryRun {
+		return OpsPRCreateOutput{
+			Title:   input.Title,
+			Base:    base,
+			Head:    head,
+			Commits: commits,
+			DryRun:  true,
+			Pushed:  false,
+		}, nil
+	}
+
+	// Push
+	if _, err := runGit(repo, "push", "-u", "origin", head); err != nil {
+		return OpsPRCreateOutput{}, fmt.Errorf("git push: %w", err)
+	}
+
+	// Create PR
+	args := []string{"pr", "create", "--title", input.Title, "--base", base, "--json", "url,number"}
+	if input.Body != "" {
+		args = append(args, "--body", input.Body)
+	}
+	if input.Draft {
+		args = append(args, "--draft")
+	}
+
+	ghOut, ghErr, _, ghRunErr := opsRunWithTimeout(30*time.Second, repo, "gh", args...)
+	if ghRunErr != nil {
+		return OpsPRCreateOutput{}, fmt.Errorf("gh pr create: %s %s", ghOut, ghErr)
+	}
+
+	var prData struct {
+		URL    string `json:"url"`
+		Number int    `json:"number"`
+	}
+	json.Unmarshal([]byte(ghOut), &prData)
+
+	return OpsPRCreateOutput{
+		URL:     prData.URL,
+		Number:  prData.Number,
+		Title:   input.Title,
+		Base:    base,
+		Head:    head,
+		Commits: commits,
+		DryRun:  false,
+		Pushed:  true,
+	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Atomic handlers — CI
+// ---------------------------------------------------------------------------
+
+func opsCIStatus(_ context.Context, input OpsCIStatusInput) (OpsCIStatusOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsCIStatusOutput{}, err
+	}
+
+	branch := input.Branch
+	if branch == "" {
+		branch = opsCurrentBranch(repo)
+	}
+
+	sha, _ := runGit(repo, "rev-parse", "HEAD")
+
+	pollChecks := func() ([]CICheck, string) {
+		var args []string
+		if input.PR > 0 {
+			args = []string{"pr", "checks", strconv.Itoa(input.PR), "--json", "name,state,conclusion,detailsUrl,elapsedTime"}
+		} else {
+			args = []string{"run", "list", "--branch", branch, "--limit", "20", "--json", "name,status,conclusion,url,databaseId"}
+		}
+		ghOut, _, _, _ := opsRunWithTimeout(15*time.Second, repo, "gh", args...)
+
+		var checks []CICheck
+		var rawChecks []map[string]any
+		json.Unmarshal([]byte(ghOut), &rawChecks)
+
+		allDone := true
+		anyFail := false
+		for _, rc := range rawChecks {
+			name, _ := rc["name"].(string)
+			status, _ := rc["status"].(string)
+			if status == "" {
+				if s, ok := rc["state"].(string); ok {
+					status = s
+				}
+			}
+			conclusion, _ := rc["conclusion"].(string)
+			url, _ := rc["url"].(string)
+			if url == "" {
+				if u, ok := rc["detailsUrl"].(string); ok {
+					url = u
+				}
+			}
+
+			if status != "completed" && status != "SUCCESS" && status != "FAILURE" {
+				allDone = false
+			}
+			if conclusion == "failure" || status == "FAILURE" {
+				anyFail = true
+			}
+			checks = append(checks, CICheck{
+				Name:       name,
+				Status:     status,
+				Conclusion: conclusion,
+				URL:        url,
+			})
+		}
+
+		overall := "pending"
+		if allDone {
+			if anyFail {
+				overall = "fail"
+			} else {
+				overall = "pass"
+			}
+		}
+		return checks, overall
+	}
+
+	checks, overall := pollChecks()
+	waited := 0
+
+	if input.Wait && overall == "pending" {
+		maxWait := opsCIPollMax
+		for time.Duration(waited)*time.Second < maxWait {
+			time.Sleep(opsCIPollDelay)
+			waited += int(opsCIPollDelay.Seconds())
+			checks, overall = pollChecks()
+			if overall != "pending" {
+				break
+			}
+		}
+	}
+
+	return OpsCIStatusOutput{
+		Branch:    branch,
+		SHA:       strings.TrimSpace(sha),
+		Overall:   overall,
+		Checks:    checks,
+		WaitedSec: waited,
+	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Composed handlers
+// ---------------------------------------------------------------------------
+
+func opsPrePush(ctx context.Context, input OpsPrePushInput) (OpsPrePushOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsPrePushOutput{}, err
+	}
+
+	totalStart := time.Now()
+	var steps []PrePushStep
+	var allErrors []CompileError
+	var allFailures []TestFailure
+
+	// Step 1: vet
+	start := time.Now()
+	_, vetStderr, vetCode, _ := opsRunWithTimeout(30*time.Second, repo, "go", "vet", "./...")
+	vetStep := PrePushStep{Name: "vet", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
+	if vetCode != 0 {
+		vetStep.Status = "fail"
+		vetStep.ErrorCount = len(strings.Split(strings.TrimSpace(vetStderr), "\n"))
+		steps = append(steps, vetStep)
+		return OpsPrePushOutput{
+			Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+			Steps: steps, FailedStep: "vet",
+		}, nil
+	}
+	steps = append(steps, vetStep)
+
+	// Step 2: lint (optional)
+	if !input.SkipLint {
+		start = time.Now()
+		_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "golangci-lint", "run", "./...")
+		lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
+		if lintCode != 0 {
+			lintStep.Status = "fail"
+			steps = append(steps, lintStep)
+			return OpsPrePushOutput{
+				Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+				Steps: steps, FailedStep: "lint",
+			}, nil
+		}
+		steps = append(steps, lintStep)
+	}
+
+	// Step 3: build
+	buildOut, _ := opsBuild(ctx, OpsBuildInput{Repo: repo})
+	buildStep := PrePushStep{Name: "build", Status: "pass", DurationMs: buildOut.DurationMs, ErrorCount: buildOut.ErrorCount}
+	if !buildOut.Success {
+		buildStep.Status = "fail"
+		allErrors = buildOut.Errors
+		steps = append(steps, buildStep)
+		return OpsPrePushOutput{
+			Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+			Steps: steps, FailedStep: "build", Errors: allErrors,
+		}, nil
+	}
+	steps = append(steps, buildStep)
+
+	// Step 4: test (changed packages only)
+	testOut, _ := opsTestSmart(ctx, OpsTestSmartInput{Repo: repo})
+	testStep := PrePushStep{Name: "test", Status: "pass", DurationMs: testOut.DurationMs}
+	if testOut.Failed > 0 {
+		testStep.Status = "fail"
+		testStep.ErrorCount = testOut.Failed
+		allFailures = testOut.Failures
+		steps = append(steps, testStep)
+		return OpsPrePushOutput{
+			Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+			Steps: steps, FailedStep: "test", Failures: allFailures,
+		}, nil
+	}
+	steps = append(steps, testStep)
+
+	return OpsPrePushOutput{
+		Repo:       repo,
+		Overall:    "pass",
+		DurationMs: time.Since(totalStart).Milliseconds(),
+		Steps:      steps,
+	}, nil
+}
+
+func opsIterate(ctx context.Context, input OpsIterateInput) (OpsIterateOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsIterateOutput{}, err
+	}
+
+	// Get or create session
+	sessionID := input.SessionID
+	if sessionID == "" {
+		// Auto-create session
+		createOut, _ := opsSessionCreate(ctx, OpsSessionCreateInput{Repo: repo})
+		sessionID = createOut.SessionID
+	}
+
+	opsSessionMu.Lock()
+	session, ok := opsSessions[sessionID]
+	if !ok {
+		opsSessionMu.Unlock()
+		return OpsIterateOutput{}, fmt.Errorf("[%s] session %q not found", handler.ErrNotFound, sessionID)
+	}
+	opsSessionMu.Unlock()
+
+	iterStart := time.Now()
+	iterNum := len(session.Iterations) + 1
+
+	// Step 1: Build
+	buildOut, _ := opsBuild(ctx, OpsBuildInput{Repo: repo})
+
+	var testOut *OpsTestSmartOutput
+	var analysis *OpsAnalyzeOutput
+	var nextActions []string
+	status := "all_pass"
+	errorCount := 0
+
+	if !buildOut.Success {
+		status = "build_fail"
+		errorCount = buildOut.ErrorCount
+		analyzeOut, _ := opsAnalyze(ctx, OpsAnalyzeInput{BuildErrors: buildOut.Errors})
+		analysis = &analyzeOut
+		nextActions = analyzeOut.SuggestedOrder
+	} else {
+		// Step 2: Test (only if build passed)
+		testResult, _ := opsTestSmart(ctx, OpsTestSmartInput{Repo: repo})
+		testOut = &testResult
+
+		if testResult.Failed > 0 {
+			status = "test_fail"
+			errorCount = testResult.Failed
+			analyzeOut, _ := opsAnalyze(ctx, OpsAnalyzeInput{TestFailures: testResult.Failures})
+			analysis = &analyzeOut
+			nextActions = analyzeOut.SuggestedOrder
+		}
+	}
+
+	duration := time.Since(iterStart).Milliseconds()
+
+	// Record iteration
+	record := IterationRecord{
+		Number:      iterNum,
+		StartedAt:   iterStart.UnixMilli(),
+		DurationMs:  duration,
+		Status:      status,
+		ErrorCount:  errorCount,
+		BuildOK:     buildOut.Success,
+		TestsPassed: 0,
+		TestsFailed: 0,
+	}
+	if testOut != nil {
+		record.TestsPassed = testOut.Passed
+		record.TestsFailed = testOut.Failed
+	}
+
+	opsSessionMu.Lock()
+	session.Iterations = append(session.Iterations, record)
+	opsSessionMu.Unlock()
+
+	// Build history summary
+	var history []IterationSummary
+	for _, iter := range session.Iterations {
+		history = append(history, IterationSummary{
+			Number:     iter.Number,
+			Status:     iter.Status,
+			ErrorCount: iter.ErrorCount,
+			DurationMs: iter.DurationMs,
+		})
+	}
+
+	return OpsIterateOutput{
+		SessionID:   sessionID,
+		Iteration:   iterNum,
+		Build:       &buildOut,
+		Test:        testOut,
+		Analysis:    analysis,
+		Status:      status,
+		DurationMs:  duration,
+		History:     history,
+		NextActions: nextActions,
+	}, nil
+}
+
+func opsShip(ctx context.Context, input OpsShipInput) (OpsShipOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsShipOutput{}, err
+	}
+
+	// Step 1: Pre-push gate
+	prePush, _ := opsPrePush(ctx, OpsPrePushInput{Repo: repo})
+
+	if prePush.Overall != "pass" {
+		return OpsShipOutput{
+			DryRun:    input.DryRun,
+			PrePush:   &prePush,
+			Overall:   "blocked",
+			BlockedAt: "pre_push:" + prePush.FailedStep,
+		}, nil
+	}
+
+	if input.DryRun {
+		// Preview commit
+		commitPreview, _ := opsCommit(ctx, OpsCommitInput{Repo: repo, Message: input.Message, DryRun: true})
+		title := input.Title
+		if title == "" {
+			title = input.Message
+		}
+		prPreview, _ := opsPRCreate(ctx, OpsPRCreateInput{Repo: repo, Title: title, Body: input.Body, Draft: input.Draft, DryRun: true})
+		return OpsShipOutput{
+			DryRun:  true,
+			PrePush: &prePush,
+			Commit:  &commitPreview,
+			PR:      &prPreview,
+			Overall: "dry_run",
+		}, nil
+	}
+
+	// Step 2: Commit
+	commitOut, err := opsCommit(ctx, OpsCommitInput{Repo: repo, Message: input.Message, DryRun: false})
+	if err != nil {
+		return OpsShipOutput{
+			PrePush:   &prePush,
+			Overall:   "blocked",
+			BlockedAt: "commit",
+		}, nil
+	}
+
+	// Step 3: Push + PR
+	title := input.Title
+	if title == "" {
+		title = input.Message
+	}
+	prOut, err := opsPRCreate(ctx, OpsPRCreateInput{Repo: repo, Title: title, Body: input.Body, Draft: input.Draft, DryRun: false})
+	if err != nil {
+		return OpsShipOutput{
+			PrePush:   &prePush,
+			Commit:    &commitOut,
+			Overall:   "blocked",
+			BlockedAt: "pr_create",
+		}, nil
+	}
+
+	return OpsShipOutput{
+		DryRun:  false,
+		PrePush: &prePush,
+		Commit:  &commitOut,
+		PR:      &prOut,
+		Overall: "shipped",
+	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Session handlers
+// ---------------------------------------------------------------------------
+
+func opsSessionCreate(_ context.Context, input OpsSessionCreateInput) (OpsSessionCreateOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsSessionCreateOutput{}, err
+	}
+
+	id := opsID()
+	branch := opsCurrentBranch(repo)
+	now := time.Now()
+
+	session := &OpsSession{
+		ID:          id,
+		Repo:        repo,
+		Branch:      branch,
+		Description: input.Description,
+		CreatedAt:   now,
+	}
+
+	opsSessionMu.Lock()
+	opsSessions[id] = session
+	opsSessionMu.Unlock()
+
+	return OpsSessionCreateOutput{
+		SessionID: id,
+		Repo:      repo,
+		Branch:    branch,
+		CreatedAt: now.Format(time.RFC3339),
+	}, nil
+}
+
+func opsSessionStatus(_ context.Context, input OpsSessionStatusInput) (OpsSessionStatusOutput, error) {
+	opsSessionMu.RLock()
+	session, ok := opsSessions[input.SessionID]
+	opsSessionMu.RUnlock()
+
+	if !ok {
+		return OpsSessionStatusOutput{}, fmt.Errorf("[%s] session %q not found", handler.ErrNotFound, input.SessionID)
+	}
+
+	var totalTime int64
+	var errorTrend []int
+	var history []IterationSummary
+	currentState := "untested"
+
+	for _, iter := range session.Iterations {
+		totalTime += iter.DurationMs
+		errorTrend = append(errorTrend, iter.ErrorCount)
+		history = append(history, IterationSummary{
+			Number:     iter.Number,
+			Status:     iter.Status,
+			ErrorCount: iter.ErrorCount,
+			DurationMs: iter.DurationMs,
+		})
+		currentState = iter.Status
+	}
+
+	// Detect convergence: errors decreasing over last 3+ iterations
+	converging := false
+	if len(errorTrend) >= 3 {
+		last3 := errorTrend[len(errorTrend)-3:]
+		converging = last3[0] > last3[1] && last3[1] > last3[2]
+	}
+
+	return OpsSessionStatusOutput{
+		SessionID:    session.ID,
+		Repo:         session.Repo,
+		Branch:       session.Branch,
+		Iterations:   len(session.Iterations),
+		TotalTimeMs:  totalTime,
+		CurrentState: currentState,
+		ErrorTrend:   errorTrend,
+		Converging:   converging,
+		History:      history,
+	}, nil
+}
+
+func opsSessionList(_ context.Context, _ OpsSessionListInput) (OpsSessionListOutput, error) {
+	opsSessionMu.RLock()
+	defer opsSessionMu.RUnlock()
+
+	var sessions []SessionSummary
+	for _, s := range opsSessions {
+		state := "untested"
+		if len(s.Iterations) > 0 {
+			state = s.Iterations[len(s.Iterations)-1].Status
+		}
+		sessions = append(sessions, SessionSummary{
+			SessionID:   s.ID,
+			Repo:        s.Repo,
+			Branch:      s.Branch,
+			Iterations:  len(s.Iterations),
+			State:       state,
+			StartedAt:   s.CreatedAt.Format(time.RFC3339),
+			Description: s.Description,
+		})
+	}
+
+	return OpsSessionListOutput{Sessions: sessions}, nil
+}
