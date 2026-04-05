@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"sort"
 	"strconv"
@@ -393,13 +394,26 @@ func (m *NetworkModule) Tools() []registry.ToolDefinition {
 	// ── network_dns ──────────────────────────────────────
 	networkDNS := handler.TypedHandler[NetworkDNSInput, NetworkDNSOutput](
 		"network_dns",
-		"Show DNS servers per network interface using resolvectl. Returns interface names with their configured DNS server addresses.",
+		"Show DNS servers per network interface. Tries resolvectl first, falls back to /etc/resolv.conf.",
 		func(_ context.Context, _ NetworkDNSInput) (NetworkDNSOutput, error) {
-			if err := netCheckTool("resolvectl"); err != nil {
-				return NetworkDNSOutput{}, err
-			}
-
+			// Try resolvectl first; fall back to /etc/resolv.conf
 			raw, err := netRunCmdTimeout(10*time.Second, "resolvectl", "status")
+			if err != nil {
+				// Fallback: parse /etc/resolv.conf
+				data, readErr := os.ReadFile("/etc/resolv.conf")
+				if readErr != nil {
+					return NetworkDNSOutput{}, fmt.Errorf("resolvectl failed (%w) and /etc/resolv.conf unreadable: %v", err, readErr)
+				}
+				var servers []string
+				for _, line := range strings.Split(string(data), "\n") {
+					line = strings.TrimSpace(line)
+					if strings.HasPrefix(line, "nameserver ") {
+						servers = append(servers, strings.TrimSpace(strings.TrimPrefix(line, "nameserver ")))
+					}
+				}
+				entry := NetworkDNSEntry{Interface: "resolv.conf", Servers: servers}
+				return NetworkDNSOutput{Interfaces: []NetworkDNSEntry{entry}, Total: 1}, nil
+			}
 			if err != nil {
 				return NetworkDNSOutput{}, fmt.Errorf("resolvectl status: %w", err)
 			}

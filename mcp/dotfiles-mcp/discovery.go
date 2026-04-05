@@ -261,6 +261,9 @@ func dotfilesModules() []registry.ToolModule {
 		&AudioModule{},
 		&NetworkModule{},
 		&SystemModule{},
+		&SystemdModule{},
+		&TmuxModule{},
+		&ProcessModule{},
 	}
 }
 
