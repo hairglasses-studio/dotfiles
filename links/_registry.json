@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "last_updated": "2026-04-05T14:23:34.233933Z",
-  "total_entries": 763,
+  "last_updated": "2026-04-05T14:24:48.858966Z",
+  "total_entries": 818,
   "entries": {
     "https://github.com/end-4/dots-hyprland": {
       "name": "dots-hyprland",
@@ -11,7 +11,8 @@
       "file": "hyprland/end-4.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        6
+        6,
+        7
       ]
     },
     "https://github.com/caelestia-dots/shell": {
@@ -33,7 +34,8 @@
       "file": "hyprland/prasanthrangan.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        6
+        6,
+        7
       ]
     },
     "https://github.com/noctalia-dev/noctalia-shell": {
@@ -53,7 +55,8 @@
       "file": "hyprland/mylinuxforwork.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        6
+        6,
+        7
       ]
     },
     "https://github.com/gh0stzk/dotfiles": {
@@ -64,7 +67,8 @@
       "file": "hyprland/gh0stzk.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        6
+        6,
+        7
       ]
     },
     "https://github.com/JaKooLit/Arch-Hyprland": {
@@ -190,7 +194,8 @@
       "file": "nixos/fufexan.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        5
+        5,
+        7
       ]
     },
     "https://github.com/gvolpe/nix-config": {
@@ -266,7 +271,8 @@
       "discovered_in_round": 1,
       "also_found_in_rounds": [
         5,
-        6
+        6,
+        7
       ]
     },
     "https://github.com/elifouts/Dotfiles": {
@@ -368,7 +374,8 @@
       "also_found_in_rounds": [
         5,
         3,
-        6
+        6,
+        7
       ]
     },
     "https://github.com/debuggyo/Exo": {
@@ -427,7 +434,8 @@
       "file": "nixos/sly-harvey.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        5
+        5,
+        7
       ]
     },
     "https://github.com/anotherhadi/nixy": {
@@ -544,7 +552,8 @@
       "file": "nixos/donovanglover.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        5
+        5,
+        7
       ]
     },
     "https://github.com/JaKooLit/NixOS-Hyprland": {
@@ -603,7 +612,8 @@
       "discovered_in_round": 1,
       "also_found_in_rounds": [
         2,
-        5
+        5,
+        7
       ]
     },
     "https://github.com/juminai/dotfiles": {
@@ -718,7 +728,9 @@
       "category": "hyprland",
       "file": "hyprland/coffebar.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/SeraphimeZelel/rion-ricing": {
       "name": "rion-ricing",
@@ -3871,7 +3883,9 @@
       "category": "nixos",
       "file": "nixos/nix-community.md",
       "discovered_in_round": 5,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/nix-darwin/nix-darwin": {
       "name": "nix-darwin",
@@ -3889,7 +3903,9 @@
       "category": "nixos",
       "file": "nixos/misterio77.md",
       "discovered_in_round": 5,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/dustinlyons/nixos-config": {
       "name": "nixos-config",
@@ -3916,7 +3932,9 @@
       "category": "nixos",
       "file": "nixos/misterio77-nix-config.md",
       "discovered_in_round": 5,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/divnix/digga": {
       "name": "digga",
@@ -3970,7 +3988,9 @@
       "category": "nixos",
       "file": "nixos/ryan4yin-nix-darwin-kickstarter.md",
       "discovered_in_round": 5,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/kclejeune/system": {
       "name": "system",
@@ -3979,7 +3999,9 @@
       "category": "nixos",
       "file": "nixos/kclejeune.md",
       "discovered_in_round": 5,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/colemickens/nixcfg": {
       "name": "nixcfg",
@@ -4033,7 +4055,9 @@
       "category": "nixos",
       "file": "nixos/ekstranix.md",
       "discovered_in_round": 5,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/redyf/nixdots": {
       "name": "nixdots",
@@ -4087,7 +4111,9 @@
       "category": "nixos",
       "file": "nixos/tlater.md",
       "discovered_in_round": 5,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/pinpox/nixos": {
       "name": "nixos",
@@ -4123,7 +4149,9 @@
       "category": "nixos",
       "file": "nixos/yunfachi.md",
       "discovered_in_round": 5,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/b0o/dotfiles": {
       "name": "dotfiles",
@@ -5832,7 +5860,9 @@
       "category": "tools",
       "file": "tools/alacritty.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/BurntSushi/ripgrep": {
       "name": "ripgrep",
@@ -5859,7 +5889,9 @@
       "category": "tools",
       "file": "tools/starship.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/ghostty-org/ghostty": {
       "name": "ghostty",
@@ -5868,7 +5900,9 @@
       "category": "terminals",
       "file": "terminals/ghostty-org.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/helix-editor/helix": {
       "name": "helix",
@@ -5904,7 +5938,9 @@
       "category": "hyprland",
       "file": "hyprland/hyprwm.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/kovidgoyal/kitty": {
       "name": "kitty",
@@ -5913,7 +5949,9 @@
       "category": "tools",
       "file": "tools/kovidgoyal.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/wezterm/wezterm": {
       "name": "wezterm",
@@ -5922,7 +5960,9 @@
       "category": "tools",
       "file": "tools/wezterm.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/luong-komorebi/Awesome-Linux-Software": {
       "name": "Awesome-Linux-Software",
@@ -5958,7 +5998,9 @@
       "category": "themes",
       "file": "themes/dracula.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/fastfetch-cli/fastfetch": {
       "name": "fastfetch",
@@ -5985,7 +6027,9 @@
       "category": "themes",
       "file": "themes/catppuccin.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/swaywm/sway": {
       "name": "sway",
@@ -5994,7 +6038,9 @@
       "category": "sway",
       "file": "sway/swaywm.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/davatorium/rofi": {
       "name": "rofi",
@@ -6003,7 +6049,9 @@
       "category": "components",
       "file": "components/davatorium.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/morhetz/gruvbox": {
       "name": "gruvbox",
@@ -6030,7 +6078,9 @@
       "category": "bars",
       "file": "bars/elkowar-eww.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/o2sh/onefetch": {
       "name": "onefetch",
@@ -6048,7 +6098,9 @@
       "category": "sway",
       "file": "sway/alexays.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/HyDE-Project/HyDE": {
       "name": "HyDE",
@@ -6075,7 +6127,9 @@
       "category": "themes",
       "file": "themes/nordtheme.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/dunst-project/dunst": {
       "name": "dunst",
@@ -6084,7 +6138,9 @@
       "category": "tools",
       "file": "tools/dunst-project.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/LGFae/swww": {
       "name": "swww",
@@ -6093,7 +6149,9 @@
       "category": "tools",
       "file": "tools/lgfae.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/raexera/yoru": {
       "name": "yoru",
@@ -6102,7 +6160,9 @@
       "category": "tools",
       "file": "tools/raexera-yoru.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/archcraft-os/archcraft": {
       "name": "archcraft",
@@ -6230,7 +6290,9 @@
       "category": "tools",
       "file": "tools/iniox.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/rose-pine/rose-pine-theme": {
       "name": "rose-pine-theme",
@@ -6239,7 +6301,9 @@
       "category": "themes",
       "file": "themes/rose-pine.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/raexera/tokyo": {
       "name": "tokyo",
@@ -6311,7 +6375,9 @@
       "category": "tools",
       "file": "tools/elkowar-yolk.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/beyond9thousand/dotfiles": {
       "name": "dotfiles",
@@ -6428,7 +6494,9 @@
       "category": "components",
       "file": "components/adi1090x.md",
       "discovered_in_round": 9,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        7
+      ]
     },
     "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme": {
       "name": "papirus-icon-theme",
@@ -7031,6 +7099,501 @@
       "category": "themes",
       "file": "themes/jtyr.md",
       "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/alebcay/awesome-shell": {
+      "name": "awesome-shell",
+      "owner": "alebcay",
+      "stars": 36800,
+      "category": "bars",
+      "file": "bars/alebcay.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mathiasbynens/dotfiles": {
+      "name": "dotfiles",
+      "owner": "mathiasbynens",
+      "stars": 31293,
+      "category": "tools",
+      "file": "tools/mathiasbynens.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/twpayne/chezmoi": {
+      "name": "chezmoi",
+      "owner": "twpayne",
+      "stars": 18974,
+      "category": "tools",
+      "file": "tools/twpayne.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/unixorn/awesome-zsh-plugins": {
+      "name": "awesome-zsh-plugins",
+      "owner": "unixorn",
+      "stars": 17554,
+      "category": "tools",
+      "file": "tools/unixorn.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/polybar/polybar": {
+      "name": "polybar",
+      "owner": "polybar",
+      "stars": 15214,
+      "category": "bars",
+      "file": "bars/polybar.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/lra/mackup": {
+      "name": "mackup",
+      "owner": "lra",
+      "stars": 15175,
+      "category": "tools",
+      "file": "tools/lra.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Bash-it/bash-it": {
+      "name": "bash-it",
+      "owner": "Bash-it",
+      "stars": 15004,
+      "category": "tools",
+      "file": "tools/bash-it.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sorin-ionescu/prezto": {
+      "name": "prezto",
+      "owner": "sorin-ionescu",
+      "stars": 14500,
+      "category": "tools",
+      "file": "tools/sorin-ionescu.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/k4m4/terminals-are-sexy": {
+      "name": "terminals-are-sexy",
+      "owner": "k4m4",
+      "stars": 12939,
+      "category": "tools",
+      "file": "tools/k4m4.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mas-cli/mas": {
+      "name": "mas",
+      "owner": "mas-cli",
+      "stars": 12079,
+      "category": "tools",
+      "file": "tools/mas-cli.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/oh-my-fish/oh-my-fish": {
+      "name": "oh-my-fish",
+      "owner": "oh-my-fish",
+      "stars": 11249,
+      "category": "tools",
+      "file": "tools/oh-my-fish.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/i3/i3": {
+      "name": "i3",
+      "owner": "i3",
+      "stars": 10414,
+      "category": "tools",
+      "file": "tools/i3.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jorgebucaran/fisher": {
+      "name": "fisher",
+      "owner": "jorgebucaran",
+      "stars": 9128,
+      "category": "tools",
+      "file": "tools/jorgebucaran.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dylanaraps/pywal": {
+      "name": "pywal",
+      "owner": "dylanaraps",
+      "stars": 9054,
+      "category": "tools",
+      "file": "tools/dylanaraps-pywal.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/thoughtbot/dotfiles": {
+      "name": "dotfiles",
+      "owner": "thoughtbot",
+      "stars": 8148,
+      "category": "tools",
+      "file": "tools/thoughtbot.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/anishathalye/dotbot": {
+      "name": "dotbot",
+      "owner": "anishathalye",
+      "stars": 7865,
+      "category": "tools",
+      "file": "tools/anishathalye.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yadm-dev/yadm": {
+      "name": "yadm",
+      "owner": "yadm-dev",
+      "stars": 6235,
+      "category": "tools",
+      "file": "tools/yadm-dev.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mjswensen/themer": {
+      "name": "themer",
+      "owner": "mjswensen",
+      "stars": 5802,
+      "category": "themes",
+      "file": "themes/mjswensen.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/zimfw/zimfw": {
+      "name": "zimfw",
+      "owner": "zimfw",
+      "stars": 4574,
+      "category": "tools",
+      "file": "tools/zimfw.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/LukeSmithxyz/voidrice": {
+      "name": "voidrice",
+      "owner": "LukeSmithxyz",
+      "stars": 4436,
+      "category": "tools",
+      "file": "tools/lukesmithxyz.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/elenapan/dotfiles": {
+      "name": "dotfiles",
+      "owner": "elenapan",
+      "stars": 3879,
+      "category": "tools",
+      "file": "tools/elenapan.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/thoughtbot/rcm": {
+      "name": "rcm",
+      "owner": "thoughtbot",
+      "stars": 3232,
+      "category": "tools",
+      "file": "tools/thoughtbot-rcm.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jondot/awesome-devenv": {
+      "name": "awesome-devenv",
+      "owner": "jondot",
+      "stars": 3208,
+      "category": "tools",
+      "file": "tools/jondot.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/b3nj5m1n/xdg-ninja": {
+      "name": "xdg-ninja",
+      "owner": "b3nj5m1n",
+      "stars": 3166,
+      "category": "tools",
+      "file": "tools/b3nj5m1n-xdg-ninja.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sainnhe/gruvbox-material": {
+      "name": "gruvbox-material",
+      "owner": "sainnhe",
+      "stars": 2521,
+      "category": "themes",
+      "file": "themes/sainnhe.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/RichiH/vcsh": {
+      "name": "vcsh",
+      "owner": "RichiH",
+      "stars": 2252,
+      "category": "tools",
+      "file": "tools/richih.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/andsens/homeshick": {
+      "name": "homeshick",
+      "owner": "andsens",
+      "stars": 2187,
+      "category": "tools",
+      "file": "tools/andsens.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/deviantfero/wpgtk": {
+      "name": "wpgtk",
+      "owner": "deviantfero",
+      "stars": 2177,
+      "category": "tools",
+      "file": "tools/deviantfero.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/FelixKratz/dotfiles": {
+      "name": "dotfiles",
+      "owner": "FelixKratz",
+      "stars": 1972,
+      "category": "tools",
+      "file": "tools/felixkratz.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/SuperCuber/dotter": {
+      "name": "dotter",
+      "owner": "SuperCuber",
+      "stars": 1920,
+      "category": "tools",
+      "file": "tools/supercuber.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/deadc0de6/dotdrop": {
+      "name": "dotdrop",
+      "owner": "deadc0de6",
+      "stars": 1907,
+      "category": "tools",
+      "file": "tools/deadc0de6.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/getantibody/antibody": {
+      "name": "antibody",
+      "owner": "getantibody",
+      "stars": 1677,
+      "category": "tools",
+      "file": "tools/getantibody.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/antoniosarosi/dotfiles": {
+      "name": "dotfiles",
+      "owner": "antoniosarosi",
+      "stars": 919,
+      "category": "tools",
+      "file": "tools/antoniosarosi.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/avivace/dotfiles": {
+      "name": "dotfiles",
+      "owner": "avivace",
+      "stars": 798,
+      "category": "tools",
+      "file": "tools/avivace.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yarlson/lnk": {
+      "name": "lnk",
+      "owner": "yarlson",
+      "stars": 641,
+      "category": "tools",
+      "file": "tools/yarlson.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/comtrya/comtrya": {
+      "name": "comtrya",
+      "owner": "comtrya",
+      "stars": 607,
+      "category": "tools",
+      "file": "tools/comtrya.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/r1vs3c/auto-bspwm": {
+      "name": "auto-bspwm",
+      "owner": "r1vs3c",
+      "stars": 510,
+      "category": "tools",
+      "file": "tools/r1vs3c.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Narmis-E/onedark-wallpapers": {
+      "name": "onedark-wallpapers",
+      "owner": "Narmis-E",
+      "stars": 509,
+      "category": "tools",
+      "file": "tools/narmis-e-onedark-wallpapers.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/volllly/rotz": {
+      "name": "rotz",
+      "owner": "volllly",
+      "stars": 424,
+      "category": "tools",
+      "file": "tools/volllly.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ellipsis/ellipsis": {
+      "name": "ellipsis",
+      "owner": "ellipsis",
+      "stars": 362,
+      "category": "tools",
+      "file": "tools/ellipsis.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/oknozor/toml-bombadil": {
+      "name": "toml-bombadil",
+      "owner": "oknozor",
+      "stars": 328,
+      "category": "tools",
+      "file": "tools/oknozor.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/serkanyersen/dotstate": {
+      "name": "dotstate",
+      "owner": "serkanyersen",
+      "stars": 319,
+      "category": "tools",
+      "file": "tools/serkanyersen.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/protesilaos/dotfiles": {
+      "name": "dotfiles",
+      "owner": "protesilaos",
+      "stars": 314,
+      "category": "tools",
+      "file": "tools/protesilaos.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/GideonWolfe/Zathura-Pywal": {
+      "name": "Zathura-Pywal",
+      "owner": "GideonWolfe",
+      "stars": 304,
+      "category": "tools",
+      "file": "tools/gideonwolfe-zathura-pywal.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Shemnei/punktf": {
+      "name": "punktf",
+      "owner": "Shemnei",
+      "stars": 302,
+      "category": "tools",
+      "file": "tools/shemnei.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/svetlyak40wt/dotfiler": {
+      "name": "dotfiler",
+      "owner": "svetlyak40wt",
+      "stars": 250,
+      "category": "tools",
+      "file": "tools/svetlyak40wt.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/openbootdotdev/openboot": {
+      "name": "openboot",
+      "owner": "openbootdotdev",
+      "stars": 246,
+      "category": "tools",
+      "file": "tools/openbootdotdev.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/pearl-core/pearl": {
+      "name": "pearl",
+      "owner": "pearl-core",
+      "stars": 234,
+      "category": "tools",
+      "file": "tools/pearl-core.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ivaquero/oxidizer": {
+      "name": "oxidizer",
+      "owner": "ivaquero",
+      "stars": 147,
+      "category": "tools",
+      "file": "tools/ivaquero.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jh3y/kody": {
+      "name": "kody",
+      "owner": "jh3y",
+      "stars": 140,
+      "category": "tools",
+      "file": "tools/jh3y.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/justone/dfm": {
+      "name": "dfm",
+      "owner": "justone",
+      "stars": 125,
+      "category": "tools",
+      "file": "tools/justone.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ssh0/dot": {
+      "name": "dot",
+      "owner": "ssh0",
+      "stars": 124,
+      "category": "tools",
+      "file": "tools/ssh0.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/NNBnh/superb-bootstrap": {
+      "name": "superb-bootstrap",
+      "owner": "NNBnh",
+      "stars": 108,
+      "category": "tools",
+      "file": "tools/nnbnh.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Bhupesh-V/dotman": {
+      "name": "dotman",
+      "owner": "Bhupesh-V",
+      "stars": 106,
+      "category": "tools",
+      "file": "tools/bhupesh-v.md",
+      "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yunielrc/ydf": {
+      "name": "ydf",
+      "owner": "yunielrc",
+      "stars": 28,
+      "category": "tools",
+      "file": "tools/yunielrc.md",
+      "discovered_in_round": 7,
       "also_found_in_rounds": []
     }
   }
