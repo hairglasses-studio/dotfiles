@@ -7,6 +7,6 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - Initial public release
 - 132+ GLSL terminal shaders with manifest system
-- Compositor abstraction (Hyprland/Sway/AeroSpace)
+- Compositor abstraction (Hyprland/AeroSpace)
 - eww bar configuration for dual monitors
 - MCP server integration (dotfiles-mcp)

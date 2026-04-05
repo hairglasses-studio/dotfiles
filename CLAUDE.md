@@ -35,10 +35,10 @@ Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — 
 
 ### Window Management
 - **macOS:** AeroSpace tiling + SketchyBar + JankyBorders
-- **Linux:** Hyprland (primary) or Sway (fallback) + eww bar + mako notifications + wofi launcher + wlogout
+- **Linux:** Hyprland + eww bar + mako notifications + wofi launcher + wlogout
 
 ### Shared Libraries
-- **`scripts/lib/compositor.sh`** — Compositor detection & IPC abstraction. Functions: `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_output`, `compositor_subscribe`, `compositor_reload`, `compositor_workspace`. Detects Hyprland/Sway/AeroSpace via env vars.
+- **`scripts/lib/compositor.sh`** — Compositor detection & IPC abstraction. Functions: `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_output`, `compositor_subscribe`, `compositor_reload`, `compositor_workspace`. Detects Hyprland/AeroSpace via env vars.
 - **`scripts/lib/config.sh`** — Atomic config operations. Functions: `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service`. All scripts that modify configs should source this.
 
 ### Claude Code Integration
@@ -93,7 +93,7 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 | Library | Functions | Purpose |
 |---------|-----------|---------|
 | `scripts/lib/hg-core.sh` | `hg_info`, `hg_ok`, `hg_error`, `hg_die`, `hg_require`, Snazzy colors | CLI framework for hg-* scripts |
-| `scripts/lib/compositor.sh` | `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_reload`, `compositor_subscribe` | Cross-compositor IPC (Hyprland/Sway/AeroSpace) |
+| `scripts/lib/compositor.sh` | `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_reload`, `compositor_subscribe` | Cross-compositor IPC (Hyprland/AeroSpace) |
 | `scripts/lib/config.sh` | `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service` | Atomic config writes with `mktemp + mv` |
 | `scripts/lib/notify.sh` | `hg_notify_low`, `hg_notify_normal`, `hg_notify_critical` | Desktop notifications via notify-send |
 

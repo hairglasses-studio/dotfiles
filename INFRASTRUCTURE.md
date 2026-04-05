@@ -73,7 +73,7 @@ dotfiles/                          .github/ (org repo)
 |---------|---------|
 | `hg-core.sh` | Snazzy palette colors, logging (hg_info/ok/warn/error/die), paths |
 | `config.sh` | Atomic config writes (mktemp+mv), backups, service reload |
-| `compositor.sh` | Hyprland/Sway/AeroSpace IPC abstraction |
+| `compositor.sh` | Hyprland/AeroSpace IPC abstraction |
 
 See `scripts/lib/README.md` for usage examples.
 

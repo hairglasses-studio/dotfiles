@@ -4,11 +4,6 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/compositor.sh"
 
-_sway() {
-  echo "default"
-  swaymsg -t subscribe '["mode"]' | jq -r --unbuffered '.change'
-}
-
 _hyprland() {
   _hypr_listen() {
     echo "default"
@@ -29,6 +24,5 @@ _hyprland() {
 
 case "$(compositor_type)" in
   hyprland) _hyprland ;;
-  sway)     _sway ;;
   *)        echo "default" ;;
 esac

@@ -1,5 +1,5 @@
 // Personal Waybar config — ported from SketchyBar
-// For the ralphglasses distro kiosk, see ralphglasses/distro/sway/waybar/
+// Snazzy-on-Black palette
 {
     "layer": "top",
     "position": "top",

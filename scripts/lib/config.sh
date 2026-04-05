@@ -39,7 +39,7 @@ config_backup() {
 config_reload_service() {
   local component="$1"
   case "$component" in
-    hyprland|hypr|sway) compositor_reload 2>/dev/null ;;
+    hyprland|hypr) compositor_reload 2>/dev/null ;;
     mako)          makoctl reload 2>/dev/null ;;
     eww)           eww reload 2>/dev/null ;;
     waybar)        pkill -SIGUSR2 waybar 2>/dev/null ;;

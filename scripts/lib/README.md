@@ -35,13 +35,13 @@ config_reload_service "mako"            # reload via compositor
 
 ## compositor.sh
 
-Cross-platform window manager abstraction. Detects Hyprland, Sway, or AeroSpace and routes IPC calls.
+Cross-platform window manager abstraction. Detects Hyprland or AeroSpace and routes IPC calls.
 
 ```bash
 source "$(dirname "$0")/lib/compositor.sh"
 
-compositor_type          # "hyprland", "sway", or "aerospace"
-compositor_msg "reload"  # hyprctl reload / swaymsg reload
+compositor_type          # "hyprland" or "aerospace"
+compositor_msg "reload"  # hyprctl reload
 compositor_query "activewindow"
 compositor_workspace 3   # switch to workspace 3
 ```

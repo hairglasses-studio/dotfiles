@@ -30,11 +30,6 @@ docker
 lazydocker
 dive
 
-# Desktop — Sway
-sway
-swayidle
-swaylock
-
 # Desktop — Hyprland
 hyprland
 hypridle

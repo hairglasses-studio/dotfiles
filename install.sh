@@ -243,8 +243,6 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
         link_file "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
     elif [[ "$OS" == "Linux" ]]; then
-        link_file "$DOTFILES_DIR/sway/config" "$HOME/.config/sway/config"
-        link_file "$DOTFILES_DIR/sway/swaylock.conf" "$HOME/.config/swaylock/config"
         link_file "$DOTFILES_DIR/waybar/config.jsonc" "$HOME/.config/waybar/config"
         link_file "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
         link_file "$DOTFILES_DIR/waybar/colors.css" "$HOME/.config/waybar/colors.css"
@@ -359,8 +357,6 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
         check_link "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
     elif [[ "$OS" == "Linux" ]]; then
-        check_link "$DOTFILES_DIR/sway/config" "$HOME/.config/sway/config"
-        check_link "$DOTFILES_DIR/sway/swaylock.conf" "$HOME/.config/swaylock/config"
         check_link "$DOTFILES_DIR/waybar/config.jsonc" "$HOME/.config/waybar/config"
         check_link "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
         check_link "$DOTFILES_DIR/waybar/colors.css" "$HOME/.config/waybar/colors.css"

@@ -32,7 +32,6 @@ case "$file_path" in
   */mako/*)                 config_reload_service mako     || echo "[hook] mako reload failed" >&2 ;;
   */eww/*)                  config_reload_service eww      || echo "[hook] eww reload failed" >&2 ;;
   */waybar/*)               config_reload_service waybar   || echo "[hook] waybar reload failed" >&2 ;;
-  */sway/*)                 config_reload_service sway     || echo "[hook] sway reload failed" >&2 ;;
   */tmux/*)                 config_reload_service tmux     || echo "[hook] tmux reload failed" >&2 ;;
 esac
 
