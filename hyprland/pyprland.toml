@@ -8,8 +8,11 @@ size = "80% 70%"
 animation = "fromTop"
 
 [scratchpads.keybinds]
-command = "ghostty --class=keybinds --font-size=10 -e bash -c '$HOME/hairglasses-studio/dotfiles/scripts/hypr-keybinds.sh --md && glow -s $HOME/hairglasses-studio/dotfiles/glow/snazzy.json -p -w 0 $HOME/hairglasses-studio/dotfiles/hyprland/keybinds.md'"
+command = "ghostty --class=keybinds --font-size=10 --custom-shader=$HOME/.config/ghostty/shaders/scanline.glsl --custom-shader-animation=false -e bash -c '$HOME/hairglasses-studio/dotfiles/scripts/hypr-keybinds.sh --md && glow -s $HOME/hairglasses-studio/dotfiles/glow/snazzy.json -p -w 0 $HOME/hairglasses-studio/dotfiles/hyprland/keybinds.md'"
 class = "keybinds"
+size = "25% 95%"
+position = "0% 0%"
+animation = "fromLeft"
 lazy = true
 
 [scratchpads.volume]

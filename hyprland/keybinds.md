@@ -8,7 +8,7 @@
 | `Super+D` | App launcher |
 | `Super+`` | Keybind reference |
 | `Super+P` | Toggle powermenu |
-| `Super+F` | Toggle fleet sidebar |
+| `Super+Ctrl+F` | Toggle fleet sidebar |
 
 ##  Navigation
 
@@ -43,7 +43,7 @@
 | `Super+Shift+↓` | Move window down (arrow) |
 | `Super+Shift+↑` | Move window up (arrow) |
 
-##  Master layout
+##  Layout
 
 | Key | Action |
 |-----|--------|
@@ -51,15 +51,13 @@
 | `Super+Shift+Space` | Toggle float |
 | `Super+Space` | Cycle focus |
 | `Super+A` | Focus urgent/last |
-| `Super+\\` | Cycle orientation |
-| `Super+-` | Swap with master |
-| `Super+Shift+-` | Add master |
-| `Super+Ctrl+-` | Remove master |
-| `Super+]` | Increase master ratio |
-| `Super+[` | Decrease master ratio |
-| `Super+M` | Focus master |
-| `Super+,` | Roll stack forward |
-| `Super+.` | Roll stack backward |
+| `Super+\\` | Toggle split direction |
+| `Super+-` | Swap with next |
+| `Super+Shift+-` | Pseudo-tile toggle |
+| `Super+]` | Increase split ratio |
+| `Super+[` | Decrease split ratio |
+| `Super+,` | Swap prev |
+| `Super+.` | Swap next |
 
 ##  Workspaces
 
@@ -158,7 +156,7 @@
 
 | Key | Action |
 |-----|--------|
-| `Super+Ctrl+C` | Claude session picker |
+| `Super+Ctrl+C` | Agent session picker |
 
 ##  System
 

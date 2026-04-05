@@ -5,12 +5,9 @@
 # Designed to run as a oneshot via systemd timer (every 5 min).
 set -euo pipefail
 
-# Bootstrap 1Password session, then load secrets from .envrc
-ENV_FILE="$HOME/hairglasses-studio/.env"
-[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
-export OP_SESSION_my=$(echo "$OP_ACCOUNT_PASSWORD" | op signin --account my --raw 2>/dev/null)
-ENVRC_FILE="$HOME/hairglasses-studio/.envrc"
-[[ -f "$ENVRC_FILE" ]] && source "$ENVRC_FILE"
+# Load shared secrets from the workspace root .env.
+ROOT_ENV_LOADER="$HOME/hairglasses-studio/scripts/source-root-env.sh"
+[[ -f "$ROOT_ENV_LOADER" ]] && source "$ROOT_ENV_LOADER"
 
 GCALCLI_ARGS=()
 [[ -n "${GOOGLE_CALENDAR_CLIENT_ID:-}" ]] && GCALCLI_ARGS+=(--client-id "$GOOGLE_CALENDAR_CLIENT_ID")

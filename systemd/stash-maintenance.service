@@ -1,0 +1,13 @@
+[Unit]
+Description=Stash maintenance tasks
+After=stash.service
+Requires=stash.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/mega/linux-isos/stashapp
+EnvironmentFile=%h/.config/stashapp/runtime.env
+ExecStart=/usr/bin/env bash %h/mega/linux-isos/stashapp/run-maintenance.sh
+
+[Install]
+WantedBy=default.target
