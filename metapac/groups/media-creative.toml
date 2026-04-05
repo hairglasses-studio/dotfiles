@@ -25,10 +25,15 @@ packages = [
     { name = "megacmd-bin" },
     { name = "megasync-bin" },
 
-    # Document viewers
+    # Document tools
     { name = "zathura" },
     { name = "zathura-pdf-poppler" },
     { name = "glow" },
+    { name = "pandoc-cli" },
+    { name = "texlive-basic" },
+    { name = "texlive-fontsrecommended" },
+    { name = "texlive-latexextra" },
+    { name = "texlive-latexrecommended" },
 
     # Browsers
     { name = "firefox" },

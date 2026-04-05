@@ -70,6 +70,29 @@ compute_hash() {
   printf '%s' "$1" | sha256sum | cut -d' ' -f1
 }
 
+# Lightweight intent classifier from first line of prompt.
+classify_intent() {
+  local d
+  d="$(printf '%s' "$1" | head -1 | tr '[:upper:]' '[:lower:]' | xargs)"
+  case "$d" in
+    fix*|bug*|error*|broken*|crash*) echo "fix" ;;
+    add*|create*|implement*|new*|build*|write*|scaffold*) echo "add" ;;
+    update*|change*|modify*|edit*|adjust*) echo "modify" ;;
+    refactor*|reorganize*|simplify*) echo "refactor" ;;
+    test*|spec*|coverage*) echo "test" ;;
+    research*|investigate*|explore*|analyze*) echo "research" ;;
+    explain*|what*|how*|why*) echo "explain" ;;
+    check*|verify*|confirm*|status*|show*|list*) echo "inspect" ;;
+    run*|execute*|trigger*|start*|launch*) echo "execute" ;;
+    deploy*|push*|release*|publish*) echo "deploy" ;;
+    plan*|design*) echo "planning" ;;
+    remove*|delete*|clean*|drop*) echo "remove" ;;
+    commit*|merge*|rebase*|branch*) echo "git_ops" ;;
+    install*|setup*|configure*|init*) echo "setup" ;;
+    *) echo "other" ;;
+  esac
+}
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -142,6 +165,30 @@ FRONTMATTER
     --arg prompt "${prompt:0:500}" \
     '{hash:$hash, short_hash:$short_hash, repo:$repo, timestamp:$ts, session_id:$sid, word_count:$wc, task_type:"", score:0, grade:"", tags:[], status:"unsorted", prompt:$prompt}')
   (flock -x 200; printf '%s\n' "$json_line" >> "$INDEX_FILE") 200>"${INDEX_FILE}.lock"
+
+  # SQLite capture — direct insert into docs-mcp DB for real-time analytics.
+  local db_path="$HOME/hairglasses-studio/docs/.docs.sqlite"
+  if command -v sqlite3 &>/dev/null && [[ -f "$db_path" ]]; then
+    local intent line_count char_count sql_prompt
+    intent="$(classify_intent "$prompt")"
+    line_count=$(printf '%s' "$prompt" | wc -l)
+    char_count=$(printf '%s' "$prompt" | wc -c)
+
+    # Safe SQL escaping: double single quotes, truncate to 10K chars.
+    sql_prompt="$(printf '%s' "${prompt:0:10000}" | sed "s/'/''/g")"
+    local sql_repo sql_session sql_cwd
+    sql_repo="$(printf '%s' "$repo" | sed "s/'/''/g")"
+    sql_session="$(printf '%s' "${session_id:-}" | sed "s/'/''/g")"
+    sql_cwd="$(printf '%s' "${cwd:-}" | sed "s/'/''/g")"
+
+    sqlite3 "$db_path" \
+      "INSERT OR IGNORE INTO prompt_captures
+         (hash, short_hash, prompt_text, repo, session_id, cwd, timestamp,
+          word_count, line_count, char_count, intent)
+       VALUES ('$hash', '$short_hash', '$sql_prompt', '$sql_repo',
+               '$sql_session', '$sql_cwd', '$timestamp',
+               $word_count, $line_count, $char_count, '$intent');" 2>/dev/null || true
+  fi
 }
 
 main "$@"

@@ -43,6 +43,25 @@ func screenCheckTool(name string) error {
 	return nil
 }
 
+// screenshotCapture performs the actual screenshot using wayshot.
+// Single function to change when migrating to a new capture backend
+// (e.g., from zwlr_screencopy_v1 to ext-image-copy-capture-v1).
+func screenshotCapture(outPath, region, monitor string) error {
+	if err := screenCheckTool("wayshot"); err != nil {
+		return err
+	}
+	var args []string
+	if region != "" {
+		args = append(args, "-s", region)
+	}
+	if monitor != "" {
+		args = append(args, "-o", monitor)
+	}
+	args = append(args, "-f", outPath)
+	_, err := screenRunCmd("wayshot", args...)
+	return err
+}
+
 // screenTimestamp returns a timestamp string for filenames.
 func screenTimestamp() string {
 	return time.Now().Format("20060102-150405")
@@ -131,10 +150,6 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				},
 			},
 			Handler: func(_ context.Context, req registry.CallToolRequest) (*registry.CallToolResult, error) {
-				if err := screenCheckTool("wayshot"); err != nil {
-					return handler.ErrorResult(err), nil
-				}
-
 				var input ScreenScreenshotInput
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
@@ -146,15 +161,8 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 					outPath = fmt.Sprintf("/tmp/screenshot-%s.png", screenTimestamp())
 				}
 
-				// Build wayshot args
-				var wayshotArgs []string
-				if input.Region != "" {
-					wayshotArgs = append(wayshotArgs, "-s", input.Region)
-				}
-				wayshotArgs = append(wayshotArgs, "-f", outPath)
-
-				if _, err := screenRunCmd("wayshot", wayshotArgs...); err != nil {
-					return handler.ErrorResult(fmt.Errorf("wayshot capture failed: %w", err)), nil
+				if err := screenshotCapture(outPath, input.Region, ""); err != nil {
+					return handler.ErrorResult(fmt.Errorf("screenshot capture failed: %w", err)), nil
 				}
 
 				// Resize for inline display (max 1568x1568)
@@ -288,9 +296,6 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 			"screen_ocr",
 			"Take a screenshot and extract text via OCR using tesseract. Returns the extracted text.",
 			func(_ context.Context, input ScreenOCRInput) (string, error) {
-				if err := screenCheckTool("wayshot"); err != nil {
-					return "", err
-				}
 				if err := screenCheckTool("tesseract"); err != nil {
 					return "", err
 				}
@@ -298,15 +303,8 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				tmpImg := fmt.Sprintf("/tmp/ocr-%s.png", screenTimestamp())
 				defer os.Remove(tmpImg)
 
-				// Capture screenshot
-				var wayshotArgs []string
-				if input.Region != "" {
-					wayshotArgs = append(wayshotArgs, "-s", input.Region)
-				}
-				wayshotArgs = append(wayshotArgs, "-f", tmpImg)
-
-				if _, err := screenRunCmd("wayshot", wayshotArgs...); err != nil {
-					return "", fmt.Errorf("wayshot capture failed: %w", err)
+				if err := screenshotCapture(tmpImg, input.Region, ""); err != nil {
+					return "", fmt.Errorf("screenshot capture failed: %w", err)
 				}
 
 				// Run tesseract OCR (output to stdout)
@@ -354,9 +352,6 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				}
 
 				// Fallback: capture full screen, get cursor position, sample pixel
-				if err := screenCheckTool("wayshot"); err != nil {
-					return handler.ErrorResult(err), nil
-				}
 				if err := screenCheckTool("hyprctl"); err != nil {
 					return handler.ErrorResult(fmt.Errorf("neither hyprpicker nor hyprctl available for color picking")), nil
 				}
@@ -380,8 +375,8 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				defer os.Remove(tmpImg)
 
 				region := fmt.Sprintf("%d,%d 1x1", cursor.X, cursor.Y)
-				if _, err := screenRunCmd("wayshot", "-s", region, "-f", tmpImg); err != nil {
-					return handler.ErrorResult(fmt.Errorf("wayshot capture failed: %w", err)), nil
+				if err := screenshotCapture(tmpImg, region, ""); err != nil {
+					return handler.ErrorResult(fmt.Errorf("screenshot capture failed: %w", err)), nil
 				}
 
 				// Read the pixel color
@@ -519,9 +514,6 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				},
 			},
 			Handler: func(_ context.Context, req registry.CallToolRequest) (*registry.CallToolResult, error) {
-				if err := screenCheckTool("wayshot"); err != nil {
-					return handler.ErrorResult(err), nil
-				}
 				if err := screenCheckTool("swappy"); err != nil {
 					return handler.ErrorResult(err), nil
 				}
@@ -537,15 +529,8 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 					outPath = fmt.Sprintf("/tmp/screenshot-%s.png", screenTimestamp())
 				}
 
-				// Step 1: Capture with wayshot
-				var wayshotArgs []string
-				if input.Region != "" {
-					wayshotArgs = append(wayshotArgs, "-s", input.Region)
-				}
-				wayshotArgs = append(wayshotArgs, "-f", outPath)
-
-				if _, err := screenRunCmd("wayshot", wayshotArgs...); err != nil {
-					return handler.ErrorResult(fmt.Errorf("wayshot capture failed: %w", err)), nil
+				if err := screenshotCapture(outPath, input.Region, ""); err != nil {
+					return handler.ErrorResult(fmt.Errorf("screenshot capture failed: %w", err)), nil
 				}
 
 				// Step 2: Launch swappy (fire-and-forget)

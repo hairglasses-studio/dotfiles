@@ -242,13 +242,10 @@ type diCaptureResult struct {
 	scale     float64
 }
 
-// diCapture performs the wayshot capture → magick resize → tesseract OCR pipeline.
+// diCapture performs the screenshot capture → magick resize → tesseract OCR pipeline.
 // address/class select a window; region captures a specific area; maxSize limits
 // the resized image dimension.
 func diCapture(address, class, region string, maxSize int, tsvMode bool) (*diCaptureResult, error) {
-	if err := screenCheckTool("wayshot"); err != nil {
-		return nil, err
-	}
 
 	ts := time.Now().UnixMilli()
 	rawPath := fmt.Sprintf("/tmp/di-capture-%d.png", ts)
@@ -318,15 +315,9 @@ func diCapture(address, class, region string, maxSize int, tsvMode bool) (*diCap
 		captureRegion = region
 	}
 
-	// Capture with wayshot
-	var wayshotArgs []string
-	if captureRegion != "" {
-		wayshotArgs = append(wayshotArgs, "-s", captureRegion)
-	}
-	wayshotArgs = append(wayshotArgs, "-f", rawPath)
-
-	if _, err := screenRunCmd("wayshot", wayshotArgs...); err != nil {
-		return nil, fmt.Errorf("wayshot capture failed: %w", err)
+	// Capture screenshot
+	if err := screenshotCapture(rawPath, captureRegion, ""); err != nil {
+		return nil, fmt.Errorf("screenshot capture failed: %w", err)
 	}
 
 	// Resize with magick
