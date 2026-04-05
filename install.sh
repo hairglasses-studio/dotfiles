@@ -85,6 +85,44 @@ install_brew_packages() {
     fi
 }
 
+# ── Linux Package Management (yay/pacman) ──────
+install_yay() {
+    if command -v yay &>/dev/null; then
+        log_success "yay already installed"
+        return 0
+    fi
+    log_info "Installing yay AUR helper..."
+    if ! command -v pacman &>/dev/null; then
+        log_error "pacman not found — not an Arch-based system?"
+        return 1
+    fi
+    sudo pacman -S --needed --noconfirm base-devel git
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+    git clone https://aur.archlinux.org/yay.git "$tmp_dir/yay"
+    (cd "$tmp_dir/yay" && makepkg -si --noconfirm)
+    rm -rf "$tmp_dir"
+    if command -v yay &>/dev/null; then
+        log_success "yay installed"
+    else
+        log_error "yay installation failed"
+        return 1
+    fi
+}
+
+install_linux_packages() {
+    local pacfile="$DOTFILES_DIR/Pacfile"
+    if [[ ! -f "$pacfile" ]]; then
+        log_warn "Pacfile not found at $pacfile — skipping Linux packages"
+        return 0
+    fi
+    log_info "Installing packages from Pacfile..."
+    # Strip comments and blank lines, install via yay (handles both official + AUR)
+    grep -v '^\s*#' "$pacfile" | grep -v '^\s*$' | yay -S --needed --noconfirm - 2>&1 | while read -r line; do
+        log_info "  $line"
+    done
+}
+
 # ── Oh My Zsh ──────────────────────────────────
 install_omz() {
     if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
@@ -355,7 +393,9 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
         check_link "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
     elif [[ "$OS" == "Linux" ]]; then
-        # waybar, mako, rofi quarantined
+        # waybar, mako quarantined — replaced by eww + swaync
+        check_link "$DOTFILES_DIR/swaync/config.json" "$HOME/.config/swaync/config.json"
+        check_link "$DOTFILES_DIR/swaync/style.css" "$HOME/.config/swaync/style.css"
         check_link "$DOTFILES_DIR/wofi/config" "$HOME/.config/wofi/config"
         check_link "$DOTFILES_DIR/wofi/style.css" "$HOME/.config/wofi/style.css"
         check_link "$DOTFILES_DIR/foot/foot.ini" "$HOME/.config/foot/foot.ini"
@@ -433,6 +473,26 @@ check_symlinks() {
         fi
     fi
 
+    if [[ "$OS" == "Linux" ]]; then
+        log_info "Checking pacman/AUR packages..."
+        if command -v yay &>/dev/null && [[ -f "$DOTFILES_DIR/Pacfile" ]]; then
+            local missing=0
+            while IFS= read -r pkg; do
+                if ! yay -Qi "$pkg" &>/dev/null; then
+                    log_error "Missing package: $pkg"
+                    missing=$((missing + 1))
+                fi
+            done < <(grep -v '^\s*#' "$DOTFILES_DIR/Pacfile" | grep -v '^\s*$')
+            if [[ $missing -eq 0 ]]; then
+                log_success "All Pacfile packages installed"
+            fi
+            errors=$((errors + missing))
+        elif ! command -v yay &>/dev/null; then
+            log_warn "yay not installed"
+            errors=$((errors + 1))
+        fi
+    fi
+
     log_info "Checking Oh My Zsh..."
     if [[ -d "$HOME/.oh-my-zsh" ]]; then
         log_success "Oh My Zsh installed"
@@ -470,10 +530,13 @@ main() {
         return $?
     fi
 
+    log_phase "PACKAGE MANAGEMENT"
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        log_phase "PACKAGE MANAGEMENT"
         install_homebrew
         install_brew_packages
+    elif [[ "$OS" == "Linux" ]]; then
+        install_yay
+        install_linux_packages
     fi
 
     log_phase "SHELL ENVIRONMENT"
