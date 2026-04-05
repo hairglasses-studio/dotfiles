@@ -24,7 +24,7 @@ separator_style = { fg = "#1a1a1a", bg = "#1a1a1a" }
 mode_normal = { fg = "#000000", bg = "#57c7ff", bold = true }
 mode_select = { fg = "#000000", bg = "#5af78e", bold = true }
 mode_unset = { fg = "#000000", bg = "#ff6ac1", bold = true }
-progress_label = { fg = "#d4d4d4", bold = true }
+progress_label = { fg = "#f1f1f0", bold = true }
 progress_normal = { fg = "#57c7ff", bg = "#1a1a1a" }
 progress_error = { fg = "#ff5c57", bg = "#1a1a1a" }
 permissions_t = { fg = "#57c7ff" }
@@ -36,7 +36,7 @@ permissions_s = { fg = "#686868" }
 [input]
 border = { fg = "#57c7ff" }
 title = { fg = "#57c7ff" }
-value = { fg = "#d4d4d4" }
+value = { fg = "#f1f1f0" }
 selected = { reversed = true }
 
 [pick]
@@ -47,11 +47,11 @@ inactive = { fg = "#686868" }
 [confirm]
 border = { fg = "#57c7ff" }
 title = { fg = "#57c7ff" }
-content = { fg = "#d4d4d4" }
-list = { fg = "#d4d4d4" }
+content = { fg = "#f1f1f0" }
+list = { fg = "#f1f1f0" }
 btn_yes = { bg = "#5af78e", fg = "#000000" }
 btn_no = { bg = "#ff5c57", fg = "#000000" }
-btn_labels = { fg = "#d4d4d4" }
+btn_labels = { fg = "#f1f1f0" }
 
 [completion]
 border = { fg = "#57c7ff" }
@@ -80,7 +80,7 @@ rules = [
     { name = "*.py", fg = "#f3f99d" },
     { name = "*.js", fg = "#f3f99d" },
     { name = "*.ts", fg = "#57c7ff" },
-    { name = "*.md", fg = "#d4d4d4" },
+    { name = "*.md", fg = "#f1f1f0" },
     { name = "*.yml", fg = "#ff6ac1" },
     { name = "*.yaml", fg = "#ff6ac1" },
     { name = "*.toml", fg = "#ff6ac1" },
