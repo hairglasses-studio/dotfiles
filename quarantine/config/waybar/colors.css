@@ -1,8 +1,0 @@
-/* Snazzy-on-Black waybar color overrides */
-@define-color theme_base_color #000000;
-@define-color theme_text_color #f1f1f0;
-@define-color theme_bg_color #1a1a1a;
-@define-color theme_selected_bg_color #57c7ff;
-@define-color error_color #ff5c57;
-@define-color warning_color #f3f99d;
-@define-color background_color #000000;
