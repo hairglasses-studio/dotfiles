@@ -66,8 +66,8 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/neon-glow.glsl
-custom-shader-animation = false
+custom-shader = shaders/cyber-grid.glsl
+custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
 link-url = true
