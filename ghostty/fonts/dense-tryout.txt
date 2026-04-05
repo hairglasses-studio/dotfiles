@@ -1,14 +1,13 @@
 # Dense terminal font tryout — family|size
 # Cycle with: font-playlist.sh next dense-tryout
-Iosevka Nerd Font Mono|8
-CommitMono Nerd Font Mono|8
-GeistMono Nerd Font Mono|8
-CaskaydiaMono Nerd Font Mono|8
-BlexMono Nerd Font Mono|8
-Fira Code|8
-Hack Nerd Font Mono|8
-SauceCodePro Nerd Font Mono|8
-VictorMono Nerd Font Mono|8
-Terminus Nerd Font Mono|9
-JetBrainsMono Nerd Font Mono|8
-MonaspiceKr Nerd Font Mono|7
+Maple Mono NF CN|12
+Iosevka Nerd Font Mono|12
+CommitMono Nerd Font Mono|12
+GeistMono Nerd Font Mono|12
+BlexMono Nerd Font Mono|12
+Fira Code|12
+Hack Nerd Font Mono|12
+SauceCodePro Nerd Font Mono|12
+VictorMono Nerd Font Mono|12
+Terminus Nerd Font Mono|13
+JetBrainsMono Nerd Font Mono|12

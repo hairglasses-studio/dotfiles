@@ -27,3 +27,15 @@ replaced, or conflicting with the active setup. Review before deleting permanent
 
 ## scripts/macos-defaults.sh
 **Why:** macOS-only script, irrelevant on Manjaro Linux.
+
+## config/waybar/ (Phase 2)
+**Replaced by:** eww (active bar, exec-once in hyprland.conf)
+**Why:** Waybar has zero references in hyprland.conf, systemd, or scripts. Eww is primary.
+**Restore:** `git mv quarantine/config/waybar waybar && ln -sf ~/hairglasses-studio/dotfiles/waybar ~/.config/waybar`
+
+## scripts/hypr-vertical-columns.sh (Phase 2)
+**Why:** Orphaned layout script with no keybind and zero references from any config or alias.
+
+## scripts/font-mix.sh (Phase 1)
+**Replaced by:** Maple Mono NF CN standard (no mixing needed)
+**Why:** Monaspace multi-font mixer is dead after font standardization.

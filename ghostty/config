@@ -13,7 +13,7 @@ font-style = Regular
 font-style-bold = Bold
 font-style-italic = Italic
 font-style-bold-italic = Bold Italic
-font-size = 8
+font-size = 12
 font-feature = calt
 font-feature = liga
 font-feature = ss01
@@ -66,8 +66,8 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/film-grain-pro.glsl
-custom-shader-animation = true
+custom-shader = shaders/neon-glow.glsl
+custom-shader-animation = false
 
 # ── Links ───────────────────────────────────────
 link-url = true
