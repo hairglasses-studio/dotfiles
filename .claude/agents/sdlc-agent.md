@@ -22,6 +22,8 @@ allowed-tools:
   - mcp__dotfiles__ops_pre_push
   - mcp__dotfiles__ops_session_create
   - mcp__dotfiles__ops_session_status
+  - mcp__dotfiles__ops_session_list
+  - mcp__dotfiles__ops_revert
 ---
 
 You are an autonomous SDLC agent. You receive a task description and independently implement it through a tight edit-build-test-fix loop.

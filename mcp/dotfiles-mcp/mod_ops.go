@@ -342,6 +342,73 @@ func opsParseGoTestJSON(output string) (passed []string, failures []TestFailure,
 	return
 }
 
+// opsParseNodeTestJSON parses Jest JSON output into pass/fail/skip.
+func opsParseNodeTestJSON(output string) (passed []string, failures []TestFailure, skipped int) {
+	var jestResult struct {
+		NumPassedTests  int `json:"numPassedTests"`
+		NumFailedTests  int `json:"numFailedTests"`
+		NumPendingTests int `json:"numPendingTests"`
+		TestResults     []struct {
+			TestFilePath string `json:"testFilePath"`
+			TestResults  []struct {
+				FullName string `json:"fullName"`
+				Status   string `json:"status"` // passed, failed, pending
+				Duration int    `json:"duration"`
+			} `json:"testResults"`
+			Message string `json:"message"`
+		} `json:"testResults"`
+	}
+	if err := json.Unmarshal([]byte(output), &jestResult); err != nil {
+		// Fallback: count lines
+		for _, line := range strings.Split(output, "\n") {
+			if strings.Contains(line, "PASS") {
+				passed = append(passed, line)
+			} else if strings.Contains(line, "FAIL") {
+				failures = append(failures, TestFailure{Test: line, Output: line})
+			}
+		}
+		return
+	}
+	for _, suite := range jestResult.TestResults {
+		for _, test := range suite.TestResults {
+			key := suite.TestFilePath + "/" + test.FullName
+			switch test.Status {
+			case "passed":
+				passed = append(passed, key)
+			case "failed":
+				failures = append(failures, TestFailure{
+					Package: suite.TestFilePath,
+					Test:    test.FullName,
+					Output:  suite.Message,
+					Elapsed: float64(test.Duration) / 1000.0,
+				})
+			case "pending":
+				skipped++
+			}
+		}
+	}
+	return
+}
+
+// opsParsePytestOutput parses pytest -v --tb=short -q output.
+func opsParsePytestOutput(output string) (passed []string, failures []TestFailure, skipped int) {
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasSuffix(line, "PASSED") {
+			passed = append(passed, strings.TrimSuffix(line, " PASSED"))
+		} else if strings.HasSuffix(line, "FAILED") {
+			name := strings.TrimSuffix(line, " FAILED")
+			failures = append(failures, TestFailure{
+				Test:   name,
+				Output: line,
+			})
+		} else if strings.HasSuffix(line, "SKIPPED") {
+			skipped++
+		}
+	}
+	return
+}
+
 func opsCategorizeError(msg string) string {
 	lower := strings.ToLower(msg)
 	switch {
@@ -550,16 +617,24 @@ type OpsIterateInput struct {
 	Repo      string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
 	SessionID string `json:"session_id,omitempty" jsonschema:"description=Ops session ID. Auto-created if empty."`
 }
+type NextAction struct {
+	File       string `json:"file"`
+	Line       int    `json:"line,omitempty"`
+	Category   string `json:"category"`
+	Message    string `json:"message"`
+	Suggestion string `json:"suggestion"`
+}
+
 type OpsIterateOutput struct {
-	SessionID  string              `json:"session_id"`
-	Iteration  int                 `json:"iteration"`
-	Build      *OpsBuildOutput     `json:"build"`
-	Test       *OpsTestSmartOutput `json:"test,omitempty"`
-	Analysis   *OpsAnalyzeOutput   `json:"analysis,omitempty"`
-	Status     string              `json:"status"`
-	DurationMs int64               `json:"duration_ms"`
-	History    []IterationSummary  `json:"history"`
-	NextActions []string           `json:"next_actions"`
+	SessionID   string              `json:"session_id"`
+	Iteration   int                 `json:"iteration"`
+	Build       *OpsBuildOutput     `json:"build"`
+	Test        *OpsTestSmartOutput `json:"test,omitempty"`
+	Analysis    *OpsAnalyzeOutput   `json:"analysis,omitempty"`
+	Status      string              `json:"status"`
+	DurationMs  int64               `json:"duration_ms"`
+	History     []IterationSummary  `json:"history"`
+	NextActions []NextAction        `json:"next_actions"`
 }
 
 type OpsShipInput struct {
@@ -604,6 +679,18 @@ type OpsSessionStatusOutput struct {
 	ErrorTrend  []int              `json:"error_trend"`
 	Converging  bool               `json:"converging"`
 	History     []IterationSummary `json:"history"`
+}
+
+type OpsRevertInput struct {
+	Repo    string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Execute bool   `json:"execute,omitempty" jsonschema:"description=Set true to execute (default: dry-run)"`
+}
+type OpsRevertOutput struct {
+	Method    string `json:"method"` // soft_reset, revert_commit
+	SHA       string `json:"sha"`
+	Message   string `json:"message"`
+	WasPushed bool   `json:"was_pushed"`
+	DryRun    bool   `json:"dry_run"`
 }
 
 type OpsSessionListInput struct{}
@@ -706,8 +793,13 @@ func (m *OpsModule) Tools() []registry.ToolDefinition {
 		),
 		handler.TypedHandler[OpsSessionListInput, OpsSessionListOutput](
 			"ops_session_list",
-			"List all active SDLC sessions with summary stats.",
+			"List all active SDLC sessions with summary stats. Auto-cleans sessions older than 7 days.",
 			opsSessionList,
+		),
+		handler.TypedHandler[OpsRevertInput, OpsRevertOutput](
+			"ops_revert",
+			"Safely undo the last commit. If unpushed: soft reset (keeps changes staged). If pushed: creates a revert commit. Never force-pushes. Dry-run by default — pass execute=true.",
+			opsRevert,
 		),
 	}
 }
@@ -722,27 +814,59 @@ func opsBuild(_ context.Context, input OpsBuildInput) (OpsBuildOutput, error) {
 		return OpsBuildOutput{}, err
 	}
 	lang := opsDetectLanguage(repo)
-	if lang != "go" {
-		return OpsBuildOutput{}, fmt.Errorf("[%s] ops_build currently supports Go only (detected: %s)", handler.ErrInvalidParam, lang)
-	}
 
 	start := time.Now()
-	_, stderr, exitCode, err := opsRunWithTimeout(opsBuildTimeout, repo, "go", "build", "./...")
-	if err != nil {
-		return OpsBuildOutput{}, fmt.Errorf("build command failed: %w", err)
+
+	switch lang {
+	case "go":
+		// Direct Go build with structured error parsing
+		_, stderr, exitCode, err := opsRunWithTimeout(opsBuildTimeout, repo, "go", "build", "./...")
+		if err != nil {
+			return OpsBuildOutput{}, fmt.Errorf("build command failed: %w", err)
+		}
+		duration := time.Since(start).Milliseconds()
+		errors := opsParseCompileErrors(stderr)
+		return OpsBuildOutput{
+			Repo: repo, Language: lang, Success: exitCode == 0,
+			DurationMs: duration, Errors: errors, ErrorCount: len(errors),
+		}, nil
+
+	case "node":
+		// Node.js: npm run build (or npm install if no build script)
+		stdout, stderr, exitCode, _ := opsRunWithTimeout(opsBuildTimeout, repo, "npm", "run", "build")
+		duration := time.Since(start).Milliseconds()
+		var errors []CompileError
+		if exitCode != 0 {
+			// Parse TypeScript/build errors from combined output
+			errors = opsParseCompileErrors(stderr + "\n" + stdout)
+		}
+		return OpsBuildOutput{
+			Repo: repo, Language: lang, Success: exitCode == 0,
+			DurationMs: duration, Errors: errors, ErrorCount: len(errors),
+		}, nil
+
+	case "python":
+		// Python: check syntax via py_compile, or run build if setup exists
+		stdout, stderr, exitCode, _ := opsRunWithTimeout(opsBuildTimeout, repo,
+			"python3", "-m", "py_compile", "*.py")
+		if exitCode != 0 {
+			// Fallback: try pip install in dry-run
+			stdout, stderr, exitCode, _ = opsRunWithTimeout(opsBuildTimeout, repo,
+				"pip", "install", "--dry-run", "-e", ".")
+		}
+		duration := time.Since(start).Milliseconds()
+		var errors []CompileError
+		if exitCode != 0 {
+			errors = opsParseCompileErrors(stderr + "\n" + stdout)
+		}
+		return OpsBuildOutput{
+			Repo: repo, Language: lang, Success: exitCode == 0,
+			DurationMs: duration, Errors: errors, ErrorCount: len(errors),
+		}, nil
+
+	default:
+		return OpsBuildOutput{}, fmt.Errorf("[%s] unsupported language: %s (need go.mod, package.json, or pyproject.toml)", handler.ErrInvalidParam, lang)
 	}
-	duration := time.Since(start).Milliseconds()
-
-	errors := opsParseCompileErrors(stderr)
-
-	return OpsBuildOutput{
-		Repo:       repo,
-		Language:   lang,
-		Success:    exitCode == 0,
-		DurationMs: duration,
-		Errors:     errors,
-		ErrorCount: len(errors),
-	}, nil
 }
 
 func opsTestSmart(_ context.Context, input OpsTestSmartInput) (OpsTestSmartOutput, error) {
@@ -763,38 +887,61 @@ func opsTestSmart(_ context.Context, input OpsTestSmartInput) (OpsTestSmartOutpu
 		}
 	}
 
+	lang := opsDetectLanguage(repo)
 	strategy := "changed_packages"
-	var pkgs []string
-	var changedFiles []string
-
-	if input.All {
-		strategy = "all"
-		pkgs = []string{"./..."}
-	} else {
-		pkgs, changedFiles, err = opsChangedGoPackages(repo, base)
-		if err != nil {
-			strategy = "all_fallback"
-			pkgs = []string{"./..."}
-		}
-	}
 	fallbackReason := ""
-	if strategy == "all_fallback" {
-		fallbackReason = "Could not determine changed packages; running full suite"
-		strategy = "all"
-	}
+	var changedFiles []string
+	packagesTested := 0
 
 	start := time.Now()
-	args := append([]string{"test", "-json", "-count=1", "-timeout", timeout.String()}, pkgs...)
-	stdout, _, _, _ := opsRunWithTimeout(timeout+10*time.Second, repo, "go", args...)
-	duration := time.Since(start).Milliseconds()
+	var passed []string
+	var failures []TestFailure
+	var skipped int
 
-	passed, failures, skipped := opsParseGoTestJSON(stdout)
+	switch lang {
+	case "go":
+		var pkgs []string
+		if input.All {
+			strategy = "all"
+			pkgs = []string{"./..."}
+		} else {
+			pkgs, changedFiles, err = opsChangedGoPackages(repo, base)
+			if err != nil {
+				strategy = "all"
+				fallbackReason = "Could not determine changed packages; running full suite"
+				pkgs = []string{"./..."}
+			}
+		}
+		packagesTested = len(pkgs)
+		args := append([]string{"test", "-json", "-count=1", "-timeout", timeout.String()}, pkgs...)
+		stdout, _, _, _ := opsRunWithTimeout(timeout+10*time.Second, repo, "go", args...)
+		passed, failures, skipped = opsParseGoTestJSON(stdout)
+
+	case "node":
+		strategy = "all"
+		fallbackReason = "Smart filtering not supported for Node.js; running full suite"
+		packagesTested = 1
+		stdout, _, _, _ := opsRunWithTimeout(timeout+10*time.Second, repo, "npx", "jest", "--json", "--forceExit")
+		passed, failures, skipped = opsParseNodeTestJSON(stdout)
+
+	case "python":
+		strategy = "all"
+		fallbackReason = "Smart filtering not supported for Python; running full suite"
+		packagesTested = 1
+		stdout, _, _, _ := opsRunWithTimeout(timeout+10*time.Second, repo, "pytest", "-v", "--tb=short", "-q")
+		passed, failures, skipped = opsParsePytestOutput(stdout)
+
+	default:
+		return OpsTestSmartOutput{}, fmt.Errorf("[%s] unsupported language: %s", handler.ErrInvalidParam, lang)
+	}
+
+	duration := time.Since(start).Milliseconds()
 
 	out := OpsTestSmartOutput{
 		Repo:           repo,
 		Strategy:       strategy,
 		BaseRef:        base,
-		PackagesTested: len(pkgs),
+		PackagesTested: packagesTested,
 		Passed:         len(passed),
 		Failed:         len(failures),
 		Skipped:        skipped,
@@ -1272,36 +1419,75 @@ func opsPrePush(ctx context.Context, input OpsPrePushInput) (OpsPrePushOutput, e
 	var steps []PrePushStep
 	var allErrors []CompileError
 	var allFailures []TestFailure
+	lang := opsDetectLanguage(repo)
 
-	// Step 1: vet
-	start := time.Now()
-	_, vetStderr, vetCode, _ := opsRunWithTimeout(30*time.Second, repo, "go", "vet", "./...")
-	vetStep := PrePushStep{Name: "vet", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
-	if vetCode != 0 {
-		vetStep.Status = "fail"
-		vetStep.ErrorCount = len(strings.Split(strings.TrimSpace(vetStderr), "\n"))
-		steps = append(steps, vetStep)
-		return OpsPrePushOutput{
-			Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
-			Steps: steps, FailedStep: "vet",
-		}, nil
-	}
-	steps = append(steps, vetStep)
-
-	// Step 2: lint (optional)
-	if !input.SkipLint {
-		start = time.Now()
-		_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "golangci-lint", "run", "./...")
-		lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
-		if lintCode != 0 {
-			lintStep.Status = "fail"
-			steps = append(steps, lintStep)
+	// Step 1: Language-specific static analysis
+	switch lang {
+	case "go":
+		// Go vet
+		start := time.Now()
+		_, vetStderr, vetCode, _ := opsRunWithTimeout(30*time.Second, repo, "go", "vet", "./...")
+		vetStep := PrePushStep{Name: "vet", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
+		if vetCode != 0 {
+			vetStep.Status = "fail"
+			vetStep.ErrorCount = len(strings.Split(strings.TrimSpace(vetStderr), "\n"))
+			steps = append(steps, vetStep)
 			return OpsPrePushOutput{
 				Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
-				Steps: steps, FailedStep: "lint",
+				Steps: steps, FailedStep: "vet",
 			}, nil
 		}
-		steps = append(steps, lintStep)
+		steps = append(steps, vetStep)
+
+		// Go lint (optional)
+		if !input.SkipLint {
+			start = time.Now()
+			_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "golangci-lint", "run", "./...")
+			lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
+			if lintCode != 0 {
+				lintStep.Status = "fail"
+				steps = append(steps, lintStep)
+				return OpsPrePushOutput{
+					Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+					Steps: steps, FailedStep: "lint",
+				}, nil
+			}
+			steps = append(steps, lintStep)
+		}
+
+	case "node":
+		// ESLint / npm lint
+		if !input.SkipLint {
+			start := time.Now()
+			_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "npm", "run", "lint")
+			lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
+			if lintCode != 0 {
+				lintStep.Status = "fail"
+				steps = append(steps, lintStep)
+				return OpsPrePushOutput{
+					Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+					Steps: steps, FailedStep: "lint",
+				}, nil
+			}
+			steps = append(steps, lintStep)
+		}
+
+	case "python":
+		// Ruff or mypy
+		if !input.SkipLint {
+			start := time.Now()
+			_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "ruff", "check", ".")
+			lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
+			if lintCode != 0 {
+				lintStep.Status = "fail"
+				steps = append(steps, lintStep)
+				return OpsPrePushOutput{
+					Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+					Steps: steps, FailedStep: "lint",
+				}, nil
+			}
+			steps = append(steps, lintStep)
+		}
 	}
 
 	// Step 3: build
@@ -1373,16 +1559,31 @@ func opsIterate(ctx context.Context, input OpsIterateInput) (OpsIterateOutput, e
 
 	var testOut *OpsTestSmartOutput
 	var analysis *OpsAnalyzeOutput
-	var nextActions []string
+	var nextActions []NextAction
 	status := "all_pass"
 	errorCount := 0
+
+	// Build rich NextActions from analysis issues
+	buildNextActions := func(analyzeOut *OpsAnalyzeOutput) []NextAction {
+		var actions []NextAction
+		for _, issue := range analyzeOut.Issues {
+			actions = append(actions, NextAction{
+				File:       issue.File,
+				Line:       issue.Line,
+				Category:   issue.Category,
+				Message:    issue.Message,
+				Suggestion: issue.Suggestion,
+			})
+		}
+		return actions
+	}
 
 	if !buildOut.Success {
 		status = "build_fail"
 		errorCount = buildOut.ErrorCount
 		analyzeOut, _ := opsAnalyze(ctx, OpsAnalyzeInput{BuildErrors: buildOut.Errors})
 		analysis = &analyzeOut
-		nextActions = analyzeOut.SuggestedOrder
+		nextActions = buildNextActions(&analyzeOut)
 	} else {
 		// Step 2: Test (only if build passed)
 		testResult, _ := opsTestSmart(ctx, OpsTestSmartInput{Repo: repo})
@@ -1393,7 +1594,7 @@ func opsIterate(ctx context.Context, input OpsIterateInput) (OpsIterateOutput, e
 			errorCount = testResult.Failed
 			analyzeOut, _ := opsAnalyze(ctx, OpsAnalyzeInput{TestFailures: testResult.Failures})
 			analysis = &analyzeOut
-			nextActions = analyzeOut.SuggestedOrder
+			nextActions = buildNextActions(&analyzeOut)
 		}
 	}
 
@@ -1607,6 +1808,11 @@ func opsSessionList(_ context.Context, _ OpsSessionListInput) (OpsSessionListOut
 		if err != nil {
 			continue
 		}
+		// Auto-cleanup sessions older than 7 days
+		if time.Since(s.CreatedAt) > 7*24*time.Hour {
+			os.RemoveAll(opsSessionDir(id))
+			continue
+		}
 		iterations := opsReadIterations(id)
 		state := "untested"
 		if len(iterations) > 0 {
@@ -1624,4 +1830,65 @@ func opsSessionList(_ context.Context, _ OpsSessionListInput) (OpsSessionListOut
 	}
 
 	return OpsSessionListOutput{Sessions: sessions}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Revert handler
+// ---------------------------------------------------------------------------
+
+func opsRevert(_ context.Context, input OpsRevertInput) (OpsRevertOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsRevertOutput{}, err
+	}
+
+	// Get last commit info
+	sha, _ := runGit(repo, "rev-parse", "--short", "HEAD")
+	sha = strings.TrimSpace(sha)
+	msg, _ := runGit(repo, "log", "-1", "--format=%s")
+	msg = strings.TrimSpace(msg)
+
+	// Check if last commit is pushed
+	branch := opsCurrentBranch(repo)
+	pushed := false
+	if _, err := runGit(repo, "rev-parse", "origin/"+branch); err == nil {
+		// Check if HEAD is an ancestor of origin/branch (meaning it's pushed)
+		_, err := runGit(repo, "merge-base", "--is-ancestor", "HEAD", "origin/"+branch)
+		pushed = err == nil
+	}
+
+	method := "soft_reset"
+	if pushed {
+		method = "revert_commit"
+	}
+
+	if !input.Execute {
+		return OpsRevertOutput{
+			Method:    method,
+			SHA:       sha,
+			Message:   msg,
+			WasPushed: pushed,
+			DryRun:    true,
+		}, nil
+	}
+
+	if pushed {
+		// Safe: create revert commit
+		if _, err := runGit(repo, "revert", "--no-edit", "HEAD"); err != nil {
+			return OpsRevertOutput{}, fmt.Errorf("git revert: %w", err)
+		}
+	} else {
+		// Safe: soft reset (keeps changes staged)
+		if _, err := runGit(repo, "reset", "--soft", "HEAD~1"); err != nil {
+			return OpsRevertOutput{}, fmt.Errorf("git reset --soft: %w", err)
+		}
+	}
+
+	return OpsRevertOutput{
+		Method:    method,
+		SHA:       sha,
+		Message:   msg,
+		WasPushed: pushed,
+		DryRun:    false,
+	}, nil
 }
