@@ -215,6 +215,7 @@ _cached_eval zoxide zoxide init zsh
 command -v atuin &>/dev/null && _cached_eval atuin atuin init zsh
 
 # ── direnv (per-directory env vars) ────────────
+export DIRENV_LOG_FORMAT=          # silence direnv loading messages
 command -v direnv &>/dev/null && _cached_eval direnv direnv hook zsh
 
 # ── fzf (fuzzy finder) ─────────────────────────
@@ -351,7 +352,7 @@ fi
 [[ -d "$HOME/hairglasses-studio" ]] && cd "$HOME/hairglasses-studio"
 
 # ── Shuffled Ghostty shader per terminal ──────
-{ timeout 2 shader-next 2>/dev/null & } 2>/dev/null
+command -v shader-next &>/dev/null && { timeout 2 shader-next 2>/dev/null & } 2>/dev/null
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
