@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "last_updated": "2026-04-05T14:22:36.559172Z",
-  "total_entries": 695,
+  "last_updated": "2026-04-05T14:23:34.233933Z",
+  "total_entries": 763,
   "entries": {
     "https://github.com/end-4/dots-hyprland": {
       "name": "dots-hyprland",
@@ -74,7 +74,9 @@
       "category": "tools",
       "file": "tools/jakoolit.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        9
+      ]
     },
     "https://github.com/JaKooLit/Hyprland-Dots": {
       "name": "Hyprland-Dots",
@@ -285,7 +287,9 @@
       "category": "hyprland",
       "file": "hyprland/sameemul-haque.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        9
+      ]
     },
     "https://github.com/qxb3/conf": {
       "name": "conf",
@@ -827,7 +831,8 @@
       "file": "hyprland/7kir7.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        2
+        2,
+        9
       ]
     },
     "https://github.com/greed-d/.dotfiles": {
@@ -2212,7 +2217,9 @@
       "category": "sway",
       "file": "sway/stronk-dev.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        9
+      ]
     },
     "https://github.com/madic-creates/Sway-DE": {
       "name": "Sway-DE",
@@ -2304,7 +2311,9 @@
       "category": "sway",
       "file": "sway/willpower3309.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        9
+      ]
     },
     "https://github.com/jayywolff/dotfiles": {
       "name": "dotfiles",
@@ -2807,7 +2816,9 @@
       "category": "sway",
       "file": "sway/paulguerre.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        9
+      ]
     },
     "https://github.com/sk0x1234/swaydotfiles": {
       "name": "swaydotfiles",
@@ -6154,7 +6165,9 @@
       "category": "themes",
       "file": "themes/keyitdev-sddm-astronaut-theme.md",
       "discovered_in_round": 6,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        9
+      ]
     },
     "https://github.com/MatMoul/archfi": {
       "name": "archfi",
@@ -6406,6 +6419,618 @@
       "category": "hyprland",
       "file": "hyprland/deivis44.md",
       "discovered_in_round": 6,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/adi1090x/rofi": {
+      "name": "rofi",
+      "owner": "adi1090x",
+      "stars": 8515,
+      "category": "components",
+      "file": "components/adi1090x.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme": {
+      "name": "papirus-icon-theme",
+      "owner": "PapirusDevelopmentTeam",
+      "stars": 7747,
+      "category": "themes",
+      "file": "themes/papirusdevelopmentteam.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Jacksaur/Gorgeous-GRUB": {
+      "name": "Gorgeous-GRUB",
+      "owner": "Jacksaur",
+      "stars": 5025,
+      "category": "components",
+      "file": "components/jacksaur.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/adi1090x/plymouth-themes": {
+      "name": "plymouth-themes",
+      "owner": "adi1090x",
+      "stars": 2632,
+      "category": "themes",
+      "file": "themes/adi1090x-plymouth-themes.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/keeferrourke/capitaine-cursors": {
+      "name": "capitaine-cursors",
+      "owner": "keeferrourke",
+      "stars": 1190,
+      "category": "components",
+      "file": "components/keeferrourke.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/uiriansan/SilentSDDM": {
+      "name": "SilentSDDM",
+      "owner": "uiriansan",
+      "stars": 1160,
+      "category": "components",
+      "file": "components/uiriansan.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AdisonCavani/distro-grub-themes": {
+      "name": "distro-grub-themes",
+      "owner": "AdisonCavani",
+      "stars": 1096,
+      "category": "themes",
+      "file": "themes/adisoncavani.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/newmanls/rofi-themes-collection": {
+      "name": "rofi-themes-collection",
+      "owner": "newmanls",
+      "stars": 970,
+      "category": "themes",
+      "file": "themes/newmanls.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/phisch/phinger-cursors": {
+      "name": "phinger-cursors",
+      "owner": "phisch",
+      "stars": 762,
+      "category": "components",
+      "file": "components/phisch.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/makipom/BlueArchive-Cursors": {
+      "name": "BlueArchive-Cursors",
+      "owner": "makipom",
+      "stars": 759,
+      "category": "components",
+      "file": "components/makipom.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Murzchnvok/rofi-collection": {
+      "name": "rofi-collection",
+      "owner": "Murzchnvok",
+      "stars": 649,
+      "category": "components",
+      "file": "components/murzchnvok.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/vinceliuice/Elegant-grub2-themes": {
+      "name": "Elegant-grub2-themes",
+      "owner": "vinceliuice",
+      "stars": 624,
+      "category": "themes",
+      "file": "themes/vinceliuice.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/davatorium/rofi-themes": {
+      "name": "rofi-themes",
+      "owner": "davatorium",
+      "stars": 608,
+      "category": "themes",
+      "file": "themes/davatorium-rofi-themes.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/catppuccin/grub": {
+      "name": "grub",
+      "owner": "catppuccin",
+      "stars": 583,
+      "category": "components",
+      "file": "components/catppuccin-grub.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/catppuccin/rofi": {
+      "name": "rofi",
+      "owner": "catppuccin",
+      "stars": 442,
+      "category": "components",
+      "file": "components/catppuccin-rofi.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ful1e5/Google_Cursor": {
+      "name": "Google_Cursor",
+      "owner": "ful1e5",
+      "stars": 389,
+      "category": "components",
+      "file": "components/ful1e5.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/vinceliuice/WhiteSur-cursors": {
+      "name": "WhiteSur-cursors",
+      "owner": "vinceliuice",
+      "stars": 364,
+      "category": "components",
+      "file": "components/vinceliuice-whitesur-cursors.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Coopydood/HyperFluent-GRUB-Theme": {
+      "name": "HyperFluent-GRUB-Theme",
+      "owner": "Coopydood",
+      "stars": 354,
+      "category": "themes",
+      "file": "themes/coopydood.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MarianArlt/sddm-sugar-dark": {
+      "name": "sddm-sugar-dark",
+      "owner": "MarianArlt",
+      "stars": 304,
+      "category": "components",
+      "file": "components/marianarlt.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/aczw/sddm-theme-corners": {
+      "name": "sddm-theme-corners",
+      "owner": "aczw",
+      "stars": 287,
+      "category": "themes",
+      "file": "themes/aczw.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/LoneWolf4713/seraphic.dotfiles": {
+      "name": "seraphic.dotfiles",
+      "owner": "LoneWolf4713",
+      "stars": 282,
+      "category": "components",
+      "file": "components/lonewolf4713-seraphic.dotfiles.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/adi1090x/slim_themes": {
+      "name": "slim_themes",
+      "owner": "adi1090x",
+      "stars": 245,
+      "category": "themes",
+      "file": "themes/adi1090x-slim_themes.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MarianArlt/kde-plasma-chili": {
+      "name": "kde-plasma-chili",
+      "owner": "MarianArlt",
+      "stars": 221,
+      "category": "components",
+      "file": "components/marianarlt-kde-plasma-chili.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Priyank-Adhav/Matrix-Morpheus-GRUB-Theme": {
+      "name": "Matrix-Morpheus-GRUB-Theme",
+      "owner": "Priyank-Adhav",
+      "stars": 221,
+      "category": "themes",
+      "file": "themes/priyank-adhav.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/catppuccin/dunst": {
+      "name": "dunst",
+      "owner": "catppuccin",
+      "stars": 219,
+      "category": "components",
+      "file": "components/catppuccin-dunst.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/lll2yu/sddm-lain-wired-theme": {
+      "name": "sddm-lain-wired-theme",
+      "owner": "lll2yu",
+      "stars": 201,
+      "category": "themes",
+      "file": "themes/lll2yu.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/undiabler/nord-rofi-theme": {
+      "name": "nord-rofi-theme",
+      "owner": "undiabler",
+      "stars": 186,
+      "category": "themes",
+      "file": "themes/undiabler.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/adnksharp/CyberGRUB-2077": {
+      "name": "CyberGRUB-2077",
+      "owner": "adnksharp",
+      "stars": 178,
+      "category": "components",
+      "file": "components/adnksharp.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MarianArlt/sddm-chili": {
+      "name": "sddm-chili",
+      "owner": "MarianArlt",
+      "stars": 159,
+      "category": "components",
+      "file": "components/marianarlt-sddm-chili.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/heisenburgh/pixarch": {
+      "name": "pixarch",
+      "owner": "heisenburgh",
+      "stars": 140,
+      "category": "components",
+      "file": "components/heisenburgh.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/w8ste/Tokyonight-rofi-theme": {
+      "name": "Tokyonight-rofi-theme",
+      "owner": "w8ste",
+      "stars": 134,
+      "category": "themes",
+      "file": "themes/w8ste-tokyonight-rofi-theme.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dracula/rofi": {
+      "name": "rofi",
+      "owner": "dracula",
+      "stars": 132,
+      "category": "components",
+      "file": "components/dracula-rofi.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ful1e5/notwaita-cursor": {
+      "name": "notwaita-cursor",
+      "owner": "ful1e5",
+      "stars": 132,
+      "category": "components",
+      "file": "components/ful1e5-notwaita-cursor.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/quantumfate/wofi": {
+      "name": "wofi",
+      "owner": "quantumfate",
+      "stars": 117,
+      "category": "components",
+      "file": "components/quantumfate.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/lfelipe1501/Atomic-GRUB2-Theme": {
+      "name": "Atomic-GRUB2-Theme",
+      "owner": "lfelipe1501",
+      "stars": 115,
+      "category": "themes",
+      "file": "themes/lfelipe1501.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/krishnan793/PlymouthTheme-Cat": {
+      "name": "PlymouthTheme-Cat",
+      "owner": "krishnan793",
+      "stars": 113,
+      "category": "themes",
+      "file": "themes/krishnan793.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Rolv-Apneseth/rofi-games": {
+      "name": "rofi-games",
+      "owner": "Rolv-Apneseth",
+      "stars": 106,
+      "category": "components",
+      "file": "components/rolv-apneseth.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Harshil-Anuwadia/wintux-dualboot-grub-theme-updated": {
+      "name": "wintux-dualboot-grub-theme-updated",
+      "owner": "Harshil-Anuwadia",
+      "stars": 94,
+      "category": "themes",
+      "file": "themes/harshil-anuwadia.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MarianArlt/sddm-sugar-light": {
+      "name": "sddm-sugar-light",
+      "owner": "MarianArlt",
+      "stars": 91,
+      "category": "components",
+      "file": "components/marianarlt-sddm-sugar-light.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/divory100/tasty-grubs": {
+      "name": "tasty-grubs",
+      "owner": "divory100",
+      "stars": 91,
+      "category": "components",
+      "file": "components/divory100.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dracula/wofi": {
+      "name": "wofi",
+      "owner": "dracula",
+      "stars": 90,
+      "category": "components",
+      "file": "components/dracula-wofi.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mahaveergurjar/sddm": {
+      "name": "sddm",
+      "owner": "mahaveergurjar",
+      "stars": 88,
+      "category": "components",
+      "file": "components/mahaveergurjar.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/emanuele-scarsella/vortex-ubuntu-plymouth-theme": {
+      "name": "vortex-ubuntu-plymouth-theme",
+      "owner": "emanuele-scarsella",
+      "stars": 86,
+      "category": "themes",
+      "file": "themes/emanuele-scarsella.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Rokin05/sddm-themes": {
+      "name": "sddm-themes",
+      "owner": "Rokin05",
+      "stars": 84,
+      "category": "themes",
+      "file": "themes/rokin05.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/3d3f/ii-sddm-theme": {
+      "name": "ii-sddm-theme",
+      "owner": "3d3f",
+      "stars": 82,
+      "category": "themes",
+      "file": "themes/3d3f.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/joao-vitor-sr/wofi-themes-collection": {
+      "name": "wofi-themes-collection",
+      "owner": "joao-vitor-sr",
+      "stars": 79,
+      "category": "themes",
+      "file": "themes/joao-vitor-sr.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/bardisty/gruvbox-rofi": {
+      "name": "gruvbox-rofi",
+      "owner": "bardisty",
+      "stars": 72,
+      "category": "themes",
+      "file": "themes/bardisty-gruvbox-rofi.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Machillka/arona-sddm-login": {
+      "name": "arona-sddm-login",
+      "owner": "Machillka",
+      "stars": 71,
+      "category": "components",
+      "file": "components/machillka.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AlphaTechnolog/eww-dotfiles": {
+      "name": "eww-dotfiles",
+      "owner": "AlphaTechnolog",
+      "stars": 70,
+      "category": "components",
+      "file": "components/alphatechnolog-eww-dotfiles.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yuky2020/rofi-themes": {
+      "name": "rofi-themes",
+      "owner": "yuky2020",
+      "stars": 68,
+      "category": "themes",
+      "file": "themes/yuky2020.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/IlyaKotomin/Godot-SuperWallpaper-Template": {
+      "name": "Godot-SuperWallpaper-Template",
+      "owner": "IlyaKotomin",
+      "stars": 66,
+      "category": "hyprland",
+      "file": "hyprland/ilyakotomin.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/kataklasm/rofi-menus": {
+      "name": "rofi-menus",
+      "owner": "kataklasm",
+      "stars": 52,
+      "category": "components",
+      "file": "components/kataklasm.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/hrshbh/plymouth-themes": {
+      "name": "plymouth-themes",
+      "owner": "hrshbh",
+      "stars": 44,
+      "category": "themes",
+      "file": "themes/hrshbh.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/awlbe/rofi-breeze-theme": {
+      "name": "rofi-breeze-theme",
+      "owner": "awlbe",
+      "stars": 42,
+      "category": "themes",
+      "file": "themes/awlbe.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/anhsirk0/rofi-config": {
+      "name": "rofi-config",
+      "owner": "anhsirk0",
+      "stars": 40,
+      "category": "components",
+      "file": "components/anhsirk0.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dracula/dunst": {
+      "name": "dunst",
+      "owner": "dracula",
+      "stars": 40,
+      "category": "components",
+      "file": "components/dracula-dunst.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/skd1993/nsa-plymouth": {
+      "name": "nsa-plymouth",
+      "owner": "skd1993",
+      "stars": 38,
+      "category": "components",
+      "file": "components/skd1993.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/nenad/arch-beat": {
+      "name": "arch-beat",
+      "owner": "nenad",
+      "stars": 35,
+      "category": "components",
+      "file": "components/nenad.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cleggacus/sway-ricey-boi": {
+      "name": "sway-ricey-boi",
+      "owner": "cleggacus",
+      "stars": 35,
+      "category": "sway",
+      "file": "sway/cleggacus.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/joni84/rofi": {
+      "name": "rofi",
+      "owner": "joni84",
+      "stars": 32,
+      "category": "components",
+      "file": "components/joni84.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Git-Fal7/gtk-rofi": {
+      "name": "gtk-rofi",
+      "owner": "Git-Fal7",
+      "stars": 32,
+      "category": "components",
+      "file": "components/git-fal7.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sachahjkl/wofi-arc-dark": {
+      "name": "wofi-arc-dark",
+      "owner": "sachahjkl",
+      "stars": 29,
+      "category": "components",
+      "file": "components/sachahjkl.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/amayer5125/nord-rofi": {
+      "name": "nord-rofi",
+      "owner": "amayer5125",
+      "stars": 29,
+      "category": "themes",
+      "file": "themes/amayer5125.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/develcooking/hyprland-dotfiles": {
+      "name": "hyprland-dotfiles",
+      "owner": "develcooking",
+      "stars": 28,
+      "category": "hyprland",
+      "file": "hyprland/develcooking.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/zazaserty/Zadots": {
+      "name": "Zadots",
+      "owner": "zazaserty",
+      "stars": 27,
+      "category": "components",
+      "file": "components/zazaserty.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/SzLeaves/beauty-dark-i3": {
+      "name": "beauty-dark-i3",
+      "owner": "SzLeaves",
+      "stars": 26,
+      "category": "sway",
+      "file": "sway/szleaves.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/farsil/monoarch": {
+      "name": "monoarch",
+      "owner": "farsil",
+      "stars": 23,
+      "category": "components",
+      "file": "components/farsil.md",
+      "discovered_in_round": 9,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jtyr/plymouth-theme-arch-breeze": {
+      "name": "plymouth-theme-arch-breeze",
+      "owner": "jtyr",
+      "stars": 22,
+      "category": "themes",
+      "file": "themes/jtyr.md",
+      "discovered_in_round": 9,
       "also_found_in_rounds": []
     }
   }
