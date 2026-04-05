@@ -46,7 +46,9 @@ wl-clipboard
 xorg-xwayland
 ghostty
 foot
-mako
+swaync
+tumbler
+thunar-volman
 wofi
 swww
 socat

@@ -70,7 +70,7 @@ _rice_services() {
   local -a services=(
     "Hyprland:Hyprland"
     "eww:eww"
-    "mako:mako"
+    "swaync:swaync"
     "swww:swww-daemon"
     "hypridle:hypridle"
     "waybar:waybar"
@@ -95,7 +95,7 @@ _rice_palette() {
   local scan_dirs=(
     "$HG_DOTFILES/hyprland"
     "$HG_DOTFILES/eww"
-    "$HG_DOTFILES/mako"
+    "$HG_DOTFILES/swaync"
     "$HG_DOTFILES/wofi"
     "$HG_DOTFILES/wlogout"
     "$HG_DOTFILES/waybar"
@@ -130,7 +130,7 @@ _rice_palette() {
 _rice_reload_all() {
   hg_info "Reloading all services..."
   config_reload_service hyprland
-  config_reload_service mako
+  config_reload_service swaync
   config_reload_service eww
   hg_ok "All services reloaded"
 }

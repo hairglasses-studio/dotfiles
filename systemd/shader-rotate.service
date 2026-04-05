@@ -1,5 +1,6 @@
 [Unit]
 Description=Advance Ghostty shader rotation
+ConditionPathExists=%t/hypr
 
 [Service]
 Type=oneshot
