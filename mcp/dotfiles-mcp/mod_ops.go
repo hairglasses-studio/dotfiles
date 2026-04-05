@@ -804,6 +804,41 @@ type OpsReleaseOutput struct {
 	DryRun         bool     `json:"dry_run"`
 }
 
+type OpsRepoAnalyzeInput struct {
+	Repo string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+}
+type OpsRepoAnalyzeOutput struct {
+	Repo            string            `json:"repo"`
+	Name            string            `json:"name"`
+	Language        string            `json:"language"`
+	Languages       []string          `json:"languages"`
+	IsMCP           bool              `json:"is_mcp"`
+	Protocols       []string          `json:"protocols"`
+	Frameworks      []string          `json:"frameworks"`
+	KeyDeps         []string          `json:"key_dependencies"`
+	GoModules       int               `json:"go_modules,omitempty"`
+	TestCount       int               `json:"test_count"`
+	HasCI           bool              `json:"has_ci"`
+	HasCLAUDEMD     bool              `json:"has_claude_md"`
+	HasReadme       bool              `json:"has_readme"`
+	HasLicense      bool              `json:"has_license"`
+	Tags            []string          `json:"tags"`
+	AnalysisTimeMs  int64             `json:"analysis_time_ms"`
+}
+
+type OpsDepGraphInput struct {
+	Dir    string `json:"dir,omitempty" jsonschema:"description=Base directory with go.work or go.mod. Default: ~/hairglasses-studio"`
+	Filter string `json:"filter,omitempty" jsonschema:"description=Filter: internal (org repos only) or all (include external deps),enum=internal,enum=all"`
+	Format string `json:"format,omitempty" jsonschema:"description=Output format: mermaid or dot,enum=mermaid,enum=dot"`
+}
+type OpsDepGraphOutput struct {
+	Graph       string `json:"graph"`
+	Format      string `json:"format"`
+	ModuleCount int    `json:"module_count"`
+	EdgeCount   int    `json:"edge_count"`
+	OrgModules  []string `json:"org_modules,omitempty"`
+}
+
 type OpsSessionListInput struct{}
 type OpsSessionListOutput struct {
 	Sessions []SessionSummary `json:"sessions"`
@@ -987,6 +1022,17 @@ func (m *OpsModule) Tools() []registry.ToolDefinition {
 			"ops_changelog_generate",
 			"Generate markdown changelog from conventional commits since last tag. Groups by feat/fix/chore/etc. Pass write=true to prepend to CHANGELOG.md.",
 			opsChangelogGenerate,
+		),
+		// Codebase Intelligence
+		handler.TypedHandler[OpsRepoAnalyzeInput, OpsRepoAnalyzeOutput](
+			"ops_repo_analyze",
+			"Analyze a repo and tag it with languages, protocols (gRPC, REST, MCP, WebSocket), frameworks, key dependencies, and project metadata (CI, tests, MCP server detection). Returns structured repo profile.",
+			opsRepoAnalyze,
+		),
+		handler.TypedHandler[OpsDepGraphInput, OpsDepGraphOutput](
+			"ops_dep_graph",
+			"Generate a dependency graph for a Go workspace or module. Uses go mod graph for accurate module-level dependencies. Outputs Mermaid markdown (for GitHub rendering) or DOT format. Filter to internal org modules or include all transitive deps.",
+			opsDepGraph,
 		),
 	}
 }
