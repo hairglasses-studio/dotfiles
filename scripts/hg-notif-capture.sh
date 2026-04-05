@@ -57,48 +57,60 @@ trap cleanup EXIT
 # We use gdbus monitor which gives cleaner structured output than dbus-monitor.
 # Fall back to dbus-monitor if gdbus isn't available.
 
-if command -v gdbus &>/dev/null; then
-    # gdbus monitor outputs structured signal/method info
-    timeout "${DURATION}m" dbus-monitor --session \
-        "type='method_call',interface='org.freedesktop.Notifications',member='Notify'" \
-        2>/dev/null | while IFS= read -r line; do
-
-        # dbus-monitor outputs strings as: string "value"
-        # Collect strings in order: app_name (1st), summary (4th), body (5th)
-        if [[ "$line" == *"method call"* ]]; then
-            str_count=0
-            app="" summary="" body="" urgency="normal"
-            continue
-        fi
-
-        if [[ "$line" =~ ^[[:space:]]*string[[:space:]]+\"(.*)\" ]]; then
-            (( ++str_count ))
-            case $str_count in
-                1) app="${BASH_REMATCH[1]}" ;;
-                3) summary="${BASH_REMATCH[1]}" ;;
-                4) body="${BASH_REMATCH[1]}" ;;
-            esac
-        fi
-
-        # Urgency is in the hints dict as byte value: 0=low, 1=normal, 2=critical
-        if [[ "$line" =~ byte[[:space:]]+([0-2]) ]]; then
-            case "${BASH_REMATCH[1]}" in
-                0) urgency="low" ;;
-                1) urgency="normal" ;;
-                2) urgency="critical" ;;
-            esac
-        fi
-
-        # When we hit the next method_call or enough strings, emit a log line
-        if [[ -n "$app" && -n "$summary" && $str_count -ge 4 ]]; then
-            printf '%s | app=%s | summary=%s | urgency=%s | body=%s\n' \
-                "$(date '+%Y-%m-%d %H:%M:%S')" "$app" "$summary" "$urgency" "${body:0:200}" \
-                >> "$LOGFILE"
-            # Reset for next notification
-            app="" summary="" body="" urgency="normal" str_count=0
-        fi
-    done
-else
-    hg_error "Neither gdbus nor dbus-monitor found. Install dbus or glib2."
+if ! command -v dbus-monitor &>/dev/null; then
+    hg_error "dbus-monitor not found. Install dbus."
     exit 1
 fi
+
+# Initialize state before the parse loop
+str_count=0
+app="" summary="" body="" urgency="normal"
+in_urgency=false
+
+timeout "${DURATION}m" dbus-monitor --session \
+    "type='method_call',interface='org.freedesktop.Notifications',member='Notify'" \
+    2>/dev/null | while IFS= read -r line; do
+
+    # D-Bus Notify args (string positions after skipping uint32 replaces_id):
+    #   1=app_name, 2=app_icon, 3=summary, 4=body
+    # Urgency is in hints dict: string "urgency" → variant byte N
+    if [[ "$line" == *"method call"* ]]; then
+        str_count=0
+        app="" summary="" body="" urgency="normal" in_urgency=false
+        continue
+    fi
+
+    if [[ "$line" =~ ^[[:space:]]*string[[:space:]]+\"(.*)\" ]]; then
+        local_str="${BASH_REMATCH[1]}"
+        # Track if this string is the "urgency" dict key
+        if [[ "$local_str" == "urgency" ]]; then
+            in_urgency=true
+            continue
+        fi
+        in_urgency=false
+        str_count=$(( str_count + 1 ))
+        case $str_count in
+            1) app="$local_str" ;;
+            3) summary="$local_str" ;;
+            4) body="$local_str" ;;
+        esac
+    fi
+
+    # Urgency byte value follows the "urgency" dict key
+    if [[ "$in_urgency" == true && "$line" =~ byte[[:space:]]+([0-2]) ]]; then
+        case "${BASH_REMATCH[1]}" in
+            0) urgency="low" ;;
+            1) urgency="normal" ;;
+            2) urgency="critical" ;;
+        esac
+        in_urgency=false
+    fi
+
+    # Emit log line on int32 (expire_timeout — last arg in Notify call)
+    if [[ "$line" =~ ^[[:space:]]*int32 && -n "${app:-}" && -n "${summary:-}" ]]; then
+        printf '%s | app=%s | summary=%s | urgency=%s | body=%s\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" "$app" "$summary" "$urgency" "${body:0:200}" \
+            >> "$LOGFILE"
+        app="" summary="" body="" urgency="normal" str_count=0 in_urgency=false
+    fi
+done || true
