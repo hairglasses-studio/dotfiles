@@ -99,7 +99,7 @@ test_fonts() {
   fi
 
   # Check standard font (Maple Mono NF CN) is installed
-  if fc-list : family | grep -q "Maple Mono NF CN"; then
+  if fc-list "Maple Mono NF CN" | grep -q .; then
     add_result fonts "maple_mono_nf_cn" pass "installed"
   else
     add_result fonts "maple_mono_nf_cn" fail "missing — standard font not found"

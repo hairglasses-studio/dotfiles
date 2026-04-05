@@ -42,7 +42,7 @@ Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — 
 - **`scripts/lib/config.sh`** — Atomic config operations. Functions: `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service`. All scripts that modify configs should source this.
 
 ### Claude Code Integration
-- **PostToolUse hook** — Auto-reloads Hyprland/swaync/eww/waybar when Claude writes config files
+- **PostToolUse hook** — Auto-reloads Hyprland/swaync/eww when Claude writes config files
 - **MCP servers** — `dotfiles-mcp` (82 tools, consolidated from 4 servers), `systemd-mcp`, `tmux-mcp`, `process-mcp` — Go binaries in sibling repos, registered in `.mcp.json`.
 
 ### Wallpaper Shaders
@@ -154,7 +154,7 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 | `shader-wallpaper.sh` | Procgen shader wallpaper engine |
 | `wallpaper-cycle.sh` | Animated wallpaper rotation via swww |
 | `screenshot-crop.sh` | Crop-select screenshot to clipboard |
-| `mx-battery.sh` | MX Master 4 battery for waybar |
+| `mx-battery.sh` | MX Master 4 battery for status bar |
 | `mx-battery-notify.sh` | Low battery desktop notification |
 | `agent-session-picker.sh` | Focus active agent session via wofi |
 | `ccg.sh` | Global Claude Code session browser (FZF picker, preview, resume across all repos) |
