@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -493,5 +494,223 @@ func (m *SystemModule) Tools() []registry.ToolDefinition {
 			"Read system uptime, load averages (1/5/15 min), and last boot time. Uses /proc/uptime, /proc/loadavg, and who -b.",
 			systemUptime,
 		),
+		handler.TypedHandler[SystemHealthCheckInput, SystemHealthCheckOutput](
+			"system_health_check",
+			"Composed health dashboard: aggregates temps, GPU, memory, disk, uptime, and updates into a single report with threshold-based warnings. Returns overall OK/WARN/CRIT status with per-subsystem detail.",
+			systemHealthCheck,
+		),
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Composed tool: system_health_check
+// ---------------------------------------------------------------------------
+
+// SystemHealthCheckInput configures warning thresholds for the health check.
+type SystemHealthCheckInput struct {
+	WarnCPUTemp   float64 `json:"warn_cpu_temp,omitempty" jsonschema:"description=CPU temp warning threshold in Celsius (default 85)"`
+	WarnDiskPct   int     `json:"warn_disk_pct,omitempty" jsonschema:"description=Disk usage warning threshold percentage (default 90)"`
+	WarnMemoryPct float64 `json:"warn_memory_pct,omitempty" jsonschema:"description=Memory usage warning threshold percentage (default 85)"`
+}
+
+// SystemHealthCheckOutput is the structured health report.
+type SystemHealthCheckOutput struct {
+	Overall    string                  `json:"overall"`
+	Subsystems []SystemHealthSubsystem `json:"subsystems"`
+	Warnings   []string                `json:"warnings"`
+	Summary    string                  `json:"summary"`
+}
+
+// SystemHealthSubsystem represents one subsystem's health status.
+type SystemHealthSubsystem struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+	Value  string `json:"value"`
+	Detail any    `json:"detail"`
+}
+
+func systemHealthCheck(ctx context.Context, input SystemHealthCheckInput) (SystemHealthCheckOutput, error) {
+	// Apply defaults.
+	warnCPU := input.WarnCPUTemp
+	if warnCPU <= 0 {
+		warnCPU = 85
+	}
+	warnDisk := input.WarnDiskPct
+	if warnDisk <= 0 {
+		warnDisk = 90
+	}
+	warnMem := input.WarnMemoryPct
+	if warnMem <= 0 {
+		warnMem = 85
+	}
+
+	out := SystemHealthCheckOutput{
+		Overall: "OK",
+	}
+
+	// 1. CPU/GPU/NVMe temps
+	temps, _ := systemTemps(ctx, SystemTempsInput{})
+	if temps.NotAvailable == "" {
+		status := "ok"
+		if temps.CPUTemp > 95 {
+			status = "crit"
+			out.Warnings = append(out.Warnings, fmt.Sprintf("CPU temp CRITICAL: %.0f°C > 95°C", temps.CPUTemp))
+		} else if temps.CPUTemp > warnCPU {
+			status = "warn"
+			out.Warnings = append(out.Warnings, fmt.Sprintf("CPU temp high: %.0f°C > %.0f°C threshold", temps.CPUTemp, warnCPU))
+		}
+		out.Subsystems = append(out.Subsystems, SystemHealthSubsystem{
+			Name:   "cpu_temp",
+			Status: status,
+			Value:  fmt.Sprintf("%.0f°C", temps.CPUTemp),
+			Detail: temps,
+		})
+	} else {
+		out.Subsystems = append(out.Subsystems, SystemHealthSubsystem{
+			Name:   "cpu_temp",
+			Status: "ok",
+			Value:  temps.NotAvailable,
+			Detail: nil,
+		})
+	}
+
+	// 2. GPU stats
+	gpu, _ := systemGPU(ctx, SystemGPUInput{})
+	if gpu.NotAvailable == "" {
+		status := "ok"
+		gpuTemp := float64(gpu.Temp)
+		if gpuTemp > 100 {
+			status = "crit"
+			out.Warnings = append(out.Warnings, fmt.Sprintf("GPU temp CRITICAL: %d°C > 100°C", gpu.Temp))
+		} else if gpuTemp > 90 {
+			status = "warn"
+			out.Warnings = append(out.Warnings, fmt.Sprintf("GPU temp high: %d°C > 90°C", gpu.Temp))
+		}
+		out.Subsystems = append(out.Subsystems, SystemHealthSubsystem{
+			Name:   "gpu",
+			Status: status,
+			Value:  fmt.Sprintf("%d°C, %d%% util, %.0fW", gpu.Temp, gpu.GPUUtil, gpu.PowerW),
+			Detail: gpu,
+		})
+	} else {
+		out.Subsystems = append(out.Subsystems, SystemHealthSubsystem{
+			Name:   "gpu",
+			Status: "ok",
+			Value:  gpu.NotAvailable,
+			Detail: nil,
+		})
+	}
+
+	// 3. Memory
+	mem, err := systemMemory(ctx, SystemMemoryInput{})
+	if err == nil {
+		status := "ok"
+		if mem.Percent > 95 {
+			status = "crit"
+			out.Warnings = append(out.Warnings, fmt.Sprintf("Memory CRITICAL: %.1f%% > 95%%", mem.Percent))
+		} else if mem.Percent > warnMem {
+			status = "warn"
+			out.Warnings = append(out.Warnings, fmt.Sprintf("Memory high: %.1f%% > %.0f%% threshold", mem.Percent, warnMem))
+		}
+		out.Subsystems = append(out.Subsystems, SystemHealthSubsystem{
+			Name:   "memory",
+			Status: status,
+			Value:  fmt.Sprintf("%.1f%% (%dMB/%dMB)", mem.Percent, mem.UsedMB, mem.TotalMB),
+			Detail: mem,
+		})
+	}
+
+	// 4. Disk
+	disk, err := systemDisk(ctx, SystemDiskInput{})
+	if err == nil {
+		worstStatus := "ok"
+		for _, m := range disk.Mounts {
+			pctStr := strings.TrimSuffix(m.Percent, "%")
+			pct, _ := strconv.Atoi(pctStr)
+			if pct > 98 {
+				worstStatus = "crit"
+				out.Warnings = append(out.Warnings, fmt.Sprintf("Disk CRITICAL: %s at %s", m.Mount, m.Percent))
+			} else if pct > warnDisk && worstStatus != "crit" {
+				worstStatus = "warn"
+				out.Warnings = append(out.Warnings, fmt.Sprintf("Disk high: %s at %s > %d%% threshold", m.Mount, m.Percent, warnDisk))
+			}
+		}
+		// Summary value: show the highest-usage mount.
+		highMount, highPct := "", 0
+		for _, m := range disk.Mounts {
+			pctStr := strings.TrimSuffix(m.Percent, "%")
+			pct, _ := strconv.Atoi(pctStr)
+			if pct > highPct {
+				highPct = pct
+				highMount = m.Mount
+			}
+		}
+		out.Subsystems = append(out.Subsystems, SystemHealthSubsystem{
+			Name:   "disk",
+			Status: worstStatus,
+			Value:  fmt.Sprintf("highest: %s at %d%%", highMount, highPct),
+			Detail: disk,
+		})
+	}
+
+	// 5. Uptime / load
+	uptime, err := systemUptime(ctx, SystemUptimeInput{})
+	if err == nil {
+		status := "ok"
+		cpuCores := float64(runtime.NumCPU())
+		if uptime.Load1m > cpuCores*2 {
+			status = "warn"
+			out.Warnings = append(out.Warnings, fmt.Sprintf("Load average high: %.2f > %.0f (2x %d cores)", uptime.Load1m, cpuCores*2, int(cpuCores)))
+		}
+		out.Subsystems = append(out.Subsystems, SystemHealthSubsystem{
+			Name:   "load",
+			Status: status,
+			Value:  fmt.Sprintf("%.2f / %.2f / %.2f (up %.1fh)", uptime.Load1m, uptime.Load5m, uptime.Load15m, uptime.UptimeHours),
+			Detail: uptime,
+		})
+	}
+
+	// 6. Updates
+	updates, _ := systemUpdates(ctx, SystemUpdatesInput{})
+	{
+		status := "ok"
+		if updates.Total > 50 {
+			status = "warn"
+			out.Warnings = append(out.Warnings, fmt.Sprintf("Pending updates: %d (>50)", updates.Total))
+		}
+		out.Subsystems = append(out.Subsystems, SystemHealthSubsystem{
+			Name:   "updates",
+			Status: status,
+			Value:  fmt.Sprintf("%d pending (%d pacman, %d AUR)", updates.Total, updates.PacmanCount, updates.AURCount),
+			Detail: updates,
+		})
+	}
+
+	// Compute overall status.
+	for _, sub := range out.Subsystems {
+		if sub.Status == "crit" {
+			out.Overall = "CRIT"
+			break
+		}
+		if sub.Status == "warn" && out.Overall != "CRIT" {
+			out.Overall = "WARN"
+		}
+	}
+
+	// Build summary.
+	okCount, warnCount, critCount := 0, 0, 0
+	for _, sub := range out.Subsystems {
+		switch sub.Status {
+		case "ok":
+			okCount++
+		case "warn":
+			warnCount++
+		case "crit":
+			critCount++
+		}
+	}
+	out.Summary = fmt.Sprintf("%s — %d/%d subsystems OK, %d warnings, %d critical",
+		out.Overall, okCount, len(out.Subsystems), warnCount, critCount)
+
+	return out, nil
 }
