@@ -8,7 +8,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
@@ -17,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hairglasses-studio/dotfiles-mcp-internal/executil"
+	"github.com/hairglasses-studio/mcpkit/bootstrap"
 	"github.com/hairglasses-studio/mcpkit/handler"
 	"github.com/hairglasses-studio/mcpkit/registry"
 )
@@ -26,12 +27,7 @@ import (
 // ---------------------------------------------------------------------------
 
 func runCmd(name string, args ...string) (string, string, error) {
-	cmd := exec.Command(name, args...)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return strings.TrimSpace(stdout.String()), strings.TrimSpace(stderr.String()), err
+	return executil.RunCmd(name, args...)
 }
 
 func readProcFile(name string) (string, error) {
@@ -764,28 +760,16 @@ func (m *ProcessModule) Tools() []registry.ToolDefinition {
 // ---------------------------------------------------------------------------
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	})).With("service", "process-mcp"))
-
-	slog.Info("server starting", "name", "process-mcp", "version", "1.0.0")
-
-	reg := registry.NewToolRegistry(registry.Config{
-		Middleware: []registry.Middleware{
-			registry.AuditMiddleware(""),
-			registry.SafetyTierMiddleware(),
-		},
-	})
-	mod := &ProcessModule{}
-	reg.RegisterModule(mod)
-	slog.Info("tools registered", "module", mod.Name(), "count", len(mod.Tools()))
-
-	s := registry.NewMCPServer("process-mcp", "1.0.0")
-	reg.RegisterWithServer(s)
-	buildProcessResourceRegistry().RegisterWithServer(s)
-	buildProcessPromptRegistry().RegisterWithServer(s)
-
-	if err := registry.ServeAuto(s); err != nil {
+	if err := bootstrap.Serve(bootstrap.ServerConfig{
+		Name:    "process-mcp",
+		Version: "1.0.0",
+	},
+		bootstrap.WithModule(&ProcessModule{}),
+		bootstrap.WithAudit(""),
+		bootstrap.WithSafetyTiers(),
+		bootstrap.WithResources(buildProcessResourceRegistry()),
+		bootstrap.WithPrompts(buildProcessPromptRegistry()),
+	); err != nil {
 		slog.Error("server stopped", "error", err)
 		os.Exit(1)
 	}

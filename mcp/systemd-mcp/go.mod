@@ -4,9 +4,12 @@ go 1.26.1
 
 require (
 	github.com/godbus/dbus/v5 v5.2.2
-	github.com/hairglasses-studio/mcpkit v0.2.0
+	github.com/hairglasses-studio/dotfiles-mcp-internal/executil v0.0.0
+	github.com/hairglasses-studio/mcpkit v0.4.1-0.20260405222127-68ca74e75ddf
 	github.com/mark3labs/mcp-go v0.47.0
 )
+
+replace github.com/hairglasses-studio/dotfiles-mcp-internal/executil => ../internal/executil
 
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect

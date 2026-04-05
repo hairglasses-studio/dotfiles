@@ -7,16 +7,16 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 
+	"github.com/hairglasses-studio/dotfiles-mcp-internal/executil"
+	"github.com/hairglasses-studio/mcpkit/bootstrap"
 	"github.com/hairglasses-studio/mcpkit/handler"
 	"github.com/hairglasses-studio/mcpkit/registry"
 )
@@ -26,12 +26,7 @@ import (
 // ---------------------------------------------------------------------------
 
 func runCmd(name string, args ...string) (string, string, error) {
-	cmd := exec.Command(name, args...)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return strings.TrimSpace(stdout.String()), strings.TrimSpace(stderr.String()), err
+	return executil.RunCmd(name, args...)
 }
 
 func runSystemctl(user bool, args ...string) (string, error) {
@@ -617,30 +612,18 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 // ---------------------------------------------------------------------------
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	})).With("service", "systemd-mcp"))
-
-	slog.Info("server starting", "name", "systemd-mcp", "version", "1.0.0")
-
 	initDBus()
 
-	reg := registry.NewToolRegistry(registry.Config{
-		Middleware: []registry.Middleware{
-			registry.AuditMiddleware(""),
-			registry.SafetyTierMiddleware(),
-		},
-	})
-	mod := &SystemdModule{}
-	reg.RegisterModule(mod)
-	slog.Info("tools registered", "module", mod.Name(), "count", len(mod.Tools()))
-
-	s := registry.NewMCPServer("systemd-mcp", "1.0.0")
-	reg.RegisterWithServer(s)
-	buildSystemdResourceRegistry().RegisterWithServer(s)
-	buildSystemdPromptRegistry().RegisterWithServer(s)
-
-	if err := registry.ServeAuto(s); err != nil {
+	if err := bootstrap.Serve(bootstrap.ServerConfig{
+		Name:    "systemd-mcp",
+		Version: "1.0.0",
+	},
+		bootstrap.WithModule(&SystemdModule{}),
+		bootstrap.WithAudit(""),
+		bootstrap.WithSafetyTiers(),
+		bootstrap.WithResources(buildSystemdResourceRegistry()),
+		bootstrap.WithPrompts(buildSystemdPromptRegistry()),
+	); err != nil {
 		slog.Error("server stopped", "error", err)
 		os.Exit(1)
 	}
