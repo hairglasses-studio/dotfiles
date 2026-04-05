@@ -36,15 +36,21 @@ config_backup() {
 
 # Reload the service associated with a config directory
 # Usage: config_reload_service <component_name>
+# Returns: 0 on success, non-zero on failure
 config_reload_service() {
-  local component="$1"
+  local component="$1" rc=0
   case "$component" in
-    hyprland|hypr) compositor_reload 2>/dev/null ;;
-    mako)          makoctl reload 2>/dev/null ;;
-    eww)           eww reload 2>/dev/null ;;
-    waybar)        pkill -SIGUSR2 waybar 2>/dev/null ;;
-    tmux)          tmux source-file ~/.tmux.conf 2>/dev/null ;;
+    hyprland|hypr) compositor_reload;      rc=$? ;;
+    mako)          makoctl reload;         rc=$? ;;
+    eww)           eww reload 2>/dev/null; rc=$? ;;
+    waybar)        pkill -SIGUSR2 waybar;  rc=$? ;;
+    tmux)          tmux source-file ~/.tmux.conf 2>/dev/null; rc=$? ;;
     # ghostty and tattoy auto-reload via file watching
   esac
-  hg_notify_low "Config" "Reloaded $component"
+  if (( rc == 0 )); then
+    hg_notify_low "Config" "Reloaded $component"
+  else
+    hg_notify_critical "Config" "Failed to reload $component (exit $rc)"
+  fi
+  return $rc
 }
