@@ -47,6 +47,10 @@ TITLE=$(head -1 CLAUDE.md | sed 's/^# //')
 
 normalize_title() {
   local title="$1"
+  title="${title#Claude Code Context for }"
+  title="${title#Claude Code Context: }"
+  title="${title#Claude Code Instructions for }"
+  title="${title#Claude Code Instructions: }"
   title="${title% — Claude Code Instructions}"
   title="${title% - Claude Code Instructions}"
   printf '%s\n' "$title"
