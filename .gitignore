@@ -28,6 +28,11 @@ Thumbs.db
 .claude-audit-report.md
 .claude/worktrees/
 
+# Runtime/generated files (tracked apps)
+clipse/clipboard_history.json
+clipse/clipse.log
+clipse/tmp_files/
+
 # Local env files
 .env
 .env.local

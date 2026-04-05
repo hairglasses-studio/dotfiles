@@ -23,7 +23,7 @@ gui:
     unstagedChangesColor:
       - "#ff5c57"
     defaultFgColor:
-      - "#d4d4d4"
+      - "#f1f1f0"
     searchingActiveBorderColor:
       - "#f3f99d"
       - bold
