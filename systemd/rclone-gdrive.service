@@ -1,0 +1,18 @@
+[Unit]
+Description=Mount Google Drive with rclone
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+EnvironmentFile=%h/.config/stashapp/runtime.env
+ExecStartPre=/usr/bin/env bash -lc '/bin/fusermount -uz "${GDRIVE_MOUNT_DIR}" >/dev/null 2>&1 || /bin/fusermount3 -uz "${GDRIVE_MOUNT_DIR}" >/dev/null 2>&1 || /usr/bin/umount -l "${GDRIVE_MOUNT_DIR}" >/dev/null 2>&1 || true'
+ExecStart=/usr/bin/rclone mount ${GDRIVE_SOURCE} ${GDRIVE_MOUNT_DIR} --vfs-cache-mode full --vfs-cache-max-size 50G --vfs-cache-max-age 72h --vfs-read-chunk-size 64M --vfs-read-chunk-streams 4 --vfs-write-back 5s --buffer-size 16M --drive-chunk-size 128M --drive-pacer-min-sleep 100ms --drive-stop-on-upload-limit --dir-cache-time 5m --attr-timeout 30s --poll-interval 30s --transfers 8 --checkers 8 --use-mmap --no-modtime --retries 3
+ExecStop=/usr/bin/env bash -lc '/bin/fusermount -u "${GDRIVE_MOUNT_DIR}" >/dev/null 2>&1 || /bin/fusermount -uz "${GDRIVE_MOUNT_DIR}" >/dev/null 2>&1 || /bin/fusermount3 -u "${GDRIVE_MOUNT_DIR}" >/dev/null 2>&1 || /bin/fusermount3 -uz "${GDRIVE_MOUNT_DIR}" >/dev/null 2>&1 || /usr/bin/umount -l "${GDRIVE_MOUNT_DIR}" >/dev/null 2>&1 || true'
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=32768
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target

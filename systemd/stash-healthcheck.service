@@ -1,0 +1,13 @@
+[Unit]
+Description=Stash healthcheck
+After=stash.service
+Wants=stash.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/mega/linux-isos/stashapp
+EnvironmentFile=%h/.config/stashapp/runtime.env
+ExecStart=/usr/bin/env bash %h/mega/linux-isos/stashapp/ops/stash-doctor.sh health
+
+[Install]
+WantedBy=default.target
