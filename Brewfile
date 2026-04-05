@@ -1,5 +1,7 @@
 # Core CLI tools
 brew "bat"
+brew "coreutils"
+brew "direnv"
 brew "eza"
 brew "fastfetch"
 brew "fd"
@@ -7,10 +9,12 @@ brew "fzf"
 brew "gh"
 brew "git"
 brew "git-delta"
+brew "git-lfs"
 brew "jq"
 brew "neovim"
 brew "ripgrep"
 brew "starship"
+brew "tldr"
 brew "zoxide"
 
 # Zsh plugins (Homebrew-managed)
@@ -27,6 +31,9 @@ brew "air"
 brew "protobuf"
 brew "grpcurl"
 brew "glslang"
+
+# Rust development
+brew "zig"
 
 # AWS / Cloud
 brew "awscli"
@@ -48,6 +55,11 @@ brew "tmux"
 brew "tree"
 brew "watch"
 brew "lazygit"
+brew "rclone"
+brew "blueutil"
+brew "nmap"
+brew "pipx"
+brew "node"
 
 # Desktop rice
 tap "FelixKratz/formulae"
@@ -88,5 +100,9 @@ brew "terminal-notifier"
 cask "ghostty"
 cask "nikitabobko/tap/aerospace"
 cask "font-jetbrains-mono-nerd-font"
+cask "font-maple-mono-nf"
+cask "font-monaspice-nerd-font"
+cask "font-monoid-nerd-font"
 cask "font-sketchybar-app-font"
+cask "blackhole-2ch"
 cask "1password-cli"
