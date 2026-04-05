@@ -130,13 +130,18 @@ FRONTMATTER
   printf '%s\n' "$content" > "$tmp"
   mv -f "$tmp" "$target"
 
-  # Append to JSONL index (atomic via O_APPEND)
-  local preview="${prompt:0:500}"
-  # Escape for JSON
-  preview="$(printf '%s' "$preview" | jq -Rs .)"
+  # Append to JSONL index with proper JSON escaping and file locking
   local json_line
-  json_line="{\"hash\":\"$hash\",\"short_hash\":\"$short_hash\",\"repo\":\"$repo\",\"timestamp\":\"$timestamp\",\"session_id\":\"${session_id:-}\",\"word_count\":$word_count,\"task_type\":\"\",\"score\":0,\"grade\":\"\",\"tags\":[],\"status\":\"unsorted\",\"prompt\":$preview}"
-  printf '%s\n' "$json_line" >> "$INDEX_FILE"
+  json_line=$(jq -n \
+    --arg hash "$hash" \
+    --arg short_hash "$short_hash" \
+    --arg repo "$repo" \
+    --arg ts "$timestamp" \
+    --arg sid "${session_id:-}" \
+    --argjson wc "$word_count" \
+    --arg prompt "${prompt:0:500}" \
+    '{hash:$hash, short_hash:$short_hash, repo:$repo, timestamp:$ts, session_id:$sid, word_count:$wc, task_type:"", score:0, grade:"", tags:[], status:"unsorted", prompt:$prompt}')
+  (flock -x 200; printf '%s\n' "$json_line" >> "$INDEX_FILE") 200>"${INDEX_FILE}.lock"
 }
 
 main "$@"
