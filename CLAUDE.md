@@ -157,6 +157,7 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 | `mx-battery.sh` | MX Master 4 battery for waybar |
 | `mx-battery-notify.sh` | Low battery desktop notification |
 | `agent-session-picker.sh` | Focus active agent session via wofi |
+| `ccg.sh` | Global Claude Code session browser (FZF picker, preview, resume across all repos) |
 | `vlm-analyze.sh` | Screenshot analysis via Claude vision |
 
 ## Aliases
@@ -164,6 +165,7 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 shader-meta, shader-build, shader-test, shader-cycle, shader-bench
 peek (peekaboo screen capture)
 crt-on, crt-off, crt-toggle (RetroVisor)
+ccg (global Claude Code session browser — browse/resume sessions across all repos)
 ```
 
 ## Testing
