@@ -92,8 +92,8 @@ unarchiver
 poppler
 
 # Shader / visual tools
-glslviewer
-tattoy
+# glslviewer  # AUR build broken on 0.54.2 — optional shader previewer
+# tattoy  # macOS-only terminal compositor — not available on Linux
 
 # Terminal fun / hacker aesthetic
 pipes.sh
@@ -109,11 +109,12 @@ onefetch
 
 # Fonts (AUR)
 ttf-jetbrains-mono-nerd
-ttf-maple-nerd-fonts
+maplemono-nf-cn
 
 # Logitech / Input
 solaar
 
 # Notifications / System
-mako
+# mako  # quarantined — replaced by swaync
+swaync
 libnotify
