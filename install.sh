@@ -258,6 +258,7 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/helix/config.toml" "$HOME/.config/helix/config.toml"
         link_file "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
         link_file "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
+        link_file "$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf" "$HOME/.config/fontconfig/conf.d/51-monospace.conf"
     fi
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
@@ -371,6 +372,7 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/helix/config.toml" "$HOME/.config/helix/config.toml"
         check_link "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
         check_link "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
+        check_link "$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf" "$HOME/.config/fontconfig/conf.d/51-monospace.conf"
     fi
     check_link "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     check_link "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
@@ -386,7 +388,13 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
             "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
     else
-        check_link "$DOTFILES_DIR/tattoy/tattoy.toml" "${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+        # tattoy.toml is intentionally a copy (app writes to it at runtime)
+        if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml" ]]; then
+            log_success "OK (copy): ${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+        else
+            log_error "Missing: ${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+            errors=$((errors + 1))
+        fi
     fi
 
     if [[ "$OS" == "Darwin" ]]; then
