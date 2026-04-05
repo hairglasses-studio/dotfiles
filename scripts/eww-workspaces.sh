@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -uo pipefail
 # eww-workspaces.sh — Compositor-aware workspace listener for eww bar
 # Outputs JSON: [{num, focused, name, urgent}] on each workspace change
 

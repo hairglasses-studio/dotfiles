@@ -43,7 +43,6 @@ config_reload_service() {
     hyprland|hypr) compositor_reload;      rc=$? ;;
     swaync)        swaync-client --reload-config; rc=$? ;;
     eww)           eww reload 2>/dev/null; rc=$? ;;
-    waybar)        pkill -SIGUSR2 waybar;  rc=$? ;;
     tmux)          tmux source-file ~/.tmux.conf 2>/dev/null; rc=$? ;;
     # ghostty and tattoy auto-reload via file watching
   esac
@@ -52,5 +51,20 @@ config_reload_service() {
   else
     hg_notify_critical "Config" "Failed to reload $component (exit $rc)"
   fi
+  return $rc
+}
+
+# Reload multiple services in parallel
+# Usage: config_reload_parallel hyprland swaync eww
+config_reload_parallel() {
+  local pids=() component
+  for component in "$@"; do
+    config_reload_service "$component" 2>/dev/null &
+    pids+=($!)
+  done
+  local rc=0
+  for pid in "${pids[@]}"; do
+    wait "$pid" || rc=1
+  done
   return $rc
 }

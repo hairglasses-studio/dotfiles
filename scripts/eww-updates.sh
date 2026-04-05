@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # eww-updates.sh — Check for available system updates (Arch/Manjaro)
 # Outputs update count, or empty string if none available
 
