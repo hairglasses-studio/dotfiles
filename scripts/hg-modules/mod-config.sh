@@ -11,7 +11,7 @@ config_description() {
 
 config_commands() {
   cat <<'CMDS'
-reload	Reload a component (hyprland|mako|eww|waybar|sway|tmux)
+reload	Reload a component (hyprland|mako|eww|waybar|tmux)
 backup	Backup a config file before modification
 check	Validate symlinks and feature flags
 list	Show managed components and paths
@@ -20,10 +20,10 @@ CMDS
 
 _config_cmd_reload() {
   local component="${1:-}"
-  [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> (hyprland|mako|eww|waybar|sway|tmux)"
+  [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> (hyprland|mako|eww|waybar|tmux)"
   case "$component" in
-    hyprland|hypr|mako|eww|waybar|sway|tmux) ;;
-    *) hg_die "Unknown component: $component (hyprland|mako|eww|waybar|sway|tmux)" ;;
+    hyprland|hypr|mako|eww|waybar|tmux) ;;
+    *) hg_die "Unknown component: $component (hyprland|mako|eww|waybar|tmux)" ;;
   esac
   config_reload_service "$component"
   hg_ok "Reloaded $component"
@@ -47,7 +47,6 @@ _config_cmd_check() {
     "$HOME/.config/eww:$HG_DOTFILES/eww:eww"
     "$HOME/.config/mako:$HG_DOTFILES/mako:mako"
     "$HOME/.config/waybar:$HG_DOTFILES/waybar:waybar"
-    "$HOME/.config/sway:$HG_DOTFILES/sway:sway"
   )
   for _entry in "${_checks[@]}"; do
     local _link _target _name
@@ -93,7 +92,6 @@ _config_cmd_list() {
     "eww:$HG_DOTFILES/eww:eww reload"
     "mako:$HG_DOTFILES/mako:makoctl reload"
     "waybar:$HG_DOTFILES/waybar:SIGUSR2"
-    "sway:$HG_DOTFILES/sway:swaymsg reload"
     "tmux:$HG_DOTFILES/tmux:tmux source-file"
     "zsh:$HG_DOTFILES/zsh:source ~/.zshrc"
     "git:$HG_DOTFILES/git:n/a"

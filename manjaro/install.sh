@@ -294,7 +294,6 @@ create_symlinks() {
     is_enabled glow    && link_file "$DOTFILES/glow"     "$HOME/.config/glow"
 
     # ── Desktop (Linux) ──
-    is_enabled sway     && [[ -d "$DOTFILES/sway" ]]     && link_file "$DOTFILES/sway"     "$HOME/.config/sway"
     is_enabled waybar   && [[ -d "$DOTFILES/waybar" ]]   && link_file "$DOTFILES/waybar"   "$HOME/.config/waybar"
     is_enabled hyprland && [[ -d "$DOTFILES/hyprland" ]] && link_file "$DOTFILES/hyprland" "$HOME/.config/hypr"
     is_enabled eww      && [[ -d "$DOTFILES/eww" ]]      && link_file "$DOTFILES/eww"      "$HOME/.config/eww"

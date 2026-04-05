@@ -12,7 +12,6 @@ cd dotfiles
 
 - `ghostty/` — Terminal config + 132+ GLSL shaders
 - `hyprland/` — Hyprland window manager config  
-- `sway/` — Sway fallback config
 - `eww/` — eww bar widgets
 - `zsh/` — Shell config + starship prompt
 - `scripts/` — Helper scripts + shared libraries
