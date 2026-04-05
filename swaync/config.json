@@ -25,19 +25,25 @@
   "hide-on-clear": true,
   "hide-on-action": true,
   "script-fail-notify": false,
+  "notification-grouping": true,
   "notification-visibility": {
     "squelch-service-failed": {
       "state": "transient",
       "app-name": "systemd",
-      "body-regex": "has failed"
+      "body": "has failed"
     },
     "squelch-test-msg": {
       "state": "ignored",
-      "summary-regex": "(?i)test.*msg|test - msg"
+      "summary": "(?i)^test$"
     },
-    "squelch-test-plain": {
+    "squelch-ralphglasses-test": {
       "state": "ignored",
-      "summary-regex": "^test$"
+      "app-name": "ralphglasses",
+      "summary": "(?i)^(test1?|t[0-9]+|title)$"
+    },
+    "squelch-test-plugin": {
+      "state": "ignored",
+      "body": "plugin test notification"
     }
   },
   "widgets": [
