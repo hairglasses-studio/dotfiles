@@ -1,7 +1,7 @@
 # dotfiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Shaders](https://img.shields.io/badge/GLSL_Shaders-132+-purple)](ghostty/shaders/)
+[![Shaders](https://img.shields.io/badge/GLSL_Shaders-138-purple)](ghostty/shaders/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 
 Full macOS rice — Snazzy-on-black palette from the desktop layer down to every TUI.
@@ -83,7 +83,7 @@ Removes all symlinks created by the installer. Does not uninstall Homebrew packa
 | `aerospace/` | i3-style tiling WM — alt+hjkl focus/move, 9 workspaces, 8px gaps |
 | `sketchybar/` | Custom menu bar — workspaces, front app, now playing, k8s context, clock, battery, CPU |
 | `borders/` | Window borders — blue active (`#57c7ff`), gray inactive (`#686868`) |
-| `ghostty/` | Visor terminal, 121 GLSL shaders with shuffled playlists, Snazzy palette, P3 wide gamut |
+| `ghostty/` | Visor terminal, 138 GLSL shaders with shuffled playlists, Snazzy palette, P3 wide gamut |
 | `zsh/` | Oh My Zsh, transient Starship prompt, 13 plugins, 650+ lines of aliases, command notifications |
 | `starship/` | Fill-based right alignment, git metrics, cloud context, helm/container modules |
 | `nvim/` | vim-plug, 29 plugins, alpha-nvim dashboard, treesitter, indent guides, colorizer, CoC LSP |
@@ -114,7 +114,7 @@ dotfiles/
 ├── fastfetch/         → ~/.config/fastfetch
 ├── gh/                → ~/.config/gh
 ├── ghostty/           → ~/.config/ghostty
-│   └── shaders/       → 121 GLSL shaders + playlists + scripts
+│   └── shaders/       → 138 GLSL shaders + playlists + scripts
 ├── git/               → ~/.gitconfig + ~/.config/delta + ~/.config/git/ignore
 ├── glow/              → ~/.config/glow
 ├── k9s/               → ~/.config/k9s
@@ -192,7 +192,7 @@ Prefix is `C-a`. Split panes with `C-a |` (horizontal) and `C-a -` (vertical).
 
 ## Shaders
 
-121 GLSL shaders from 25+ community repos, gists, and Shadertoy adaptations:
+138 GLSL shaders from 25+ community repos, gists, and Shadertoy adaptations:
 
 | Category | Count | Examples |
 |----------|-------|---------|
