@@ -140,6 +140,22 @@ type NetworkDNSEntry struct {
 	Servers   []string `json:"servers"`
 }
 
+// Wrapper types to ensure MCP returns JSON objects (not bare arrays).
+type NetworkWifiListOutput struct {
+	Networks []NetworkWifiEntry `json:"networks"`
+	Total    int                `json:"total"`
+}
+
+type NetworkConnectionsOutput struct {
+	Connections []NetworkConnectionEntry `json:"connections"`
+	Total       int                      `json:"total"`
+}
+
+type NetworkDNSOutput struct {
+	Interfaces []NetworkDNSEntry `json:"interfaces"`
+	Total      int               `json:"total"`
+}
+
 // ---------------------------------------------------------------------------
 // Module
 // ---------------------------------------------------------------------------
@@ -210,12 +226,12 @@ func (m *NetworkModule) Tools() []registry.ToolDefinition {
 	)
 
 	// ── network_wifi_list ────────────────────────────────
-	networkWifiList := handler.TypedHandler[NetworkWifiListInput, []NetworkWifiEntry](
+	networkWifiList := handler.TypedHandler[NetworkWifiListInput, NetworkWifiListOutput](
 		"network_wifi_list",
 		"Scan and list available WiFi networks sorted by signal strength. Returns SSID, signal, security, channel, and frequency. Deduplicates SSIDs keeping strongest signal.",
-		func(_ context.Context, input NetworkWifiListInput) ([]NetworkWifiEntry, error) {
+		func(_ context.Context, input NetworkWifiListInput) (NetworkWifiListOutput, error) {
 			if err := netCheckTool("nmcli"); err != nil {
-				return nil, err
+				return NetworkWifiListOutput{}, err
 			}
 
 			args := []string{"--terse", "--fields", "SSID,SIGNAL,SECURITY,CHAN,FREQ", "device", "wifi", "list"}
@@ -226,12 +242,12 @@ func (m *NetworkModule) Tools() []registry.ToolDefinition {
 			raw, err := netRunCmdTimeout(10*time.Second, "nmcli", args...)
 			if err != nil {
 				if strings.Contains(err.Error(), "NetworkManager is not running") {
-					return nil, fmt.Errorf("NetworkManager is not running — start it with: sudo systemctl start NetworkManager")
+					return NetworkWifiListOutput{}, fmt.Errorf("NetworkManager is not running — start it with: sudo systemctl start NetworkManager")
 				}
 				if strings.Contains(err.Error(), "Wi-Fi is disabled") || strings.Contains(err.Error(), "wifi is disabled") {
-					return nil, fmt.Errorf("WiFi is disabled — enable with: nmcli radio wifi on")
+					return NetworkWifiListOutput{}, fmt.Errorf("WiFi is disabled — enable with: nmcli radio wifi on")
 				}
-				return nil, fmt.Errorf("nmcli wifi list: %w", err)
+				return NetworkWifiListOutput{}, fmt.Errorf("nmcli wifi list: %w", err)
 			}
 
 			// Parse and deduplicate by SSID (keep highest signal)
@@ -274,7 +290,7 @@ func (m *NetworkModule) Tools() []registry.ToolDefinition {
 				return result[i].Signal > result[j].Signal
 			})
 
-			return result, nil
+			return NetworkWifiListOutput{Networks: result, Total: len(result)}, nil
 		},
 	)
 
@@ -340,17 +356,17 @@ func (m *NetworkModule) Tools() []registry.ToolDefinition {
 	networkVpnToggle.IsWrite = true
 
 	// ── network_connections ──────────────────────────────
-	networkConnections := handler.TypedHandler[NetworkConnectionsInput, []NetworkConnectionEntry](
+	networkConnections := handler.TypedHandler[NetworkConnectionsInput, NetworkConnectionsOutput](
 		"network_connections",
 		"List all saved NetworkManager connection profiles (WiFi, VPN, Ethernet, etc.) with name, UUID, type, and device.",
-		func(_ context.Context, _ NetworkConnectionsInput) ([]NetworkConnectionEntry, error) {
+		func(_ context.Context, _ NetworkConnectionsInput) (NetworkConnectionsOutput, error) {
 			if err := netCheckTool("nmcli"); err != nil {
-				return nil, err
+				return NetworkConnectionsOutput{}, err
 			}
 
 			raw, err := netRunCmdTimeout(10*time.Second, "nmcli", "--terse", "connection", "show")
 			if err != nil {
-				return nil, fmt.Errorf("nmcli connection show: %w", err)
+				return NetworkConnectionsOutput{}, fmt.Errorf("nmcli connection show: %w", err)
 			}
 
 			var result []NetworkConnectionEntry
@@ -370,22 +386,22 @@ func (m *NetworkModule) Tools() []registry.ToolDefinition {
 				}
 			}
 
-			return result, nil
+			return NetworkConnectionsOutput{Connections: result, Total: len(result)}, nil
 		},
 	)
 
 	// ── network_dns ──────────────────────────────────────
-	networkDNS := handler.TypedHandler[NetworkDNSInput, []NetworkDNSEntry](
+	networkDNS := handler.TypedHandler[NetworkDNSInput, NetworkDNSOutput](
 		"network_dns",
 		"Show DNS servers per network interface using resolvectl. Returns interface names with their configured DNS server addresses.",
-		func(_ context.Context, _ NetworkDNSInput) ([]NetworkDNSEntry, error) {
+		func(_ context.Context, _ NetworkDNSInput) (NetworkDNSOutput, error) {
 			if err := netCheckTool("resolvectl"); err != nil {
-				return nil, err
+				return NetworkDNSOutput{}, err
 			}
 
 			raw, err := netRunCmdTimeout(10*time.Second, "resolvectl", "status")
 			if err != nil {
-				return nil, fmt.Errorf("resolvectl status: %w", err)
+				return NetworkDNSOutput{}, fmt.Errorf("resolvectl status: %w", err)
 			}
 
 			var result []NetworkDNSEntry
@@ -436,7 +452,7 @@ func (m *NetworkModule) Tools() []registry.ToolDefinition {
 				result = append(result, *current)
 			}
 
-			return result, nil
+			return NetworkDNSOutput{Interfaces: result, Total: len(result)}, nil
 		},
 	)
 
