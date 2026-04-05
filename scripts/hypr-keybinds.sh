@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # hypr-keybinds.sh — Generate keybind reference markdown from live Hyprland config
 # Parses hyprland.conf for section headers, queries hyprctl binds -j for
 # described binds, and generates a Nerd Font-adorned markdown cheatsheet.

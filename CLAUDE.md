@@ -86,6 +86,79 @@ sed -e "/^\[shader\]/,/^\[/ s|^enabled = .*|enabled = true|"
 ### AeroSpace Float Rules
 No "ignore app" mode exists. Use `[[on-window-detected]]` with `layout floating`. Apps with no bundle ID (like glslViewer) must be matched by `if.app-name-regex-substring`.
 
+## Shared Libraries
+
+All standalone scripts should `set -euo pipefail` and source the appropriate libraries.
+
+| Library | Functions | Purpose |
+|---------|-----------|---------|
+| `scripts/lib/hg-core.sh` | `hg_info`, `hg_ok`, `hg_error`, `hg_die`, `hg_require`, Snazzy colors | CLI framework for hg-* scripts |
+| `scripts/lib/compositor.sh` | `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_reload`, `compositor_subscribe` | Cross-compositor IPC (Hyprland/Sway/AeroSpace) |
+| `scripts/lib/config.sh` | `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service` | Atomic config writes with `mktemp + mv` |
+| `scripts/lib/notify.sh` | `hg_notify_low`, `hg_notify_normal`, `hg_notify_critical` | Desktop notifications via notify-send |
+
+## Scripts Reference
+
+### Desktop/WM
+| Script | Description |
+|--------|-------------|
+| `hypr-keybinds.sh` | Generate keybind reference from live Hyprland config |
+| `hypr-boot-log.sh` | Capture Hyprland boot errors for post-boot review |
+| `hypr-bt-boot.sh` | Boot-time bluetooth device connection |
+| `dropdown-terminal.sh` | Yakuake-style toggle for ralphglasses + claude code |
+| `app-switcher.sh` | Wofi-based window switcher |
+
+### Eww Widgets
+| Script | Description |
+|--------|-------------|
+| `eww-workspaces.sh` | Workspace listener for eww bar |
+| `eww-activewindow.sh` | Active window title listener |
+| `eww-mode.sh` | Compositor submap/mode listener |
+| `eww-volume.sh` | Event-driven volume daemon |
+| `eww-cava.sh` | Audio visualization streamer |
+| `eww-calendar.sh` | Calendar grid JSON generator |
+| `eww-calendar-sync.sh` | Google Calendar sync |
+| `eww-events.sh` | Upcoming events for sidebar |
+| `eww-weather.sh` | Weather data via wttr.in |
+| `eww-updates.sh` | System update checker |
+| `eww-theme-gen.sh` | Color overrides from wallpaper via matugen |
+
+### Fleet/Repo Management
+| Script | Description |
+|--------|-------------|
+| `hg-pipeline.sh` | Build+test pipeline (Go/Node/Python) |
+| `hg-health.sh` | Org-wide repo health dashboard |
+| `hg-fleet-health.sh` | Fleet status (CI, commits, tests) |
+| `hg-go-sync.sh` | Sync Go version across repos |
+| `hg-dep-audit.sh` | Dependency version skew audit |
+| `hg-new-repo.sh` | Scaffold new repo with standard files |
+| `hg-workflow-sync.sh` | Sync CI workflows across repos |
+| `hg-onboard-repo.sh` | Onboard repo with standard config |
+| `hg-agent-docs.sh` | Generate AGENTS.md, GEMINI.md from CLAUDE.md |
+| `hg-codex-audit.sh` | Repo inventory and parity audit |
+
+### System/Boot
+| Script | Description |
+|--------|-------------|
+| `cyberboot.sh` | Cyberpunk terminal boot sequence (sourced) |
+| `refind-deploy.sh` | Full rEFInd deployment |
+| `refind-kernel-sync.sh` | Validate loader paths after kernel changes |
+| `refind-boot-guard.sh` | Restore rEFInd as first boot entry |
+| `plymouth-deploy.sh` | Install Cybernet Plymouth theme |
+| `greetd-deploy.sh` | Deploy greetd config |
+| `etc-deploy.sh` | Deploy tracked /etc/ configs |
+
+### Utilities
+| Script | Description |
+|--------|-------------|
+| `shader-wallpaper.sh` | Procgen shader wallpaper engine |
+| `wallpaper-cycle.sh` | Animated wallpaper rotation via swww |
+| `screenshot-crop.sh` | Crop-select screenshot to clipboard |
+| `mx-battery.sh` | MX Master 4 battery for waybar |
+| `mx-battery-notify.sh` | Low battery desktop notification |
+| `agent-session-picker.sh` | Focus active agent session via wofi |
+| `vlm-analyze.sh` | Screenshot analysis via Claude vision |
+
 ## Aliases
 ```
 shader-meta, shader-build, shader-test, shader-cycle, shader-bench
