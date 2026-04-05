@@ -3,21 +3,6 @@
     "dotfiles": {
       "command": "bash",
       "args": ["-c", "export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1}; export HYPRLAND_INSTANCE_SIGNATURE=${HYPRLAND_INSTANCE_SIGNATURE:-$(ls /run/user/$(id -u)/hypr/ 2>/dev/null | head -1)}; export DOTFILES_DIR=\"$HOME/hairglasses-studio/dotfiles\"; cd \"$HOME/hairglasses-studio/dotfiles/mcp/dotfiles-mcp\" && exec go run ."]
-    },
-    "systemd": {
-      "command": "go",
-      "args": ["run", "."],
-      "cwd": "${HOME}/hairglasses-studio/dotfiles/mcp/systemd-mcp"
-    },
-    "tmux": {
-      "command": "go",
-      "args": ["run", "."],
-      "cwd": "${HOME}/hairglasses-studio/dotfiles/mcp/tmux-mcp"
-    },
-    "process": {
-      "command": "go",
-      "args": ["run", "."],
-      "cwd": "${HOME}/hairglasses-studio/dotfiles/mcp/process-mcp"
     }
   }
 }
