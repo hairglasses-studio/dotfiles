@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "last_updated": "2026-04-05T14:19:37.533791Z",
-  "total_entries": 412,
+  "last_updated": "2026-04-05T14:20:28.616313Z",
+  "total_entries": 594,
   "entries": {
     "https://github.com/end-4/dots-hyprland": {
       "name": "dots-hyprland",
@@ -118,7 +118,9 @@
       "category": "nixos",
       "file": "nixos/ryan4yin.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/1amSimp1e/dots": {
       "name": "dots",
@@ -165,7 +167,9 @@
       "category": "nixos",
       "file": "nixos/fufexan.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/gvolpe/nix-config": {
       "name": "nix-config",
@@ -174,7 +178,9 @@
       "category": "nixos",
       "file": "nixos/gvolpe.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/binnewbs/arch-hyprland": {
       "name": "arch-hyprland",
@@ -219,7 +225,10 @@
       "category": "nixos",
       "file": "nixos/xnm1.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5,
+        8
+      ]
     },
     "https://github.com/Frost-Phoenix/nixos-config": {
       "name": "nixos-config",
@@ -228,7 +237,9 @@
       "category": "nixos",
       "file": "nixos/frost-phoenix.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/elifouts/Dotfiles": {
       "name": "Dotfiles",
@@ -273,7 +284,9 @@
       "category": "hyprland",
       "file": "hyprland/matt-ftw.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        8
+      ]
     },
     "https://github.com/zDyant/HyprNova": {
       "name": "HyprNova",
@@ -318,7 +331,9 @@
       "category": "nixos",
       "file": "nixos/notusknot.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/debuggyo/Exo": {
       "name": "Exo",
@@ -372,7 +387,9 @@
       "category": "nixos",
       "file": "nixos/sly-harvey.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/anotherhadi/nixy": {
       "name": "nixy",
@@ -381,7 +398,9 @@
       "category": "nixos",
       "file": "nixos/anotherhadi.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/Spelljinxer/dotfiles": {
       "name": "dotfiles",
@@ -409,7 +428,8 @@
       "file": "nixos/ruixi-rebirth.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        2
+        2,
+        5
       ]
     },
     "https://github.com/Lunaris-Project/HyprLuna": {
@@ -473,7 +493,9 @@
       "category": "hyprland",
       "file": "hyprland/isabelroses.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/donovanglover/nix-config": {
       "name": "nix-config",
@@ -482,7 +504,9 @@
       "category": "nixos",
       "file": "nixos/donovanglover.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/JaKooLit/NixOS-Hyprland": {
       "name": "NixOS-Hyprland",
@@ -491,7 +515,9 @@
       "category": "nixos",
       "file": "nixos/jakoolit-nixos-hyprland.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/junnunkarim/dotfiles_home": {
       "name": "dotfiles_home",
@@ -537,7 +563,8 @@
       "file": "nixos/themaxmur.md",
       "discovered_in_round": 1,
       "also_found_in_rounds": [
-        2
+        2,
+        5
       ]
     },
     "https://github.com/juminai/dotfiles": {
@@ -637,7 +664,9 @@
       "category": "nixos",
       "file": "nixos/budimanjojo.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/coffebar/dotfiles": {
       "name": "dotfiles",
@@ -978,7 +1007,9 @@
       "category": "nixos",
       "file": "nixos/chrislas.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/PoSayDone/.dotfiles_wayland": {
       "name": ".dotfiles_wayland",
@@ -1005,7 +1036,9 @@
       "category": "hyprland",
       "file": "hyprland/iogamaster.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/SwayKh/dotfiles": {
       "name": "dotfiles",
@@ -1032,7 +1065,10 @@
       "category": "nixos",
       "file": "nixos/exploitoverload.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5,
+        8
+      ]
     },
     "https://github.com/S4NKALP/hyprland": {
       "name": "hyprland",
@@ -1529,7 +1565,9 @@
       "category": "nixos",
       "file": "nixos/thericecold.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/parazeeknova/dotfiles": {
       "name": "dotfiles",
@@ -1592,7 +1630,9 @@
       "category": "nixos",
       "file": "nixos/f4nt0.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/GixoXYZ/HyprlandDotFiles": {
       "name": "HyprlandDotFiles",
@@ -1637,7 +1677,9 @@
       "category": "nixos",
       "file": "nixos/orynvail.md",
       "discovered_in_round": 1,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/MrVivekRajan/Waybar-Wlogout-dots": {
       "name": "Waybar-Wlogout-dots",
@@ -2053,7 +2095,9 @@
       "category": "nixos",
       "file": "nixos/max-baz.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/szorfein/dotfiles": {
       "name": "dotfiles",
@@ -2467,7 +2511,9 @@
       "category": "sway",
       "file": "sway/nekowinston.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/n6v26r/.dotfiles": {
       "name": ".dotfiles",
@@ -2485,7 +2531,9 @@
       "category": "sway",
       "file": "sway/justus0405.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        8
+      ]
     },
     "https://github.com/Swarsel/.dotfiles": {
       "name": ".dotfiles",
@@ -2494,7 +2542,9 @@
       "category": "nixos",
       "file": "nixos/swarsel.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/sora6kq/sway-dots": {
       "name": "sway-dots",
@@ -2647,7 +2697,9 @@
       "category": "nixos",
       "file": "nixos/kittywitch.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/pythops/workstation": {
       "name": "workstation",
@@ -2764,7 +2816,9 @@
       "category": "nixos",
       "file": "nixos/kenranunderscore.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/kzndotsh/dotfiles": {
       "name": "dotfiles",
@@ -2845,7 +2899,9 @@
       "category": "nixos",
       "file": "nixos/rishabh5321.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/ecosse3/dotfiles": {
       "name": "dotfiles",
@@ -2917,7 +2973,9 @@
       "category": "nixos",
       "file": "nixos/ivarwithoutbones.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/Haron-Prime/My_config_files": {
       "name": "My_config_files",
@@ -2953,7 +3011,9 @@
       "category": "sway",
       "file": "sway/maxbrunet.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/NamesCode/dotfiles": {
       "name": "dotfiles",
@@ -3133,7 +3193,9 @@
       "category": "sway",
       "file": "sway/lepz0r.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        8
+      ]
     },
     "https://github.com/hidayry/swaywm-dotfiles": {
       "name": "swaywm-dotfiles",
@@ -3160,7 +3222,9 @@
       "category": "hyprland",
       "file": "hyprland/simulatan.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        8
+      ]
     },
     "https://github.com/ovk/dotfiles": {
       "name": "dotfiles",
@@ -3286,7 +3350,9 @@
       "category": "nixos",
       "file": "nixos/dnordstrom.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        5
+      ]
     },
     "https://github.com/0rtz/dotfiles": {
       "name": "dotfiles",
@@ -3727,6 +3793,1646 @@
       "category": "hyprland",
       "file": "hyprland/artemsmaznov.md",
       "discovered_in_round": 2,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/nix-community/home-manager": {
+      "name": "home-manager",
+      "owner": "nix-community",
+      "stars": 9590,
+      "category": "nixos",
+      "file": "nixos/nix-community.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/nix-darwin/nix-darwin": {
+      "name": "nix-darwin",
+      "owner": "nix-darwin",
+      "stars": 5264,
+      "category": "nixos",
+      "file": "nixos/nix-darwin.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Misterio77/nix-starter-configs": {
+      "name": "nix-starter-configs",
+      "owner": "Misterio77",
+      "stars": 3619,
+      "category": "nixos",
+      "file": "nixos/misterio77.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dustinlyons/nixos-config": {
+      "name": "nixos-config",
+      "owner": "dustinlyons",
+      "stars": 3436,
+      "category": "nixos",
+      "file": "nixos/dustinlyons.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ryan4yin/nixos-and-flakes-book": {
+      "name": "nixos-and-flakes-book",
+      "owner": "ryan4yin",
+      "stars": 3080,
+      "category": "nixos",
+      "file": "nixos/ryan4yin-nixos-and-flakes-book.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Misterio77/nix-config": {
+      "name": "nix-config",
+      "owner": "Misterio77",
+      "stars": 1243,
+      "category": "nixos",
+      "file": "nixos/misterio77-nix-config.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/divnix/digga": {
+      "name": "digga",
+      "owner": "divnix",
+      "stars": 1025,
+      "category": "nixos",
+      "file": "nixos/divnix.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sioodmy/dotfiles": {
+      "name": "dotfiles",
+      "owner": "sioodmy",
+      "stars": 906,
+      "category": "nixos",
+      "file": "nixos/sioodmy.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ublue-os/fleek": {
+      "name": "fleek",
+      "owner": "ublue-os",
+      "stars": 816,
+      "category": "nixos",
+      "file": "nixos/ublue-os.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MatthiasBenaets/nix-config": {
+      "name": "nix-config",
+      "owner": "MatthiasBenaets",
+      "stars": 735,
+      "category": "nixos",
+      "file": "nixos/matthiasbenaets.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/henrysipp/omarchy-nix": {
+      "name": "omarchy-nix",
+      "owner": "henrysipp",
+      "stars": 683,
+      "category": "nixos",
+      "file": "nixos/henrysipp.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ryan4yin/nix-darwin-kickstarter": {
+      "name": "nix-darwin-kickstarter",
+      "owner": "ryan4yin",
+      "stars": 645,
+      "category": "nixos",
+      "file": "nixos/ryan4yin-nix-darwin-kickstarter.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/kclejeune/system": {
+      "name": "system",
+      "owner": "kclejeune",
+      "stars": 513,
+      "category": "nixos",
+      "file": "nixos/kclejeune.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/colemickens/nixcfg": {
+      "name": "nixcfg",
+      "owner": "colemickens",
+      "stars": 473,
+      "category": "nixos",
+      "file": "nixos/colemickens.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/badele/nix-homelab": {
+      "name": "nix-homelab",
+      "owner": "badele",
+      "stars": 472,
+      "category": "nixos",
+      "file": "nixos/badele.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/malob/nix-config": {
+      "name": "nix-config",
+      "owner": "malob",
+      "stars": 457,
+      "category": "nixos",
+      "file": "nixos/malob.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/NotAShelf/nyx": {
+      "name": "nyx",
+      "owner": "NotAShelf",
+      "stars": 426,
+      "category": "nixos",
+      "file": "nixos/notashelf.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/shaunsingh/nix-darwin-dotfiles": {
+      "name": "nix-darwin-dotfiles",
+      "owner": "shaunsingh",
+      "stars": 420,
+      "category": "nixos",
+      "file": "nixos/shaunsingh.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ekstranix/home-manager-option-search": {
+      "name": "home-manager-option-search",
+      "owner": "ekstranix",
+      "stars": 381,
+      "category": "nixos",
+      "file": "nixos/ekstranix.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/redyf/nixdots": {
+      "name": "nixdots",
+      "owner": "redyf",
+      "stars": 348,
+      "category": "nixos",
+      "file": "nixos/redyf.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MatthewCroughan/nixcfg": {
+      "name": "nixcfg",
+      "owner": "MatthewCroughan",
+      "stars": 331,
+      "category": "nixos",
+      "file": "nixos/matthewcroughan.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/erictossell/nixflakes": {
+      "name": "nixflakes",
+      "owner": "erictossell",
+      "stars": 325,
+      "category": "nixos",
+      "file": "nixos/erictossell.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ahmedelgabri/dotfiles": {
+      "name": "dotfiles",
+      "owner": "ahmedelgabri",
+      "stars": 285,
+      "category": "nixos",
+      "file": "nixos/ahmedelgabri.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/oddlama/nix-config": {
+      "name": "nix-config",
+      "owner": "oddlama",
+      "stars": 249,
+      "category": "nixos",
+      "file": "nixos/oddlama.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/TLATER/dotfiles": {
+      "name": "dotfiles",
+      "owner": "TLATER",
+      "stars": 228,
+      "category": "nixos",
+      "file": "nixos/tlater.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/pinpox/nixos": {
+      "name": "nixos",
+      "owner": "pinpox",
+      "stars": 225,
+      "category": "nixos",
+      "file": "nixos/pinpox.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/megalithic/dotfiles": {
+      "name": "dotfiles",
+      "owner": "megalithic",
+      "stars": 215,
+      "category": "nixos",
+      "file": "nixos/megalithic.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/caarlos0/dotfiles": {
+      "name": "dotfiles",
+      "owner": "caarlos0",
+      "stars": 206,
+      "category": "nixos",
+      "file": "nixos/caarlos0.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yunfachi/denix": {
+      "name": "denix",
+      "owner": "yunfachi",
+      "stars": 194,
+      "category": "nixos",
+      "file": "nixos/yunfachi.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/b0o/dotfiles": {
+      "name": "dotfiles",
+      "owner": "b0o",
+      "stars": 181,
+      "category": "nixos",
+      "file": "nixos/b0o.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/breuerfelix/dotfiles": {
+      "name": "dotfiles",
+      "owner": "breuerfelix",
+      "stars": 172,
+      "category": "nixos",
+      "file": "nixos/breuerfelix.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/EdenEast/nyx": {
+      "name": "nyx",
+      "owner": "EdenEast",
+      "stars": 168,
+      "category": "nixos",
+      "file": "nixos/edeneast.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mrjones2014/dotfiles": {
+      "name": "dotfiles",
+      "owner": "mrjones2014",
+      "stars": 141,
+      "category": "nixos",
+      "file": "nixos/mrjones2014.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/alexpearce/dotfiles": {
+      "name": "dotfiles",
+      "owner": "alexpearce",
+      "stars": 138,
+      "category": "nixos",
+      "file": "nixos/alexpearce.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/d12frosted/environment": {
+      "name": "environment",
+      "owner": "d12frosted",
+      "stars": 137,
+      "category": "nixos",
+      "file": "nixos/d12frosted.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/r17x/universe": {
+      "name": "universe",
+      "owner": "r17x",
+      "stars": 124,
+      "category": "nixos",
+      "file": "nixos/r17x.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/QuackHack-McBlindy/dotfiles": {
+      "name": "dotfiles",
+      "owner": "QuackHack-McBlindy",
+      "stars": 118,
+      "category": "nixos",
+      "file": "nixos/quackhack-mcblindy.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/niksingh710/ndots": {
+      "name": "ndots",
+      "owner": "niksingh710",
+      "stars": 114,
+      "category": "nixos",
+      "file": "nixos/niksingh710-ndots.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/LudovicoPiero/dotfiles": {
+      "name": "dotfiles",
+      "owner": "LudovicoPiero",
+      "stars": 114,
+      "category": "nixos",
+      "file": "nixos/ludovicopiero.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/wenjinnn/.dotfiles": {
+      "name": ".dotfiles",
+      "owner": "wenjinnn",
+      "stars": 112,
+      "category": "nixos",
+      "file": "nixos/wenjinnn.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/hmajid2301/nixicle": {
+      "name": "nixicle",
+      "owner": "hmajid2301",
+      "stars": 110,
+      "category": "nixos",
+      "file": "nixos/hmajid2301.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/thexyno/nixos-config": {
+      "name": "nixos-config",
+      "owner": "thexyno",
+      "stars": 109,
+      "category": "nixos",
+      "file": "nixos/thexyno.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/notohh/snowflake": {
+      "name": "snowflake",
+      "owner": "notohh",
+      "stars": 107,
+      "category": "nixos",
+      "file": "nixos/notohh.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/noib3/dotfiles": {
+      "name": "dotfiles",
+      "owner": "noib3",
+      "stars": 106,
+      "category": "nixos",
+      "file": "nixos/noib3.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/astratagem/dotfield": {
+      "name": "dotfield",
+      "owner": "astratagem",
+      "stars": 101,
+      "category": "nixos",
+      "file": "nixos/astratagem.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/tuxdotrs/nix-config": {
+      "name": "nix-config",
+      "owner": "tuxdotrs",
+      "stars": 97,
+      "category": "nixos",
+      "file": "nixos/tuxdotrs.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/peel/dotfiles": {
+      "name": "dotfiles",
+      "owner": "peel",
+      "stars": 93,
+      "category": "nixos",
+      "file": "nixos/peel.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/rummik/nixos-config": {
+      "name": "nixos-config",
+      "owner": "rummik",
+      "stars": 92,
+      "category": "nixos",
+      "file": "nixos/rummik.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Remedan/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Remedan",
+      "stars": 91,
+      "category": "nixos",
+      "file": "nixos/remedan.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/figsoda/cfg": {
+      "name": "cfg",
+      "owner": "figsoda",
+      "stars": 86,
+      "category": "nixos",
+      "file": "nixos/figsoda.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/HirschBerge/Public-dots": {
+      "name": "Public-dots",
+      "owner": "HirschBerge",
+      "stars": 84,
+      "category": "nixos",
+      "file": "nixos/hirschberge.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Gerschtli/nix-config": {
+      "name": "nix-config",
+      "owner": "Gerschtli",
+      "stars": 83,
+      "category": "nixos",
+      "file": "nixos/gerschtli.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/KubqoA/dotfiles": {
+      "name": "dotfiles",
+      "owner": "KubqoA",
+      "stars": 81,
+      "category": "nixos",
+      "file": "nixos/kubqoa.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/hardselius/dotfiles": {
+      "name": "dotfiles",
+      "owner": "hardselius",
+      "stars": 81,
+      "category": "nixos",
+      "file": "nixos/hardselius.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/basnijholt/dotfiles": {
+      "name": "dotfiles",
+      "owner": "basnijholt",
+      "stars": 81,
+      "category": "nixos",
+      "file": "nixos/basnijholt.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MrSom3body/dotfiles": {
+      "name": "dotfiles",
+      "owner": "MrSom3body",
+      "stars": 80,
+      "category": "nixos",
+      "file": "nixos/mrsom3body.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ALT-F4-LLC/dotfiles.nix": {
+      "name": "dotfiles.nix",
+      "owner": "ALT-F4-LLC",
+      "stars": 80,
+      "category": "nixos",
+      "file": "nixos/alt-f4-llc.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/bjeanes/dotfiles": {
+      "name": "dotfiles",
+      "owner": "bjeanes",
+      "stars": 78,
+      "category": "nixos",
+      "file": "nixos/bjeanes.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AlphaTechnolog/nixdots": {
+      "name": "nixdots",
+      "owner": "AlphaTechnolog",
+      "stars": 75,
+      "category": "nixos",
+      "file": "nixos/alphatechnolog.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dileep-kishore/nixos-config": {
+      "name": "nixos-config",
+      "owner": "dileep-kishore",
+      "stars": 74,
+      "category": "nixos",
+      "file": "nixos/dileep-kishore.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cideM/dotfiles": {
+      "name": "dotfiles",
+      "owner": "cideM",
+      "stars": 71,
+      "category": "nixos",
+      "file": "nixos/cidem.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/chris-martin/home": {
+      "name": "home",
+      "owner": "chris-martin",
+      "stars": 67,
+      "category": "nixos",
+      "file": "nixos/chris-martin.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/workflow/dotfiles": {
+      "name": "dotfiles",
+      "owner": "workflow",
+      "stars": 67,
+      "category": "nixos",
+      "file": "nixos/workflow.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/TophC7/dot.nix": {
+      "name": "dot.nix",
+      "owner": "TophC7",
+      "stars": 66,
+      "category": "nixos",
+      "file": "nixos/tophc7.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/nomadics9/NixOS-Flake": {
+      "name": "NixOS-Flake",
+      "owner": "nomadics9",
+      "stars": 65,
+      "category": "nixos",
+      "file": "nixos/nomadics9.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yasunori0418/dotfiles": {
+      "name": "dotfiles",
+      "owner": "yasunori0418",
+      "stars": 63,
+      "category": "nixos",
+      "file": "nixos/yasunori0418.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mfin/dotfiles": {
+      "name": "dotfiles",
+      "owner": "mfin",
+      "stars": 61,
+      "category": "nixos",
+      "file": "nixos/mfin.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/orangci/dots": {
+      "name": "dots",
+      "owner": "orangci",
+      "stars": 60,
+      "category": "nixos",
+      "file": "nixos/orangci.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/storopoli/flakes": {
+      "name": "flakes",
+      "owner": "storopoli",
+      "stars": 59,
+      "category": "nixos",
+      "file": "nixos/storopoli.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/aaronjanse/dotfiles": {
+      "name": "dotfiles",
+      "owner": "aaronjanse",
+      "stars": 59,
+      "category": "nixos",
+      "file": "nixos/aaronjanse.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/davidak/nixos-config": {
+      "name": "nixos-config",
+      "owner": "davidak",
+      "stars": 59,
+      "category": "nixos",
+      "file": "nixos/davidak.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/samhh/dotfiles": {
+      "name": "dotfiles",
+      "owner": "samhh",
+      "stars": 57,
+      "category": "nixos",
+      "file": "nixos/samhh.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yunfachi/nix-config": {
+      "name": "nix-config",
+      "owner": "yunfachi",
+      "stars": 56,
+      "category": "nixos",
+      "file": "nixos/yunfachi-nix-config.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/uncenter/flake": {
+      "name": "flake",
+      "owner": "uncenter",
+      "stars": 55,
+      "category": "nixos",
+      "file": "nixos/uncenter.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yurrriq/dotfiles": {
+      "name": "dotfiles",
+      "owner": "yurrriq",
+      "stars": 55,
+      "category": "nixos",
+      "file": "nixos/yurrriq.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/z0al/dotfiles": {
+      "name": "dotfiles",
+      "owner": "z0al",
+      "stars": 54,
+      "category": "nixos",
+      "file": "nixos/z0al.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Enzime/dotfiles-nix": {
+      "name": "dotfiles-nix",
+      "owner": "Enzime",
+      "stars": 53,
+      "category": "nixos",
+      "file": "nixos/enzime.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/berbiche/dotfiles": {
+      "name": "dotfiles",
+      "owner": "berbiche",
+      "stars": 50,
+      "category": "nixos",
+      "file": "nixos/berbiche.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/athxrvx/IdempotentSystems": {
+      "name": "IdempotentSystems",
+      "owner": "athxrvx",
+      "stars": 50,
+      "category": "nixos",
+      "file": "nixos/athxrvx.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ozwaldorf/flake": {
+      "name": "flake",
+      "owner": "ozwaldorf",
+      "stars": 49,
+      "category": "nixos",
+      "file": "nixos/ozwaldorf.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/tsirysndr/envhub": {
+      "name": "envhub",
+      "owner": "tsirysndr",
+      "stars": 48,
+      "category": "nixos",
+      "file": "nixos/tsirysndr.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jhvst/nix-config": {
+      "name": "nix-config",
+      "owner": "jhvst",
+      "stars": 47,
+      "category": "nixos",
+      "file": "nixos/jhvst.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/getchoo/borealis": {
+      "name": "borealis",
+      "owner": "getchoo",
+      "stars": 47,
+      "category": "nixos",
+      "file": "nixos/getchoo.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Tnixc/nix-config": {
+      "name": "nix-config",
+      "owner": "Tnixc",
+      "stars": 47,
+      "category": "nixos",
+      "file": "nixos/tnixc.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/bfpimentel/dotfiles": {
+      "name": "dotfiles",
+      "owner": "bfpimentel",
+      "stars": 44,
+      "category": "tools",
+      "file": "tools/bfpimentel.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yuanw/nix-home": {
+      "name": "nix-home",
+      "owner": "yuanw",
+      "stars": 44,
+      "category": "nixos",
+      "file": "nixos/yuanw.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/luisnquin/nixos-config": {
+      "name": "nixos-config",
+      "owner": "luisnquin",
+      "stars": 43,
+      "category": "nixos",
+      "file": "nixos/luisnquin.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/billimek/dotfiles": {
+      "name": "dotfiles",
+      "owner": "billimek",
+      "stars": 42,
+      "category": "nixos",
+      "file": "nixos/billimek.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/clo4/nix-dotfiles": {
+      "name": "nix-dotfiles",
+      "owner": "clo4",
+      "stars": 42,
+      "category": "nixos",
+      "file": "nixos/clo4.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jkachmar/dotnix": {
+      "name": "dotnix",
+      "owner": "jkachmar",
+      "stars": 39,
+      "category": "nixos",
+      "file": "nixos/jkachmar.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/chayleaf/dotfiles": {
+      "name": "dotfiles",
+      "owner": "chayleaf",
+      "stars": 38,
+      "category": "nixos",
+      "file": "nixos/chayleaf.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/msfjarvis/dotfiles": {
+      "name": "dotfiles",
+      "owner": "msfjarvis",
+      "stars": 38,
+      "category": "nixos",
+      "file": "nixos/msfjarvis.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jakeisnt/nixcfg": {
+      "name": "nixcfg",
+      "owner": "jakeisnt",
+      "stars": 38,
+      "category": "nixos",
+      "file": "nixos/jakeisnt.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ehllie/dotfiles": {
+      "name": "dotfiles",
+      "owner": "ehllie",
+      "stars": 37,
+      "category": "nixos",
+      "file": "nixos/ehllie.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Arkham/dotfiles.nix": {
+      "name": "dotfiles.nix",
+      "owner": "Arkham",
+      "stars": 37,
+      "category": "nixos",
+      "file": "nixos/arkham.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/hnbnh/dotfiles": {
+      "name": "dotfiles",
+      "owner": "hnbnh",
+      "stars": 35,
+      "category": "nixos",
+      "file": "nixos/hnbnh.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mobsenpai/hana": {
+      "name": "hana",
+      "owner": "mobsenpai",
+      "stars": 34,
+      "category": "nixos",
+      "file": "nixos/mobsenpai.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/fzakaria/nix-home": {
+      "name": "nix-home",
+      "owner": "fzakaria",
+      "stars": 34,
+      "category": "nixos",
+      "file": "nixos/fzakaria.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/midchildan/dotfiles": {
+      "name": "dotfiles",
+      "owner": "midchildan",
+      "stars": 32,
+      "category": "nixos",
+      "file": "nixos/midchildan.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/protex/home-manager.nvim": {
+      "name": "home-manager.nvim",
+      "owner": "protex",
+      "stars": 32,
+      "category": "nixos",
+      "file": "nixos/protex.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/skulldogged/nix-config": {
+      "name": "nix-config",
+      "owner": "skulldogged",
+      "stars": 32,
+      "category": "nixos",
+      "file": "nixos/skulldogged.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/bigsaltyfishes/end-4-dots": {
+      "name": "end-4-dots",
+      "owner": "bigsaltyfishes",
+      "stars": 31,
+      "category": "nixos",
+      "file": "nixos/bigsaltyfishes.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/LilleAila/dotfiles": {
+      "name": "dotfiles",
+      "owner": "LilleAila",
+      "stars": 30,
+      "category": "nixos",
+      "file": "nixos/lilleaila.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/konradmalik/dotfiles": {
+      "name": "dotfiles",
+      "owner": "konradmalik",
+      "stars": 30,
+      "category": "nixos",
+      "file": "nixos/konradmalik.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/i077/system": {
+      "name": "system",
+      "owner": "i077",
+      "stars": 30,
+      "category": "nixos",
+      "file": "nixos/i077.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Lord-Valen/configuration.nix": {
+      "name": "configuration.nix",
+      "owner": "Lord-Valen",
+      "stars": 30,
+      "category": "nixos",
+      "file": "nixos/lord-valen.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/qazer2687/dotfiles": {
+      "name": "dotfiles",
+      "owner": "qazer2687",
+      "stars": 29,
+      "category": "nixos",
+      "file": "nixos/qazer2687.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Nitestack/nix-config": {
+      "name": "nix-config",
+      "owner": "Nitestack",
+      "stars": 29,
+      "category": "nixos",
+      "file": "nixos/nitestack.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/stefanDeveloper/nixos-lenovo-config": {
+      "name": "nixos-lenovo-config",
+      "owner": "stefanDeveloper",
+      "stars": 28,
+      "category": "nixos",
+      "file": "nixos/stefandeveloper.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/misumisumi/nixos-desktop-config": {
+      "name": "nixos-desktop-config",
+      "owner": "misumisumi",
+      "stars": 28,
+      "category": "nixos",
+      "file": "nixos/misumisumi.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/princejoogie/dotfiles": {
+      "name": "dotfiles",
+      "owner": "princejoogie",
+      "stars": 28,
+      "category": "hyprland",
+      "file": "hyprland/princejoogie.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mogria/nixpkgs-config": {
+      "name": "nixpkgs-config",
+      "owner": "mogria",
+      "stars": 27,
+      "category": "nixos",
+      "file": "nixos/mogria.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Ramblurr/nixcfg": {
+      "name": "nixcfg",
+      "owner": "Ramblurr",
+      "stars": 26,
+      "category": "nixos",
+      "file": "nixos/ramblurr.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/nifoc/dotfiles": {
+      "name": "dotfiles",
+      "owner": "nifoc",
+      "stars": 26,
+      "category": "nixos",
+      "file": "nixos/nifoc.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Weathercold/nixfiles": {
+      "name": "nixfiles",
+      "owner": "Weathercold",
+      "stars": 26,
+      "category": "nixos",
+      "file": "nixos/weathercold.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Animeshz/linux-desktop": {
+      "name": "linux-desktop",
+      "owner": "Animeshz",
+      "stars": 25,
+      "category": "nixos",
+      "file": "nixos/animeshz.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/autophagy/antimber": {
+      "name": "antimber",
+      "owner": "autophagy",
+      "stars": 24,
+      "category": "nixos",
+      "file": "nixos/autophagy.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/skogsbrus/os": {
+      "name": "os",
+      "owner": "skogsbrus",
+      "stars": 24,
+      "category": "nixos",
+      "file": "nixos/skogsbrus.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/San7o/nixos-dotfiles": {
+      "name": "nixos-dotfiles",
+      "owner": "San7o",
+      "stars": 23,
+      "category": "nixos",
+      "file": "nixos/san7o.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/amarshall/dotfiles": {
+      "name": "dotfiles",
+      "owner": "amarshall",
+      "stars": 23,
+      "category": "nixos",
+      "file": "nixos/amarshall.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sulami/dotfiles": {
+      "name": "dotfiles",
+      "owner": "sulami",
+      "stars": 23,
+      "category": "nixos",
+      "file": "nixos/sulami.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/birkhofflee/dotfiles": {
+      "name": "dotfiles",
+      "owner": "birkhofflee",
+      "stars": 22,
+      "category": "nixos",
+      "file": "nixos/birkhofflee.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ipetkov/dotfiles": {
+      "name": "dotfiles",
+      "owner": "ipetkov",
+      "stars": 22,
+      "category": "nixos",
+      "file": "nixos/ipetkov.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/kachick/dotfiles": {
+      "name": "dotfiles",
+      "owner": "kachick",
+      "stars": 22,
+      "category": "nixos",
+      "file": "nixos/kachick.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/carlthome/dotfiles": {
+      "name": "dotfiles",
+      "owner": "carlthome",
+      "stars": 22,
+      "category": "nixos",
+      "file": "nixos/carlthome.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/professional-username/dotfiles": {
+      "name": "dotfiles",
+      "owner": "professional-username",
+      "stars": 21,
+      "category": "nixos",
+      "file": "nixos/professional-username.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mirkolenz/nixos": {
+      "name": "nixos",
+      "owner": "mirkolenz",
+      "stars": 21,
+      "category": "nixos",
+      "file": "nixos/mirkolenz.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sei40kr/dotfiles": {
+      "name": "dotfiles",
+      "owner": "sei40kr",
+      "stars": 21,
+      "category": "nixos",
+      "file": "nixos/sei40kr.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/amz-x/dotnix": {
+      "name": "dotnix",
+      "owner": "amz-x",
+      "stars": 20,
+      "category": "nixos",
+      "file": "nixos/amz-x.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/totoroot/dotfiles": {
+      "name": "dotfiles",
+      "owner": "totoroot",
+      "stars": 20,
+      "category": "nixos",
+      "file": "nixos/totoroot.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/abehidek/nix-config": {
+      "name": "nix-config",
+      "owner": "abehidek",
+      "stars": 20,
+      "category": "nixos",
+      "file": "nixos/abehidek.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mahmoudk1000/nix-config": {
+      "name": "nix-config",
+      "owner": "mahmoudk1000",
+      "stars": 19,
+      "category": "nixos",
+      "file": "nixos/mahmoudk1000.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ketgg/Awe": {
+      "name": "Awe",
+      "owner": "ketgg",
+      "stars": 19,
+      "category": "nixos",
+      "file": "nixos/ketgg.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/RaySlash/dotfiles": {
+      "name": "dotfiles",
+      "owner": "RaySlash",
+      "stars": 18,
+      "category": "nixos",
+      "file": "nixos/rayslash.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/danielgafni/nixos": {
+      "name": "nixos",
+      "owner": "danielgafni",
+      "stars": 18,
+      "category": "nixos",
+      "file": "nixos/danielgafni.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": [
+        8
+      ]
+    },
+    "https://github.com/akibahmed229/nixos": {
+      "name": "nixos",
+      "owner": "akibahmed229",
+      "stars": 18,
+      "category": "nixos",
+      "file": "nixos/akibahmed229.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mooofin/nix-dotfiles": {
+      "name": "nix-dotfiles",
+      "owner": "mooofin",
+      "stars": 18,
+      "category": "nixos",
+      "file": "nixos/mooofin.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/joinemm/nix-infra": {
+      "name": "nix-infra",
+      "owner": "joinemm",
+      "stars": 18,
+      "category": "nixos",
+      "file": "nixos/joinemm.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Harmos274/nixfiles": {
+      "name": "nixfiles",
+      "owner": "Harmos274",
+      "stars": 17,
+      "category": "nixos",
+      "file": "nixos/harmos274.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/axseem/dots": {
+      "name": "dots",
+      "owner": "axseem",
+      "stars": 17,
+      "category": "nixos",
+      "file": "nixos/axseem.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/WilliamHsieh/dotfiles": {
+      "name": "dotfiles",
+      "owner": "WilliamHsieh",
+      "stars": 17,
+      "category": "nixos",
+      "file": "nixos/williamhsieh.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/signalridge/dotfiles": {
+      "name": "dotfiles",
+      "owner": "signalridge",
+      "stars": 17,
+      "category": "tools",
+      "file": "tools/signalridge.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dominicegginton/dotfiles": {
+      "name": "dotfiles",
+      "owner": "dominicegginton",
+      "stars": 17,
+      "category": "nixos",
+      "file": "nixos/dominicegginton.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/chrollorifat/HyprNixos": {
+      "name": "HyprNixos",
+      "owner": "chrollorifat",
+      "stars": 16,
+      "category": "nixos",
+      "file": "nixos/chrollorifat.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ErrorNoInternet/configuration.nix.bak": {
+      "name": "configuration.nix.bak",
+      "owner": "ErrorNoInternet",
+      "stars": 16,
+      "category": "nixos",
+      "file": "nixos/errornointernet.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/juweeism/home.nix": {
+      "name": "home.nix",
+      "owner": "juweeism",
+      "stars": 15,
+      "category": "nixos",
+      "file": "nixos/juweeism.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Zaechus/nixos-config": {
+      "name": "nixos-config",
+      "owner": "Zaechus",
+      "stars": 15,
+      "category": "nixos",
+      "file": "nixos/zaechus.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/connorfeeley/dotfiles": {
+      "name": "dotfiles",
+      "owner": "connorfeeley",
+      "stars": 15,
+      "category": "nixos",
+      "file": "nixos/connorfeeley.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/gemakfy/NixOS-dotfiles": {
+      "name": "NixOS-dotfiles",
+      "owner": "gemakfy",
+      "stars": 14,
+      "category": "nixos",
+      "file": "nixos/gemakfy.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/marcusramberg/nix-config": {
+      "name": "nix-config",
+      "owner": "marcusramberg",
+      "stars": 14,
+      "category": "nixos",
+      "file": "nixos/marcusramberg.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/phucisstupid/dotfiles": {
+      "name": "dotfiles",
+      "owner": "phucisstupid",
+      "stars": 14,
+      "category": "nixos",
+      "file": "nixos/phucisstupid.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/FlameFlag/nix-dotfiles": {
+      "name": "nix-dotfiles",
+      "owner": "FlameFlag",
+      "stars": 14,
+      "category": "nixos",
+      "file": "nixos/flameflag.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/fpletz/flake": {
+      "name": "flake",
+      "owner": "fpletz",
+      "stars": 13,
+      "category": "nixos",
+      "file": "nixos/fpletz.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ranger097/ranger097_nixos_dotfiles": {
+      "name": "ranger097_nixos_dotfiles",
+      "owner": "ranger097",
+      "stars": 13,
+      "category": "nixos",
+      "file": "nixos/ranger097.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/lawrab/nixos-config": {
+      "name": "nixos-config",
+      "owner": "lawrab",
+      "stars": 13,
+      "category": "nixos",
+      "file": "nixos/lawrab.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/kenanpelit/nixosc": {
+      "name": "nixosc",
+      "owner": "kenanpelit",
+      "stars": 13,
+      "category": "nixos",
+      "file": "nixos/kenanpelit.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/TheWolfStreet/ags2-shell": {
+      "name": "ags2-shell",
+      "owner": "TheWolfStreet",
+      "stars": 13,
+      "category": "nixos",
+      "file": "nixos/thewolfstreet.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/franckrasolo/dotfiles.nix": {
+      "name": "dotfiles.nix",
+      "owner": "franckrasolo",
+      "stars": 13,
+      "category": "nixos",
+      "file": "nixos/franckrasolo.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/vinnymeller/nixos-config": {
+      "name": "nixos-config",
+      "owner": "vinnymeller",
+      "stars": 12,
+      "category": "nixos",
+      "file": "nixos/vinnymeller.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/hyperparabolic/nix-config": {
+      "name": "nix-config",
+      "owner": "hyperparabolic",
+      "stars": 12,
+      "category": "nixos",
+      "file": "nixos/hyperparabolic.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cofymdd/.dotfiles": {
+      "name": ".dotfiles",
+      "owner": "cofymdd",
+      "stars": 11,
+      "category": "nixos",
+      "file": "nixos/cofymdd.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sachnr/dotfiles": {
+      "name": "dotfiles",
+      "owner": "sachnr",
+      "stars": 11,
+      "category": "nixos",
+      "file": "nixos/sachnr.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cameronraysmith/vanixiets": {
+      "name": "vanixiets",
+      "owner": "cameronraysmith",
+      "stars": 11,
+      "category": "nixos",
+      "file": "nixos/cameronraysmith.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/thornycrackers/nix-config": {
+      "name": "nix-config",
+      "owner": "thornycrackers",
+      "stars": 11,
+      "category": "nixos",
+      "file": "nixos/thornycrackers.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/uttarayan21/dotfiles": {
+      "name": "dotfiles",
+      "owner": "uttarayan21",
+      "stars": 11,
+      "category": "nixos",
+      "file": "nixos/uttarayan21.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/justinrubek/nixos-configs": {
+      "name": "nixos-configs",
+      "owner": "justinrubek",
+      "stars": 10,
+      "category": "nixos",
+      "file": "nixos/justinrubek.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/rvveber/nixos-config": {
+      "name": "nixos-config",
+      "owner": "rvveber",
+      "stars": 10,
+      "category": "nixos",
+      "file": "nixos/rvveber.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/kewin-y/flake": {
+      "name": "flake",
+      "owner": "kewin-y",
+      "stars": 10,
+      "category": "nixos",
+      "file": "nixos/kewin-y.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/its-19818942118/Nullix": {
+      "name": "Nullix",
+      "owner": "its-19818942118",
+      "stars": 10,
+      "category": "nixos",
+      "file": "nixos/its-19818942118.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ORFLEM/My-NixOS-Hyprland-eww-configs": {
+      "name": "My-NixOS-Hyprland-eww-configs",
+      "owner": "ORFLEM",
+      "stars": 10,
+      "category": "nixos",
+      "file": "nixos/orflem.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/shunsock/dotfiles": {
+      "name": "dotfiles",
+      "owner": "shunsock",
+      "stars": 10,
+      "category": "nixos",
+      "file": "nixos/shunsock.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Nanamiiiii/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Nanamiiiii",
+      "stars": 10,
+      "category": "nixos",
+      "file": "nixos/nanamiiiii.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/michaelbrusegard/nix-config": {
+      "name": "nix-config",
+      "owner": "michaelbrusegard",
+      "stars": 10,
+      "category": "nixos",
+      "file": "nixos/michaelbrusegard.md",
+      "discovered_in_round": 5,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/syndrizzle/hotfiles": {
+      "name": "hotfiles",
+      "owner": "syndrizzle",
+      "stars": 1552,
+      "category": "themes",
+      "file": "themes/syndrizzle.md",
+      "discovered_in_round": 8,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/m4xshen/dotfiles": {
+      "name": "dotfiles",
+      "owner": "m4xshen",
+      "stars": 427,
+      "category": "themes",
+      "file": "themes/m4xshen.md",
+      "discovered_in_round": 8,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Deathemonic/Cat-Dots": {
+      "name": "Cat-Dots",
+      "owner": "Deathemonic",
+      "stars": 178,
+      "category": "themes",
+      "file": "themes/deathemonic.md",
+      "discovered_in_round": 8,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Efterklang/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Efterklang",
+      "stars": 36,
+      "category": "themes",
+      "file": "themes/efterklang.md",
+      "discovered_in_round": 8,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ImSb91/hyprland-dotfiles": {
+      "name": "hyprland-dotfiles",
+      "owner": "ImSb91",
+      "stars": 33,
+      "category": "hyprland",
+      "file": "hyprland/imsb91.md",
+      "discovered_in_round": 8,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/andrew1412/lain-catppuccin-dotfiles": {
+      "name": "lain-catppuccin-dotfiles",
+      "owner": "andrew1412",
+      "stars": 29,
+      "category": "themes",
+      "file": "themes/andrew1412.md",
+      "discovered_in_round": 8,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/VoidKeishi/dotfiles": {
+      "name": "dotfiles",
+      "owner": "VoidKeishi",
+      "stars": 19,
+      "category": "sway",
+      "file": "sway/voidkeishi.md",
+      "discovered_in_round": 8,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/DarkVanityOfLight/Dotfilesv2": {
+      "name": "Dotfilesv2",
+      "owner": "DarkVanityOfLight",
+      "stars": 11,
+      "category": "themes",
+      "file": "themes/darkvanityoflight.md",
+      "discovered_in_round": 8,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/doannc2212/quickshell-config": {
+      "name": "quickshell-config",
+      "owner": "doannc2212",
+      "stars": 10,
+      "category": "hyprland",
+      "file": "hyprland/doannc2212.md",
+      "discovered_in_round": 8,
       "also_found_in_rounds": []
     }
   }
