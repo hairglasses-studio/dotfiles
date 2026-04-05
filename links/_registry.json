@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "last_updated": "2026-04-05T14:24:48.858966Z",
-  "total_entries": 818,
+  "last_updated": "2026-04-05T14:25:30.404923Z",
+  "total_entries": 851,
   "entries": {
     "https://github.com/end-4/dots-hyprland": {
       "name": "dots-hyprland",
@@ -2324,7 +2324,8 @@
       "file": "sway/willpower3309.md",
       "discovered_in_round": 2,
       "also_found_in_rounds": [
-        9
+        9,
+        4
       ]
     },
     "https://github.com/jayywolff/dotfiles": {
@@ -2424,7 +2425,9 @@
       "category": "sway",
       "file": "sway/i4pg.md",
       "discovered_in_round": 2,
-      "also_found_in_rounds": []
+      "also_found_in_rounds": [
+        4
+      ]
     },
     "https://github.com/Optixal/dotfiles": {
       "name": "dotfiles",
@@ -7594,6 +7597,303 @@
       "category": "tools",
       "file": "tools/yunielrc.md",
       "discovered_in_round": 7,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mbadolato/iTerm2-Color-Schemes": {
+      "name": "iTerm2-Color-Schemes",
+      "owner": "mbadolato",
+      "stars": 26709,
+      "category": "terminals",
+      "file": "terminals/mbadolato.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/kepano/flexoki": {
+      "name": "flexoki",
+      "owner": "kepano",
+      "stars": 3179,
+      "category": "terminals",
+      "file": "terminals/kepano.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/WillPower3309/awesome-dotfiles": {
+      "name": "awesome-dotfiles",
+      "owner": "WillPower3309",
+      "stars": 1317,
+      "category": "terminals",
+      "file": "terminals/willpower3309-awesome-dotfiles.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/0xhckr/ghostty-shaders": {
+      "name": "ghostty-shaders",
+      "owner": "0xhckr",
+      "stars": 1224,
+      "category": "shaders",
+      "file": "shaders/0xhckr.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sahaj-b/ghostty-cursor-shaders": {
+      "name": "ghostty-cursor-shaders",
+      "owner": "sahaj-b",
+      "stars": 665,
+      "category": "shaders",
+      "file": "shaders/sahaj-b.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/catppuccin/ghostty": {
+      "name": "ghostty",
+      "owner": "catppuccin",
+      "stars": 458,
+      "category": "terminals",
+      "file": "terminals/catppuccin-ghostty.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/KroneCorylus/ghostty-shader-playground": {
+      "name": "ghostty-shader-playground",
+      "owner": "KroneCorylus",
+      "stars": 349,
+      "category": "shaders",
+      "file": "shaders/kronecorylus.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/fearlessgeekmedia/Awesome-Ghostty": {
+      "name": "Awesome-Ghostty",
+      "owner": "fearlessgeekmedia",
+      "stars": 254,
+      "category": "shaders",
+      "file": "shaders/fearlessgeekmedia.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/4ban/awesome-ban": {
+      "name": "awesome-ban",
+      "owner": "4ban",
+      "stars": 164,
+      "category": "terminals",
+      "file": "terminals/4ban.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/itaysharir/Dotfiles": {
+      "name": "Dotfiles",
+      "owner": "itaysharir",
+      "stars": 125,
+      "category": "terminals",
+      "file": "terminals/itaysharir.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/RGBCube/ThemeNix": {
+      "name": "ThemeNix",
+      "owner": "RGBCube",
+      "stars": 111,
+      "category": "nixos",
+      "file": "nixos/rgbcube.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/magimetal/synthwave-themes": {
+      "name": "synthwave-themes",
+      "owner": "magimetal",
+      "stars": 101,
+      "category": "themes",
+      "file": "themes/magimetal.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jpwol/thorn.nvim": {
+      "name": "thorn.nvim",
+      "owner": "jpwol",
+      "stars": 75,
+      "category": "terminals",
+      "file": "terminals/jpwol.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Arakiss/ghostty-warp": {
+      "name": "ghostty-warp",
+      "owner": "Arakiss",
+      "stars": 73,
+      "category": "terminals",
+      "file": "terminals/arakiss.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/luiscarlospando/crt-shader-with-chromatic-aberration-glow-scanlines-dot-matrix": {
+      "name": "crt-shader-with-chromatic-aberration-glow-scanlines-dot-matrix",
+      "owner": "luiscarlospando",
+      "stars": 63,
+      "category": "shaders",
+      "file": "shaders/luiscarlospando.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/0x96f-org/0x96f-term-theme": {
+      "name": "0x96f-term-theme",
+      "owner": "0x96f-org",
+      "stars": 54,
+      "category": "themes",
+      "file": "themes/0x96f-org.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/anhsirk0/ghostty-themes": {
+      "name": "ghostty-themes",
+      "owner": "anhsirk0",
+      "stars": 52,
+      "category": "themes",
+      "file": "themes/anhsirk0-ghostty-themes.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Crackerfracks/Synesthaxia.glsl": {
+      "name": "Synesthaxia.glsl",
+      "owner": "Crackerfracks",
+      "stars": 35,
+      "category": "shaders",
+      "file": "shaders/crackerfracks.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mynameisgump/ghostty-balatro-theme": {
+      "name": "ghostty-balatro-theme",
+      "owner": "mynameisgump",
+      "stars": 33,
+      "category": "themes",
+      "file": "themes/mynameisgump.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jasonlong/ghostty-theme-icons": {
+      "name": "ghostty-theme-icons",
+      "owner": "jasonlong",
+      "stars": 27,
+      "category": "themes",
+      "file": "themes/jasonlong.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Kirlovon/monokai-ghostty": {
+      "name": "monokai-ghostty",
+      "owner": "Kirlovon",
+      "stars": 22,
+      "category": "terminals",
+      "file": "terminals/kirlovon.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/matthewod11-stack/ghostty-ai-themes": {
+      "name": "ghostty-ai-themes",
+      "owner": "matthewod11-stack",
+      "stars": 20,
+      "category": "themes",
+      "file": "themes/matthewod11-stack.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/e-ink-colorscheme/e-ink.ghostty": {
+      "name": "e-ink.ghostty",
+      "owner": "e-ink-colorscheme",
+      "stars": 18,
+      "category": "terminals",
+      "file": "terminals/e-ink-colorscheme.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/gezibash/ghostty-ambient": {
+      "name": "ghostty-ambient",
+      "owner": "gezibash",
+      "stars": 18,
+      "category": "terminals",
+      "file": "terminals/gezibash.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/LucidMach/poimandres-ghostty": {
+      "name": "poimandres-ghostty",
+      "owner": "LucidMach",
+      "stars": 17,
+      "category": "terminals",
+      "file": "terminals/lucidmach.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/landerson02/ghostty-theme-sync.nvim": {
+      "name": "ghostty-theme-sync.nvim",
+      "owner": "landerson02",
+      "stars": 17,
+      "category": "themes",
+      "file": "themes/landerson02.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/vlanx/gruvbox-material-ghostty": {
+      "name": "gruvbox-material-ghostty",
+      "owner": "vlanx",
+      "stars": 17,
+      "category": "themes",
+      "file": "themes/vlanx.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/morvoso/ghostty-blackwall": {
+      "name": "ghostty-blackwall",
+      "owner": "morvoso",
+      "stars": 17,
+      "category": "shaders",
+      "file": "shaders/morvoso.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/thijskok/ghostty-shaders": {
+      "name": "ghostty-shaders",
+      "owner": "thijskok",
+      "stars": 16,
+      "category": "shaders",
+      "file": "shaders/thijskok.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dacrab/ghostty-config": {
+      "name": "ghostty-config",
+      "owner": "dacrab",
+      "stars": 15,
+      "category": "terminals",
+      "file": "terminals/dacrab.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/EastSun5566/ghostty-noctis-themes": {
+      "name": "ghostty-noctis-themes",
+      "owner": "EastSun5566",
+      "stars": 12,
+      "category": "themes",
+      "file": "themes/eastsun5566.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jrswab/ghostty-everforest": {
+      "name": "ghostty-everforest",
+      "owner": "jrswab",
+      "stars": 12,
+      "category": "terminals",
+      "file": "terminals/jrswab.md",
+      "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/electron-highlighter/ghostty": {
+      "name": "ghostty",
+      "owner": "electron-highlighter",
+      "stars": 10,
+      "category": "terminals",
+      "file": "terminals/electron-highlighter.md",
+      "discovered_in_round": 4,
       "also_found_in_rounds": []
     }
   }
