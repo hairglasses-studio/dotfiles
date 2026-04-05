@@ -1,0 +1,80 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: scripts
+          additional_files: >-
+            ghostty/shaders/bin/shader-cycle.sh
+            ghostty/shaders/bin/shader-random.sh
+            ghostty/shaders/bin/shader-test.sh
+            ghostty/shaders/bin/shader-benchmark.sh
+            ghostty/shaders/bin/shader-build.sh
+            ghostty/shaders/bin/shader-meta.sh
+            install.sh
+          severity: warning
+
+  glsl:
+    name: GLSL Shaders
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install glslangValidator
+        run: sudo apt-get update && sudo apt-get install -y glslang-tools
+      - name: Validate all shaders
+        run: |
+          errors=0
+          for f in ghostty/shaders/*.glsl; do
+            if ! glslangValidator -S frag "$f" > /dev/null 2>&1; then
+              echo "FAIL: $f"
+              glslangValidator -S frag "$f"
+              errors=$((errors + 1))
+            fi
+          done
+          echo "$(($(ls ghostty/shaders/*.glsl | wc -l) - errors)) / $(ls ghostty/shaders/*.glsl | wc -l) shaders passed"
+          exit $errors
+
+  configs:
+    name: Config Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JSON files
+        run: |
+          for f in clipse/*.json ghosttyfetch/config.json; do
+            if [ -f "$f" ]; then
+              python3 -m json.tool "$f" > /dev/null || { echo "FAIL: $f"; exit 1; }
+              echo "OK: $f"
+            fi
+          done
+      - name: Validate TOML files
+        run: |
+          pip install toml
+          python3 -c "
+          import toml, sys, glob
+          files = glob.glob('**/*.toml', recursive=True)
+          errors = 0
+          for f in files:
+              try:
+                  toml.load(f)
+                  print(f'OK: {f}')
+              except Exception as e:
+                  print(f'FAIL: {f}: {e}')
+                  errors += 1
+          sys.exit(errors)
+          "
