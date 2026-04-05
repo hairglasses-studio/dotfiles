@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # dropdown-terminal.sh — Yakuake-style toggle for ralphglasses + claude code
 # Works on both Sway and Hyprland
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/compositor.sh"

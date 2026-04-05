@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # ── shader-build — inline shared GLSL libraries into shaders ──
 # Ghostty has no #include support, so each .glsl must be self-contained.
 # This script inlines lib/ files referenced by `// #include "lib/X.glsl"`
