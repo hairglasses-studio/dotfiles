@@ -219,7 +219,7 @@ _cached_eval fzf fzf --zsh
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='
   --color=bg+:#1a1a1a,bg:#000000,spinner:#ff6ac1,hl:#57c7ff
-  --color=fg:#d4d4d4,header:#57c7ff,info:#f3f99d,pointer:#ff6ac1
+  --color=fg:#f1f1f0,header:#57c7ff,info:#f3f99d,pointer:#ff6ac1
   --color=marker:#5af78e,fg+:#f1f1f0,prompt:#ff6ac1,hl+:#57c7ff
   --height=40% --layout=reverse --border=rounded --margin=0,1
   --preview "bat --color=always --style=numbers {} 2>/dev/null || cat {}"

@@ -2,7 +2,7 @@
 
 # Main bg and fg
 theme[main_bg]="#000000"
-theme[main_fg]="#d4d4d4"
+theme[main_fg]="#f1f1f0"
 
 # Title color
 theme[title]="#f1f1f0"
@@ -27,7 +27,7 @@ theme[net_box]="#ff6ac1"
 theme[proc_box]="#f3f99d"
 
 # Graph colors (gradient)
-theme[graph_text]="#d4d4d4"
+theme[graph_text]="#f1f1f0"
 
 # CPU
 theme[cpu_start]="#57c7ff"
