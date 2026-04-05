@@ -214,8 +214,7 @@ _cached_eval zoxide zoxide init zsh
 # ── Atuin (shell history) ─────────────────────
 command -v atuin &>/dev/null && _cached_eval atuin atuin init zsh
 
-# ── direnv (per-directory env vars) ────────────
-export DIRENV_LOG_FORMAT=          # silence direnv loading messages
+# ── direnv (per-directory env vars, silenced) ──
 command -v direnv &>/dev/null && _cached_eval direnv direnv hook zsh
 
 # ── fzf (fuzzy finder) ─────────────────────────
