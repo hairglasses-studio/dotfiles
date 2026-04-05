@@ -1,0 +1,69 @@
+# Browsers, photo/video, media servers, email, documents
+[arch]
+packages = [
+    # Photography
+    { name = "darktable" },
+    { name = "digikam" },
+    { name = "rapid-photo-downloader" },
+    { name = "imv" },
+
+    # Video
+    { name = "ffmpeg" },
+    { name = "vlc" },
+    { name = "celluloid" },
+    { name = "yt-dlp" },
+
+    # Audio
+    { name = "cava" },
+
+    # Media server
+    { name = "jellyfin-server" },
+    { name = "jellyfin-web" },
+    { name = "stash-bin" },
+
+    # Cloud storage
+    { name = "megacmd-bin" },
+    { name = "megasync-bin" },
+
+    # Document viewers
+    { name = "zathura" },
+    { name = "zathura-pdf-poppler" },
+    { name = "glow" },
+
+    # Browsers
+    { name = "firefox" },
+    { name = "google-chrome" },
+    { name = "opera" },
+    { name = "chrome-remote-desktop-existing-session" },
+
+    # Email/PIM
+    { name = "aerc" },
+    { name = "himalaya" },
+    { name = "hledger" },
+    { name = "hledger-ui-bin" },
+
+    # GStreamer
+    { name = "gst-libav" },
+    { name = "gst-plugins-bad" },
+    { name = "gst-plugins-good" },
+    { name = "gst-plugins-ugly" },
+
+    # GVFS
+    { name = "gvfs" },
+    { name = "gvfs-mtp" },
+
+    # OCR
+    { name = "tesseract" },
+    { name = "tesseract-data-eng" },
+
+    # Communication
+    { name = "telegram-desktop" },
+
+    # Android
+    { name = "android-tools" },
+    { name = "android-udev" },
+    { name = "scrcpy" },
+    { name = "python-pyamlboot-git" },
+    { name = "aml-flash-tool" },
+    { name = "ampack-git" },
+]

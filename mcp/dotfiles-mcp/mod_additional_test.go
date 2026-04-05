@@ -602,7 +602,7 @@ func TestLearnModule_Registration(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// Screen module — record status (can test without grim/wf-recorder)
+// Screen module — record status (can test without wayshot/wf-recorder)
 // ---------------------------------------------------------------------------
 
 func TestScreenRecordStatus_NoActiveRecording(t *testing.T) {
