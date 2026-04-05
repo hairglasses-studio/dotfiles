@@ -51,11 +51,13 @@
 | `Super+Shift+Space` | Toggle float |
 | `Super+Space` | Cycle focus |
 | `Super+A` | Focus urgent/last |
-| `Super+\\` | Toggle split direction |
+| `Super+\\` | Cycle orientation |
+| `Super+T` | Swap with master |
 | `Super+-` | Swap with next |
-| `Super+Shift+-` | Pseudo-tile toggle |
-| `Super+]` | Increase split ratio |
-| `Super+[` | Decrease split ratio |
+| `Super+]` | Increase master ratio |
+| `Super+[` | Decrease master ratio |
+| `Super+Shift+]` | Add master |
+| `Super+Shift+[` | Remove master |
 | `Super+,` | Swap prev |
 | `Super+.` | Swap next |
 
@@ -112,7 +114,7 @@
 
 | Key | Action |
 |-----|--------|
-| `Super+S` | Screenshot full |
+| `Super+Shift+Print` | Screenshot full |
 | `Super+Shift+S` | Screenshot region |
 | `Super+Ctrl+S` | Screenshot crop |
 
@@ -121,7 +123,7 @@
 | Key | Action |
 |-----|--------|
 | `Super+V` | Clipboard history |
-| `Super+Shift+C` | Color picker |
+| `Super+C` | Color picker |
 
 ## 󰎆 Media
 
@@ -146,11 +148,29 @@
 
 | Key | Action |
 |-----|--------|
-| `Super+Shift+N` | Shader next (Shift+N) |
 | `Super+Shift+P` | Shader prev |
 | `Super+G` | Shader next (G) |
 | `Super+Shift+G` | Shader random |
 | `Super+Ctrl+G` | Reload Ghostty |
+| `Super+Alt+F` | Font next |
+| `Super+Shift+Alt+F` | Font prev |
+
+##  Tools
+
+| Key | Action |
+|-----|--------|
+| `Super+C` | Color picker |
+| `Super+Print` | Screenshot annotate |
+| `Super+Shift+Print` | Screenshot full |
+| `Super+Ctrl+D` | Toggle screen shader |
+| `Super+E` | Emoji picker |
+
+##  Notification center
+
+| Key | Action |
+|-----|--------|
+| `Super+N` | Toggle notification center |
+| `Super+Shift+N` | Dismiss all notifications |
 
 ## 󰚩 Claude Code
 
