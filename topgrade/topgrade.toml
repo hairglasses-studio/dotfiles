@@ -1,0 +1,13 @@
+# topgrade.toml — unified system updater
+# https://github.com/topgrade-rs/topgrade
+
+[misc]
+assume_yes = true
+cleanup = true
+no_retry = true
+
+[commands]
+"metapac sync" = "metapac sync --no-confirm"
+
+[linux]
+arch_package_manager = "paru"
