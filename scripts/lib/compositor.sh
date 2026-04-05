@@ -80,10 +80,10 @@ compositor_subscribe() {
   esac
 }
 
-# Reload the active compositor config
+# Reload the active compositor config (propagates exit code)
 compositor_reload() {
   case "$(compositor_type)" in
-    hyprland) hyprctl reload 2>/dev/null ;;
+    hyprland) hyprctl reload ;;
   esac
 }
 
