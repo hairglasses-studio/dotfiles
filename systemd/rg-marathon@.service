@@ -3,6 +3,7 @@ Description=Ralphglasses Marathon for %i
 After=default.target
 StartLimitIntervalSec=600
 StartLimitBurst=5
+OnFailure=notify-failure@%n.service
 
 [Service]
 Type=simple

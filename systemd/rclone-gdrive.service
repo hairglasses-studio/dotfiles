@@ -2,6 +2,7 @@
 Description=Mount Google Drive with rclone
 After=network-online.target
 Wants=network-online.target
+OnFailure=notify-failure@%n.service
 
 [Service]
 Type=notify
