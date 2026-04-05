@@ -132,7 +132,7 @@ FRONTMATTER
 
   # Append to JSONL index with proper JSON escaping and file locking
   local json_line
-  json_line=$(jq -n \
+  json_line=$(jq -nc \
     --arg hash "$hash" \
     --arg short_hash "$short_hash" \
     --arg repo "$repo" \
