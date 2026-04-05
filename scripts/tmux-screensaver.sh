@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # tmux-screensaver.sh — random screensaver for tmux lock-command
+set -euo pipefail
 
 cmds=()
 command -v cmatrix    &>/dev/null && cmds+=("cmatrix -ab -C cyan")

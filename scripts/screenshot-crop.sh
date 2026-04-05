@@ -2,6 +2,7 @@
 # screenshot-crop.sh — Crop-select screenshot, save locally, copy path to clipboard
 # Usage: Bind to a keybind (e.g., Super+Shift+Print)
 # Saves to ~/Pictures/screenshots/ and copies filepath to clipboard for sharing
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/compositor.sh" 2>/dev/null
