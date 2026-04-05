@@ -68,4 +68,5 @@ code=$(echo "$weather" | jq -r '.current_condition[0].weatherCode // empty' 2>/d
 desc=$(echo "$weather" | jq -r '.current_condition[0].weatherDesc[0].value // empty' 2>/dev/null) || exit 0
 
 icon="${ICONS[$code]:-}"
-echo "${icon} ${temp}°"
+# desc is available for tooltip/expanded widget use
+echo "${icon} ${temp}° ${desc}"
