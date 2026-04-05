@@ -343,6 +343,8 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
         link_file "$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf" "$HOME/.config/fontconfig/conf.d/51-monospace.conf"
         link_file "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
+        link_file "$DOTFILES_DIR/paru/paru.conf" "$HOME/.config/paru/paru.conf"
+        link_file "$DOTFILES_DIR/topgrade/topgrade.toml" "$HOME/.config/topgrade.toml"
     fi
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
