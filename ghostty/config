@@ -5,7 +5,7 @@
 # quick-terminal-animation-duration = 0.12
 
 # ── Font ────────────────────────────────────────
-font-family = MonaspiceNe Nerd Font Mono
+font-family = CaskaydiaMono Nerd Font Mono
 font-family-bold = MonaspiceXe Nerd Font Mono
 font-family-italic = MonaspiceAr Nerd Font Mono
 font-family-bold-italic = MonaspiceKr Nerd Font Mono
@@ -13,7 +13,7 @@ font-style = Regular
 font-style-bold = Bold
 font-style-italic = Italic
 font-style-bold-italic = Bold Italic
-font-size = 12
+font-size = 8
 font-feature = calt
 font-feature = liga
 font-feature = ss01
@@ -66,7 +66,7 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/cyber-grid.glsl
+custom-shader = shaders/cyberpunk-hud.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────

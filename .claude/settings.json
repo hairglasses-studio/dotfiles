@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash $HOME/hairglasses-studio/dotfiles/scripts/lib/agent-post-tool-reload.sh"
+            "command": "bash $HOME/hairglasses-studio/dotfiles/scripts/lib/agent-post-tool-audit.sh"
           }
         ]
       }

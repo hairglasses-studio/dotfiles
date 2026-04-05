@@ -21,7 +21,8 @@ sleep 5
     # 1. Config errors (filter out empty arrays like [""])
     echo "=== CONFIG ERRORS ==="
     CONFIG_ERRORS=$(hyprctl -j configerrors 2>&1 || echo "hyprctl not available")
-    if [[ "$CONFIG_ERRORS" =~ ^\[\ *\"\"\ *\]$ ]] || [[ "$CONFIG_ERRORS" == "[]" ]]; then
+    CONFIG_STRIPPED=$(echo "$CONFIG_ERRORS" | tr -d '[:space:]')
+    if [[ "$CONFIG_STRIPPED" == '[""]' ]] || [[ "$CONFIG_STRIPPED" == "[]" ]]; then
         echo "No config errors"
     else
         echo "$CONFIG_ERRORS"
