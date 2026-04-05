@@ -1,3 +1,5 @@
+typeset -U path fpath
+
 # ── Dotfiles scripts in PATH ───────────────────
 export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}"
 [[ -d "$DOTFILES_DIR/scripts" ]] && export PATH="$DOTFILES_DIR/scripts:$PATH"
