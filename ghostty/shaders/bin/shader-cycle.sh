@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-# shader-cycle — cycle through a curated shader list + Tattoy mode
-# Bound to a global keybind (via AeroSpace). Each press advances one step.
-# Ghostty auto-reloads config via FSEvents; Tattoy watches its config file.
-#
-# Cycle entries:
-#   *.glsl  → set as Ghostty custom-shader, disable Tattoy shader layer
-#   tattoy  → clear Ghostty shader, enable Tattoy shader+cursor layers
+# shader-cycle — cycle through a curated shader list
+# Bound to a global keybind (via Hyprland). Each press advances one step.
+# Ghostty auto-reloads config via inotify.
 #
 # Usage:
 #   shader-cycle           # advance to next
@@ -22,27 +18,12 @@ CYCLE_FILE="$STATE_DIR/cycle-index"
 BAR_STATE_DIR="$HOME/.local/state/shader-cycle"
 BAR_STATE_FILE="$BAR_STATE_DIR/current"
 GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
-if [[ "$(uname)" == "Darwin" ]]; then
-    TATTOY_CONFIG="$HOME/Library/Application Support/tattoy/tattoy.toml"
-else
-    TATTOY_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
-fi
 
 # ── Cycle list ──────────────────────────────────
 # Edit this array to change the cycle order.
-# "tattoy" is a special entry that activates Tattoy's shader layers.
+# Will be repopulated after shader research (Phase 3).
 CYCLE=(
-  bloom-soft.glsl
-  crt-chromatic.glsl
-  starfield-colors.glsl
-  underwater.glsl
-  halftone.glsl
-  old-film.glsl
-  auroras.glsl
-  creation.glsl
-  cyberpunk.glsl
-  vaporwave.glsl
-  tattoy
+  # placeholder — new shaders will be added here
 )
 
 CYCLE_LEN=${#CYCLE[@]}
@@ -51,6 +32,7 @@ mkdir -p "$STATE_DIR" "$BAR_STATE_DIR" 2>/dev/null
 
 # ── Pre-flight checks ─────────────────────────
 [[ -f "$GHOSTTY_CONFIG" ]] || { echo "error: ghostty config not found: $GHOSTTY_CONFIG" >&2; exit 1; }
+(( CYCLE_LEN > 0 )) || { echo "error: cycle list is empty" >&2; exit 1; }
 
 # ── Read current index ──────────────────────────
 idx=0
@@ -103,40 +85,8 @@ apply_ghostty_shader() {
   mv -f "$tmp" "$GHOSTTY_CONFIG"
 }
 
-# ── Apply: disable Ghostty shader ───────────────
-clear_ghostty_shader() {
-  local tmp
-  tmp="$(mktemp "${GHOSTTY_CONFIG}.XXXXXX")"
-  sed -e "s|^#* *custom-shader = .*|# custom-shader = none|" \
-      -e "s|^custom-shader-animation = .*|custom-shader-animation = false|" \
-      "$GHOSTTY_CONFIG" > "$tmp"
-  mv -f "$tmp" "$GHOSTTY_CONFIG"
-}
-
-# ── Apply: toggle Tattoy shader layer ───────────
-set_tattoy_shader() {
-  local enabled="$1"  # true or false
-  [[ -f "$TATTOY_CONFIG" ]] || return 0
-
-  local tmp
-  tmp="$(mktemp "${TATTOY_CONFIG}.XXXXXX")"
-  sed -e "/^\[shader\]/,/^\[/ s|^enabled = .*|enabled = $enabled|" \
-      -e "/^\[animated_cursor\]/,/^\[/ s|^enabled = .*|enabled = $enabled|" \
-      "$TATTOY_CONFIG" > "$tmp"
-  mv -f "$tmp" "$TATTOY_CONFIG"
-}
-
 # ── Dispatch ────────────────────────────────────
-if [[ "$entry" == "tattoo" || "$entry" == "tattoy" ]]; then
-  clear_ghostty_shader
-  set_tattoy_shader "true"
-  printf '%s' "tattoy" > "$BAR_STATE_FILE"
-  echo "→ tattoy (shader + cursor layers)"
-  hg_notify_low "Shader" "→ tattoy"
-else
-  apply_ghostty_shader "$entry"
-  set_tattoy_shader "false"
-  printf '%s' "$SHADERS_DIR/$entry" > "$BAR_STATE_FILE"
-  echo "→ $entry"
-  hg_notify_low "Shader" "→ ${entry%.glsl}"
-fi
+apply_ghostty_shader "$entry"
+printf '%s' "$SHADERS_DIR/$entry" > "$BAR_STATE_FILE"
+echo "→ $entry"
+hg_notify_low "Shader" "→ ${entry%.glsl}"
