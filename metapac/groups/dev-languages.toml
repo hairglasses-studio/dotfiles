@@ -1,0 +1,34 @@
+# Language runtimes and toolchains
+[arch]
+packages = [
+    # Go
+    { name = "go" },
+    { name = "golangci-lint" },
+    { name = "goreleaser" },
+    { name = "grpcurl-bin" },
+
+    # Rust
+    { name = "rustup" },
+
+    # Zig
+    { name = "zig" },
+
+    # Node.js
+    { name = "nodejs-lts-jod" },
+    { name = "npm" },
+    { name = "nvm" },
+
+    # Java
+    { name = "jdk17-openjdk" },
+    { name = "jdk21-openjdk" },
+
+    # Python
+    { name = "python-pip" },
+    { name = "python-pipx" },
+    { name = "pyenv" },
+    { name = "python-pyqt5" },
+
+    # Database
+    { name = "postgresql" },
+    { name = "pgvector" },
+]

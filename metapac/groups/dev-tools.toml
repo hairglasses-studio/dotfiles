@@ -1,0 +1,68 @@
+# Editors, git, build tools, core dev utilities
+[arch]
+packages = [
+    # Editors
+    { name = "neovim" },
+    { name = "helix" },
+    { name = "micro" },
+    { name = "nano" },
+    { name = "nano-syntax-highlighting" },
+    { name = "ex-vi-compat" },
+
+    # Git
+    { name = "git-delta" },
+    { name = "git-lfs" },
+    { name = "github-cli" },
+    { name = "lazygit" },
+
+    # Build
+    { name = "shellcheck" },
+    { name = "stow" },
+    { name = "unarchiver" },
+
+    # CLI essentials
+    { name = "bat" },
+    { name = "eza" },
+    { name = "fd" },
+    { name = "ripgrep" },
+    { name = "fzf" },
+    { name = "jq" },
+    { name = "yq" },
+    { name = "the_silver_searcher" },
+    { name = "direnv" },
+    { name = "duf" },
+    { name = "dust" },
+    { name = "ncdu" },
+    { name = "procs" },
+    { name = "bandwhich" },
+    { name = "trippy" },
+    { name = "difftastic" },
+    { name = "lsd" },
+    { name = "tldr" },
+    { name = "httpie" },
+    { name = "7zip" },
+    { name = "zip" },
+    { name = "unrar" },
+
+    # Testing
+    { name = "bats" },
+    { name = "bats-assert" },
+    { name = "bats-support" },
+
+    # File managers
+    { name = "yazi" },
+    { name = "ffmpegthumbnailer" },
+    { name = "poppler" },
+    { name = "gnome-epub-thumbnailer" },
+    { name = "tumbler" },
+    { name = "thunar" },
+    { name = "thunar-volman" },
+    { name = "pcmanfm-qt" },
+    { name = "file-roller" },
+    { name = "chafa" },
+    { name = "timg" },
+
+    # System monitoring
+    { name = "btop" },
+    { name = "nvtop" },
+]

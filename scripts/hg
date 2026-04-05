@@ -65,7 +65,7 @@ hg_doctor() {
   done
 
   printf "\n %sTOOLS%s\n" "$HG_BOLD" "$HG_RESET"
-  local -a _tools=(fzf jq grim slurp wl-copy notify-send swww chafa tplay timg mpv yt-dlp ascii-image-converter)
+  local -a _tools=(fzf jq wayshot slurp wl-copy notify-send swww chafa tplay timg mpv yt-dlp ascii-image-converter)
   for _t in "${_tools[@]}"; do
     if command -v "$_t" &>/dev/null; then
       printf "  %s%-24s%s %sfound%s\n" "$HG_CYAN" "$_t" "$HG_RESET" "$HG_GREEN" "$HG_RESET"

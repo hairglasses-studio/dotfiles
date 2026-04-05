@@ -27,21 +27,21 @@ _screenshot_save_notify() {
 }
 
 _screenshot_full() {
-  hg_require grim wl-copy
+  hg_require wayshot wl-copy
   mkdir -p "$_SS_DIR"
   local monitor="${1:-}" filename filepath
   filename="$(date +%Y%m%d_%H%M%S).png"
   filepath="$_SS_DIR/$filename"
   if [[ -n "$monitor" ]]; then
-    grim -o "$monitor" "$filepath" || hg_die "grim failed"
+    wayshot -o "$monitor" -f "$filepath" || hg_die "wayshot failed"
   else
-    grim "$filepath" || hg_die "grim failed"
+    wayshot -f "$filepath" || hg_die "wayshot failed"
   fi
   _screenshot_save_notify "$filepath"
 }
 
 _screenshot_window() {
-  hg_require grim jq wl-copy
+  hg_require wayshot jq wl-copy
   source "$HG_DOTFILES/scripts/lib/compositor.sh"
   mkdir -p "$_SS_DIR"
   local filename filepath json region
@@ -63,7 +63,7 @@ _screenshot_window() {
     hg_die "Window screenshot not supported on $(compositor_type)"
   fi
 
-  grim -g "$region" "$filepath" || hg_die "grim failed"
+  wayshot -s "$region" -f "$filepath" || hg_die "wayshot failed"
   _screenshot_save_notify "$filepath"
 }
 

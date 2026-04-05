@@ -1,0 +1,29 @@
+# Fonts
+[arch]
+packages = [
+    # Noto (international)
+    { name = "noto-fonts" },
+    { name = "noto-fonts-cjk" },
+    { name = "noto-fonts-emoji" },
+
+    # CJK fallback
+    { name = "wqy-microhei" },
+
+    # Nerd Fonts
+    { name = "ttf-jetbrains-mono-nerd" },
+    { name = "ttf-cascadia-mono-nerd" },
+    { name = "ttf-ibmplex-mono-nerd" },
+    { name = "ttf-hack-nerd" },
+    { name = "ttf-iosevka-nerd" },
+    { name = "ttf-sourcecodepro-nerd" },
+    { name = "ttf-terminus-nerd" },
+    { name = "ttf-victor-mono-nerd" },
+    { name = "otf-commit-mono-nerd" },
+    { name = "otf-geist-mono-nerd" },
+    { name = "otf-monaspace" },
+    { name = "otf-monaspace-nerd" },
+    { name = "maplemono-nf-cn" },
+
+    # Code fonts
+    { name = "ttf-fira-code" },
+]

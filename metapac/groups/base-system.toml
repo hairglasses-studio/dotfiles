@@ -1,0 +1,114 @@
+# Kernel, drivers, firmware, boot, filesystem, Manjaro base
+[arch]
+packages = [
+    # Kernel & firmware
+    { name = "base" },
+    { name = "base-devel" },
+    { name = "linux61" },
+    { name = "linux612" },
+    { name = "linux-firmware-meta" },
+    { name = "amd-ucode" },
+    { name = "intel-ucode" },
+    { name = "sof-firmware" },
+
+    # NVIDIA
+    { name = "linux61-nvidia-open" },
+    { name = "linux612-nvidia-open" },
+    { name = "nvidia-utils" },
+    { name = "nvidia-prime" },
+    { name = "nvidia-settings" },
+    { name = "lib32-nvidia-utils" },
+    { name = "opencl-nvidia" },
+    { name = "cuda" },
+    { name = "cudnn" },
+
+    # Vulkan
+    { name = "vulkan-intel" },
+    { name = "vulkan-nouveau" },
+    { name = "vulkan-radeon" },
+    { name = "lib32-vulkan-intel" },
+    { name = "lib32-vulkan-nouveau" },
+    { name = "lib32-vulkan-radeon" },
+    { name = "vulkan-tools" },
+    { name = "libva-utils" },
+
+    # Video drivers
+    { name = "xf86-video-amdgpu" },
+    { name = "xf86-video-ati" },
+    { name = "xf86-video-intel" },
+    { name = "xf86-video-nouveau" },
+
+    # Boot
+    { name = "grub" },
+    { name = "install-grub" },
+    { name = "update-grub" },
+    { name = "grub-btrfs" },
+    { name = "refind" },
+    { name = "sbctl" },
+    { name = "efibootmgr" },
+    { name = "plymouth" },
+    { name = "proxzima-plymouth-git" },
+    { name = "sematrix-plymouth-theme" },
+    { name = "memtest86+" },
+    { name = "memtest86+-efi" },
+
+    # Filesystems
+    { name = "btrfs-progs" },
+    { name = "e2fsprogs" },
+    { name = "exfatprogs" },
+    { name = "f2fs-tools" },
+    { name = "dosfstools" },
+    { name = "ntfs-3g" },
+    { name = "xfsprogs" },
+    { name = "jfsutils" },
+    { name = "lvm2" },
+    { name = "device-mapper" },
+    { name = "dmraid" },
+    { name = "mdadm" },
+    { name = "cryptsetup" },
+    { name = "ecryptfs-utils" },
+    { name = "snap-pac" },
+    { name = "snapper" },
+    { name = "zram-generator" },
+
+    # Manjaro
+    { name = "manjaro-release" },
+    { name = "manjaro-system" },
+    { name = "manjaro-settings-manager" },
+    { name = "manjaro-settings-manager-notifier" },
+    { name = "manjaro-browser-settings" },
+    { name = "manjaro-aur-support" },
+    { name = "manjaro-pipewire" },
+    { name = "manjaro-zsh-config" },
+    { name = "mhwd" },
+    { name = "mhwd-db" },
+    { name = "timeshift-autosnap-manjaro" },
+
+    # Core system utilities
+    { name = "sudo" },
+    { name = "less" },
+    { name = "which" },
+    { name = "diffutils" },
+    { name = "perl" },
+    { name = "texinfo" },
+    { name = "cpio" },
+    { name = "man-db" },
+    { name = "man-pages" },
+    { name = "glibc-locales" },
+    { name = "mkinitcpio-openswap" },
+    { name = "os-prober" },
+
+    # Power/hardware
+    { name = "acpi" },
+    { name = "acpid" },
+    { name = "cpupower" },
+    { name = "sysfsutils" },
+    { name = "dmidecode" },
+    { name = "usbutils" },
+    { name = "ethtool" },
+    { name = "evtest" },
+
+    # Kernel modules (AUR)
+    { name = "nct6687d-dkms-git" },
+    { name = "zenpower5-dkms-git" },
+]

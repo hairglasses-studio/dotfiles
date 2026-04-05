@@ -115,7 +115,7 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 		{
 			Tool: mcp.Tool{
 				Name:        "screen_screenshot",
-				Description: "Take a screenshot of the current screen or a region. Uses grim (Wayland). Returns the image inline and the saved file path.",
+				Description: "Take a screenshot of the current screen or a region. Uses wayshot (Wayland). Returns the image inline and the saved file path.",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]any{
@@ -131,7 +131,7 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				},
 			},
 			Handler: func(_ context.Context, req registry.CallToolRequest) (*registry.CallToolResult, error) {
-				if err := screenCheckTool("grim"); err != nil {
+				if err := screenCheckTool("wayshot"); err != nil {
 					return handler.ErrorResult(err), nil
 				}
 
@@ -146,15 +146,15 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 					outPath = fmt.Sprintf("/tmp/screenshot-%s.png", screenTimestamp())
 				}
 
-				// Build grim args
-				var grimArgs []string
+				// Build wayshot args
+				var wayshotArgs []string
 				if input.Region != "" {
-					grimArgs = append(grimArgs, "-g", input.Region)
+					wayshotArgs = append(wayshotArgs, "-s", input.Region)
 				}
-				grimArgs = append(grimArgs, outPath)
+				wayshotArgs = append(wayshotArgs, "-f", outPath)
 
-				if _, err := screenRunCmd("grim", grimArgs...); err != nil {
-					return handler.ErrorResult(fmt.Errorf("grim capture failed: %w", err)), nil
+				if _, err := screenRunCmd("wayshot", wayshotArgs...); err != nil {
+					return handler.ErrorResult(fmt.Errorf("wayshot capture failed: %w", err)), nil
 				}
 
 				// Resize for inline display (max 1568x1568)
@@ -288,7 +288,7 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 			"screen_ocr",
 			"Take a screenshot and extract text via OCR using tesseract. Returns the extracted text.",
 			func(_ context.Context, input ScreenOCRInput) (string, error) {
-				if err := screenCheckTool("grim"); err != nil {
+				if err := screenCheckTool("wayshot"); err != nil {
 					return "", err
 				}
 				if err := screenCheckTool("tesseract"); err != nil {
@@ -299,14 +299,14 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				defer os.Remove(tmpImg)
 
 				// Capture screenshot
-				var grimArgs []string
+				var wayshotArgs []string
 				if input.Region != "" {
-					grimArgs = append(grimArgs, "-g", input.Region)
+					wayshotArgs = append(wayshotArgs, "-s", input.Region)
 				}
-				grimArgs = append(grimArgs, tmpImg)
+				wayshotArgs = append(wayshotArgs, "-f", tmpImg)
 
-				if _, err := screenRunCmd("grim", grimArgs...); err != nil {
-					return "", fmt.Errorf("grim capture failed: %w", err)
+				if _, err := screenRunCmd("wayshot", wayshotArgs...); err != nil {
+					return "", fmt.Errorf("wayshot capture failed: %w", err)
 				}
 
 				// Run tesseract OCR (output to stdout)
@@ -325,11 +325,11 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 		),
 
 		// ── screen_color_pick ─────────────────────────
-		// Returns raw pixel color — uses hyprpicker if available, falls back to grim+pixel sampling.
+		// Returns raw pixel color — uses hyprpicker if available, falls back to wayshot+pixel sampling.
 		{
 			Tool: mcp.Tool{
 				Name:        "screen_color_pick",
-				Description: "Pick a color from the screen. Uses hyprpicker if available, otherwise captures a 1x1 screenshot at cursor position via grim. Returns the hex color value.",
+				Description: "Pick a color from the screen. Uses hyprpicker if available, otherwise captures a 1x1 screenshot at cursor position via wayshot. Returns the hex color value.",
 				InputSchema: mcp.ToolInputSchema{
 					Type:       "object",
 					Properties: map[string]any{},
@@ -354,7 +354,7 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				}
 
 				// Fallback: capture full screen, get cursor position, sample pixel
-				if err := screenCheckTool("grim"); err != nil {
+				if err := screenCheckTool("wayshot"); err != nil {
 					return handler.ErrorResult(err), nil
 				}
 				if err := screenCheckTool("hyprctl"); err != nil {
@@ -380,8 +380,8 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				defer os.Remove(tmpImg)
 
 				region := fmt.Sprintf("%d,%d 1x1", cursor.X, cursor.Y)
-				if _, err := screenRunCmd("grim", "-g", region, tmpImg); err != nil {
-					return handler.ErrorResult(fmt.Errorf("grim capture failed: %w", err)), nil
+				if _, err := screenRunCmd("wayshot", "-s", region, "-f", tmpImg); err != nil {
+					return handler.ErrorResult(fmt.Errorf("wayshot capture failed: %w", err)), nil
 				}
 
 				// Read the pixel color
@@ -498,12 +498,12 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 		),
 
 		// ── screen_screenshot_annotated ───────────────
-		// Composed: capture screenshot with grim, then open in swappy.
+		// Composed: capture screenshot with wayshot, then open in swappy.
 		// Returns image content inline, so we use a raw handler.
 		{
 			Tool: mcp.Tool{
 				Name:        "screen_screenshot_annotated",
-				Description: "Take a screenshot and immediately open it in swappy for annotation. Composed: grim capture then swappy launch.",
+				Description: "Take a screenshot and immediately open it in swappy for annotation. Composed: wayshot capture then swappy launch.",
 				InputSchema: mcp.ToolInputSchema{
 					Type: "object",
 					Properties: map[string]any{
@@ -519,7 +519,7 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				},
 			},
 			Handler: func(_ context.Context, req registry.CallToolRequest) (*registry.CallToolResult, error) {
-				if err := screenCheckTool("grim"); err != nil {
+				if err := screenCheckTool("wayshot"); err != nil {
 					return handler.ErrorResult(err), nil
 				}
 				if err := screenCheckTool("swappy"); err != nil {
@@ -537,15 +537,15 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 					outPath = fmt.Sprintf("/tmp/screenshot-%s.png", screenTimestamp())
 				}
 
-				// Step 1: Capture with grim
-				var grimArgs []string
+				// Step 1: Capture with wayshot
+				var wayshotArgs []string
 				if input.Region != "" {
-					grimArgs = append(grimArgs, "-g", input.Region)
+					wayshotArgs = append(wayshotArgs, "-s", input.Region)
 				}
-				grimArgs = append(grimArgs, outPath)
+				wayshotArgs = append(wayshotArgs, "-f", outPath)
 
-				if _, err := screenRunCmd("grim", grimArgs...); err != nil {
-					return handler.ErrorResult(fmt.Errorf("grim capture failed: %w", err)), nil
+				if _, err := screenRunCmd("wayshot", wayshotArgs...); err != nil {
+					return handler.ErrorResult(fmt.Errorf("wayshot capture failed: %w", err)), nil
 				}
 
 				// Step 2: Launch swappy (fire-and-forget)

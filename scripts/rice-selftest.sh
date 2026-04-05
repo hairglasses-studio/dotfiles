@@ -185,7 +185,7 @@ test_palette() {
 # ── Section: Tools ─────────────────────────────────
 test_tools() {
   echo "── CLI Tools ──" >&2
-  for tool in eza fd bat rg zoxide fzf starship atuin duf dust procs lazygit hyprpicker grimblast hyprshade wallust wl-screenrec wofi-emoji; do
+  for tool in eza fd bat rg zoxide fzf starship atuin duf dust procs lazygit hyprpicker wayshot hyprshade wallust wl-screenrec wofi-emoji; do
     if command -v "$tool" &>/dev/null; then
       add_result tools "$tool" pass "installed"
     else

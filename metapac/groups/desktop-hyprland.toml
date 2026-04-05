@@ -1,0 +1,89 @@
+# Desktop environment: Hyprland + eww + swaync + wofi
+[arch]
+packages = [
+    # Hyprland core
+    { name = "hyprland" },
+    { name = "hy3" },
+    { name = "hypridle" },
+    { name = "hyprlock" },
+    { name = "hyprpaper" },
+    { name = "hyprpicker" },
+    { name = "hyprsunset" },
+    { name = "hyprshade" },
+    { name = "pyprland" },
+    { name = "xdg-desktop-portal-hyprland" },
+    { name = "xdg-desktop-portal-gtk" },
+    { name = "xorg-xwayland" },
+    { name = "xdg-user-dirs" },
+
+    # Bar & widgets
+    { name = "eww" },
+    { name = "waybar" },
+
+    # Notifications
+    { name = "swaync" },
+    { name = "poweralertd" },
+
+    # Launcher & session
+    { name = "wofi" },
+    { name = "wofi-emoji" },
+    { name = "wlogout" },
+    { name = "greetd" },
+    { name = "greetd-tuigreet" },
+    { name = "gtklock" },
+    { name = "rofi" },
+    { name = "dex" },
+
+    # Wayland tools
+    { name = "wl-clipboard" },
+    { name = "wl-clip-persist" },
+    { name = "wl-gammactl-gettext" },
+    { name = "wl-screenrec" },
+    { name = "wlsunset" },
+    { name = "wluma" },
+    { name = "wayshot" },
+    { name = "slurp" },
+    { name = "satty" },
+    { name = "swappy" },
+    { name = "swayosd" },
+    { name = "swww" },
+    { name = "wdisplays" },
+    { name = "wev" },
+    { name = "wf-recorder" },
+    { name = "ydotool" },
+    { name = "flashfocus" },
+    { name = "socat" },
+
+    # Clipboard
+    { name = "cliphist" },
+    { name = "clipse-wayland-bin" },
+
+    # Screenshot
+    { name = "wayshot" },
+
+    # Wallpaper & theme
+    { name = "wallust" },
+    { name = "matugen" },
+    { name = "shaderbg" },
+
+    # GTK/Qt theming
+    { name = "gtk-cyberpunk-neon-theme-git" },
+    { name = "gtk3-nocsd" },
+    { name = "kvantum" },
+    { name = "qt5-wayland" },
+    { name = "qt5ct" },
+    { name = "qt6-wayland" },
+    { name = "qt6ct" },
+    { name = "qt6-imageformats" },
+    { name = "papirus-icon-theme" },
+    { name = "bibata-cursor-theme" },
+
+    # Polkit
+    { name = "polkit-gnome" },
+
+    # Audio
+    { name = "pavucontrol" },
+    { name = "pulsemixer" },
+    { name = "playerctl" },
+    { name = "brightnessctl" },
+]

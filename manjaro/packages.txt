@@ -52,7 +52,7 @@ thunar-volman
 wofi
 swww
 socat
-grim
+wayshot  # AUR — Wayland screenshot tool (replaces grim)
 slurp
 wlogout
 hyprpicker
