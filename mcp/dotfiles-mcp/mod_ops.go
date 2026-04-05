@@ -759,6 +759,50 @@ type OpsRevertOutput struct {
 	DryRun    bool   `json:"dry_run"`
 }
 
+type OpsFleetIterateInput struct {
+	Dir      string `json:"dir,omitempty" jsonschema:"description=Base directory to scan for repos. Default: ~/hairglasses-studio"`
+	Language string `json:"language,omitempty" jsonschema:"description=Filter by language: go/node/python/all. Default: all,enum=go,enum=node,enum=python,enum=all"`
+	MaxRepos int    `json:"max_repos,omitempty" jsonschema:"description=Maximum repos to test (safety limit). Default: 20"`
+}
+
+type FleetRepoResult struct {
+	Repo        string `json:"repo"`
+	Language    string `json:"language"`
+	BuildOK     bool   `json:"build_ok"`
+	TestsPassed int    `json:"tests_passed"`
+	TestsFailed int    `json:"tests_failed"`
+	ErrorCount  int    `json:"error_count"`
+	Status      string `json:"status"` // pass, build_fail, test_fail, skip
+	DurationMs  int64  `json:"duration_ms"`
+}
+
+type OpsFleetIterateOutput struct {
+	Total   int               `json:"total"`
+	Passing int               `json:"passing"`
+	Failing int               `json:"failing"`
+	Skipped int               `json:"skipped"`
+	Results []FleetRepoResult `json:"results"`
+}
+
+type OpsReleaseInput struct {
+	Repo          string `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
+	Version       string `json:"version" jsonschema:"required,description=New version (e.g. 1.2.3 or v1.2.3)"`
+	AutoChangelog bool   `json:"auto_changelog,omitempty" jsonschema:"description=Prepend entry to CHANGELOG.md"`
+	Push          bool   `json:"push,omitempty" jsonschema:"description=Push commit and tag to origin"`
+	Execute       bool   `json:"execute,omitempty" jsonschema:"description=Set true to execute (default: dry-run)"`
+}
+
+type OpsReleaseOutput struct {
+	CurrentVersion string   `json:"current_version"`
+	NewVersion     string   `json:"new_version"`
+	FilesModified  []string `json:"files_modified"`
+	Tag            string   `json:"tag"`
+	ChangelogEntry string   `json:"changelog_entry,omitempty"`
+	Committed      bool     `json:"committed"`
+	Pushed         bool     `json:"pushed"`
+	DryRun         bool     `json:"dry_run"`
+}
+
 type OpsSessionListInput struct{}
 type OpsSessionListOutput struct {
 	Sessions []SessionSummary `json:"sessions"`
@@ -866,6 +910,17 @@ func (m *OpsModule) Tools() []registry.ToolDefinition {
 			"ops_revert",
 			"Safely undo the last commit. If unpushed: soft reset (keeps changes staged). If pushed: creates a revert commit. Never force-pushes. Dry-run by default — pass execute=true.",
 			opsRevert,
+		),
+		// Fleet + Release
+		handler.TypedHandler[OpsFleetIterateInput, OpsFleetIterateOutput](
+			"ops_fleet_iterate",
+			"Run build+test across all repos in a directory. Returns per-repo health matrix with build/test status, error counts, and overall fleet summary. Scans for Go/Node/Python projects.",
+			opsFleetIterate,
+		),
+		handler.TypedHandler[OpsReleaseInput, OpsReleaseOutput](
+			"ops_release",
+			"Bump version, generate changelog entry, commit, and tag. Detects language (Go/Node/Python) and updates the appropriate version file. Dry-run by default — pass execute=true.",
+			opsRelease,
 		),
 	}
 }
@@ -1964,5 +2019,243 @@ func opsRevert(_ context.Context, input OpsRevertInput) (OpsRevertOutput, error)
 		Message:   msg,
 		WasPushed: pushed,
 		DryRun:    false,
+	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Fleet iteration handler
+// ---------------------------------------------------------------------------
+
+func opsFleetIterate(ctx context.Context, input OpsFleetIterateInput) (OpsFleetIterateOutput, error) {
+	dir := input.Dir
+	if dir == "" {
+		dir = filepath.Join(os.Getenv("HOME"), "hairglasses-studio")
+	}
+
+	langFilter := input.Language
+	if langFilter == "" {
+		langFilter = "all"
+	}
+
+	maxRepos := input.MaxRepos
+	if maxRepos <= 0 {
+		maxRepos = 20
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return OpsFleetIterateOutput{}, fmt.Errorf("[%s] cannot read directory: %w", handler.ErrInvalidParam, err)
+	}
+
+	var results []FleetRepoResult
+	passing, failing, skipped := 0, 0, 0
+
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		if len(results) >= maxRepos {
+			break
+		}
+
+		repoPath := filepath.Join(dir, e.Name())
+		lang := opsDetectLanguage(repoPath)
+
+		// Skip non-project directories
+		if lang == "unknown" {
+			continue
+		}
+		// Apply language filter
+		if langFilter != "all" && lang != langFilter {
+			skipped++
+			continue
+		}
+
+		start := time.Now()
+
+		// Build
+		buildOut, buildErr := opsBuild(ctx, OpsBuildInput{Repo: repoPath})
+		if buildErr != nil {
+			results = append(results, FleetRepoResult{
+				Repo: e.Name(), Language: lang, Status: "skip",
+				DurationMs: time.Since(start).Milliseconds(),
+			})
+			skipped++
+			continue
+		}
+
+		if !buildOut.Success {
+			results = append(results, FleetRepoResult{
+				Repo: e.Name(), Language: lang, BuildOK: false,
+				ErrorCount: buildOut.ErrorCount, Status: "build_fail",
+				DurationMs: time.Since(start).Milliseconds(),
+			})
+			failing++
+			continue
+		}
+
+		// Test
+		testOut, _ := opsTestSmart(ctx, OpsTestSmartInput{Repo: repoPath, All: true})
+		status := "pass"
+		if testOut.Failed > 0 {
+			status = "test_fail"
+			failing++
+		} else {
+			passing++
+		}
+
+		results = append(results, FleetRepoResult{
+			Repo:        e.Name(),
+			Language:    lang,
+			BuildOK:     true,
+			TestsPassed: testOut.Passed,
+			TestsFailed: testOut.Failed,
+			ErrorCount:  testOut.Failed,
+			Status:      status,
+			DurationMs:  time.Since(start).Milliseconds(),
+		})
+	}
+
+	return OpsFleetIterateOutput{
+		Total:   len(results),
+		Passing: passing,
+		Failing: failing,
+		Skipped: skipped,
+		Results: results,
+	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Release handler
+// ---------------------------------------------------------------------------
+
+func opsRelease(_ context.Context, input OpsReleaseInput) (OpsReleaseOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsReleaseOutput{}, err
+	}
+
+	version := strings.TrimPrefix(input.Version, "v")
+	tag := "v" + version
+	lang := opsDetectLanguage(repo)
+
+	// Detect current version
+	currentVersion := ""
+	var filesToModify []string
+
+	switch lang {
+	case "go":
+		// Go: version from git tags
+		if out, err := runGit(repo, "describe", "--tags", "--abbrev=0"); err == nil {
+			currentVersion = strings.TrimSpace(out)
+		}
+		// No file to modify for Go (version comes from git tags)
+
+	case "node":
+		// Node: read package.json
+		data, err := os.ReadFile(filepath.Join(repo, "package.json"))
+		if err == nil {
+			var pkg map[string]any
+			json.Unmarshal(data, &pkg)
+			if v, ok := pkg["version"].(string); ok {
+				currentVersion = v
+			}
+			filesToModify = append(filesToModify, "package.json")
+		}
+
+	case "python":
+		// Python: read pyproject.toml
+		data, err := os.ReadFile(filepath.Join(repo, "pyproject.toml"))
+		if err == nil {
+			for _, line := range strings.Split(string(data), "\n") {
+				if strings.HasPrefix(strings.TrimSpace(line), "version") {
+					parts := strings.SplitN(line, "=", 2)
+					if len(parts) == 2 {
+						currentVersion = strings.Trim(strings.TrimSpace(parts[1]), "\"'")
+					}
+				}
+			}
+			filesToModify = append(filesToModify, "pyproject.toml")
+		}
+	}
+
+	// Generate changelog entry
+	changelogEntry := ""
+	if input.AutoChangelog {
+		// Get commits since last tag
+		lastTag := currentVersion
+		if lastTag == "" {
+			lastTag = "HEAD~10"
+		}
+		commits, _ := runGit(repo, "log", lastTag+"..HEAD", "--oneline", "--no-merges")
+		changelogEntry = fmt.Sprintf("## %s\n\n%s\n", tag, strings.TrimSpace(commits))
+		filesToModify = append(filesToModify, "CHANGELOG.md")
+	}
+
+	if !input.Execute {
+		return OpsReleaseOutput{
+			CurrentVersion: currentVersion,
+			NewVersion:     version,
+			FilesModified:  filesToModify,
+			Tag:            tag,
+			ChangelogEntry: changelogEntry,
+			DryRun:         true,
+		}, nil
+	}
+
+	// Execute: update version files
+	switch lang {
+	case "node":
+		data, _ := os.ReadFile(filepath.Join(repo, "package.json"))
+		var pkg map[string]any
+		json.Unmarshal(data, &pkg)
+		pkg["version"] = version
+		updated, _ := json.MarshalIndent(pkg, "", "  ")
+		os.WriteFile(filepath.Join(repo, "package.json"), append(updated, '\n'), 0o644)
+
+	case "python":
+		data, _ := os.ReadFile(filepath.Join(repo, "pyproject.toml"))
+		lines := strings.Split(string(data), "\n")
+		for i, line := range lines {
+			if strings.HasPrefix(strings.TrimSpace(line), "version") && strings.Contains(line, "=") {
+				lines[i] = fmt.Sprintf(`version = "%s"`, version)
+				break
+			}
+		}
+		os.WriteFile(filepath.Join(repo, "pyproject.toml"), []byte(strings.Join(lines, "\n")), 0o644)
+	}
+
+	// Update CHANGELOG.md
+	if input.AutoChangelog && changelogEntry != "" {
+		clPath := filepath.Join(repo, "CHANGELOG.md")
+		existing, _ := os.ReadFile(clPath)
+		newContent := changelogEntry + "\n" + string(existing)
+		os.WriteFile(clPath, []byte(newContent), 0o644)
+	}
+
+	// Commit
+	runGit(repo, "add", "-A")
+	runGit(repo, "commit", "-m", fmt.Sprintf("chore: release %s", tag))
+
+	// Tag
+	runGit(repo, "tag", "-a", tag, "-m", fmt.Sprintf("Release %s", tag))
+
+	// Push
+	pushed := false
+	if input.Push {
+		runGit(repo, "push", "origin", opsCurrentBranch(repo))
+		runGit(repo, "push", "origin", tag)
+		pushed = true
+	}
+
+	return OpsReleaseOutput{
+		CurrentVersion: currentVersion,
+		NewVersion:     version,
+		FilesModified:  filesToModify,
+		Tag:            tag,
+		ChangelogEntry: changelogEntry,
+		Committed:      true,
+		Pushed:         pushed,
+		DryRun:         false,
 	}, nil
 }
