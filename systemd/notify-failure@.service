@@ -1,0 +1,11 @@
+[Unit]
+Description=Send desktop notification on service failure (%i)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/notify-send \
+    -u critical \
+    -a "systemd" \
+    -i "dialog-error" \
+    "Service Failed: %i" \
+    "Unit %i has failed.\nRun: systemctl --user status %i"
