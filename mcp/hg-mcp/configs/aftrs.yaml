@@ -1,0 +1,159 @@
+# AFTRS MCP Server Configuration
+# Configuration for studio automation and creative tools
+
+# Discord Integration
+discord:
+  # Environment variables for Discord bot authentication
+  bot_token_env: "DISCORD_BOT_TOKEN"
+  guild_id_env: "DISCORD_GUILD_ID"
+  default_channel_env: "DISCORD_CHANNEL_ID"
+
+  # Optional: Specific channels for different notification types
+  stream_alerts_channel_env: "DISCORD_STREAM_ALERTS_CHANNEL"
+  tech_alerts_channel_env: "DISCORD_TECH_ALERTS_CHANNEL"
+  session_log_channel_env: "DISCORD_SESSION_LOG_CHANNEL"
+  webhook_url_env: "DISCORD_WEBHOOK_URL"
+
+# TouchDesigner Settings
+touchdesigner:
+  host: "localhost"
+  port: 8090
+  # Python server must be enabled in TD preferences
+  # Preferences > Network > Python Server
+
+# Resolume Settings
+resolume:
+  # OSC Control Settings
+  osc_host: "127.0.0.1"
+  osc_port: 7000
+  # Enable in Resolume: Preferences > OSC Output
+  # Set target to 127.0.0.1:7000
+
+# OBS Studio Settings
+obs:
+  host: "localhost"
+  port: 4455
+  # Enable obs-websocket plugin
+  # Tools > WebSocket Server Settings
+
+# MIDI Settings
+midi:
+  # MIDI devices will be auto-discovered
+  auto_discover: true
+  # Default MIDI channel (1-16)
+  default_channel: 1
+
+# Lighting / DMX Settings
+lighting:
+  # Art-Net settings
+  artnet:
+    enabled: true
+    universe: 0
+    subnet: 0
+    net: 0
+  # DMX interface
+  dmx:
+    interface: "auto"  # or specific interface name
+    universe: 1
+
+# UNRAID Server Settings
+unraid:
+  host: "tower.local"
+  port: 80
+  # API key stored in 1Password (optional)
+  # api_key_1password: "op://Studio/UNRAID/api_key"
+  # Or use environment variable
+  api_key_env: "UNRAID_API_KEY"
+
+# Obsidian Vault Integration
+vault:
+  # Path to Obsidian vault for session logging
+  path: "~/aftrs-vault"
+  # Auto-create vault if it doesn't exist
+  auto_create: true
+  # Template for session notes
+  session_template: "session-template.md"
+
+# Knowledge Graph Settings
+graph:
+  # Enable knowledge graph learning
+  enabled: true
+  # Storage path for graph data
+  storage_path: "~/aftrs-studio/hg-mcp/data/knowledge-graph"
+  # Auto-learn from interactions
+  auto_learn: true
+
+# Learning System Settings
+learning:
+  # Enable pattern learning
+  enabled: true
+  # Confidence threshold for suggestions (0.0-1.0)
+  confidence_threshold: 0.7
+  # Storage path for learned patterns
+  storage_path: "~/aftrs-studio/hg-mcp/data/patterns"
+
+# Workflow Settings
+workflows:
+  # Path to workflow definitions
+  definitions_path: "~/aftrs-studio/hg-mcp/workflows"
+  # Auto-load workflows on startup
+  auto_load: true
+
+# Streaming Settings
+streaming:
+  # NDI Settings
+  ndi:
+    enabled: true
+    discovery_timeout: 5000  # milliseconds
+  # Stream health monitoring
+  health_check_interval: 30  # seconds
+
+# Plugin Management
+plugins:
+  # Plugin manifest path
+  manifest_path: "~/aftrs-studio/hg-mcp/configs/plugin-manifest.yaml"
+  # Auto-discover plugins
+  auto_discover: true
+  # Plugin search paths
+  search_paths:
+    - "~/Documents/TouchDesigner/Plugins"
+    - "~/Documents/Resolume Arena/Effects"
+    - "~/Documents/Resolume Arena/Sources"
+
+# Retro Gaming Settings
+retrogaming:
+  # RetroArch settings
+  retroarch:
+    host: "localhost"
+    port: 55355
+  # PS2 emulator settings
+  ps2:
+    emulator: "PCSX2"
+    roms_path: "~/Games/PS2"
+    saves_path: "~/Games/PS2/Saves"
+
+# General Settings
+general:
+  # Log level: debug, info, warn, error
+  log_level: "info"
+  # Log file path
+  log_file: "~/aftrs-studio/hg-mcp/logs/hg-mcp.log"
+  # Enable metrics collection
+  metrics_enabled: true
+  # Metrics storage path
+  metrics_path: "~/aftrs-studio/hg-mcp/data/metrics"
+
+# MCP Server Settings
+server:
+  # Transport mode: stdio or sse
+  # Set via MCP_MODE environment variable
+  # mode: "stdio"
+
+  # SSE mode settings (when MCP_MODE=sse)
+  sse:
+    port: 8080
+    host: "localhost"
+    # CORS settings for remote access
+    cors_enabled: false
+    allowed_origins:
+      - "http://localhost:3000"

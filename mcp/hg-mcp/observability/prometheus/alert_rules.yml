@@ -1,0 +1,216 @@
+groups:
+  # =============================================================================
+  # Tool Error Rate Alerts
+  # =============================================================================
+  - name: mcp_tool_errors
+    rules:
+      # Alert when overall tool error rate exceeds 5% over 5 minutes
+      - alert: HighToolErrorRate
+        expr: |
+          (
+            sum(rate(mcp_tool_errors_total[5m]))
+            /
+            sum(rate(mcp_tool_invocations_total[5m]))
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High MCP tool error rate ({{ $value | humanizePercentage }})"
+          description: "Overall tool error rate is above 5% for the last 2 minutes."
+
+      # Alert when a specific category has >10% error rate
+      - alert: HighCategoryErrorRate
+        expr: |
+          (
+            sum by (category) (rate(mcp_tool_errors_total[5m]))
+            /
+            sum by (category) (rate(mcp_tool_invocations_total[5m]))
+          ) > 0.10
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate for {{ $labels.category }} tools ({{ $value | humanizePercentage }})"
+          description: "Category {{ $labels.category }} has >10% error rate for 3 minutes."
+
+      # Critical: error rate over 50% (service likely down)
+      - alert: CriticalToolErrorRate
+        expr: |
+          (
+            sum(rate(mcp_tool_errors_total[5m]))
+            /
+            sum(rate(mcp_tool_invocations_total[5m]))
+          ) > 0.50
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical tool error rate ({{ $value | humanizePercentage }})"
+          description: "More than 50% of tool invocations are failing."
+
+  # =============================================================================
+  # Circuit Breaker Alerts
+  # =============================================================================
+  - name: mcp_circuit_breakers
+    rules:
+      # Alert when any circuit breaker is open
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state == 2
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit breaker open: {{ $labels.name }}"
+          description: "Service {{ $labels.name }} circuit breaker is open (too many failures). Requests are being rejected."
+
+      # Alert on high rejection rate
+      - alert: CircuitBreakerHighRejections
+        expr: rate(circuit_breaker_rejections_total[5m]) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High circuit breaker rejections for {{ $labels.name }}"
+          description: "Service {{ $labels.name }} is rejecting >1 req/s via circuit breaker for 2 minutes."
+
+  # =============================================================================
+  # Rate Limiting Alerts
+  # =============================================================================
+  - name: mcp_rate_limits
+    rules:
+      # Alert when rate limit waits are happening frequently
+      - alert: RateLimitExhaustion
+        expr: rate(rate_limit_waits_total[5m]) > 5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limit pressure on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} is hitting rate limits frequently (>5 waits/s for 3 minutes)."
+
+      # Alert when rate limit delays are excessive
+      - alert: RateLimitHighDelay
+        expr: histogram_quantile(0.95, rate(rate_limit_delay_seconds_bucket[5m])) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate limit delays for {{ $labels.service }}"
+          description: "P95 rate limit delay for {{ $labels.service }} exceeds 5 seconds."
+
+  # =============================================================================
+  # Latency Alerts
+  # =============================================================================
+  - name: mcp_latency
+    rules:
+      # Alert when P99 tool latency exceeds 10 seconds
+      - alert: HighToolLatencyP99
+        expr: histogram_quantile(0.99, rate(mcp_tool_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P99 tool latency ({{ $value | humanizeDuration }})"
+          description: "P99 tool invocation latency exceeds 10 seconds for 5 minutes."
+
+      # Alert when P50 (median) latency exceeds 5 seconds
+      - alert: HighToolLatencyP50
+        expr: histogram_quantile(0.50, rate(mcp_tool_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High median tool latency ({{ $value | humanizeDuration }})"
+          description: "Median tool invocation latency exceeds 5 seconds for 5 minutes."
+
+      # Per-category P99 latency
+      - alert: HighCategoryLatencyP99
+        expr: |
+          histogram_quantile(0.99, sum by (category, le) (rate(mcp_tool_duration_seconds_bucket[5m]))) > 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P99 latency for {{ $labels.category }} ({{ $value | humanizeDuration }})"
+          description: "Category {{ $labels.category }} P99 latency exceeds 15 seconds."
+
+  # =============================================================================
+  # Concurrency & Throughput Alerts
+  # =============================================================================
+  - name: mcp_throughput
+    rules:
+      # Alert when too many tools are executing concurrently
+      - alert: HighConcurrentTools
+        expr: sum(mcp_tools_active) > 50
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High concurrent tool executions ({{ $value }})"
+          description: "More than 50 tools are executing simultaneously for 2 minutes."
+
+      # Alert when no invocations are happening (service might be down)
+      - alert: NoToolInvocations
+        expr: sum(rate(mcp_tool_invocations_total[10m])) == 0
+        for: 15m
+        labels:
+          severity: info
+        annotations:
+          summary: "No tool invocations for 15 minutes"
+          description: "The MCP server has received no tool invocations. It may be idle or unreachable."
+
+  # =============================================================================
+  # Sync Pipeline Alerts
+  # =============================================================================
+  - name: mcp_sync
+    rules:
+      # Alert when sync operations are failing
+      - alert: SyncFailureRate
+        expr: |
+          (
+            sum by (service) (rate(sync_files_failed_total[10m]))
+            /
+            (sum by (service) (rate(sync_files_total[10m])) + 0.001)
+          ) > 0.20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High sync failure rate for {{ $labels.service }}"
+          description: "Sync pipeline {{ $labels.service }} has >20% failure rate for 5 minutes."
+
+      # Alert when sync hasn't succeeded recently
+      - alert: SyncStale
+        expr: time() - sync_last_success > 86400
+        for: 1h
+        labels:
+          severity: info
+        annotations:
+          summary: "Stale sync for {{ $labels.service }}"
+          description: "Service {{ $labels.service }} hasn't synced successfully in over 24 hours."
+
+  # =============================================================================
+  # Inventory-Specific Alerts
+  # =============================================================================
+  - name: mcp_inventory
+    rules:
+      # Alert on Sheets API errors
+      - alert: SheetsAPIErrors
+        expr: rate(inventory_sheets_api_total{status="error"}[5m]) > 0.5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Google Sheets API errors"
+          description: "Inventory Sheets API is returning errors at >0.5/s for 3 minutes."
+
+      # Alert on eBay API errors
+      - alert: EbayAPIErrors
+        expr: rate(inventory_ebay_api_total{status="error"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "eBay API errors"
+          description: "eBay API is returning errors consistently for 5 minutes."

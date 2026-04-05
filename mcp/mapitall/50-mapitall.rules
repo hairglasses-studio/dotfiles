@@ -1,0 +1,2 @@
+# Allow input group access to /dev/uinput for virtual device creation.
+SUBSYSTEM=="misc", KERNEL=="uinput", MODE="0660", GROUP="input", TAG+="uaccess"
