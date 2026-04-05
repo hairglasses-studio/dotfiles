@@ -298,19 +298,16 @@ func (m *InputSimulateModule) Tools() []registry.ToolDefinition {
 	// ── input_screenshot_click ───────────────────────────
 	screenshotClick := handler.TypedHandler[SimScreenshotClickInput, string](
 		"input_screenshot_click",
-		"DESTRUCTIVE: Take a screenshot with wayshot, then click at the specified coordinates. Combines screenshot capture for agent visual context with coordinate-based clicking. Requires explicit approval.",
+		"DESTRUCTIVE: Take a screenshot, then click at the specified coordinates. Combines screenshot capture for agent visual context with coordinate-based clicking. Requires explicit approval.",
 		func(_ context.Context, input SimScreenshotClickInput) (string, error) {
-			if !hasCmd("wayshot") {
-				return "", fmt.Errorf("wayshot not found on PATH")
-			}
 			if !hasCmd("ydotool") {
 				return "", fmt.Errorf("ydotool not found on PATH")
 			}
 
 			// Capture screenshot for logging/context
 			screenshotPath := "/tmp/input-screenshot-click.png"
-			if _, err := simRunCmd("wayshot", "-f", screenshotPath); err != nil {
-				return "", fmt.Errorf("wayshot screenshot failed: %w", err)
+			if err := screenshotCapture(screenshotPath, "", ""); err != nil {
+				return "", fmt.Errorf("screenshot capture failed: %w", err)
 			}
 
 			// Move and click
@@ -329,7 +326,7 @@ func (m *InputSimulateModule) Tools() []registry.ToolDefinition {
 	screenshotClick.IsWrite = true
 	screenshotClick.Category = "input_simulate"
 	screenshotClick.Tags = []string{"input", "screenshot", "click", "visual", "simulate"}
-	screenshotClick.SearchTerms = []string{"screenshot click", "visual click", "click element", "wayshot click", "screen interaction"}
+	screenshotClick.SearchTerms = []string{"screenshot click", "visual click", "click element", "screen interaction"}
 
 	return []registry.ToolDefinition{
 		typeText,
