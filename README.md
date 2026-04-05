@@ -340,7 +340,7 @@ go, golangci-lint, goreleaser, air          # Go development
 k9s, helm, stern, kubectx                   # Kubernetes
 docker, colima, dive, lazydocker            # Containers
 neovim, tmux, lazygit, gh                   # Editors & tools
-ghostty, font-jetbrains-mono-nerd-font      # Terminal
+ghostty, maplemono-nf-cn                    # Terminal
 1password-cli                               # Secrets
 ```
 
@@ -352,7 +352,7 @@ ghostty, font-jetbrains-mono-nerd-font      # Terminal
 
 **Symlinks point to wrong place:** Run `bash install.sh --check` to validate. If broken, re-run `bash install.sh` to recreate them.
 
-**Powerlevel10k prompt looks broken:** Ensure JetBrainsMono Nerd Font Mono is installed (`brew install --cask font-jetbrains-mono-nerd-font`) and set as your terminal font.
+**Powerlevel10k prompt looks broken:** Ensure Maple Mono NF CN is installed (`pacman -S maplemono-nf-cn` on Arch, or `brew install --cask font-maple-mono-nf-cn` on macOS) and set as your terminal font.
 
 **tmux plugins not loading:** Inside tmux, press `C-a` then `shift-I` to trigger TPM install. Wait for the install to complete.
 
@@ -364,7 +364,7 @@ ghostty, font-jetbrains-mono-nerd-font      # Terminal
 
 ## Font
 
-[JetBrainsMono Nerd Font Mono](https://www.nerdfonts.com/) — installed via `brew install --cask font-jetbrains-mono-nerd-font`.
+[Maple Mono NF CN](https://github.com/subframe7536/maple-font) — the standard monospace font across all configs. Install via `pacman -S maplemono-nf-cn` (Arch) or `brew install --cask font-maple-mono-nf-cn` (macOS).
 
 ## License
 
