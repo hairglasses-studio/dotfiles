@@ -40,3 +40,10 @@ clipse/tmp_files/
 .env.*
 !.env.example
 !.env.*.example
+
+# Credentials & keys (safety net)
+*.pem
+*.key
+*.p12
+id_rsa*
+id_ed25519*

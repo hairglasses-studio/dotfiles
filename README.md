@@ -32,10 +32,10 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 
 1. Installs Homebrew (if missing) + 76 packages from `Brewfile`
 2. Installs Oh My Zsh + 5 community plugins + Powerlevel10k theme
-3. Installs vim-plug for Neovim + creates undo/backup/swap directories
+3. Bootstraps lazy.nvim for Neovim + creates undo/backup/swap directories
 4. Installs TPM (Tmux Plugin Manager)
 5. Downloads and installs RetroVisor (CRT shader overlay)
-6. Symlinks all 32+ configs to their expected locations
+6. Symlinks all 60+ configs to their expected locations
 7. Links Ghostty shader collection to Tattoy
 8. Builds bat theme cache
 
@@ -50,8 +50,8 @@ bash ~/dotfiles/scripts/macos-defaults.sh
 # 2. Validate all symlinks are correct
 bash ~/dotfiles/install.sh --check
 
-# 3. Install Neovim plugins (opens nvim, installs, quits)
-nvim +PlugInstall +qall
+# 3. Install Neovim plugins (lazy.nvim auto-installs on first launch)
+nvim --headless "+Lazy! sync" +qa
 
 # 4. Install tmux plugins — open tmux then press prefix + I (C-a + I)
 tmux new-session
