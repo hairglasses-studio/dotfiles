@@ -327,7 +327,13 @@ _ccg_get_cached_or_build() {
     # Rebuild cache (sort by lastActivity descending, atomic write)
     mkdir -p "$(dirname "$CACHE_FILE")"
     tmp_cache=$(mktemp "$(dirname "$CACHE_FILE")/.ccg-index.XXXXXX") || return 1
-    _ccg_gather_sessions | jq -s 'sort_by(-.lastActivity) | .[]' -c | tee "$tmp_cache"
+
+    # Use Go binary if available (46ms vs 3.3s shell)
+    if command -v dotfiles-mcp >/dev/null 2>&1; then
+        dotfiles-mcp --session-index 2>/dev/null | tee "$tmp_cache"
+    else
+        _ccg_gather_sessions | jq -s 'sort_by(-.lastActivity) | .[]' -c | tee "$tmp_cache"
+    fi
     mv -f "$tmp_cache" "$CACHE_FILE"
 }
 
