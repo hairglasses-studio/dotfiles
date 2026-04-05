@@ -1,4 +1,4 @@
-.PHONY: test test-lib test-scripts test-verbose
+.PHONY: test test-lib test-scripts test-verbose sync clean unmanaged packages
 
 test: test-lib test-scripts
 
@@ -12,3 +12,15 @@ test-scripts:
 
 test-verbose:
 	bats --verbose-run --show-output-of-passing-tests tests/*.bats
+
+# Package management via metapac
+sync:
+	metapac sync
+
+clean:
+	metapac clean
+
+unmanaged:
+	metapac unmanaged
+
+packages: sync

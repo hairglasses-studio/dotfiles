@@ -1,0 +1,30 @@
+# Input devices, system utilities, misc
+[arch]
+packages = [
+    # Input devices
+    { name = "solaar" },
+    { name = "logiops", hooks = { after_sync = ["sudo", "systemctl", "enable", "--now", "logid.service"] } },
+    { name = "makima-bin" },
+    { name = "openlinkhub-bin", hooks = { after_sync = ["sudo", "systemctl", "enable", "--now", "openlinkhub.service"] } },
+    { name = "udev-usb-sync" },
+
+    # Bluetooth
+    { name = "blueman" },
+    { name = "bluez" },
+    { name = "bluez-utils" },
+
+    # Hardware control
+    { name = "liquidctl" },
+
+    # System tools
+    { name = "inotify-tools" },
+    { name = "wtfutil" },
+    { name = "bagels" },
+    { name = "b43-fwcutter" },
+    { name = "xorg-xrdb" },
+
+    # AUR helper
+    { name = "yay" },
+    { name = "paru" },
+    { name = "metapac" },
+]

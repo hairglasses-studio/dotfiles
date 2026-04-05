@@ -1,0 +1,25 @@
+# metapac — declarative package management for archglasses
+# https://github.com/ripytide/metapac
+
+enabled_backends = ["arch", "cargo", "npm", "pipx"]
+
+hostname_groups_enabled = true
+
+[hostname_groups]
+archglasses = [
+    "base-system",
+    "desktop-hyprland",
+    "terminal-shell",
+    "dev-tools",
+    "dev-languages",
+    "devops-cloud",
+    "media-creative",
+    "gaming",
+    "fonts",
+    "ai-ml",
+    "visual-effects",
+    "utilities",
+]
+
+[arch]
+package_manager = "paru"

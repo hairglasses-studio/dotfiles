@@ -1,0 +1,11 @@
+# Gaming
+[arch]
+packages = [
+    { name = "steam" },
+    { name = "gamemode" },
+    { name = "lib32-gamemode" },
+    { name = "mangohud" },
+    { name = "antimicrox" },
+    { name = "jstest-gtk-git" },
+    { name = "via-bin" },
+]
