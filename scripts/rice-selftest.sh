@@ -3,7 +3,7 @@ set -euo pipefail
 # rice-selftest.sh — Comprehensive self-test for all dotfiles rice components
 # Outputs structured JSON for MCP/agent consumption, human-readable summary to stderr
 # Usage: rice-selftest.sh [--json] [--section SECTION]
-# Sections: config, plugins, services, fonts, symlinks, palette, tools, all
+# Sections: config, keybinds, plugins, services, fonts, symlinks, palette, tools, shader, all
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh" 2>/dev/null || true
@@ -45,6 +45,37 @@ test_config() {
     add_result config "hyprland_config" pass "zero errors"
   else
     add_result config "hyprland_config" fail "$errs"
+  fi
+}
+
+# ── Section: Keybinds ─────────────────────────────────
+test_keybinds() {
+  echo "── Keybind Validation ──" >&2
+  local binds
+  binds="$(hyprctl binds -j 2>/dev/null)"
+
+  # Check critical keybinds are registered (dispatcher|key|label)
+  for check in \
+    "exec|X|Dropdown terminal" \
+    "exec|E|Emoji picker" \
+    "hyprexpo:expo|Tab|Workspace overview" \
+    "split-workspace|1|Workspace 1" \
+  ; do
+    IFS='|' read -r dispatcher key label <<< "$check"
+    if echo "$binds" | jq -e ".[] | select(.dispatcher == \"$dispatcher\" and .key == \"$key\")" &>/dev/null; then
+      add_result keybinds "$label" pass "registered"
+    else
+      add_result keybinds "$label" warn "not found ($dispatcher $key)"
+    fi
+  done
+
+  # Check for duplicate keybinds (same mod+key bound twice)
+  local dupes
+  dupes="$(echo "$binds" | jq -r '[.[] | select(.submap == "") | {mod: .modmask, key: .key}] | group_by(.mod, .key) | map(select(length > 1)) | length')"
+  if [[ "$dupes" == "0" ]]; then
+    add_result keybinds "no_duplicates" pass "zero conflicts"
+  else
+    add_result keybinds "no_duplicates" fail "$dupes duplicate keybind(s)"
   fi
 }
 
@@ -181,16 +212,18 @@ test_shader() {
 
 # ── Run sections ───────────────────────────────────
 case "$SECTION" in
-  config)   test_config ;;
-  plugins)  test_plugins ;;
-  services) test_services ;;
-  fonts)    test_fonts ;;
-  symlinks) test_symlinks ;;
-  palette)  test_palette ;;
-  tools)    test_tools ;;
-  shader)   test_shader ;;
+  config)    test_config ;;
+  keybinds)  test_keybinds ;;
+  plugins)   test_plugins ;;
+  services)  test_services ;;
+  fonts)     test_fonts ;;
+  symlinks)  test_symlinks ;;
+  palette)   test_palette ;;
+  tools)     test_tools ;;
+  shader)    test_shader ;;
   all)
     test_config
+    test_keybinds
     test_plugins
     test_services
     test_fonts
