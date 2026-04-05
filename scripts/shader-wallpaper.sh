@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # shader-wallpaper.sh — Procgen shader wallpaper engine via shaderbg
 # Usage: shader-wallpaper.sh [next|random|set <shader>|stop|list|static]
 #

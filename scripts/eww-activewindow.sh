@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -uo pipefail
 # eww-activewindow.sh — Compositor-aware active window title listener for eww bar
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
