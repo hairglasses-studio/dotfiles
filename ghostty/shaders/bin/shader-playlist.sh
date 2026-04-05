@@ -119,8 +119,9 @@ shader-playlist-next() {
   # Atomic config update
   local tmp
   tmp="$(mktemp "${_ghostty_config}.XXXXXX")"
-  sed -e "s|^custom-shader = .*|custom-shader = $shader_path|" \
-      -e "s|^# custom-shader.*|custom-shader = $shader_path|" \
+  local relative_path="shaders/$shader_name"
+  sed -e "s|^custom-shader = .*|custom-shader = $relative_path|" \
+      -e "s|^# custom-shader.*|custom-shader = $relative_path|" \
       -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
       "$_ghostty_config" > "$tmp"
   command mv -f "$tmp" "$_ghostty_config"

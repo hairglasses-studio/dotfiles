@@ -395,6 +395,29 @@ check_symlinks() {
             log_error "Missing: ${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
             errors=$((errors + 1))
         fi
+
+        log_info "Checking systemd user services..."
+        local svc_dir="$HOME/.config/systemd/user"
+        check_link "$DOTFILES_DIR/systemd/shader-rotate.timer" "$svc_dir/shader-rotate.timer"
+        check_link "$DOTFILES_DIR/systemd/shader-rotate.service" "$svc_dir/shader-rotate.service"
+        check_link "$DOTFILES_DIR/systemd/tmux.service" "$svc_dir/tmux.service"
+        check_link "$DOTFILES_DIR/systemd/eww-calendar-sync.service" "$svc_dir/eww-calendar-sync.service"
+        check_link "$DOTFILES_DIR/systemd/eww-calendar-sync.timer" "$svc_dir/eww-calendar-sync.timer"
+        check_link "$DOTFILES_DIR/systemd/mx-battery-notify.service" "$svc_dir/mx-battery-notify.service"
+        check_link "$DOTFILES_DIR/systemd/mx-battery-notify.timer" "$svc_dir/mx-battery-notify.timer"
+        check_link "$DOTFILES_DIR/systemd/rg-status-bar.service" "$svc_dir/rg-status-bar.service"
+        check_link "$DOTFILES_DIR/systemd/rg-status-bar.timer" "$svc_dir/rg-status-bar.timer"
+        check_link "$DOTFILES_DIR/systemd/rclone-gdrive.service" "$svc_dir/rclone-gdrive.service"
+        check_link "$DOTFILES_DIR/systemd/rclone-mega.service" "$svc_dir/rclone-mega.service"
+        check_link "$DOTFILES_DIR/systemd/stash.service" "$svc_dir/stash.service"
+        check_link "$DOTFILES_DIR/systemd/stash-ai-server.service" "$svc_dir/stash-ai-server.service"
+        check_link "$DOTFILES_DIR/systemd/stash-healthcheck.service" "$svc_dir/stash-healthcheck.service"
+        check_link "$DOTFILES_DIR/systemd/stash-healthcheck.timer" "$svc_dir/stash-healthcheck.timer"
+        check_link "$DOTFILES_DIR/systemd/stash-maintenance.service" "$svc_dir/stash-maintenance.service"
+        check_link "$DOTFILES_DIR/systemd/stash-maintenance.timer" "$svc_dir/stash-maintenance.timer"
+        check_link "$DOTFILES_DIR/systemd/nsfw-ai-model-server.service" "$svc_dir/nsfw-ai-model-server.service"
+        check_link "$DOTFILES_DIR/systemd/rg-marathon@.service" "$svc_dir/rg-marathon@.service"
+        check_link "$DOTFILES_DIR/systemd/makima.service" "$svc_dir/makima.service"
     fi
 
     if [[ "$OS" == "Darwin" ]]; then
