@@ -51,6 +51,10 @@ packages = [
     { name = "qemu-ui-gtk" },
     { name = "edk2-ovmf" },
 
+    # Container GPU passthrough
+    { name = "nvidia-container-toolkit" },
+    { name = "libnvidia-container" },
+
     # Security
     { name = "apparmor" },
     { name = "ufw" },
