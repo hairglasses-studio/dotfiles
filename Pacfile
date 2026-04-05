@@ -1,0 +1,119 @@
+# Arch Linux / Manjaro packages — equivalent of Brewfile
+# Install with: yay -S --needed - < Pacfile
+# Lines starting with # are comments. Blank lines ignored.
+
+# Core CLI tools
+bat
+coreutils
+direnv
+eza
+fastfetch
+fd
+fzf
+github-cli
+git
+git-delta
+git-lfs
+jq
+neovim
+ripgrep
+starship
+tldr
+zoxide
+
+# Zsh
+zsh
+zsh-autosuggestions
+zsh-completions
+zsh-history-substring-search
+zsh-syntax-highlighting
+
+# Go development
+go
+golangci-lint
+goreleaser
+protobuf
+grpcurl
+glslang
+
+# Rust development
+zig
+rustup
+
+# Cloud / Infra
+aws-cli-v2
+
+# Kubernetes / Containers
+k9s
+helm
+kubectx
+docker
+dive
+lazydocker
+
+# Utilities
+yq
+httpie
+tmux
+tree
+lazygit
+rclone
+nmap
+python-pipx
+nodejs
+npm
+
+# Desktop rice (Hyprland + eww)
+hyprland
+eww
+swaync
+wofi
+wlogout
+foot
+rofi-wayland
+btop
+cava
+glow
+clipse
+swww
+grim
+slurp
+wl-clipboard
+brightnessctl
+playerctl
+pipewire
+wireplumber
+pavucontrol
+
+# File manager + preview deps
+yazi
+ffmpegthumbnailer
+unarchiver
+poppler
+
+# Shader / visual tools
+glslviewer
+tattoy
+
+# Terminal fun / hacker aesthetic
+pipes.sh
+cbonsai
+tty-clock
+lolcat
+figlet
+toilet
+cowsay
+fortune-mod
+cmatrix
+onefetch
+
+# Fonts (AUR)
+ttf-jetbrains-mono-nerd
+ttf-maple-nerd-fonts
+
+# Logitech / Input
+solaar
+
+# Notifications / System
+mako
+libnotify
