@@ -5,7 +5,7 @@ sort=-time
 layer=overlay
 anchor=top-right
 
-font=JetBrainsMono Nerd Font 11
+font=Maple Mono NF CN 12
 width=320
 height=120
 margin=8,8,46,0

@@ -1,0 +1,17 @@
+[Unit]
+Description=Ralphglasses Marathon for %i
+After=default.target
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=%h/hairglasses-studio/%i
+ExecStart=%h/hairglasses-studio/ralphglasses/marathon.sh -b 100 -d 12 -c 80 -v
+Restart=on-failure
+RestartSec=30
+SyslogIdentifier=rg-marathon-%i
+MemoryMax=4G
+
+[Install]
+WantedBy=default.target

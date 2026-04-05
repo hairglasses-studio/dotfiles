@@ -27,3 +27,11 @@ Thumbs.db
 # Claude Code artifacts
 .claude-audit-report.md
 .claude/worktrees/
+
+# Local env files
+.env
+.env.local
+.envrc
+.env.*
+!.env.example
+!.env.*.example
