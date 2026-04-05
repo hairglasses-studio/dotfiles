@@ -56,7 +56,8 @@ slurp
 wlogout
 hyprpicker
 brightnessctl
-cliphist
+clipse-wayland-bin  # AUR — TUI clipboard manager (replaces cliphist)
+wl-clip-persist     # persists clipboard when source app closes
 ydotool
 wtype
 
