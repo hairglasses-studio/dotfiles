@@ -1,5 +1,8 @@
 # Core CLI (pacman -S)
+atuin
 bat
+dust
+duf
 eza
 fastfetch
 fd
@@ -9,6 +12,7 @@ git
 git-delta
 jq
 neovim
+procs
 ripgrep
 starship
 zoxide

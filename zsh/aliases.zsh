@@ -429,6 +429,17 @@ fi
 if cmd_exists lazydocker; then
     alias lzd='lazydocker'
 fi
+cmd_exists lazygit && alias lg='lazygit'
+
+# Modern CLI replacements
+cmd_exists duf   && alias df='duf'
+cmd_exists dust  && alias du='dust'
+cmd_exists procs && alias psa='procs'
+
+# Zoxide quick jump
+alias z='__zoxide_z'
+alias zi='__zoxide_zi'
+
 if cmd_exists stern; then
     alias klog='stern'
 fi
@@ -923,27 +934,24 @@ alias font-mix='bash $DOTFILES_DIR/scripts/font-mix.sh'
 
 # Peekaboo — macOS screen capture (in aliases.darwin.zsh)
 
-# Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
+# Shuffled playlist engine
 source "$HOME/.config/ghostty/shaders/bin/shader-playlist.sh" 2>/dev/null
-source "$HOME/.config/ghostty/shaders/bin/shader-pick-tattoy.sh" 2>/dev/null
 
 # Playlist-aware shader selection (called from zshrc on each new shell)
-# Rotates Ghostty shader + both Tattoy layers (cursor & background) together
 shader-next() {
   [[ -z "$GHOSTTY_RESOURCES_DIR" ]] && return
   if [[ "$GHOSTTY_QUICK_TERMINAL" = "1" ]]; then
-    shader-playlist-next "high-intensity"
+    shader-playlist-next "immersive"
   else
-    local active_pl="low-intensity"
+    local active_pl="ambient"
     local pl_cfg="$HOME/.local/state/ghostty/auto-rotate-playlist"
     [[ -f "$pl_cfg" ]] && active_pl="$(< "$pl_cfg")"
     shader-playlist-next "$active_pl"
   fi
-  tattoy-playlist-next 2>/dev/null
 }
 
-# Manually rotate all shader layers (Ghostty + Tattoy) on demand
-alias shader-rotate='shader-playlist-next "low-intensity"; tattoy-playlist-next 2>/dev/null'
+# Manually rotate shader on demand
+alias shader-rotate='shader-playlist-next "ambient"'
 
 # Random shader from all shaders (manual fallback, ignores playlists)
 # Also available as AeroSpace keybind: alt-shift-s
@@ -956,37 +964,29 @@ alias shader-reshuffle='rm -f ~/.local/state/ghostty/*.queue ~/.local/state/ghos
 shader-status() {
   local sd="$HOME/.local/state/ghostty"
   _ss_line() { local i t; i="$(cat "$sd/$1.idx" 2>/dev/null || echo 0)"; t="$(wc -l < "$sd/$1.queue" 2>/dev/null | tr -d ' ')" 2>/dev/null || t="?"; printf "%-20s %s / %s\n" "$2" "$i" "$t"; }
-  echo "── Ghostty ──"
-  _ss_line "low-intensity"    "Low-intensity:"
-  _ss_line "high-intensity"   "High-intensity:"
-  echo "── Tattoy ──"
-  _ss_line "tattoy-cursor"    "Cursor:"
-  _ss_line "tattoy-background" "Background:"
-  _ss_line "best-of"          "Best-of:"
+  echo "── Playlists ──"
+  _ss_line "ambient"     "Ambient:"
+  _ss_line "immersive"   "Immersive:"
+  _ss_line "cyberpunk"   "Cyberpunk:"
+  _ss_line "cursor-fx"   "Cursor FX:"
+  _ss_line "retro"       "Retro:"
+  _ss_line "showcase"    "Showcase:"
   echo "── Auto-rotate ──"
-  local active_pl="low-intensity"
+  local active_pl="ambient"
   [[ -f "$sd/auto-rotate-playlist" ]] && active_pl="$(< "$sd/auto-rotate-playlist")"
   printf "%-20s %s\n" "Active playlist:" "$active_pl"
-  if [[ "$(uname)" == "Darwin" ]]; then
-    if launchctl list com.dotfiles.shader-rotate &>/dev/null; then
-      printf "%-20s %s\n" "Timer:" "running"
-    else
-      printf "%-20s %s\n" "Timer:" "stopped"
-    fi
+  if systemctl --user is-active shader-rotate.timer &>/dev/null; then
+    printf "%-20s %s\n" "Timer:" "running"
   else
-    if systemctl --user is-active shader-rotate.timer &>/dev/null; then
-      printf "%-20s %s\n" "Timer:" "running"
-    else
-      printf "%-20s %s\n" "Timer:" "stopped"
-    fi
+    printf "%-20s %s\n" "Timer:" "stopped"
   fi
 }
 
-# Automatic timed shader rotation via launchd (macOS) or systemd timer (Linux)
+# Automatic timed shader rotation via systemd timer (Linux)
 # shader-auto start [minutes]  — start rotating every N minutes (default 30)
 # shader-auto stop             — stop automatic rotation
 # shader-auto status           — check if timer is running
-# Platform-specific shader-auto() defined in aliases.{darwin,linux}.zsh
+# Defined in aliases.linux.zsh
 
 # Best-of shader showcase — curated playlist of the most impressive effects
 # shader-best start [minutes]  — activate best-of rotation (default 15 min)
