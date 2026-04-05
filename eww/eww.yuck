@@ -123,10 +123,10 @@
       (label :class "media-artist" :text {mpris_data.artist != "" ? mpris_data.artist : "—"} :limit-width 35)
       (label :class "media-album" :text {mpris_data.album != "" ? mpris_data.album : ""} :limit-width 35 :visible {mpris_data.album != ""}))
     (box :class "media-progress" :orientation "v" :space-evenly false
-      (scale :class "media-progress-bar" :min 0 :max 101 :value mpris_data.progress :orientation "h")
+      (scale :class "media-progress-bar" :min 0 :max 101 :value {mpris_data.progress} :orientation "h")
       (box :class "media-times" :orientation "h" :space-evenly true
-        (label :class "media-time" :text mpris_data.position :halign "start")
-        (label :class "media-time" :text mpris_data.length :halign "end")))
+        (label :class "media-time" :text {mpris_data.position} :halign "start")
+        (label :class "media-time" :text {mpris_data.length} :halign "end")))
     (box :class "media-controls" :orientation "h" :spacing 24 :halign "center"
       (button :class "media-btn" :onclick "playerctl previous" "")
       (button :class "media-btn media-btn-play" :onclick "playerctl play-pause"
@@ -154,12 +154,12 @@
     (box :class "fleet-header" :halign "center"
       (label :class "fleet-header-text" :text "RALPHGLASSES FLEET"))
     (box :class "fleet-section" :orientation "v" :spacing 6
-      (fleet-row :icon "↻" :label "Fleet Status" :value rg_data.fleet :color "green")
-      (fleet-row :icon "⟳" :label "Active Loops" :value rg_data.loops :color "magenta")
-      (fleet-row :icon "$" :label "Session Cost" :value rg_data.cost :color "green")
-      (fleet-row :icon "󰧑" :label "Models" :value rg_data.models :color "yellow")
-      (fleet-row :icon "🔍" :label "Repositories" :value rg_data.repos :color "cyan")
-      (fleet-row :icon "󰔚" :label "Iterations" :value rg_data.iters :color "dim"))
+      (fleet-row :icon "↻" :label "Fleet Status" :value {rg_data.fleet} :color "green")
+      (fleet-row :icon "⟳" :label "Active Loops" :value {rg_data.loops} :color "magenta")
+      (fleet-row :icon "$" :label "Session Cost" :value {rg_data.cost} :color "green")
+      (fleet-row :icon "󰧑" :label "Models" :value {rg_data.models} :color "yellow")
+      (fleet-row :icon "🔍" :label "Repositories" :value {rg_data.repos} :color "cyan")
+      (fleet-row :icon "󰔚" :label "Iterations" :value {rg_data.iters} :color "dim"))
     (box :class "fleet-divider")
     (box :class "fleet-section" :orientation "v" :spacing 6
       (box :class "fleet-section-title"
@@ -270,6 +270,9 @@
 (defpoll bar_cpu :interval "3s" :initial "0"
   `awk '/^cpu /{printf "%.0f", ($2+$4)/($2+$4+$5)*100}' /proc/stat 2>/dev/null || echo "0"`)
 
+(defpoll bar_cpu_temp :interval "3s" :initial "0"
+  `sensors -u k10temp-pci-00c3 2>/dev/null | awk '/Tctl/{getline; printf "%.0f", $2}' || echo "0"`)
+
 (defpoll bar_mem :interval "5s" :initial "0"
   `free -m 2>/dev/null | awk '/Mem:/{printf "%.0f", $3/$2*100}' || echo "0"`)
 
@@ -287,9 +290,7 @@
 
 ; ── MCP audit summary ──
 (defpoll audit_summary :interval "60s" :initial ""
-  `jq -s 'length as $total | [.[] | select(.error)] | length as $errs |
-   if $total > 0 then "\($total) calls \($errs) err" else "" end'
-   ${XDG_STATE_HOME:-$HOME/.local/state}/mcpkit/audit.jsonl 2>/dev/null || echo ""`)
+  `wc -l < ~/.local/state/mcpkit/audit.jsonl 2>/dev/null | awk '{if($1>0) print $1" calls"}' || echo ""`)
 
 ; ── Ralphglasses fleet variables (single cache read) ──
 
@@ -407,6 +408,10 @@
           (label :class "bar-icon ${bar_cpu >= 90 ? 'red' : bar_cpu >= 70 ? 'yellow' : 'cyan'}" :text "")
           (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
             (label :class "bar-metric-val ${bar_cpu >= 90 ? 'metric-crit' : bar_cpu >= 70 ? 'metric-warn' : ''}" :text "${bar_cpu}%"))))
+      (box :class "bar-metric" :spacing 4
+        (label :class "bar-icon ${bar_cpu_temp >= 85 ? 'red' : bar_cpu_temp >= 70 ? 'yellow' : 'green'}" :text "")
+        (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
+          (label :class "bar-metric-val ${bar_cpu_temp >= 85 ? 'metric-crit' : bar_cpu_temp >= 70 ? 'metric-warn' : ''}" :text "${bar_cpu_temp}°")))
       (eventbox :onclick "ghostty --gtk-single-instance=false -e btop"
         (box :class "bar-metric" :spacing 4
           (label :class "bar-icon ${bar_mem >= 90 ? 'red' : bar_mem >= 70 ? 'yellow' : 'magenta'}" :text "")
@@ -437,12 +442,12 @@
 
 (defwidget bar-fleet []
   (box :class "bar-fleet" :orientation "h" :spacing 8
-    (rg-segment :label "↻" :value rg_data.fleet :color "green")
-    (rg-segment :label "⟳" :value rg_data.loops :color "magenta")
-    (rg-segment :label "$" :value rg_data.cost :color "green")
-    (rg-segment :label "󰧑" :value rg_data.models :color "yellow")
-    (rg-segment :label "🔍" :value rg_data.repos :color "cyan")
-    (rg-segment :label "󰔚" :value rg_data.iters :color "dim")
+    (rg-segment :label "↻" :value {rg_data.fleet} :color "green")
+    (rg-segment :label "⟳" :value {rg_data.loops} :color "magenta")
+    (rg-segment :label "$" :value {rg_data.cost} :color "green")
+    (rg-segment :label "󰧑" :value {rg_data.models} :color "yellow")
+    (rg-segment :label "🔍" :value {rg_data.repos} :color "cyan")
+    (rg-segment :label "󰔚" :value {rg_data.iters} :color "dim")
     (box :class "rg-seg ${k8s_ctx == '' || k8s_ctx == 'offline' ? 'rg-idle' : ''}" :spacing 4
       (label :class "rg-icon ${k8s_ctx == '' || k8s_ctx == 'offline' ? 'dim' : 'cyan'}" :text "⎈")
       (label :class "rg-val" :text {k8s_ctx == "" || k8s_ctx == "offline" ? "—" : k8s_ctx}))))
