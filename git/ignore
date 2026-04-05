@@ -1,1 +1,5 @@
 **/.claude/settings.local.json
+
+# Go workspace (local dev only)
+go.work
+go.work.sum
