@@ -1,4 +1,5 @@
 typeset -U path fpath
+export DIRENV_LOG_FORMAT=          # silence direnv loading messages
 
 # ── Dotfiles scripts in PATH ───────────────────
 export DOTFILES_DIR="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}"
