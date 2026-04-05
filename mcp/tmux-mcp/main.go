@@ -7,17 +7,17 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
 	"os"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/hairglasses-studio/dotfiles-mcp-internal/executil"
+	"github.com/hairglasses-studio/mcpkit/bootstrap"
 	"github.com/hairglasses-studio/mcpkit/handler"
 	"github.com/hairglasses-studio/mcpkit/registry"
 )
@@ -27,12 +27,7 @@ import (
 // ---------------------------------------------------------------------------
 
 func runCmd(name string, args ...string) (string, string, error) {
-	cmd := exec.Command(name, args...)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	return strings.TrimSpace(stdout.String()), strings.TrimSpace(stderr.String()), err
+	return executil.RunCmd(name, args...)
 }
 
 func runTmux(args ...string) (string, error) {
@@ -837,28 +832,16 @@ func (m *TmuxModule) Tools() []registry.ToolDefinition {
 // ---------------------------------------------------------------------------
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	})).With("service", "tmux-mcp"))
-
-	slog.Info("server starting", "name", "tmux-mcp", "version", "1.0.0")
-
-	reg := registry.NewToolRegistry(registry.Config{
-		Middleware: []registry.Middleware{
-			registry.AuditMiddleware(""),
-			registry.SafetyTierMiddleware(),
-		},
-	})
-	mod := &TmuxModule{}
-	reg.RegisterModule(mod)
-	slog.Info("tools registered", "module", mod.Name(), "count", len(mod.Tools()))
-
-	s := registry.NewMCPServer("tmux-mcp", "1.0.0")
-	reg.RegisterWithServer(s)
-	buildTmuxResourceRegistry().RegisterWithServer(s)
-	buildTmuxPromptRegistry().RegisterWithServer(s)
-
-	if err := registry.ServeAuto(s); err != nil {
+	if err := bootstrap.Serve(bootstrap.ServerConfig{
+		Name:    "tmux-mcp",
+		Version: "1.0.0",
+	},
+		bootstrap.WithModule(&TmuxModule{}),
+		bootstrap.WithAudit(""),
+		bootstrap.WithSafetyTiers(),
+		bootstrap.WithResources(buildTmuxResourceRegistry()),
+		bootstrap.WithPrompts(buildTmuxPromptRegistry()),
+	); err != nil {
 		slog.Error("server stopped", "error", err)
 		os.Exit(1)
 	}
