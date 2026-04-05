@@ -140,11 +140,13 @@ $red: #ff5c57;
 
 .bar-icon {
   font-size: 13px;
+  transition: all 200ms ease;
   &.cyan    { color: $cyan; }
   &.magenta { color: $magenta; }
   &.green   { color: $green; }
   &.yellow  { color: $yellow; }
   &.red     { color: $red; text-shadow: 0 0 4px rgba(255, 92, 87, 0.6); }
+  &:hover   { animation: icon-bounce 0.4s ease; }
 }
 
 .bar-metric-val {
@@ -178,6 +180,7 @@ $red: #ff5c57;
 .mx-critical {
   color: $red;
   text-shadow: 0 0 4px rgba(255, 92, 87, 0.6);
+  animation: heartbeat 0.5s ease-in-out infinite;
 }
 
 .mx-disconnected {
@@ -343,6 +346,28 @@ $red: #ff5c57;
   0%   { opacity: 0.8; }
   50%  { opacity: 1.0; }
   100% { opacity: 0.8; }
+}
+
+@keyframes gradient-sweep {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes icon-bounce {
+  0%, 100% { margin-top: 0; }
+  50%      { margin-top: -3px; }
+}
+
+@keyframes heartbeat {
+  0%, 100% { opacity: 1.0; text-shadow: 0 0 4px $red; }
+  25%      { opacity: 0.6; text-shadow: 0 0 12px $red; }
+  50%      { opacity: 1.0; text-shadow: 0 0 4px $red; }
+  75%      { opacity: 0.7; text-shadow: 0 0 10px $red; }
+}
+
+@keyframes data-shimmer {
+  0%   { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
 }
 
 // ══════════════════════════════════════════════════
