@@ -22,8 +22,8 @@ extract_field() {
 }
 
 # Determine repo name from CWD path.
-# /home/hg/hairglasses-studio/dotfiles -> dotfiles
-# /home/hg/other/project -> _other
+# $HOME/hairglasses-studio/dotfiles -> dotfiles
+# $HOME/other/project -> _other
 repo_from_cwd() {
   local cwd="$1"
   if [[ "$cwd" == "$STUDIO_ROOT"/* ]]; then
