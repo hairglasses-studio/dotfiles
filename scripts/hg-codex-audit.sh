@@ -75,7 +75,7 @@ scanned_repos=0
 
 for repo in "${repos[@]}"; do
   name=$(basename "$repo")
-  if [[ "$name" == "docs" ]]; then
+  if [[ "$name" == "docs" || "$name" == "whiteclaw" ]]; then
     continue
   fi
   scanned_repos=$((scanned_repos + 1))
