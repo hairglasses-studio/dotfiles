@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -817,6 +818,55 @@ type SessionSummary struct {
 	Description string `json:"description,omitempty"`
 }
 
+// --- Coverage Report ---
+
+type OpsCoverageReportInput struct {
+	Repo      string  `json:"repo,omitempty" jsonschema:"description=Repository path (default: cwd)"`
+	Threshold float64 `json:"threshold,omitempty" jsonschema:"description=Minimum coverage percentage to pass gate (0=no gate)"`
+}
+
+type OpsCoveragePackage struct {
+	Name        string  `json:"name"`
+	CoveragePct float64 `json:"coverage_pct"`
+}
+
+type OpsCoverageReportOutput struct {
+	Language   string               `json:"language"`
+	OverallPct float64              `json:"overall_pct"`
+	GatePassed bool                 `json:"gate_passed"`
+	Threshold  float64              `json:"threshold"`
+	Packages   []OpsCoveragePackage `json:"packages"`
+}
+
+// --- Lint Fix ---
+
+type OpsLintFixInput struct {
+	Repo string `json:"repo,omitempty" jsonschema:"description=Repository path (default: cwd)"`
+}
+
+type OpsLintFixOutput struct {
+	Language        string `json:"language"`
+	ToolUsed        string `json:"tool_used"`
+	FilesFixed      int    `json:"files_fixed"`
+	ErrorsRemaining int    `json:"errors_remaining"`
+	Output          string `json:"output"`
+}
+
+// --- Changelog Generate ---
+
+type OpsChangelogGenerateInput struct {
+	Repo  string `json:"repo,omitempty" jsonschema:"description=Repository path (default: cwd)"`
+	Write bool   `json:"write,omitempty" jsonschema:"description=If true append to CHANGELOG.md (default: preview only)"`
+}
+
+type OpsChangelogGenerateOutput struct {
+	Markdown    string         `json:"markdown"`
+	CommitCount int            `json:"commit_count"`
+	Groups      map[string]int `json:"groups"`
+	Written     bool           `json:"written"`
+	LastTag     string         `json:"last_tag"`
+}
+
 // ---------------------------------------------------------------------------
 // Module
 // ---------------------------------------------------------------------------
@@ -921,6 +971,22 @@ func (m *OpsModule) Tools() []registry.ToolDefinition {
 			"ops_release",
 			"Bump version, generate changelog entry, commit, and tag. Detects language (Go/Node/Python) and updates the appropriate version file. Dry-run by default — pass execute=true.",
 			opsRelease,
+		),
+		// Coverage, Lint, Changelog
+		handler.TypedHandler[OpsCoverageReportInput, OpsCoverageReportOutput](
+			"ops_coverage_report",
+			"Run test coverage and return per-package percentages. Set threshold>0 to gate on minimum overall coverage. Go: go test -coverprofile, Node: nyc/c8, Python: coverage.py.",
+			opsCoverageReport,
+		),
+		handler.TypedHandler[OpsLintFixInput, OpsLintFixOutput](
+			"ops_lint_fix",
+			"Auto-fix lint issues in-place. Go: goimports + golangci-lint --fix, Node: eslint --fix + prettier, Python: black + isort. Reports files changed and remaining errors.",
+			opsLintFix,
+		),
+		handler.TypedHandler[OpsChangelogGenerateInput, OpsChangelogGenerateOutput](
+			"ops_changelog_generate",
+			"Generate markdown changelog from conventional commits since last tag. Groups by feat/fix/chore/etc. Pass write=true to prepend to CHANGELOG.md.",
+			opsChangelogGenerate,
 		),
 	}
 }
@@ -2257,5 +2323,479 @@ func opsRelease(_ context.Context, input OpsReleaseInput) (OpsReleaseOutput, err
 		Committed:      true,
 		Pushed:         pushed,
 		DryRun:         false,
+	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Coverage Report
+// ---------------------------------------------------------------------------
+
+func opsCoverageReport(_ context.Context, input OpsCoverageReportInput) (OpsCoverageReportOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsCoverageReportOutput{}, err
+	}
+	lang := opsDetectLanguage(repo)
+
+	switch lang {
+	case "go":
+		coverFile := filepath.Join(os.TempDir(), fmt.Sprintf("cover-%s.out", opsID()))
+		defer os.Remove(coverFile)
+
+		// Run coverage
+		_, stderr, exitCode, err := opsRunWithTimeout(opsBuildTimeout, repo,
+			"go", "test", "-coverprofile="+coverFile, "./...")
+		if err != nil {
+			return OpsCoverageReportOutput{}, fmt.Errorf("coverage command failed: %w", err)
+		}
+		if exitCode != 0 {
+			// Tests failed but may still have partial coverage
+			if _, statErr := os.Stat(coverFile); statErr != nil {
+				return OpsCoverageReportOutput{
+					Language:   lang,
+					GatePassed: false,
+					Threshold:  input.Threshold,
+				}, fmt.Errorf("[%s] tests failed (exit %d): %s", handler.ErrInvalidParam, exitCode, strings.TrimSpace(stderr))
+			}
+		}
+
+		// Parse coverage func output
+		stdout, _, _, err := opsRunWithTimeout(30*time.Second, repo,
+			"go", "tool", "cover", "-func="+coverFile)
+		if err != nil {
+			return OpsCoverageReportOutput{}, fmt.Errorf("go tool cover failed: %w", err)
+		}
+
+		var overallPct float64
+		pkgCoverage := make(map[string][]float64) // package -> list of function percentages
+
+		for _, line := range strings.Split(stdout, "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+
+			// Total line: "total:	(statements)	72.3%"
+			if strings.HasPrefix(line, "total:") {
+				fields := strings.Fields(line)
+				if len(fields) >= 3 {
+					pctStr := strings.TrimSuffix(fields[len(fields)-1], "%")
+					if v, err := strconv.ParseFloat(pctStr, 64); err == nil {
+						overallPct = v
+					}
+				}
+				continue
+			}
+
+			// Function line: "github.com/pkg/file.go:42:	FuncName	85.7%"
+			fields := strings.Fields(line)
+			if len(fields) >= 3 {
+				pctStr := strings.TrimSuffix(fields[len(fields)-1], "%")
+				pct, err := strconv.ParseFloat(pctStr, 64)
+				if err != nil {
+					continue
+				}
+				// Extract package from file path: "github.com/org/repo/pkg/file.go:42:"
+				filePart := fields[0]
+				idx := strings.LastIndex(filePart, "/")
+				pkgName := filePart
+				if idx > 0 {
+					pkgName = filePart[:idx]
+				}
+				pkgCoverage[pkgName] = append(pkgCoverage[pkgName], pct)
+			}
+		}
+
+		// Aggregate per-package
+		var packages []OpsCoveragePackage
+		for name, pcts := range pkgCoverage {
+			var sum float64
+			for _, p := range pcts {
+				sum += p
+			}
+			avg := sum / float64(len(pcts))
+			packages = append(packages, OpsCoveragePackage{
+				Name:        name,
+				CoveragePct: math.Round(avg*10) / 10,
+			})
+		}
+
+		gatePassed := true
+		if input.Threshold > 0 && overallPct < input.Threshold {
+			gatePassed = false
+		}
+
+		return OpsCoverageReportOutput{
+			Language:   lang,
+			OverallPct: overallPct,
+			GatePassed: gatePassed,
+			Threshold:  input.Threshold,
+			Packages:   packages,
+		}, nil
+
+	case "node":
+		// Try nyc or c8
+		stdout, stderr, exitCode, _ := opsRunWithTimeout(opsBuildTimeout, repo,
+			"npx", "c8", "report", "--reporter=text")
+		if exitCode != 0 {
+			stdout, stderr, exitCode, _ = opsRunWithTimeout(opsBuildTimeout, repo,
+				"npx", "nyc", "report", "--reporter=text")
+		}
+		if exitCode != 0 {
+			return OpsCoverageReportOutput{
+				Language: lang,
+			}, fmt.Errorf("[%s] no coverage tool found (tried c8, nyc): %s", handler.ErrInvalidParam, strings.TrimSpace(stderr))
+		}
+
+		// Parse "All files" summary line from text reporter
+		var overallPct float64
+		for _, line := range strings.Split(stdout, "\n") {
+			if strings.Contains(line, "All files") {
+				fields := strings.Fields(line)
+				for _, f := range fields {
+					if v, err := strconv.ParseFloat(f, 64); err == nil {
+						overallPct = v
+						break
+					}
+				}
+			}
+		}
+
+		gatePassed := true
+		if input.Threshold > 0 && overallPct < input.Threshold {
+			gatePassed = false
+		}
+
+		return OpsCoverageReportOutput{
+			Language:   lang,
+			OverallPct: overallPct,
+			GatePassed: gatePassed,
+			Threshold:  input.Threshold,
+		}, nil
+
+	case "python":
+		_, stderr, exitCode, _ := opsRunWithTimeout(opsBuildTimeout, repo,
+			"python3", "-m", "coverage", "run", "-m", "pytest")
+		if exitCode != 0 {
+			return OpsCoverageReportOutput{
+				Language: lang,
+			}, fmt.Errorf("[%s] coverage run failed: %s", handler.ErrInvalidParam, strings.TrimSpace(stderr))
+		}
+		stdout, _, _, _ := opsRunWithTimeout(30*time.Second, repo,
+			"python3", "-m", "coverage", "report")
+
+		var overallPct float64
+		for _, line := range strings.Split(stdout, "\n") {
+			if strings.HasPrefix(line, "TOTAL") {
+				fields := strings.Fields(line)
+				if len(fields) >= 4 {
+					pctStr := strings.TrimSuffix(fields[len(fields)-1], "%")
+					if v, err := strconv.ParseFloat(pctStr, 64); err == nil {
+						overallPct = v
+					}
+				}
+			}
+		}
+
+		gatePassed := true
+		if input.Threshold > 0 && overallPct < input.Threshold {
+			gatePassed = false
+		}
+
+		return OpsCoverageReportOutput{
+			Language:   lang,
+			OverallPct: overallPct,
+			GatePassed: gatePassed,
+			Threshold:  input.Threshold,
+		}, nil
+
+	default:
+		return OpsCoverageReportOutput{}, fmt.Errorf("[%s] unsupported language: %s", handler.ErrInvalidParam, lang)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Lint Fix
+// ---------------------------------------------------------------------------
+
+func opsLintFix(_ context.Context, input OpsLintFixInput) (OpsLintFixOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsLintFixOutput{}, err
+	}
+	lang := opsDetectLanguage(repo)
+	lintTimeout := 60 * time.Second
+
+	// Snapshot changed files before lint
+	beforeDiff, _ := runGit(repo, "diff", "--name-only")
+	beforeFiles := make(map[string]bool)
+	for _, f := range strings.Split(strings.TrimSpace(beforeDiff), "\n") {
+		if f != "" {
+			beforeFiles[f] = true
+		}
+	}
+
+	var toolUsed string
+	var combinedOutput strings.Builder
+	var errorsRemaining int
+
+	switch lang {
+	case "go":
+		// Try goimports first
+		_, goimportsErr := exec.LookPath("goimports")
+		if goimportsErr == nil {
+			stdout, stderr, _, _ := opsRunWithTimeout(lintTimeout, repo, "goimports", "-w", ".")
+			toolUsed = "goimports"
+			combinedOutput.WriteString(stdout)
+			combinedOutput.WriteString(stderr)
+		}
+
+		// Then try golangci-lint --fix
+		_, golintErr := exec.LookPath("golangci-lint")
+		if golintErr == nil {
+			stdout, stderr, exitCode, _ := opsRunWithTimeout(lintTimeout, repo, "golangci-lint", "run", "--fix", "./...")
+			if toolUsed != "" {
+				toolUsed += " + golangci-lint"
+			} else {
+				toolUsed = "golangci-lint"
+			}
+			combinedOutput.WriteString(stdout)
+			combinedOutput.WriteString(stderr)
+			if exitCode != 0 {
+				// Count remaining errors from output
+				for _, line := range strings.Split(stderr+"\n"+stdout, "\n") {
+					if compileErrorRe.MatchString(strings.TrimSpace(line)) {
+						errorsRemaining++
+					}
+				}
+			}
+		}
+
+		if goimportsErr != nil && golintErr != nil {
+			return OpsLintFixOutput{
+				Language: lang,
+				Output:   "No Go lint tools found. Install with: go install golang.org/x/tools/cmd/goimports@latest && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+			}, nil
+		}
+
+	case "node":
+		// Try eslint --fix first, then prettier
+		stdout, stderr, exitCode, _ := opsRunWithTimeout(lintTimeout, repo, "npx", "eslint", "--fix", ".")
+		toolUsed = "eslint"
+		combinedOutput.WriteString(stdout)
+		combinedOutput.WriteString(stderr)
+		if exitCode != 0 {
+			for _, line := range strings.Split(stderr+"\n"+stdout, "\n") {
+				line = strings.TrimSpace(line)
+				if strings.Contains(line, "error") && strings.Contains(line, ":") {
+					errorsRemaining++
+				}
+			}
+		}
+
+		// Also run prettier
+		stdout2, stderr2, _, _ := opsRunWithTimeout(lintTimeout, repo, "npx", "prettier", "--write", ".")
+		toolUsed += " + prettier"
+		combinedOutput.WriteString(stdout2)
+		combinedOutput.WriteString(stderr2)
+
+	case "python":
+		// black + isort
+		_, blackErr := exec.LookPath("black")
+		_, isortErr := exec.LookPath("isort")
+
+		if blackErr != nil && isortErr != nil {
+			return OpsLintFixOutput{
+				Language: lang,
+				Output:   "No Python lint tools found. Install with: pip install black isort",
+			}, nil
+		}
+
+		if blackErr == nil {
+			stdout, stderr, _, _ := opsRunWithTimeout(lintTimeout, repo, "black", ".")
+			toolUsed = "black"
+			combinedOutput.WriteString(stdout)
+			combinedOutput.WriteString(stderr)
+		}
+		if isortErr == nil {
+			stdout, stderr, _, _ := opsRunWithTimeout(lintTimeout, repo, "isort", ".")
+			if toolUsed != "" {
+				toolUsed += " + isort"
+			} else {
+				toolUsed = "isort"
+			}
+			combinedOutput.WriteString(stdout)
+			combinedOutput.WriteString(stderr)
+		}
+
+	default:
+		return OpsLintFixOutput{}, fmt.Errorf("[%s] unsupported language: %s", handler.ErrInvalidParam, lang)
+	}
+
+	// Count files changed by lint
+	afterDiff, _ := runGit(repo, "diff", "--name-only")
+	filesFixed := 0
+	for _, f := range strings.Split(strings.TrimSpace(afterDiff), "\n") {
+		if f != "" && !beforeFiles[f] {
+			filesFixed++
+		}
+	}
+
+	// Truncate output to avoid huge payloads
+	output := combinedOutput.String()
+	if len(output) > 4096 {
+		output = output[:4096] + "\n... (truncated)"
+	}
+
+	return OpsLintFixOutput{
+		Language:        lang,
+		ToolUsed:        toolUsed,
+		FilesFixed:      filesFixed,
+		ErrorsRemaining: errorsRemaining,
+		Output:          strings.TrimSpace(output),
+	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Changelog Generate
+// ---------------------------------------------------------------------------
+
+var changelogPrefixRe = regexp.MustCompile(`^(feat|fix|chore|docs|refactor|test|ci|perf|build|breaking)(\(.+?\))?(!)?:\s*(.+)`)
+
+func opsChangelogGenerate(_ context.Context, input OpsChangelogGenerateInput) (OpsChangelogGenerateOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsChangelogGenerateOutput{}, err
+	}
+
+	// Find last tag
+	lastTag := ""
+	tagOut, tagErr := runGit(repo, "describe", "--tags", "--abbrev=0", "HEAD")
+	if tagErr == nil && strings.TrimSpace(tagOut) != "" {
+		lastTag = strings.TrimSpace(tagOut)
+	}
+
+	// Get commits since last tag (or all commits)
+	var gitLogArgs []string
+	if lastTag != "" {
+		gitLogArgs = []string{"log", "--oneline", "--no-merges", lastTag + "..HEAD"}
+	} else {
+		gitLogArgs = []string{"log", "--oneline", "--no-merges"}
+	}
+	commitsOut, err := runGit(repo, gitLogArgs...)
+	if err != nil {
+		return OpsChangelogGenerateOutput{}, fmt.Errorf("[%s] git log failed: %w", handler.ErrInvalidParam, err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(commitsOut), "\n")
+	if len(lines) == 1 && lines[0] == "" {
+		return OpsChangelogGenerateOutput{
+			LastTag:  lastTag,
+			Groups:   map[string]int{},
+			Markdown: "No new commits since last tag.",
+		}, nil
+	}
+
+	// Parse and group commits
+	groups := make(map[string][]string) // category -> messages
+	groupCounts := make(map[string]int)
+	uncategorized := []string{}
+
+	for _, line := range lines {
+		// Strip short hash prefix: "abc1234 feat: message" -> "feat: message"
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) < 2 {
+			continue
+		}
+		msg := parts[1]
+
+		m := changelogPrefixRe.FindStringSubmatch(msg)
+		if m != nil {
+			category := m[1]
+			// Treat BREAKING CHANGE / ! suffix as breaking
+			if m[3] == "!" {
+				category = "breaking"
+			}
+			description := m[4]
+			groups[category] = append(groups[category], description)
+			groupCounts[category]++
+		} else {
+			// Check for "BREAKING CHANGE:" prefix
+			if strings.HasPrefix(strings.ToUpper(msg), "BREAKING CHANGE") {
+				groups["breaking"] = append(groups["breaking"], msg)
+				groupCounts["breaking"]++
+			} else {
+				uncategorized = append(uncategorized, msg)
+				groupCounts["other"]++
+			}
+		}
+	}
+
+	// Generate markdown
+	var md strings.Builder
+	date := time.Now().Format("2006-01-02")
+	if lastTag != "" {
+		md.WriteString(fmt.Sprintf("## Unreleased (since %s) — %s\n\n", lastTag, date))
+	} else {
+		md.WriteString(fmt.Sprintf("## Unreleased — %s\n\n", date))
+	}
+
+	// Ordered sections
+	sectionOrder := []struct {
+		key   string
+		title string
+	}{
+		{"breaking", "Breaking Changes"},
+		{"feat", "Features"},
+		{"fix", "Bug Fixes"},
+		{"perf", "Performance"},
+		{"refactor", "Refactoring"},
+		{"docs", "Documentation"},
+		{"test", "Tests"},
+		{"ci", "CI/CD"},
+		{"build", "Build"},
+		{"chore", "Chores"},
+	}
+
+	for _, sec := range sectionOrder {
+		items, ok := groups[sec.key]
+		if !ok || len(items) == 0 {
+			continue
+		}
+		md.WriteString(fmt.Sprintf("### %s\n\n", sec.title))
+		for _, item := range items {
+			md.WriteString(fmt.Sprintf("- %s\n", item))
+		}
+		md.WriteString("\n")
+	}
+
+	if len(uncategorized) > 0 {
+		md.WriteString("### Other\n\n")
+		for _, item := range uncategorized {
+			md.WriteString(fmt.Sprintf("- %s\n", item))
+		}
+		md.WriteString("\n")
+	}
+
+	markdown := md.String()
+
+	// Write to CHANGELOG.md if requested
+	written := false
+	if input.Write {
+		clPath := filepath.Join(repo, "CHANGELOG.md")
+		existing, _ := os.ReadFile(clPath)
+		newContent := markdown + string(existing)
+		if err := os.WriteFile(clPath, []byte(newContent), 0o644); err != nil {
+			return OpsChangelogGenerateOutput{}, fmt.Errorf("failed to write CHANGELOG.md: %w", err)
+		}
+		written = true
+	}
+
+	return OpsChangelogGenerateOutput{
+		Markdown:    markdown,
+		CommitCount: len(lines),
+		Groups:      groupCounts,
+		Written:     written,
+		LastTag:     lastTag,
 	}, nil
 }
