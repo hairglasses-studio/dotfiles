@@ -1,5 +1,8 @@
-# Arch Linux / Manjaro packages — equivalent of Brewfile
-# Install with: yay -S --needed - < Pacfile
+# DEPRECATED: This file is superseded by metapac group files in metapac/groups/*.toml
+# Kept as bootstrap fallback for fresh installs where metapac is not yet available.
+# To manage packages declaratively, edit metapac/groups/*.toml and run: metapac sync
+#
+# Legacy install: yay -S --needed - < Pacfile
 # Lines starting with # are comments. Blank lines ignored.
 
 # Core CLI tools

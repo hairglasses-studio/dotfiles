@@ -1,4 +1,6 @@
-# 🐧 Arch Linux Dotfiles & Installation Automation
+# Arch Linux Installation Scripts (DEPRECATED)
+
+> **Note:** These scripts are from the initial Arch/Manjaro setup and reference outdated packages (JetBrains Mono instead of Maple Mono NF CN, grim instead of wayshot). For current setup, use `install.sh` at the repo root and `metapac sync` for package management.
 
 Personal Arch Linux configuration and automated installation scripts for quickly setting up new systems.
 

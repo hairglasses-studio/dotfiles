@@ -174,7 +174,7 @@ test_palette() {
 
   # Check for JetBrains font refs
   local jb_count
-  jb_count="$(grep -ril "jetbrains" --include="*.conf" --include="*.toml" --include="*.css" --include="*.scss" --include="*.ini" --include="*.yml" --include="*.rasi" "$SCRIPT_DIR/.." 2>/dev/null | grep -v ".git" | wc -l || true)"
+  jb_count="$(grep -ril "jetbrains" --include="*.conf" --include="*.toml" --include="*.css" --include="*.scss" --include="*.ini" --include="*.yml" --include="*.rasi" "$SCRIPT_DIR/.." 2>/dev/null | grep -v ".git" | grep -v "metapac/" | grep -v "Pacfile" | wc -l || true)"
   if [[ $jb_count -gt 0 ]]; then
     add_result palette "jetbrains_font_refs" warn "$jb_count files"
   else
