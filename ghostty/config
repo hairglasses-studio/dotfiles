@@ -6,9 +6,9 @@
 
 # ── Font ────────────────────────────────────────
 font-family = MonaspiceNe Nerd Font Mono
-font-family-bold = MonaspiceNe Nerd Font Mono
-font-family-italic = MonaspiceNe Nerd Font Mono
-font-family-bold-italic = MonaspiceNe Nerd Font Mono
+font-family-bold = MonaspiceXe Nerd Font Mono
+font-family-italic = MonaspiceAr Nerd Font Mono
+font-family-bold-italic = MonaspiceKr Nerd Font Mono
 font-style = Regular
 font-style-bold = Bold
 font-style-italic = Italic
@@ -66,8 +66,8 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /home/hg/.config/ghostty/shaders/vaporwave.glsl
-custom-shader-animation = true
+custom-shader = shaders/gradient-background.glsl
+custom-shader-animation = false
 
 # ── Links ───────────────────────────────────────
 link-url = true
