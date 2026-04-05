@@ -211,6 +211,9 @@ zstyle ':fzf-tab:complete:cd:*' extra-opts --preview='ls -la $realpath 2>/dev/nu
 # ── Zoxide (smart cd) ──────────────────────────
 _cached_eval zoxide zoxide init zsh
 
+# ── Atuin (shell history) ─────────────────────
+command -v atuin &>/dev/null && _cached_eval atuin atuin init zsh
+
 # ── direnv (per-directory env vars) ────────────
 command -v direnv &>/dev/null && _cached_eval direnv direnv hook zsh
 
