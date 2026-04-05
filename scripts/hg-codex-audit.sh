@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="${HG_STUDIO_ROOT:-/home/hg/hairglasses-studio}"
+ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
 WRITE_DOCS=0
 WRITE_WIKI_DOCS=0
 WRITE_JSON=0
