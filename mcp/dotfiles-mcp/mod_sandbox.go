@@ -1112,12 +1112,8 @@ func sandboxVisualDiffHandler(_ context.Context, req registry.CallToolRequest) (
 // ---------------------------------------------------------------------------
 
 func sandboxValidate(ctx context.Context, input SandboxValidateInput) (SandboxValidateOutput, error) {
+	// Always destroy after validation — use individual tools to keep sandboxes alive
 	destroyAfter := true
-	if !input.DestroyAfter {
-		// Default to true unless explicitly set to false
-		// (Go zero value is false, so we treat unset as true)
-		destroyAfter = true
-	}
 
 	// Step 1: Create sandbox
 	createOut, err := sandboxCreate(ctx, SandboxCreateInput{

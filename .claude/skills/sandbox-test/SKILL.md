@@ -1,7 +1,7 @@
 ---
 name: sandbox-test
 description: Test dotfile changes in a GPU-accelerated Docker sandbox with visual preview screenshot
-allowed-tools: mcp__dotfiles__sandbox_create, mcp__dotfiles__sandbox_start, mcp__dotfiles__sandbox_stop, mcp__dotfiles__sandbox_destroy, mcp__dotfiles__sandbox_screenshot, mcp__dotfiles__sandbox_test, mcp__dotfiles__sandbox_sync, mcp__dotfiles__sandbox_status, mcp__dotfiles__sandbox_list
+allowed-tools: mcp__dotfiles__sandbox_create, mcp__dotfiles__sandbox_start, mcp__dotfiles__sandbox_stop, mcp__dotfiles__sandbox_destroy, mcp__dotfiles__sandbox_screenshot, mcp__dotfiles__sandbox_test, mcp__dotfiles__sandbox_sync, mcp__dotfiles__sandbox_status, mcp__dotfiles__sandbox_list, mcp__dotfiles__sandbox_diff, mcp__dotfiles__sandbox_exec, mcp__dotfiles__sandbox_validate, mcp__dotfiles__sandbox_visual_diff
 ---
 
 Test dotfile changes in an isolated Docker sandbox with GPU-accelerated Hyprland rendering. `$ARGUMENTS` can be:
