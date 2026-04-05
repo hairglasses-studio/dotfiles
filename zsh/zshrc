@@ -352,7 +352,9 @@ fi
 [[ -d "$HOME/hairglasses-studio" ]] && cd "$HOME/hairglasses-studio"
 
 # ── Shuffled Ghostty shader per terminal ──────
-command -v shader-next &>/dev/null && { timeout 2 shader-next 2>/dev/null & } 2>/dev/null
+if (( $+functions[shader-next] )) || (( $+commands[shader-next] )); then
+  { shader-next 2>/dev/null & } 2>/dev/null; disown 2>/dev/null
+fi
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
