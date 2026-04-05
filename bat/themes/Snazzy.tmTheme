@@ -13,13 +13,13 @@
 				<key>background</key>
 				<string>#000000</string>
 				<key>foreground</key>
-				<string>#d4d4d4</string>
+				<string>#f1f1f0</string>
 				<key>caret</key>
-				<string>#f8f8f2</string>
+				<string>#f1f1f0</string>
 				<key>selection</key>
-				<string>#264f78</string>
+				<string>#1a1b26</string>
 				<key>selectionBorder</key>
-				<string>#264f78</string>
+				<string>#57c7ff</string>
 				<key>lineHighlight</key>
 				<string>#1a1a1a</string>
 				<key>gutterForeground</key>
@@ -171,7 +171,7 @@
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
-				<string>#d4d4d4</string>
+				<string>#f1f1f0</string>
 			</dict>
 		</dict>
 		<!-- Headings (Markdown) -->
