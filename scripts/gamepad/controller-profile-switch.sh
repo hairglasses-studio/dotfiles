@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # controller-profile-switch.sh — Toggle between AntiMicroX profiles
 # Usage: controller-profile-switch.sh <profile-name>
+set -euo pipefail
 PROFILE_DIR="$HOME/.config/antimicrox"
 name="${1:-hyprland-desktop}"
 profile="$PROFILE_DIR/${name}.gamecontroller.amgp"

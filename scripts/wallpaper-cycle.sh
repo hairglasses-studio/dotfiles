@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # wallpaper-cycle.sh — Animated wallpaper rotation via swww
 # Usage: wallpaper-cycle.sh [next|random|set <path>]
+set -euo pipefail
 
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/wallpapers}"
 STATE_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/swww/current"
