@@ -336,8 +336,8 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/wofi/style.css" "$HOME/.config/wofi/style.css"
         link_file "$DOTFILES_DIR/foot/foot.ini" "$HOME/.config/foot/foot.ini"
         link_file "$DOTFILES_DIR/hyprland" "$HOME/.config/hypr"
+        link_file "$DOTFILES_DIR/pypr/config.toml" "$HOME/.config/pypr/config.toml"
         link_file "$DOTFILES_DIR/eww" "$HOME/.config/eww"
-        link_file "$DOTFILES_DIR/rofi" "$HOME/.config/rofi"
         link_file "$DOTFILES_DIR/helix/config.toml" "$HOME/.config/helix/config.toml"
         link_file "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
         link_file "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
@@ -394,8 +394,6 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/systemd/rg-marathon@.service" "$HOME/.config/systemd/user/rg-marathon@.service"
         link_file "$DOTFILES_DIR/systemd/makima.service" "$HOME/.config/systemd/user/makima.service"
         systemctl --user daemon-reload
-        systemctl --user enable shader-rotate.timer
-        systemctl --user enable tmux.service
     fi
 }
 
@@ -448,6 +446,7 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/wofi/style.css" "$HOME/.config/wofi/style.css"
         check_link "$DOTFILES_DIR/foot/foot.ini" "$HOME/.config/foot/foot.ini"
         check_link "$DOTFILES_DIR/hyprland" "$HOME/.config/hypr"
+        check_link "$DOTFILES_DIR/pypr/config.toml" "$HOME/.config/pypr/config.toml"
         check_link "$DOTFILES_DIR/eww" "$HOME/.config/eww"
         check_link "$DOTFILES_DIR/helix/config.toml" "$HOME/.config/helix/config.toml"
         check_link "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
@@ -596,6 +595,10 @@ main() {
         install_yay
         install_paru
         install_metapac
+        # Symlink metapac config before sync so it reads group files
+        if [[ -d "$DOTFILES_DIR/metapac" ]]; then
+            link_file "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
+        fi
         install_linux_packages
     fi
 

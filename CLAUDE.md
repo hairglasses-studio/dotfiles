@@ -33,6 +33,10 @@ Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — 
 2. **Tattoy** — terminal compositor with shader + animated cursor layers (text-resolution via half-blocks)
 3. **RetroVisor** — CRT overlay via ScreenCaptureKit + Metal (screen-level)
 
+### Package Management
+- **macOS:** Homebrew via `Brewfile`
+- **Linux:** metapac (declarative, paru backend) with 12 groups in `metapac/groups/`. Run `metapac sync` to install all packages, or edit group TOMLs to add/remove. Falls back to `Pacfile` if metapac is not installed.
+
 ### Window Management
 - **macOS:** AeroSpace tiling + SketchyBar + JankyBorders
 - **Linux:** Hyprland + eww bar + swaync notifications + wofi launcher + wlogout
