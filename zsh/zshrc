@@ -23,7 +23,7 @@ _cached_eval() {
       return 1
     }
   fi
-  source "$cache"
+  source "$cache" 2>/dev/null
 }
 
 # ── PATH ────────────────────────────────────────
