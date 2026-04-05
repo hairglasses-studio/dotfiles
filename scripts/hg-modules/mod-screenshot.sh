@@ -59,13 +59,6 @@ _screenshot_window() {
     sx="$(echo "$json" | jq -r '.size[0]')"
     sy="$(echo "$json" | jq -r '.size[1]')"
     region="${ax},${ay} ${sx}x${sy}"
-  elif [[ "$comp_type" == "sway" ]]; then
-    local rx ry rw rh
-    rx="$(echo "$json" | jq -r '.rect.x')"
-    ry="$(echo "$json" | jq -r '.rect.y')"
-    rw="$(echo "$json" | jq -r '.rect.width')"
-    rh="$(echo "$json" | jq -r '.rect.height')"
-    region="${rx},${ry} ${rw}x${rh}"
   else
     hg_die "Window screenshot not supported on $(compositor_type)"
   fi

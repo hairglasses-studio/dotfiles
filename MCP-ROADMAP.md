@@ -9,7 +9,7 @@ dotfiles stack: Hyprland/Sway, Ghostty (144 shaders), eww, Go/Python/Bash,
 | Server | Lang | Tools | Domain |
 |--------|------|-------|--------|
 | hyprland-mcp | Go | 12 | Compositor, screenshots, input, windows |
-| sway-mcp | Node | 12 | Sway fallback, clipboard, screenshots |
+| ~~sway-mcp~~ | ~~Node~~ | ~~12~~ | ~~Removed — Sway deprecated, Hyprland only~~ |
 | dotfiles-mcp | Go | 30 | Config, GitHub sync, eww, health, pipelines |
 | shader-mcp | Go | 11 | GLSL shaders, playlists, benchmarks |
 | input-mcp | Go | 29 | Bluetooth, controllers, MIDI, mouse, keyboard |

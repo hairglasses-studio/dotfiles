@@ -69,7 +69,6 @@ _rice_services() {
 
   local -a services=(
     "Hyprland:Hyprland"
-    "sway:sway"
     "eww:eww"
     "mako:mako"
     "swww:swww-daemon"

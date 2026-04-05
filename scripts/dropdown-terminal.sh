@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # dropdown-terminal.sh — Yakuake-style toggle for ralphglasses + claude code
-# Works on both Sway and Hyprland
+# Hyprland special workspace as scratchpad
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -41,15 +41,5 @@ hyprland)
         hyprctl dispatch movetoworkspacesilent "special:dropdown,class:^($APP_ID)$"
         hyprctl dispatch togglespecialworkspace dropdown
     fi
-    ;;
-sway)
-    # Sway — use scratchpad
-    if swaymsg -t get_tree | grep -q "\"app_id\": \"$APP_ID\""; then
-        swaymsg "[app_id=\"$APP_ID\"] scratchpad show"
-    else
-        _launch_terminal
-    fi
-    sleep 0.15
-    swaymsg "[app_id=\"$APP_ID\"] resize set $WIDTH $HEIGHT, move position 0 0"
     ;;
 esac

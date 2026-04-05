@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # mod-wm.sh — hg wm module
-# Compositor abstraction — works on Hyprland, Sway, AeroSpace
+# Compositor abstraction — works on Hyprland, AeroSpace
 
 source "$HG_DOTFILES/scripts/lib/compositor.sh"
 
@@ -10,7 +10,7 @@ wm_description() {
 
 wm_commands() {
   cat <<'CMDS'
-type	Show compositor type (hyprland|sway|aerospace)
+type	Show compositor type (hyprland|aerospace)
 reload	Reload compositor config
 windows	List all windows
 workspaces	List workspaces
@@ -42,8 +42,6 @@ _wm_windows() {
   comp="$(compositor_type)"
   if [[ "$comp" == "hyprland" ]]; then
     echo "$json" | jq -r '.[] | "  \(.workspace.id)\t\(.class)\t\(.title[:60])"' 2>/dev/null | column -t -s$'\t'
-  elif [[ "$comp" == "sway" ]]; then
-    echo "$json" | jq -r '.. | objects | select(.type == "con" and .pid > 0) | "  \(.workspace // "-")\t\(.app_id // .name)\t\(.name[:60])"' 2>/dev/null | column -t -s$'\t'
   else
     echo "$json" | jq '.' 2>/dev/null
   fi
@@ -61,8 +59,6 @@ _wm_workspaces() {
   comp="$(compositor_type)"
   if [[ "$comp" == "hyprland" ]]; then
     echo "$json" | jq -r '.[] | "  \(.id)\t\(.windows) windows\t\(.name // "")"' 2>/dev/null | column -t -s$'\t'
-  elif [[ "$comp" == "sway" ]]; then
-    echo "$json" | jq -r '.[] | "  \(.num)\t\(.focus | length) focused\t\(.name // "")"' 2>/dev/null | column -t -s$'\t'
   else
     echo "$json" | jq '.' 2>/dev/null
   fi
@@ -83,10 +79,6 @@ _wm_active() {
     printf "  %s%-12s%s %s\n" "$HG_DIM" "title" "$HG_RESET" "$(echo "$json" | jq -r '.title')"
     printf "  %s%-12s%s %s\n" "$HG_DIM" "workspace" "$HG_RESET" "$(echo "$json" | jq -r '.workspace.id')"
     printf "  %s%-12s%s %sx%s\n" "$HG_DIM" "size" "$HG_RESET" "$(echo "$json" | jq -r '.size[0]')" "$(echo "$json" | jq -r '.size[1]')"
-  elif [[ "$comp" == "sway" ]]; then
-    printf "  %s%-12s%s %s\n" "$HG_DIM" "app_id" "$HG_RESET" "$(echo "$json" | jq -r '.app_id // .name')"
-    printf "  %s%-12s%s %s\n" "$HG_DIM" "title" "$HG_RESET" "$(echo "$json" | jq -r '.name')"
-    printf "  %s%-12s%s %sx%s\n" "$HG_DIM" "size" "$HG_RESET" "$(echo "$json" | jq -r '.rect.width')" "$(echo "$json" | jq -r '.rect.height')"
   else
     echo "$json" | jq '.' 2>/dev/null
   fi
