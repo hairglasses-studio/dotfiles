@@ -1,0 +1,79 @@
+# Media and entertainment applications
+# Install with: cat media.txt | xargs yay -S --needed
+
+# Music streaming and players
+spotify
+youtube-music-bin
+nuclear-player-bin
+clementine
+rhythmbox
+audacious
+
+# Video players
+vlc
+mpv
+celluloid
+kodi
+
+# Video streaming
+freetube-bin
+netflix-nativefier
+disney-plus-nativefier
+
+# Graphics and image editing
+gimp
+krita
+inkscape
+darktable
+rawtherapee
+digikam
+
+# Video editing
+kdenlive
+davinci-resolve
+openshot
+shotcut
+obs-studio
+
+# Audio editing
+audacity
+ardour
+reaper
+bitwig-studio
+
+# Screen recording
+obs-studio
+simplescreenrecorder
+peek
+kazam
+
+# Image viewers
+gwenview
+eog
+feh
+nomacs
+
+# E-book management
+calibre
+foliate
+bookworm
+
+# Gaming
+steam
+lutris
+heroic-games-launcher-bin
+bottles
+mangohud
+gamemode
+
+# Media servers
+plex-media-server
+jellyfin
+kodi
+
+# Downloaders
+jdownloader2
+qbittorrent
+transmission-gtk
+youtube-dl
+yt-dlp

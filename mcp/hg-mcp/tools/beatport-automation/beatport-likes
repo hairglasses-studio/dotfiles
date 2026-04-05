@@ -1,0 +1,11 @@
+#!/bin/bash
+# Beatport Likes/Follows Automation
+# Usage: beatport-likes <command> [args]
+
+cd "$(dirname "$0")"
+
+export PLAYWRIGHT_BROWSERS_PATH=./node_modules/playwright-core/.local-browsers
+export BEATPORT_USERNAME="${BEATPORT_USERNAME:-hairglasses}"
+export BEATPORT_PASSWORD="${BEATPORT_PASSWORD:-M@kawel1M@kawel1!}"
+
+node index.js "$@"

@@ -1,0 +1,98 @@
+# OSC Default Configuration
+# Standard port assignments for aftrs-studio projects
+
+# ============================================================
+# APPLICATION PORTS
+# ============================================================
+
+touchdesigner:
+  input_port: 7000      # TD receives on this port
+  output_port: 8000     # TD sends from this port
+
+resolume:
+  host: "127.0.0.1"
+  port: 7000            # Resolume Arena/Avenue OSC input
+
+ableton:
+  host: "127.0.0.1"
+  port: 9000            # Ableton Live OSC input
+
+qlab:
+  host: "127.0.0.1"
+  port: 53000           # QLab OSC input
+
+max_msp:
+  host: "127.0.0.1"
+  port: 7400            # Max/MSP default
+
+# ============================================================
+# STANDARD OSC ADDRESSES
+# ============================================================
+
+# Use these addresses for consistency across projects
+
+transport:
+  play: "/transport/play"           # 1 = play, 0 = stop
+  stop: "/transport/stop"           # trigger
+  bpm: "/transport/bpm"             # float (e.g., 128.0)
+  beat: "/transport/beat"           # trigger on each beat
+  bar: "/transport/bar"             # trigger on each bar
+  phase: "/transport/phase"         # 0.0-1.0 within beat
+
+audio:
+  volume: "/audio/volume"           # 0.0-1.0
+  bass: "/audio/bass"               # 0.0-1.0 bass energy
+  mids: "/audio/mids"               # 0.0-1.0 mid energy
+  highs: "/audio/highs"             # 0.0-1.0 high energy
+  fft: "/audio/fft"                 # full spectrum array
+
+layers:
+  # Pattern: /layer/{n}/param
+  opacity: "/layer/{n}/opacity"     # 0.0-1.0
+  bypass: "/layer/{n}/bypass"       # 0 or 1
+  solo: "/layer/{n}/solo"           # 0 or 1
+  blend: "/layer/{n}/blend"         # blend mode string
+
+effects:
+  # Pattern: /effect/{name}/param
+  intensity: "/effect/{name}/intensity"  # 0.0-1.0
+  bypass: "/effect/{name}/bypass"        # 0 or 1
+
+# ============================================================
+# RESOLUME-SPECIFIC ADDRESSES
+# ============================================================
+
+resolume_addresses:
+  # Clips
+  clip_trigger: "/composition/layers/{layer}/clips/{clip}/connect"
+  clip_opacity: "/composition/layers/{layer}/clips/{clip}/video/opacity"
+
+  # Layers
+  layer_opacity: "/composition/layers/{layer}/video/opacity"
+  layer_bypass: "/composition/layers/{layer}/bypassed"
+  layer_solo: "/composition/layers/{layer}/solo"
+
+  # Effects
+  effect_opacity: "/composition/layers/{layer}/video/effects/{effect}/opacity"
+  effect_bypass: "/composition/layers/{layer}/video/effects/{effect}/bypassed"
+
+  # Tempo
+  tempo: "/composition/tempocontroller/tempo"
+  tap_tempo: "/composition/tempocontroller/tempotap"
+
+  # Master
+  master_opacity: "/composition/video/opacity"
+
+# ============================================================
+# NETWORK SETTINGS
+# ============================================================
+
+network:
+  localhost: "127.0.0.1"
+  broadcast: "255.255.255.255"
+
+  # Common studio IPs (customize for your setup)
+  machines:
+    main: "192.168.1.100"
+    visual: "192.168.1.101"
+    audio: "192.168.1.102"

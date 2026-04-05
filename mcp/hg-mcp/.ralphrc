@@ -1,0 +1,256 @@
+# .ralphrc - Ralph project configuration
+# Project: hg-mcp (Go MCP server with 1,190+ tools across 119 modules)
+
+# Go and Node must be on PATH for quality gates (go build, go test, etc.)
+export PATH="$HOME/go-sdk/go/bin:$HOME/go/bin:$HOME/node-sdk/bin:$PATH"
+
+# Per-loop cost cap (USD) — enforced via claude --max-budget-usd
+# Actual avg is ~$0.08/loop; 0.75 gives ~10x headroom
+MAX_BUDGET_PER_LOOP=0.75
+
+# Skip a task after N consecutive failures on the same task
+MAX_RETRIES_PER_TASK=2
+
+# =============================================================================
+# PROJECT IDENTIFICATION
+# =============================================================================
+
+PROJECT_NAME="hg-mcp"
+PROJECT_TYPE="go"
+
+# =============================================================================
+# BUDGET PROTECTION
+# =============================================================================
+
+BUDGET_FILE=".ralph/budget.json"
+BUDGET_CHECK_BEFORE_LOOP=true
+MAX_CONSECUTIVE_NO_COMMIT=7
+
+# =============================================================================
+# IMPROVEMENT NOTES
+# =============================================================================
+
+IMPROVEMENT_NOTES_FILE=".ralph/improvement_notes.jsonl"
+IMPROVEMENT_CYCLE_INTERVAL=10
+
+# =============================================================================
+# MODEL STRATEGY
+# =============================================================================
+
+# Use sonnet for all DRY tasks — saves ~60% vs opus with comparable quality
+PRIMARY_MODEL="sonnet"
+FALLBACK_MODEL="sonnet"
+MODEL_SWITCH_ON_RATE_LIMIT=true
+
+# =============================================================================
+# LOOP SETTINGS
+# =============================================================================
+
+CLAUDE_CODE_CMD="claude"
+MAX_CALLS_PER_HOUR=200
+CLAUDE_TIMEOUT_MINUTES=20
+CLAUDE_OUTPUT_FORMAT="json"
+MAX_ITERATIONS_PER_SESSION=50
+
+# =============================================================================
+# TASK PRESETS QUEUE — Auto-generate tasks when current queue is exhausted
+# Comma-separated preset names from generate_tasks.sh (processed left to right)
+# =============================================================================
+
+TASK_PRESETS_QUEUE="osgetenv"
+
+# =============================================================================
+# DISCORD NOTIFICATIONS
+# Set webhook URL to receive session start/complete/kill switch alerts
+# =============================================================================
+
+DISCORD_WEBHOOK_URL=""
+
+# =============================================================================
+# TASK COMPLEXITY LIMITS
+# Maximum iterations before circuit breaker triggers per task type
+# =============================================================================
+
+MAX_ITERATIONS_NEW_MODULE=5
+MAX_ITERATIONS_FEATURE=30
+MAX_ITERATIONS_BUG_FIX=15
+MAX_ITERATIONS_TEST_EXPANSION=10
+MAX_ITERATIONS_REFACTOR=20
+MAX_ITERATIONS_INTEGRATION=25
+MAX_ITERATIONS_CATEGORY_SWEEP=40
+
+# =============================================================================
+# RUNTIME GROUPS — High-level functional grouping
+# Each group contains multiple tool categories/modules
+# =============================================================================
+
+RUNTIME_GROUPS="dj_music,vj_video,lighting,audio_production,show_control,infrastructure,messaging,inventory,streaming,platform"
+
+RUNTIME_GROUP_DJ_MUSIC="rekordbox,serato,traktor,soundcloud,spotify,beatport,samples,stems,fingerprint,cr8,setlist,prolink,mixcloud,bandcamp,boomkat,juno,traxsource,tidal,discogs,ytmusic,music_discovery,sync"
+RUNTIME_GROUP_VJ_VIDEO="resolume,resolume_plugins,touchdesigner,ndicv,video,videoai,videorouting,vj_clips,ffgl,vimix,mapmap,gpushare,avsync,ptz,ptztrack,retrogaming"
+RUNTIME_GROUP_LIGHTING="lighting,wled,ledfx,sacn,ola,qlcplus,grandma3,xlights,opc,companion,linuxshowplayer,nanoleaf,hue"
+RUNTIME_GROUP_AUDIO_PRODUCTION="ableton,supercollider,ardour,puredata,maxforlive,midi,dante,whisper,ollama"
+RUNTIME_GROUP_SHOW_CONTROL="showcontrol,showkontrol,chains,snapshots,timecodesync,triggersync,bpmsync,paramsync,workflows,workflow_automation,consolidated,studio,atem,chataigne,ossia,streamdeck"
+RUNTIME_GROUP_INFRASTRUCTURE="unraid,opnsense,tailscale,system,hwmonitor,backup,usb,homeassistant,mqtt,rclone"
+RUNTIME_GROUP_MESSAGING="discord,discord_admin,slack,telegram,gmail,notion,pages,calendar,gtasks"
+RUNTIME_GROUP_INVENTORY="inventory"
+RUNTIME_GROUP_STREAMING="streaming,twitch,youtube_live"
+RUNTIME_GROUP_PLATFORM="discovery,router,dashboard,security,analytics,graph,vault,memory,learning,healing,gateway,federation,swarm,tasks,archive,data_migration,gdrive,plugins"
+
+# =============================================================================
+# TOOL PERMISSIONS
+# =============================================================================
+
+ALLOWED_TOOLS="Write,Read,Edit,Grep,Glob,Bash(go *),Bash(git add *),Bash(git commit *),Bash(git diff *),Bash(git log *),Bash(git status),Bash(git status *),Bash(git push *),Bash(make *),Bash(ls *),Bash(mkdir *),Bash(wc *),Bash(cat *),Bash(cd *),Bash(export *),Bash(go test *),Bash(grep *),Bash(head *),Bash(tail *)"
+
+# =============================================================================
+# SESSION MANAGEMENT
+# =============================================================================
+
+SESSION_CONTINUITY=true
+SESSION_EXPIRY_HOURS=24
+SESSION_STATE_FILE=".ralph/session_state.json"
+SESSION_HISTORY_FILE=".ralph/session_history.log"
+
+# =============================================================================
+# PROGRESS TRACKING
+# =============================================================================
+
+PROGRESS_FILE=".ralph/progress.json"
+PROGRESS_COMMIT=true
+PROGRESS_INCLUDE_METRICS=true
+
+# =============================================================================
+# ADAPTIVE TASK GENERATION
+# =============================================================================
+
+ADAPTIVE_GENERATOR_ENABLED=true
+ADAPTIVE_MIN_TASKS=5
+
+# =============================================================================
+# COST GOVERNOR
+# =============================================================================
+
+COST_VELOCITY_WINDOW=5
+COST_VELOCITY_ALARM_PER_LOOP=5
+UNPRODUCTIVE_STREAK_LIMIT=5
+
+# =============================================================================
+# MODEL SELECTOR (enhanced)
+# =============================================================================
+
+OPUS_WINDOW_MAX_CALLS=30
+OPUS_WINDOW_HOURS=5
+BUDGET_DOWNGRADE_PCT=60
+
+# =============================================================================
+# FAST MODE STRATEGY
+# =============================================================================
+
+# Enable phase-aware fast mode switching
+FAST_MODE_ENABLED=true
+
+# Which phases use fast mode (comma-separated)
+# "execution" phases: code gen, mechanical fixes, test expansion, docs
+# "analysis" phases: architecture review, debugging, planning, refactoring
+FAST_MODE_PHASES="execution,test,docs,mechanical"
+STANDARD_MODE_PHASES="analysis,planning,debug,refactor,architecture"
+
+# Default when phase is unknown
+FAST_MODE_DEFAULT=false
+
+# =============================================================================
+# PARALLEL EXECUTION (future use)
+# =============================================================================
+
+PARALLEL_MODE="never"
+PARALLEL_MAX_WORKERS=3
+PARALLEL_WORKTREE_DIR=".ralph/worktrees"
+
+# =============================================================================
+# CIRCUIT BREAKER THRESHOLDS
+# =============================================================================
+
+# Tighter threshold — meta-improvement cycle recommended 5
+CB_NO_PROGRESS_THRESHOLD=5
+CB_SAME_ERROR_THRESHOLD=5
+CB_COOLDOWN_MINUTES=15
+CB_AUTO_RESET=true
+CB_OUTPUT_DECLINE_THRESHOLD=70
+
+# =============================================================================
+# SUPERVISOR — 24hr unattended operation
+# =============================================================================
+
+WALL_CLOCK_HOURS=24
+MAX_RESTARTS=10
+RESTART_COOLDOWN_SECONDS=60
+AUTO_PUSH_ENABLED=true
+AUTO_PUSH_INTERVAL=10
+
+# =============================================================================
+# API LIMIT HANDLING
+# =============================================================================
+
+API_LIMIT_AUTO_WAIT=true
+API_LIMIT_WAIT_MINUTES=60
+API_LIMIT_DETECTION_LAYERS=3
+
+# =============================================================================
+# QUALITY GATES — All must pass before committing
+# =============================================================================
+
+QG_GO_BUILD=true
+QG_GO_VET=true
+QG_GO_TEST=true
+QG_GO_FMT=true
+
+# go vet patterns to IGNORE (pre-existing, not our fault)
+# IPv6 warnings in 6 clients, lock copy in beatport-sync
+QG_VET_IGNORE_PATTERNS="IPv6,lock copy"
+
+# =============================================================================
+# GIT WORKFLOW
+# =============================================================================
+
+# Commit message format: <type>(<scope>): <description>
+# Types: feat, fix, test, refactor, docs, chore
+# Scope: module name (e.g., supercollider, ardour, obs)
+GIT_COMMIT_FORMAT="conventional"
+GIT_BRANCH_STRATEGY="main"
+GIT_AUTO_PUSH=false
+
+# =============================================================================
+# FILE PROTECTION — Never modify these files
+# =============================================================================
+
+PROTECTED_FILES=".ralphrc,PROMPT.md,AGENT.md,CLAUDE.md,CLAUDE.local.md,go.sum"
+
+# Safety limits per loop iteration
+MAX_DIFF_LINES_PER_FILE=500
+MAX_FILES_PER_LOOP=15
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+
+LOG_LEVEL="info"
+LOG_FILE=".ralph/ralph.log"
+LOG_MAX_SIZE_MB=10
+LOG_ROTATE_COUNT=3
+
+# =============================================================================
+# HOOKS — Shell commands run at key lifecycle points
+# =============================================================================
+
+# Runs BEFORE git commit — must pass or commit is aborted
+PRE_COMMIT_HOOK="go build -o /dev/null ./cmd/hg-mcp && go vet ./... 2>&1 | grep -v 'IPv6\|lock copy' | grep -q 'vet:' && exit 1 || true && go test -short -count=1 ./..."
+
+# Runs AFTER successful git commit
+POST_COMMIT_HOOK="echo '[ralph] Committed successfully'"
+
+# Runs when a session completes
+ON_SESSION_COMPLETE_HOOK="echo '[ralph] Session complete — $(date)' >> .ralph/session_history.log"
+
+# Runs when circuit breaker opens
+ON_CIRCUIT_BREAK_HOOK="echo '[ralph] CIRCUIT BREAKER OPENED — $(date)' >> .ralph/alerts.log"
