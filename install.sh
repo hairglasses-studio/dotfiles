@@ -262,6 +262,8 @@ create_symlinks() {
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
     link_file "$DOTFILES_DIR/cava"        "$HOME/.config/cava"
+    link_file "$DOTFILES_DIR/clipse/config.json" "$HOME/.config/clipse/config.json"
+    link_file "$DOTFILES_DIR/clipse/custom_theme.json" "$HOME/.config/clipse/custom_theme.json"
     link_file "$DOTFILES_DIR/glow"        "$HOME/.config/glow"
 
     # Individual file symlinks (non-XDG)
