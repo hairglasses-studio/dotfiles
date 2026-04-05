@@ -256,6 +256,7 @@ func dotfilesModules() []registry.ToolModule {
 		&ClaudeSessionModule{},
 		&PromptRegistryModule{},
 		&SandboxModule{},
+		&OpsModule{},
 	}
 }
 
