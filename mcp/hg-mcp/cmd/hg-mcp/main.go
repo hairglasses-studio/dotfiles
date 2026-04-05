@@ -66,6 +66,7 @@ import (
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/learning"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ledfx"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/lighting"
+	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/loader"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/linuxshowplayer"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/mapmap"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/maxforlive"
@@ -225,15 +226,20 @@ func main() {
 		server.WithPromptCapabilities(true),
 	)
 
+	// Set tool profile before registration (controls eager vs deferred loading)
+	registry := tools.GetRegistry()
+	registry.SetProfile(tools.HgToolProfileFromEnv())
+
 	// Register all tools, resources, and prompts
 	mcp.RegisterTools(s)
 	mcp.RegisterResources(s)
 	mcp.RegisterPrompts(s)
 
 	// Log startup metrics
-	registry := tools.GetRegistry()
 	slog.Info("hg-mcp server ready",
-		"tools", registry.ToolCount(),
+		"profile", registry.GetProfile(),
+		"eager_tools", registry.ToolCount()-registry.DeferredToolCount(),
+		"deferred_tools", registry.DeferredToolCount(),
 		"modules", registry.ModuleCount(),
 		"startup_ms", time.Since(startupStart).Milliseconds(),
 	)

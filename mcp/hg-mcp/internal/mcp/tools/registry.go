@@ -143,9 +143,12 @@ type ToolModule interface {
 
 // ToolRegistry manages tool registration and lookup
 type ToolRegistry struct {
-	mu      sync.RWMutex
-	modules map[string]ToolModule
-	tools   map[string]ToolDefinition
+	mu       sync.RWMutex
+	modules  map[string]ToolModule
+	tools    map[string]ToolDefinition
+	deferred map[string]ToolDefinition // tools not yet registered with MCP server
+	server   *server.MCPServer         // set by RegisterWithServer for deferred loading
+	profile  string                    // active profile (set before RegisterWithServer)
 }
 
 // Global registry instance
@@ -166,8 +169,9 @@ func GetRegistry() *ToolRegistry {
 // to avoid rehashing during startup when ~120 modules register ~880 tools.
 func NewToolRegistry() *ToolRegistry {
 	return &ToolRegistry{
-		modules: make(map[string]ToolModule, 128),
-		tools:   make(map[string]ToolDefinition, 1024),
+		modules:  make(map[string]ToolModule, 128),
+		tools:    make(map[string]ToolDefinition, 1024),
+		deferred: make(map[string]ToolDefinition, 512),
 	}
 }
 
@@ -505,21 +509,139 @@ func (r *ToolRegistry) GetUnconfiguredCategories() map[string]int {
 // DefaultToolTimeout is the maximum time a tool handler can run
 const DefaultToolTimeout = 30 * time.Second
 
-// RegisterWithServer registers all tools with an MCP server
-func (r *ToolRegistry) RegisterWithServer(s *server.MCPServer) {
-	start := time.Now()
+// SetProfile sets the active profile before RegisterWithServer is called.
+// If not called, defaults to the HG_MCP_PROFILE environment variable.
+func (r *ToolRegistry) SetProfile(profile string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.profile = profile
+}
+
+// GetProfile returns the active profile name.
+func (r *ToolRegistry) GetProfile() string {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
+	if r.profile == "" {
+		return hgToolProfile()
+	}
+	return r.profile
+}
 
+// RegisterWithServer registers eager tools with an MCP server and stores
+// deferred tools for on-demand loading via LoadDomain.
+func (r *ToolRegistry) RegisterWithServer(s *server.MCPServer) {
+	start := time.Now()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.server = s
+	profile := r.profile
+	if profile == "" {
+		profile = hgToolProfile()
+	}
+
+	var eagerCount, deferredCount int
 	for _, tool := range r.tools {
-		toolWithAnnotations := registry.ApplyToolMetadata(tool, "aftrs_", shouldDeferTool(hgToolProfile(), tool))
-		s.AddTool(toolWithAnnotations.Tool, server.ToolHandlerFunc(r.wrapHandler(tool.Tool.Name, tool.Handler)))
+		if shouldDeferTool(profile, tool) {
+			r.deferred[tool.Tool.Name] = tool
+			deferredCount++
+		} else {
+			toolWithAnnotations := registry.ApplyToolMetadata(tool, "aftrs_", false)
+			s.AddTool(toolWithAnnotations.Tool, server.ToolHandlerFunc(r.wrapHandler(tool.Tool.Name, tool.Handler)))
+			eagerCount++
+		}
 	}
 
 	slog.Info("registered tools with MCP server",
-		"tools", len(r.tools),
+		"profile", profile,
+		"eager", eagerCount,
+		"deferred", deferredCount,
+		"total", len(r.tools),
 		"duration_ms", time.Since(start).Milliseconds(),
 	)
+}
+
+// DeferredToolCount returns the number of tools waiting for on-demand loading.
+func (r *ToolRegistry) DeferredToolCount() int {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return len(r.deferred)
+}
+
+// DeferredGroups returns runtime groups that have deferred tools, with tool counts.
+func (r *ToolRegistry) DeferredGroupCounts() map[string]int {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	counts := make(map[string]int)
+	for _, td := range r.deferred {
+		group := td.RuntimeGroup
+		if group == "" {
+			group = "unassigned"
+		}
+		counts[group]++
+	}
+	return counts
+}
+
+// LoadDomain registers all deferred tools for a given runtime group with the
+// MCP server. Returns the number of tools loaded and any error.
+// Safe to call multiple times — already-loaded domains are a no-op.
+func (r *ToolRegistry) LoadDomain(group string) (int, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.server == nil {
+		return 0, fmt.Errorf("MCP server not set; call RegisterWithServer first")
+	}
+
+	var loaded int
+	for name, td := range r.deferred {
+		rg := td.RuntimeGroup
+		if rg == "" {
+			rg = "unassigned"
+		}
+		if rg == group {
+			toolWithAnnotations := registry.ApplyToolMetadata(td, "aftrs_", false)
+			r.server.AddTool(toolWithAnnotations.Tool, server.ToolHandlerFunc(r.wrapHandler(td.Tool.Name, td.Handler)))
+			delete(r.deferred, name)
+			loaded++
+		}
+	}
+
+	if loaded > 0 {
+		slog.Info("loaded deferred domain",
+			"domain", group,
+			"tools_loaded", loaded,
+			"remaining_deferred", len(r.deferred),
+		)
+	}
+
+	return loaded, nil
+}
+
+// LoadAllDeferred registers all remaining deferred tools with the MCP server.
+// Returns the total number of tools loaded.
+func (r *ToolRegistry) LoadAllDeferred() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.server == nil {
+		return 0
+	}
+
+	total := len(r.deferred)
+	for name, td := range r.deferred {
+		toolWithAnnotations := registry.ApplyToolMetadata(td, "aftrs_", false)
+		r.server.AddTool(toolWithAnnotations.Tool, server.ToolHandlerFunc(r.wrapHandler(td.Tool.Name, td.Handler)))
+		delete(r.deferred, name)
+	}
+
+	if total > 0 {
+		slog.Info("loaded all deferred tools", "tools_loaded", total)
+	}
+
+	return total
 }
 
 // applyMCPAnnotations applies MCP 2025 annotations based on tool metadata
@@ -559,10 +681,12 @@ func toolNameToTitle(name string) string {
 	return strings.Join(words, " ")
 }
 
-// wrapHandler wraps a tool handler with panic recovery, timeout, and observability
+// wrapHandler wraps a tool handler with panic recovery, timeout, and observability.
+// IMPORTANT: Caller must hold r.mu (read or write lock).
 func (r *ToolRegistry) wrapHandler(toolName string, handler ToolHandlerFunc) ToolHandlerFunc {
-	// Get the tool definition to access category
-	tool, _ := r.GetTool(toolName)
+	// Get the tool definition to access category — use direct map access
+	// since the caller already holds the lock.
+	tool := r.tools[toolName]
 	category := tool.Category
 	if category == "" {
 		category = "unknown"

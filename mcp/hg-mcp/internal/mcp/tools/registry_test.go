@@ -1,11 +1,13 @@
 package tools
 
 import (
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/hairglasses-studio/mcpkit/registry"
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
 )
 
 // testRegistry creates an isolated registry with sample tools for testing.
@@ -315,5 +317,232 @@ func TestShouldDeferToolByProfile(t *testing.T) {
 	fullTool := ToolDefinition{Category: "spotify", RuntimeGroup: RuntimeGroupDJMusic}
 	if shouldDeferTool("full", fullTool) {
 		t.Fatal("expected full profile to disable deferral")
+	}
+}
+
+// deferredTestRegistry creates a registry with tools across multiple runtime groups.
+func deferredTestRegistry() *ToolRegistry {
+	r := NewToolRegistry()
+
+	r.RegisterModule(&testMod{tools: []ToolDefinition{
+		// Platform (always eager)
+		{Tool: mcp.Tool{Name: "aftrs_tool_discover"}, Category: "discovery", Handler: func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return mcp.NewToolResultText("ok"), nil
+		}},
+		{Tool: mcp.Tool{Name: "aftrs_router_ask"}, Category: "router", Handler: func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return mcp.NewToolResultText("ok"), nil
+		}},
+		// Lighting (deferred in default)
+		{Tool: mcp.Tool{Name: "aftrs_wled_status"}, Category: "wled", Handler: func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return mcp.NewToolResultText("ok"), nil
+		}},
+		{Tool: mcp.Tool{Name: "aftrs_hue_set"}, Category: "hue", Handler: func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return mcp.NewToolResultText("ok"), nil
+		}},
+		// DJ Music (deferred in default)
+		{Tool: mcp.Tool{Name: "aftrs_rekordbox_list"}, Category: "rekordbox", Handler: func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return mcp.NewToolResultText("ok"), nil
+		}},
+		// Infrastructure (eager in ops, deferred in default)
+		{Tool: mcp.Tool{Name: "aftrs_unraid_status"}, Category: "unraid", Handler: func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			return mcp.NewToolResultText("ok"), nil
+		}},
+	}})
+
+	return r
+}
+
+func TestRegisterWithServer_DefaultProfile(t *testing.T) {
+	r := deferredTestRegistry()
+	r.SetProfile("default")
+
+	s := server.NewMCPServer("test", "0.1.0", server.WithToolCapabilities(true))
+	r.RegisterWithServer(s)
+
+	// Platform tools should be eager
+	if r.DeferredToolCount() == 0 {
+		t.Fatal("expected some deferred tools in default profile")
+	}
+	if r.DeferredToolCount() == r.ToolCount() {
+		t.Fatal("expected some eager tools in default profile")
+	}
+
+	// Check deferred groups
+	counts := r.DeferredGroupCounts()
+	if _, ok := counts[RuntimeGroupLighting]; !ok {
+		t.Error("expected lighting to be deferred in default profile")
+	}
+	if _, ok := counts[RuntimeGroupDJMusic]; !ok {
+		t.Error("expected dj_music to be deferred in default profile")
+	}
+	if _, ok := counts[RuntimeGroupPlatform]; ok {
+		t.Error("platform should NOT be deferred in default profile")
+	}
+}
+
+func TestRegisterWithServer_FullProfile(t *testing.T) {
+	r := deferredTestRegistry()
+	r.SetProfile("full")
+
+	s := server.NewMCPServer("test", "0.1.0", server.WithToolCapabilities(true))
+	r.RegisterWithServer(s)
+
+	if r.DeferredToolCount() != 0 {
+		t.Errorf("full profile should have 0 deferred tools, got %d", r.DeferredToolCount())
+	}
+}
+
+func TestLoadDomain(t *testing.T) {
+	r := deferredTestRegistry()
+	r.SetProfile("default")
+
+	s := server.NewMCPServer("test", "0.1.0", server.WithToolCapabilities(true))
+	r.RegisterWithServer(s)
+
+	initialDeferred := r.DeferredToolCount()
+
+	// Load lighting domain
+	loaded, err := r.LoadDomain(RuntimeGroupLighting)
+	if err != nil {
+		t.Fatalf("LoadDomain failed: %v", err)
+	}
+	if loaded == 0 {
+		t.Fatal("expected to load at least one lighting tool")
+	}
+
+	// Deferred count should decrease
+	if r.DeferredToolCount() >= initialDeferred {
+		t.Error("deferred count should have decreased after LoadDomain")
+	}
+
+	// Loading same domain again should be a no-op
+	loaded2, err := r.LoadDomain(RuntimeGroupLighting)
+	if err != nil {
+		t.Fatalf("second LoadDomain failed: %v", err)
+	}
+	if loaded2 != 0 {
+		t.Errorf("second load of same domain should return 0, got %d", loaded2)
+	}
+}
+
+func TestLoadDomain_BeforeServer(t *testing.T) {
+	r := NewToolRegistry()
+
+	_, err := r.LoadDomain(RuntimeGroupLighting)
+	if err == nil {
+		t.Fatal("expected error when calling LoadDomain before RegisterWithServer")
+	}
+}
+
+func TestLoadAllDeferred(t *testing.T) {
+	r := deferredTestRegistry()
+	r.SetProfile("default")
+
+	s := server.NewMCPServer("test", "0.1.0", server.WithToolCapabilities(true))
+	r.RegisterWithServer(s)
+
+	if r.DeferredToolCount() == 0 {
+		t.Fatal("expected deferred tools before LoadAllDeferred")
+	}
+
+	total := r.LoadAllDeferred()
+	if total == 0 {
+		t.Fatal("expected LoadAllDeferred to load at least one tool")
+	}
+	if r.DeferredToolCount() != 0 {
+		t.Errorf("expected 0 deferred tools after LoadAllDeferred, got %d", r.DeferredToolCount())
+	}
+
+	// Second call should be no-op
+	total2 := r.LoadAllDeferred()
+	if total2 != 0 {
+		t.Errorf("second LoadAllDeferred should return 0, got %d", total2)
+	}
+}
+
+func TestGetProfile_Default(t *testing.T) {
+	r := NewToolRegistry()
+	t.Setenv("HG_MCP_PROFILE", "")
+
+	if got := r.GetProfile(); got != "default" {
+		t.Errorf("GetProfile() = %q, want %q", got, "default")
+	}
+}
+
+func TestSetProfile(t *testing.T) {
+	r := NewToolRegistry()
+	r.SetProfile("ops")
+
+	if got := r.GetProfile(); got != "ops" {
+		t.Errorf("GetProfile() = %q, want %q", got, "ops")
+	}
+}
+
+func TestDeferredGroupCounts_Empty(t *testing.T) {
+	r := NewToolRegistry()
+	counts := r.DeferredGroupCounts()
+	if len(counts) != 0 {
+		t.Errorf("expected empty deferred group counts, got %v", counts)
+	}
+}
+
+func TestAllRuntimeGroups(t *testing.T) {
+	groups := AllRuntimeGroups()
+	if len(groups) == 0 {
+		t.Fatal("AllRuntimeGroups returned empty")
+	}
+	// Verify sorted
+	for i := 1; i < len(groups); i++ {
+		if groups[i] < groups[i-1] {
+			t.Errorf("AllRuntimeGroups not sorted: %v", groups)
+			break
+		}
+	}
+}
+
+func TestEagerGroups(t *testing.T) {
+	// Default profile should have platform only
+	def := EagerGroups("default")
+	if len(def) != 1 || def[0] != RuntimeGroupPlatform {
+		t.Errorf("EagerGroups(default) = %v, want [platform]", def)
+	}
+
+	// Ops should have platform + infrastructure + show_control
+	ops := EagerGroups("ops")
+	if len(ops) != 3 {
+		t.Errorf("EagerGroups(ops) = %v, want 3 groups", ops)
+	}
+
+	// Full should have all
+	full := EagerGroups("full")
+	if len(full) != len(AllRuntimeGroups()) {
+		t.Errorf("EagerGroups(full) = %d groups, want %d", len(full), len(AllRuntimeGroups()))
+	}
+}
+
+func TestDeferredGroups(t *testing.T) {
+	deferred := DeferredGroups("default")
+	if len(deferred) == 0 {
+		t.Fatal("default profile should have deferred groups")
+	}
+	// Platform should NOT be in deferred
+	for _, g := range deferred {
+		if g == RuntimeGroupPlatform {
+			t.Error("platform should not be in deferred groups for default profile")
+		}
+	}
+
+	// Full should have no deferred groups
+	if deferred := DeferredGroups("full"); deferred != nil {
+		t.Errorf("full profile should have nil deferred groups, got %v", deferred)
+	}
+}
+
+func TestRuntimeGroupLabel(t *testing.T) {
+	if label := RuntimeGroupLabel(RuntimeGroupDJMusic); label != "DJ & Music" {
+		t.Errorf("label for dj_music = %q, want %q", label, "DJ & Music")
+	}
+	if label := RuntimeGroupLabel("unknown"); label != "unknown" {
+		t.Errorf("label for unknown = %q, want %q", label, "unknown")
 	}
 }
