@@ -41,7 +41,7 @@ config_reload_service() {
   local component="$1" rc=0
   case "$component" in
     hyprland|hypr) compositor_reload;      rc=$? ;;
-    mako)          makoctl reload;         rc=$? ;;
+    swaync)        swaync-client --reload-config; rc=$? ;;
     eww)           eww reload 2>/dev/null; rc=$? ;;
     waybar)        pkill -SIGUSR2 waybar;  rc=$? ;;
     tmux)          tmux source-file ~/.tmux.conf 2>/dev/null; rc=$? ;;
