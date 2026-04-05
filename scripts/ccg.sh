@@ -156,21 +156,33 @@ _ccg_gather_sessions() {
     # NOTE: In zsh, `local`/`typeset` inside functions that pipe stdout
     # will print variable values. All declarations go here, silenced.
     {
-        typeset -A hist_ts hist_display meta_pid meta_name meta_started meta_cwd
+        typeset -A hist_ts hist_display hist_prompts meta_pid meta_name meta_started meta_cwd
         local project_dirname session_id custom_title cwd git_branch model version first_ts slug
         local user_tsv asst_tsv file_size file_mtime last_activity_epoch hist_ts_val
-        local title pid sess_status task_info open_tasks total_tasks repo
+        local title pid sess_status task_info open_tasks total_tasks repo topic_keywords
     } 2>/dev/null 1>/dev/null
 
     # Step 1: Build lookup tables
 
-    # History index
+    # History index — also collect recent prompts per session for topic search
     while IFS=$'\t' read -r sid ts display; do
         if [[ -n "$sid" ]]; then
             # Keep the latest timestamp per session
             if [[ -z "${hist_ts[$sid]:-}" ]] || (( ts > ${hist_ts[$sid]:-0} )); then
                 hist_ts[$sid]="$ts"
                 hist_display[$sid]="$display"
+            fi
+            # Collect recent prompts (keep last 5, pipe-separated)
+            if [[ -n "$display" ]]; then
+                local existing="${hist_prompts[$sid]:-}"
+                local count="${$(echo "$existing" | tr '|' '\n' | grep -c .):-0}"
+                if (( count < 5 )); then
+                    if [[ -n "$existing" ]]; then
+                        hist_prompts[$sid]="${existing}|${display:0:80}"
+                    else
+                        hist_prompts[$sid]="${display:0:80}"
+                    fi
+                fi
             fi
         fi
     done < <(_ccg_build_history_index)
@@ -263,6 +275,10 @@ _ccg_gather_sessions() {
             # Repo name from cwd
             repo=$(_ccg_repo_from_cwd "$cwd")
 
+            # Build topic keywords for search (title + slug + recent prompts + repo)
+            topic_keywords="${custom_title:-} ${slug:-} ${repo} ${hist_prompts[$session_id]:-}"
+            topic_keywords="${topic_keywords//|/ }"
+
             # Emit JSONL line
             jq -n -c \
                 --arg sid "$session_id" \
@@ -280,7 +296,8 @@ _ccg_gather_sessions() {
                 --argjson totalTasks "${total_tasks:-0}" \
                 --arg slug "${slug:-}" \
                 --arg customTitle "${custom_title:-}" \
-                '{sessionId: $sid, cwd: $cwd, repo: $repo, title: $title, branch: $branch, model: $model, version: $version, status: $status, pid: $pid, lastActivity: $lastActivity, fileSize: $fileSize, openTasks: $openTasks, totalTasks: $totalTasks, slug: $slug, customTitle: $customTitle}'
+                --arg topicKeywords "$topic_keywords" \
+                '{sessionId: $sid, cwd: $cwd, repo: $repo, title: $title, branch: $branch, model: $model, version: $version, status: $status, pid: $pid, lastActivity: $lastActivity, fileSize: $fileSize, openTasks: $openTasks, totalTasks: $totalTasks, slug: $slug, customTitle: $customTitle, topicKeywords: $topicKeywords}'
         done
     done
 }
@@ -388,6 +405,47 @@ _ccg_format_list() {
             "$sid" "$cwd"
     done | sort -t$'\t' -k9 -rn 2>/dev/null || true
     # Note: sort by lastActivity happens at gather time; here we just pass through
+}
+
+_ccg_format_from_jsonl() {
+    # Format JSONL lines from stdin into the same tabular format as _ccg_format_list.
+    {
+        local sid cwd repo title branch model sess_status pid last_activity file_size open_tasks total_tasks
+        local icon icon_color repo_fmt title_fmt branch_fmt age_fmt model_fmt tasks_fmt
+        local age age_c model_short model_c size_fmt
+    } 2>/dev/null 1>/dev/null
+
+    jq -r '[.sessionId, .cwd, .repo, .title, .branch, .model, .status, (.pid|tostring), (.lastActivity|tostring), (.fileSize|tostring), (.openTasks|tostring), (.totalTasks|tostring)] | @tsv' | while IFS=$'\t' read -r sid cwd repo title branch model sess_status pid last_activity file_size open_tasks total_tasks; do
+        if [[ "$sess_status" == "alive" ]]; then
+            icon="●"; icon_color="$C_GREEN"
+        else
+            icon="○"; icon_color="$C_DIM"
+        fi
+        repo_fmt=$(_ccg_truncate "$repo" 22)
+        title_fmt=$(_ccg_truncate "$title" 38)
+        branch_fmt=$(_ccg_truncate "$branch" 15)
+        age=$(_ccg_relative_age "$last_activity")
+        age_c=$(_ccg_age_color "$last_activity")
+        model_short=$(_ccg_model_short "$model")
+        model_c=$(_ccg_model_color "$model")
+        if (( total_tasks > 0 )); then
+            if (( open_tasks > 0 )); then tasks_fmt="${C_YELLOW}${open_tasks}/${total_tasks}${C_RESET}"
+            else tasks_fmt="${C_GREEN}${open_tasks}/${total_tasks}${C_RESET}"; fi
+        else tasks_fmt="${C_DIM}-${C_RESET}"; fi
+        if (( file_size > 1048576 )); then size_fmt="$(( file_size / 1048576 ))M"
+        elif (( file_size > 1024 )); then size_fmt="$(( file_size / 1024 ))K"
+        else size_fmt="${file_size}B"; fi
+        printf '%b%s%b\t%b%-22s%b\t%b%-38s%b\t%b%-15s%b\t%b%6s%b\t%b%-5s%b\t%b\t%b%4s%b\t%s\t%s\n' \
+            "$icon_color" "$icon" "$C_RESET" \
+            "$C_CYAN" "$repo_fmt" "$C_RESET" \
+            "$C_WHITE" "$title_fmt" "$C_RESET" \
+            "$C_MAGENTA" "$branch_fmt" "$C_RESET" \
+            "$age_c" "$age" "$C_RESET" \
+            "$model_c" "$model_short" "$C_RESET" \
+            "$tasks_fmt" \
+            "$C_DIM" "$size_fmt" "$C_RESET" \
+            "$sid" "$cwd"
+    done
 }
 
 # ---------------------------------------------------------------------------
@@ -633,12 +691,15 @@ _ccg_main() {
     fi
 
     local mode="interactive"
-    local filter_status="" filter_repo="" count=10
+    local filter_status="" filter_repo="" count=10 search_query=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --list)
                 mode="list"; shift ;;
+            --search)
+                mode="search"; shift
+                search_query="${1:-}"; shift ;;
             --preview)
                 mode="preview"; shift
                 _ccg_preview "$1"; return ;;
@@ -672,6 +733,7 @@ _ccg_main() {
                 echo ""
                 echo "Usage:"
                 echo "  ccg                  Interactive FZF picker"
+                echo "  ccg --search KEYWORD Search sessions by topic/keyword"
                 echo "  ccg --list           Raw formatted list"
                 echo "  ccg --json           JSON output (for scripting)"
                 echo "  ccg --recent [N]     Show N most recent (default 10)"
@@ -699,6 +761,59 @@ _ccg_main() {
     done
 
     case "$mode" in
+        search)
+            if [[ -z "$search_query" ]]; then
+                echo "ccg: --search requires a keyword argument" >&2; return 1
+            fi
+            local query_lower="${(L)search_query}"
+            local matched
+            matched=$(_ccg_get_cached_or_build | jq -c --arg q "$query_lower" \
+                'select(
+                    (.topicKeywords // "" | ascii_downcase | contains($q)) or
+                    (.title // "" | ascii_downcase | contains($q)) or
+                    (.slug // "" | ascii_downcase | contains($q)) or
+                    (.repo // "" | ascii_downcase | contains($q))
+                )')
+            if [[ -z "$matched" ]]; then
+                echo "${C_DIM}No sessions found matching '${search_query}'${C_RESET}"
+                return 0
+            fi
+            # If FZF available, pipe into interactive picker with query prefilled
+            if command -v fzf >/dev/null 2>&1; then
+                local header
+                header=$(printf "${C_BOLD}  %-3s %-22s %-38s %-15s %6s %-5s %-5s %4s${C_RESET}" "S" "REPO" "TITLE" "BRANCH" "AGE" "MODEL" "TASKS" "SIZE")
+                local selected
+                selected=$(echo "$matched" | _ccg_format_from_jsonl | fzf \
+                    --ansi \
+                    --delimiter=$'\t' \
+                    --with-nth=1..8 \
+                    --header="$header" \
+                    --header-first \
+                    --border=rounded \
+                    --border-label=" Search: ${search_query} " \
+                    --border-label-pos=2 \
+                    --no-sort \
+                    --query="$search_query" \
+                    --preview="$SELF --preview {9}" \
+                    --preview-window='right,45%,wrap,hidden' \
+                    --bind='?:toggle-preview' \
+                    --bind="enter:accept" \
+                    --height=80% \
+                    --layout=reverse) || return 0
+                if [[ -n "$selected" ]]; then
+                    local resume_sid resume_cwd
+                    resume_sid=$(echo "$selected" | awk -F'\t' '{print $9}')
+                    resume_cwd=$(echo "$selected" | awk -F'\t' '{print $10}')
+                    _ccg_resume "$resume_sid" "$resume_cwd"
+                fi
+            else
+                # Plain list output
+                echo "$matched" | jq -r '"\(.status)\t\(.repo)\t\(.title)\t\(.sessionId)"' | while IFS=$'\t' read -r st repo title sid; do
+                    [[ "$st" == "alive" ]] && icon="${C_GREEN}●${C_RESET}" || icon="${C_DIM}○${C_RESET}"
+                    printf '%b %-20s %-40s %s\n' "$icon" "$repo" "$title" "$sid"
+                done
+            fi
+            ;;
         json)
             _ccg_get_cached_or_build | jq -s 'sort_by(-.lastActivity)'
             ;;
