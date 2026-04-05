@@ -918,6 +918,9 @@ alias shader-build='bash ~/.config/ghostty/shaders/bin/shader-build.sh'
 alias shader-test='bash ~/.config/ghostty/shaders/bin/shader-test.sh'
 alias shader-cycle='bash ~/.config/ghostty/shaders/bin/shader-cycle.sh'
 
+# Font mixing — Monaspace multi-font profiles
+alias font-mix='bash $DOTFILES_DIR/scripts/font-mix.sh'
+
 # Peekaboo — macOS screen capture (in aliases.darwin.zsh)
 
 # Shuffled playlist engine (high-intensity for quick terminal, low-intensity for normal)
