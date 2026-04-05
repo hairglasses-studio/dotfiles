@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hairglasses-studio/mcpkit/handler"
 	"github.com/hairglasses-studio/mcpkit/registry"
@@ -190,6 +191,23 @@ type SystemdFailedInput struct {
 
 type SystemdFailedOutput struct {
 	Units json.RawMessage `json:"units"`
+}
+
+// ── systemd_restart_verify (composed) ──────────────────────────────────────
+
+type SystemdRestartVerifyInput struct {
+	Unit      string `json:"unit" jsonschema:"required,description=systemd unit name (e.g. logid.service)"`
+	TimeoutMs int    `json:"timeout_ms,omitempty" jsonschema:"description=Max time to wait for unit to become active (default 10000ms)"`
+	Scope     string `json:"scope,omitempty" jsonschema:"description=systemd scope: user (default) or system,enum=user,enum=system"`
+}
+
+type SystemdRestartVerifyOutput struct {
+	Unit          string   `json:"unit"`
+	PreviousState string   `json:"previous_state"`
+	NewState      string   `json:"new_state"`
+	Success       bool     `json:"success"`
+	DurationMs    int64    `json:"duration_ms"`
+	Logs          []string `json:"logs"`
 }
 
 // ---------------------------------------------------------------------------
@@ -494,6 +512,118 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 	disable.Category = "systemd"
 	disable.SearchTerms = []string{"disable service", "disable unit", "remove autostart"}
 
+	// ── Composed workflows ─────────────────────────────────────────────
+
+	restartVerify := handler.TypedHandler[SystemdRestartVerifyInput, SystemdRestartVerifyOutput](
+		"systemd_restart_verify",
+		"Composed workflow: restart a systemd unit, poll until active (or timeout), and return previous state, new state, and recent logs. Eliminates the multi-step restart→status→logs dance.",
+		func(ctx context.Context, input SystemdRestartVerifyInput) (SystemdRestartVerifyOutput, error) {
+			user := input.Scope != "system"
+			timeoutMs := input.TimeoutMs
+			if timeoutMs <= 0 {
+				timeoutMs = 10000
+			}
+
+			slog.Info("restart-verify: starting", "unit", input.Unit, "scope", input.Scope, "timeout_ms", timeoutMs)
+
+			// Step 1: capture previous state
+			prevOut, err := systemdRunSystemctl(ctx, user, "is-active", input.Unit)
+			previousState := strings.TrimSpace(prevOut)
+			if err != nil {
+				// is-active returns exit 3 for inactive/failed — that's fine, we still get stdout
+				if previousState == "" {
+					previousState = "unknown"
+				}
+			}
+
+			// Step 2: restart the unit
+			startTime := time.Now()
+			_, err = systemdRunSystemctl(ctx, user, "restart", input.Unit)
+			if err != nil {
+				slog.Error("restart-verify: restart failed", "unit", input.Unit, "error", err)
+				return SystemdRestartVerifyOutput{
+					Unit:          input.Unit,
+					PreviousState: previousState,
+					NewState:      "restart-failed",
+					Success:       false,
+					DurationMs:    time.Since(startTime).Milliseconds(),
+				}, fmt.Errorf("[%s] restart failed: %w", handler.ErrUpstreamError, err)
+			}
+
+			// Step 3: poll is-active every 500ms until active or timeout
+			deadline := time.After(time.Duration(timeoutMs) * time.Millisecond)
+			ticker := time.NewTicker(500 * time.Millisecond)
+			defer ticker.Stop()
+
+			var newState string
+			for {
+				select {
+				case <-ctx.Done():
+					return SystemdRestartVerifyOutput{
+						Unit:          input.Unit,
+						PreviousState: previousState,
+						NewState:      "context-cancelled",
+						Success:       false,
+						DurationMs:    time.Since(startTime).Milliseconds(),
+					}, ctx.Err()
+				case <-deadline:
+					// Final check before giving up
+					out, _ := systemdRunSystemctl(ctx, user, "is-active", input.Unit)
+					newState = strings.TrimSpace(out)
+					if newState == "" {
+						newState = "timeout"
+					}
+					goto done
+				case <-ticker.C:
+					out, _ := systemdRunSystemctl(ctx, user, "is-active", input.Unit)
+					newState = strings.TrimSpace(out)
+					if newState == "active" {
+						goto done
+					}
+				}
+			}
+
+		done:
+			durationMs := time.Since(startTime).Milliseconds()
+			success := newState == "active"
+
+			slog.Info("restart-verify: completed",
+				"unit", input.Unit,
+				"previous", previousState,
+				"new", newState,
+				"success", success,
+				"duration_ms", durationMs,
+			)
+
+			// Step 4: fetch last 20 log lines
+			logArgs := []string{input.Unit, "-n", "20", "--no-pager"}
+			logOut, logErr := systemdRunJournalctl(ctx, user, logArgs...)
+			var logLines []string
+			if logErr == nil {
+				for _, line := range strings.Split(strings.TrimSpace(logOut), "\n") {
+					if line != "" {
+						logLines = append(logLines, line)
+					}
+				}
+			} else {
+				logLines = []string{fmt.Sprintf("(failed to fetch logs: %v)", logErr)}
+			}
+
+			return SystemdRestartVerifyOutput{
+				Unit:          input.Unit,
+				PreviousState: previousState,
+				NewState:      newState,
+				Success:       success,
+				DurationMs:    durationMs,
+				Logs:          logLines,
+			}, nil
+		},
+	)
+	restartVerify.IsWrite = true
+	restartVerify.Complexity = registry.ComplexityComplex
+	restartVerify.Category = "systemd"
+	restartVerify.SearchTerms = []string{"restart verify", "restart check", "restart poll", "composed restart", "service health"}
+
 	return []registry.ToolDefinition{
 		status,
 		start,
@@ -505,5 +635,6 @@ func (m *SystemdModule) Tools() []registry.ToolDefinition {
 		listUnits,
 		listTimers,
 		failed,
+		restartVerify,
 	}
 }
