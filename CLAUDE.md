@@ -109,8 +109,12 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 |---------|-----------|---------|
 | `scripts/lib/hg-core.sh` | `hg_info`, `hg_ok`, `hg_error`, `hg_die`, `hg_require`, Snazzy colors | CLI framework for hg-* scripts |
 | `scripts/lib/compositor.sh` | `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_reload`, `compositor_subscribe` | Cross-compositor IPC (Hyprland/AeroSpace) |
-| `scripts/lib/config.sh` | `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service` | Atomic config writes with `mktemp + mv` |
+| `scripts/lib/config.sh` | `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service`, `config_reload_parallel` | Atomic config writes with `mktemp + mv`, parallel service reloads |
 | `scripts/lib/notify.sh` | `hg_notify_low`, `hg_notify_normal`, `hg_notify_critical` | Desktop notifications via notify-send |
+| `scripts/lib/ghostty-config.sh` | `ghostty_get_shader_path`, `ghostty_get_shader_name`, `ghostty_get_shader_animation` | Shared Ghostty config queries (eliminates inline grep/sed) |
+| `scripts/lib/agent-post-tool-audit.sh` | PostToolUse hook | Reloads services on config edits, validates hyprland/eww/systemd errors, checks metapac coverage, enforces Snazzy palette |
+| `scripts/lib/agent-pre-tool-validate.sh` | PreToolUse hook | Validates .yuck paren balance and .scss syntax before writes |
+| `scripts/lib/prompt-capture.sh` | UserPromptSubmit hook | Captures multi-line prompts to docs/prompts/ with TOML frontmatter + SQLite indexing |
 
 ## Scripts Reference
 

@@ -1,70 +1,26 @@
 #!/usr/bin/env bash
 # mod-screenshot.sh — hg screenshot module
-# Screenshots — crop, full, window, list, open
+# Delegates to hg-screenshot.sh for all capture operations.
 
 _SS_DIR="$HOME/Pictures/screenshots"
-_SS_CROP="$HG_DOTFILES/scripts/screenshot-crop.sh"
+_SS_SCRIPT="$HG_DOTFILES/scripts/hg-screenshot.sh"
 
 screenshot_description() {
-  echo "Screenshots — crop, full, window, list, open"
+  echo "Screenshots — crop, full, window, ocr, annotate, delay, record, list, open"
 }
 
 screenshot_commands() {
   cat <<'CMDS'
-crop	Crop-select region screenshot
+crop	Crop-select region screenshot → save + clipboard
 full	Full screen or monitor screenshot [monitor]
 window	Active window screenshot
+ocr	Region → OCR → text to clipboard
+annotate	Region → satty annotation
+delay	Delayed capture [seconds, default 3]
+record	Toggle screen recording
 list	List recent screenshots
 open	Open a recent screenshot [n]
 CMDS
-}
-
-_screenshot_save_notify() {
-  local filepath="$1"
-  echo -n "$filepath" | wl-copy 2>/dev/null
-  notify-send -a "Screenshot" -i "$filepath" "Screenshot saved" "$filepath" 2>/dev/null
-  hg_ok "$filepath"
-}
-
-_screenshot_full() {
-  hg_require wayshot wl-copy
-  mkdir -p "$_SS_DIR"
-  local monitor="${1:-}" filename filepath
-  filename="$(date +%Y%m%d_%H%M%S).png"
-  filepath="$_SS_DIR/$filename"
-  if [[ -n "$monitor" ]]; then
-    wayshot -o "$monitor" -f "$filepath" || hg_die "wayshot failed"
-  else
-    wayshot -f "$filepath" || hg_die "wayshot failed"
-  fi
-  _screenshot_save_notify "$filepath"
-}
-
-_screenshot_window() {
-  hg_require wayshot jq wl-copy
-  source "$HG_DOTFILES/scripts/lib/compositor.sh"
-  mkdir -p "$_SS_DIR"
-  local filename filepath json region
-  filename="$(date +%Y%m%d_%H%M%S).png"
-  filepath="$_SS_DIR/$filename"
-  json="$(compositor_query activewindow 2>/dev/null)"
-  [[ -n "$json" ]] || hg_die "No active window detected"
-
-  local comp_type
-  comp_type="$(compositor_type)"
-  if [[ "$comp_type" == "hyprland" ]]; then
-    local ax ay sx sy
-    ax="$(echo "$json" | jq -r '.at[0]')"
-    ay="$(echo "$json" | jq -r '.at[1]')"
-    sx="$(echo "$json" | jq -r '.size[0]')"
-    sy="$(echo "$json" | jq -r '.size[1]')"
-    region="${ax},${ay} ${sx}x${sy}"
-  else
-    hg_die "Window screenshot not supported on $(compositor_type)"
-  fi
-
-  wayshot -s "$region" -f "$filepath" || hg_die "wayshot failed"
-  _screenshot_save_notify "$filepath"
 }
 
 _screenshot_list() {
@@ -98,11 +54,15 @@ screenshot_run() {
   shift || true
 
   case "$cmd" in
-    crop)   exec bash "$_SS_CROP" ;;
-    full)   _screenshot_full "$@" ;;
-    window) _screenshot_window ;;
-    list)   _screenshot_list ;;
-    open)   _screenshot_open "$@" ;;
-    *)      hg_die "Unknown screenshot command: $cmd. Run 'hg screenshot --help'." ;;
+    crop)     exec bash "$_SS_SCRIPT" region --both ;;
+    full)     exec bash "$_SS_SCRIPT" ${1:+monitor "$1"} ${1:---save} ${1:+--save} ;;
+    window)   exec bash "$_SS_SCRIPT" window --save ;;
+    ocr)      exec bash "$_SS_SCRIPT" ocr ;;
+    annotate) exec bash "$_SS_SCRIPT" annotate ;;
+    delay)    exec bash "$_SS_SCRIPT" delay "${1:-3}" --save ;;
+    record)   exec bash "$_SS_SCRIPT" record ;;
+    list)     _screenshot_list ;;
+    open)     _screenshot_open "$@" ;;
+    *)        hg_die "Unknown screenshot command: $cmd. Run 'hg screenshot --help'." ;;
   esac
 }
