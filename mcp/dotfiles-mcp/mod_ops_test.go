@@ -1,7 +1,9 @@
 package main
 
 import (
+	"os"
 	"testing"
+	"time"
 )
 
 func TestOpsParseCompileErrors(t *testing.T) {
@@ -260,5 +262,148 @@ func TestOpsHasNPMScript(t *testing.T) {
 	// Test against current repo (should not have npm scripts)
 	if opsHasNPMScript(".", "lint") {
 		t.Error("current Go repo should not have npm lint script")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Session persistence tests
+// ---------------------------------------------------------------------------
+
+func TestOpsSessionPersistence(t *testing.T) {
+	// Create a temp state dir
+	origDir := os.Getenv("HOME")
+	tmpHome := t.TempDir()
+	os.Setenv("HOME", tmpHome)
+	defer os.Setenv("HOME", origDir)
+
+	// Ensure state dir
+	stateDir := opsStateDir()
+	if err := os.MkdirAll(stateDir, 0o755); err != nil {
+		t.Fatalf("create state dir: %v", err)
+	}
+
+	// Create session
+	session := &OpsSession{
+		ID:          "test-abc",
+		Repo:        "/tmp/test-repo",
+		Branch:      "main",
+		Description: "test session",
+		CreatedAt:   time.Now(),
+	}
+	if err := opsWriteSession(session); err != nil {
+		t.Fatalf("write session: %v", err)
+	}
+
+	// Read it back
+	got, err := opsReadSession("test-abc")
+	if err != nil {
+		t.Fatalf("read session: %v", err)
+	}
+	if got.ID != "test-abc" {
+		t.Errorf("ID = %q, want test-abc", got.ID)
+	}
+	if got.Repo != "/tmp/test-repo" {
+		t.Errorf("Repo = %q, want /tmp/test-repo", got.Repo)
+	}
+	if got.Description != "test session" {
+		t.Errorf("Description = %q, want 'test session'", got.Description)
+	}
+}
+
+func TestOpsIterationPersistence(t *testing.T) {
+	tmpHome := t.TempDir()
+	origDir := os.Getenv("HOME")
+	os.Setenv("HOME", tmpHome)
+	defer os.Setenv("HOME", origDir)
+
+	stateDir := opsStateDir()
+	os.MkdirAll(stateDir, 0o755)
+
+	session := &OpsSession{ID: "iter-test", Repo: "/tmp", Branch: "main", CreatedAt: time.Now()}
+	opsWriteSession(session)
+
+	// Append 3 iterations
+	for i := 1; i <= 3; i++ {
+		opsAppendIteration("iter-test", IterationRecord{
+			Number:     i,
+			Status:     "all_pass",
+			ErrorCount: 3 - i, // decreasing errors
+			DurationMs: int64(i * 1000),
+		})
+	}
+
+	// Read them back
+	iters := opsReadIterations("iter-test")
+	if len(iters) != 3 {
+		t.Fatalf("iterations = %d, want 3", len(iters))
+	}
+	if iters[0].ErrorCount != 2 {
+		t.Errorf("iter 1 errors = %d, want 2", iters[0].ErrorCount)
+	}
+	if iters[2].ErrorCount != 0 {
+		t.Errorf("iter 3 errors = %d, want 0", iters[2].ErrorCount)
+	}
+}
+
+func TestOpsSessionList(t *testing.T) {
+	tmpHome := t.TempDir()
+	origDir := os.Getenv("HOME")
+	os.Setenv("HOME", tmpHome)
+	defer os.Setenv("HOME", origDir)
+
+	stateDir := opsStateDir()
+	os.MkdirAll(stateDir, 0o755)
+
+	// Create two sessions
+	opsWriteSession(&OpsSession{ID: "s1", Repo: "/a", Branch: "main", CreatedAt: time.Now()})
+	opsWriteSession(&OpsSession{ID: "s2", Repo: "/b", Branch: "feat/x", CreatedAt: time.Now()})
+
+	ids := opsListSessionIDs()
+	if len(ids) != 2 {
+		t.Errorf("session count = %d, want 2", len(ids))
+	}
+}
+
+func TestOpsSessionNotFound(t *testing.T) {
+	tmpHome := t.TempDir()
+	origDir := os.Getenv("HOME")
+	os.Setenv("HOME", tmpHome)
+	defer os.Setenv("HOME", origDir)
+
+	_, err := opsReadSession("nonexistent")
+	if err == nil {
+		t.Error("expected error for nonexistent session")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// ID and helper tests
+// ---------------------------------------------------------------------------
+
+func TestOpsID_Unique(t *testing.T) {
+	seen := make(map[string]bool)
+	for i := 0; i < 100; i++ {
+		id := opsID()
+		if seen[id] {
+			t.Errorf("duplicate ID after %d iterations: %s", i, id)
+		}
+		seen[id] = true
+	}
+}
+
+func TestOpsResolveRepo_Default(t *testing.T) {
+	repo, err := opsResolveRepo("")
+	if err != nil {
+		t.Fatalf("resolveRepo empty: %v", err)
+	}
+	if repo == "" {
+		t.Error("resolveRepo returned empty string for cwd")
+	}
+}
+
+func TestOpsCurrentBranch(t *testing.T) {
+	branch := opsCurrentBranch(".")
+	if branch == "" {
+		t.Error("currentBranch returned empty for current repo")
 	}
 }
