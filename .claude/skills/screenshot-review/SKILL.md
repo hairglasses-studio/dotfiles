@@ -7,7 +7,7 @@ allowed-tools: Bash, Read, mcp__hyprland__hypr_screenshot, mcp__hyprland__hypr_l
 Take a screenshot of the current desktop and provide a detailed visual analysis.
 
 Steps:
-1. Use the `hypr_screenshot` MCP tool to capture the desktop (or fall back to `wayshot -f /tmp/rice-review.png`)
+1. Use the `hypr_screenshot` MCP tool to capture the desktop (or fall back to `hg-screenshot.sh full --output /tmp/rice-review.png --quiet`)
 2. Read the screenshot image
 3. Analyze and report on:
    - **Window layout** — Are windows tiled correctly? Any overlap or gaps?
