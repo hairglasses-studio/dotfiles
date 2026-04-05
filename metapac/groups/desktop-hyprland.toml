@@ -15,6 +15,7 @@ packages = [
     { name = "xdg-desktop-portal-gtk" },
     { name = "xorg-xwayland" },
     { name = "xdg-user-dirs" },
+    { name = "xdg-terminal-exec" },
 
     # Bar & widgets
     { name = "eww" },

@@ -13,7 +13,7 @@ HEIGHT=486
 
 _launch_terminal() {
     tmux kill-session -t "$TMUX_SESSION" 2>/dev/null
-    foot --app-id "$APP_ID" --font='Maple Mono NF CN:size=18' -- bash -c "
+    ghostty --class="$APP_ID" --font-size=18 -e bash -c "
         if command -v tte &>/dev/null; then
             echo 'CYBERDECK ONLINE' | tte beams \
                 --beam-gradient-stops 57c7ff ff6ac1 \
