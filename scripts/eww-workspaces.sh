@@ -5,34 +5,6 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/compositor.sh"
 
-_sway() {
-  local monitor="${1:-}"
-
-  _sway_workspaces() {
-    local mon_filter="$1"
-    if [[ -n "$mon_filter" ]]; then
-      swaymsg -t get_workspaces | jq -c \
-        --arg mon "$mon_filter" \
-        '[.[] | select(.output == $mon) | {num, focused, name, urgent, occupied: (.representation != null)}] | sort_by(.num)
-        | . as $arr | [range(length) | . as $i | $arr[$i] + {
-          prev_empty: (if $i == 0 then true elif ($arr[$i-1].occupied | not) then true else false end),
-          next_empty: (if $i == (($arr|length)-1) then true elif ($arr[$i+1].occupied | not) then true else false end)
-        }]'
-    else
-      swaymsg -t get_workspaces | jq -c '[.[] | {num, focused, name, urgent, occupied: (.representation != null)}] | sort_by(.num)
-        | . as $arr | [range(length) | . as $i | $arr[$i] + {
-          prev_empty: (if $i == 0 then true elif ($arr[$i-1].occupied | not) then true else false end),
-          next_empty: (if $i == (($arr|length)-1) then true elif ($arr[$i+1].occupied | not) then true else false end)
-        }]'
-    fi
-  }
-
-  while true; do
-    _sway_workspaces "$monitor"
-    swaymsg -t subscribe '["workspace"]' > /dev/null 2>&1
-  done
-}
-
 _hyprland() {
   local monitor="${1:-}"
 
@@ -132,6 +104,5 @@ _hyprland() {
 
 case "$(compositor_type)" in
   hyprland) _hyprland "$1" ;;
-  sway)     _sway "$1" ;;
   *)        echo "[]" ;;
 esac

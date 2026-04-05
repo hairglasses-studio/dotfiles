@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # mod-gamepad.sh — hg gamepad module
 # Xbox controller management via makima (Rust input remapper)
-# Makima handles per-app profile switching natively on Hyprland/Sway
+# Makima handles per-app profile switching natively on Hyprland
 
 _GAMEPAD_PROFILE_DIR="$HG_DOTFILES/makima"
 _GAMEPAD_DEVICE_NAME="Microsoft Xbox Series S|X Controller"
