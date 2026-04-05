@@ -4,7 +4,8 @@
 
 _SHADER_BIN="$HG_DOTFILES/ghostty/shaders/bin"
 _SHADER_DIR="$HOME/.config/ghostty/shaders"
-_GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
+
+source "$HG_DOTFILES/scripts/lib/ghostty-config.sh" 2>/dev/null
 
 shader_description() {
   echo "132+ GLSL shaders — browse, pick, cycle, test"
@@ -30,16 +31,13 @@ CMDS
 # ── Subcommand implementations ─────────────────
 
 _shader_current() {
-  local line
-  line="$(grep -m1 '^custom-shader = ' "$_GHOSTTY_CONFIG" 2>/dev/null || true)"
-  if [[ -z "$line" || "$line" == *"none"* ]]; then
+  local name
+  name="$(ghostty_get_shader_name)"
+  if [[ -z "$name" ]]; then
     echo "${HG_DIM}no shader active${HG_RESET}"
   else
-    local path="${line#custom-shader = }"
-    local name
-    name="$(basename "$path" .glsl)"
     local anim
-    anim="$(grep -m1 '^custom-shader-animation = ' "$_GHOSTTY_CONFIG" 2>/dev/null | sed 's/.*= //' || echo "false")"
+    anim="$(ghostty_get_shader_animation)"
     printf "%s%s%s" "$HG_CYAN" "$name" "$HG_RESET"
     [[ "$anim" == "true" ]] && printf " %s(animated)%s" "$HG_DIM" "$HG_RESET"
     printf "\n"
