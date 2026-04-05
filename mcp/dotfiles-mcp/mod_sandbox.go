@@ -544,7 +544,38 @@ func sandboxStart(_ context.Context, input SandboxIDInput) (SandboxStartOutput, 
 	s.Status = "running"
 	sandboxMu.Unlock()
 
+	// Resize the nested Wayland window on the host to full resolution.
+	// The nested Hyprland window has class "aquamarine".
+	resizeSandboxWindow(defaultResolution)
+
 	return SandboxStartOutput{ID: s.ID, Status: "running"}, nil
+}
+
+// resizeSandboxWindow finds the nested Hyprland window on the host and resizes it.
+func resizeSandboxWindow(resolution string) {
+	// Find the aquamarine window address
+	out, err := exec.Command("hyprctl", "clients", "-j").Output()
+	if err != nil {
+		return
+	}
+	var clients []map[string]any
+	if err := json.Unmarshal(out, &clients); err != nil {
+		return
+	}
+	for _, c := range clients {
+		class, _ := c["class"].(string)
+		if class == "aquamarine" {
+			addr, _ := c["address"].(string)
+			if addr == "" {
+				continue
+			}
+			// Make floating + resize
+			exec.Command("hyprctl", "dispatch", "togglefloating", "address:"+addr).Run()
+			exec.Command("hyprctl", "dispatch", "resizewindowpixel",
+				fmt.Sprintf("exact %s,address:%s", strings.Replace(resolution, "x", " ", 1), addr)).Run()
+			return
+		}
+	}
 }
 
 func sandboxStop(_ context.Context, input SandboxIDInput) (SandboxStopOutput, error) {
