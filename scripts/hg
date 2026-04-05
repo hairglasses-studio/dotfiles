@@ -12,6 +12,7 @@ for _mod_file in "$SCRIPT_DIR/hg-modules"/mod-*.sh; do
   [[ -f "$_mod_file" ]] || continue
   _mod_name="$(basename "$_mod_file" .sh)"
   _mod_name="${_mod_name#mod-}"
+  # shellcheck source=/dev/null
   source "$_mod_file"
   HG_MODULES+=("$_mod_name")
 done
