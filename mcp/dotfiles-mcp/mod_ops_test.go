@@ -166,3 +166,99 @@ func TestOpsDefaultBase(t *testing.T) {
 		t.Errorf("defaultBase(\".\") = %q, want HEAD/main/master", base)
 	}
 }
+
+func TestOpsParseNodeTestJSON_Jest(t *testing.T) {
+	input := `{
+		"numPassedTests": 2,
+		"numFailedTests": 1,
+		"numPendingTests": 0,
+		"testResults": [{
+			"testFilePath": "src/app.test.ts",
+			"testResults": [
+				{"fullName": "App renders", "status": "passed", "duration": 50},
+				{"fullName": "App handles error", "status": "failed", "duration": 100},
+				{"fullName": "App loading", "status": "pending", "duration": 0}
+			],
+			"message": "Expected 1 to equal 2"
+		}]
+	}`
+	passed, failures, skipped := opsParseNodeTestJSON(input)
+	if len(passed) != 1 {
+		t.Errorf("passed = %d, want 1", len(passed))
+	}
+	if len(failures) != 1 {
+		t.Errorf("failures = %d, want 1", len(failures))
+	}
+	if skipped != 1 {
+		t.Errorf("skipped = %d, want 1", skipped)
+	}
+	if len(failures) > 0 && failures[0].Test != "App handles error" {
+		t.Errorf("failure test = %q, want 'App handles error'", failures[0].Test)
+	}
+}
+
+func TestOpsParseNodeTestJSON_Vitest(t *testing.T) {
+	// Vitest uses assertionResults instead of testResults at the inner level
+	input := `{
+		"testResults": [{
+			"name": "src/utils.test.ts",
+			"assertionResults": [
+				{"fullName": "adds numbers", "status": "passed", "duration": 10},
+				{"fullName": "handles null", "status": "failed", "duration": 20}
+			],
+			"message": "TypeError: null is not a function"
+		}]
+	}`
+	passed, failures, skipped := opsParseNodeTestJSON(input)
+	if len(passed) != 1 {
+		t.Errorf("passed = %d, want 1", len(passed))
+	}
+	if len(failures) != 1 {
+		t.Errorf("failures = %d, want 1", len(failures))
+	}
+	if skipped != 0 {
+		t.Errorf("skipped = %d, want 0", skipped)
+	}
+}
+
+func TestOpsParseNodeTestJSON_Fallback(t *testing.T) {
+	// Non-JSON output should use line-based fallback
+	input := "PASS src/a.test.ts\nFAIL src/b.test.ts\n✓ it works"
+	passed, failures, _ := opsParseNodeTestJSON(input)
+	if len(passed) < 1 {
+		t.Errorf("passed = %d, want >= 1", len(passed))
+	}
+	if len(failures) < 1 {
+		t.Errorf("failures = %d, want >= 1", len(failures))
+	}
+}
+
+func TestOpsParsePytestOutput_Verbose(t *testing.T) {
+	input := `tests/test_api.py::test_health PASSED
+tests/test_api.py::test_create FAILED
+E       AssertionError: expected 200 got 500
+E       assert response.status_code == 200
+tests/test_api.py::test_delete SKIPPED
+tests/test_api.py::test_update PASSED`
+	passed, failures, skipped := opsParsePytestOutput(input)
+	if len(passed) != 2 {
+		t.Errorf("passed = %d, want 2", len(passed))
+	}
+	if len(failures) != 1 {
+		t.Errorf("failures = %d, want 1", len(failures))
+	}
+	if skipped != 1 {
+		t.Errorf("skipped = %d, want 1", skipped)
+	}
+	// Failure should capture traceback output
+	if len(failures) > 0 && failures[0].Output == "" {
+		t.Error("failure output should contain traceback")
+	}
+}
+
+func TestOpsHasNPMScript(t *testing.T) {
+	// Test against current repo (should not have npm scripts)
+	if opsHasNPMScript(".", "lint") {
+		t.Error("current Go repo should not have npm lint script")
+	}
+}
