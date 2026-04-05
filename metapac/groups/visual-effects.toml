@@ -30,6 +30,8 @@ packages = [
     { name = "tplay-git" },
     { name = "browsh-bin" },
     { name = "nodejs-mapscii" },
+    # Topgrade (universal system updater)
+    { name = "topgrade" },
 ]
 
 [cargo]

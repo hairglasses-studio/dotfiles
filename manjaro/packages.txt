@@ -1,3 +1,6 @@
+# DEPRECATED: This file is superseded by metapac group files in metapac/groups/*.toml
+# Kept as reference only. To manage packages, edit metapac/groups/*.toml and run: metapac sync
+
 # Core CLI (pacman -S)
 atuin
 bat

@@ -36,6 +36,15 @@ case "$file_path" in
   */eww/*)                  config_reload_service eww      2>/dev/null || errors+=("[reload] eww reload failed") ;;
   */waybar/*)               config_reload_service waybar   2>/dev/null || errors+=("[reload] waybar reload failed") ;;
   */tmux/*)                 config_reload_service tmux     2>/dev/null || errors+=("[reload] tmux reload failed") ;;
+  */metapac/*)
+    # Validate TOML and check for unmanaged packages
+    if command -v metapac &>/dev/null; then
+      unmanaged="$(metapac unmanaged 2>&1)"
+      if ! echo "$unmanaged" | grep -q "no unmanaged packages"; then
+        errors+=("[metapac] Unmanaged packages detected after edit — run: metapac sync")
+      fi
+    fi
+    ;;
 esac
 
 # Brief settle time for reload to take effect
