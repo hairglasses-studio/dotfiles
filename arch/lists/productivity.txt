@@ -1,0 +1,61 @@
+# Productivity applications
+# Install with: cat productivity.txt | xargs yay -S --needed
+
+# Note-taking and knowledge management
+obsidian
+notion-app-electron
+logseq-desktop-bin
+joplin-desktop
+typora
+zettlr
+
+# Password managers
+bitwarden
+keepassxc
+1password
+
+# Task and project management
+todoist-electron
+superproductivity-bin
+focalboard
+
+# Office and documents
+libreoffice-fresh
+onlyoffice-bin
+wps-office
+
+# Email clients
+thunderbird
+mailspring
+geary
+
+# Cloud storage
+dropbox
+insync
+rclone
+nextcloud-client
+
+# Calendar and scheduling
+gnome-calendar
+morgen-bin
+
+# Mind mapping and diagrams
+xmind
+drawio-desktop-bin
+yed
+
+# PDF tools
+okular
+zathura
+masterpdfeditor-free
+
+# Bookmarks and reading
+pocket-casts-desktop-bin
+
+# Time tracking
+toggl-track
+rescuetime
+activitywatch-bin
+
+# Focus and productivity
+stretchly-bin

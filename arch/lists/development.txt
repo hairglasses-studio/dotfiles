@@ -1,0 +1,71 @@
+# Development tools and IDEs
+# Install with: cat development.txt | xargs yay -S --needed
+
+# Editors and IDEs
+visual-studio-code-bin
+sublime-text-4
+cursor-ide-bin
+neovim
+emacs
+
+# Version control
+git
+github-cli
+github-desktop-bin
+lazygit
+
+# Languages and runtimes
+nodejs
+npm
+python
+python-pip
+go
+rust
+jdk-openjdk
+
+# Database tools
+dbeaver
+mysql-workbench
+pgadmin4
+redis
+mongodb-bin
+
+# API development
+postman-bin
+insomnia-bin
+httpie
+
+# Containers and virtualization
+docker
+docker-compose
+podman
+virtualbox
+vagrant
+
+# Build tools
+cmake
+make
+gcc
+clang
+meson
+ninja
+
+# Debugging and profiling
+gdb
+valgrind
+strace
+ltrace
+
+# Terminal tools
+tmux
+zsh
+fish
+alacritty
+kitty
+
+# DevOps tools
+terraform
+ansible
+kubectl
+helm
+aws-cli-v2

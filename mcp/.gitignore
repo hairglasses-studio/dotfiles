@@ -1,0 +1,12 @@
+# Go binaries
+dotfiles-mcp/dotfiles-mcp
+hg-mcp/hg-mcp
+hg-mcp/cmd/hg-mcp/hg-mcp
+systemd-mcp/systemd-mcp
+tmux-mcp/tmux-mcp
+process-mcp/process-mcp
+mapitall/mapitall
+mapitall/cmd/mapitall/mapitall
+
+# JS
+*/node_modules/

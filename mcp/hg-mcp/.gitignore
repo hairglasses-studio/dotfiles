@@ -1,0 +1,98 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+.npm/
+.yarn/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account.json
+token.json
+
+# Filesystem artifacts
+.!*!*
+
+# Build
+*.log
+tmp/
+.cache/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+!*.tfvars.example
+tfplan
+
+# Go binaries
+bin/
+/hg-mcp
+/aftrs
+aftrs-bot
+aftrs-mcp
+main
+beatport-sync
+
+# Build artifacts (named binary)
+hg-mcp-bin
+
+# Coverage reports
+coverage.out
+coverage.html
+
+# Local exports (migrated to DynamoDB)
+exports/
+
+# Local/private files
+CLAUDE.local.md
+tools/hw-resale/
+
+# direnv
+.envrc
+
+# Ralph runtime state
+.ralph/logs/
+.ralph/.call_count
+.ralph/.last_reset
+.ralph/.exit_signals
+.ralph/.circuit_breaker_state
+.ralph/.claude_session_id
+.ralph/.ralph_session
+.ralph/.ralph_session_history
+.ralph/.response_analysis
+.ralph/status.json
+.ralph/live.log
+.ralph/

@@ -1,0 +1,52 @@
+# Essential packages for Arch Linux desktop
+# Install with: cat essential.txt | xargs yay -S --needed
+
+# Core system
+base-devel
+git
+curl
+wget
+htop
+btop
+neofetch
+
+# Browsers
+firefox
+google-chrome
+
+# Development
+visual-studio-code-bin
+nodejs
+npm
+docker
+docker-compose
+
+# Communication
+discord
+slack-desktop
+telegram-desktop
+
+# System utilities
+timeshift
+flameshot
+ulauncher
+yay
+
+# Networking
+tailscale
+networkmanager
+openssh
+
+# Fonts
+ttf-liberation
+ttf-dejavu
+noto-fonts
+ttf-ubuntu-font-family
+ttf-jetbrains-mono
+
+# Media codecs
+ffmpeg
+gst-plugins-base
+gst-plugins-good
+gst-plugins-bad
+gst-plugins-ugly
