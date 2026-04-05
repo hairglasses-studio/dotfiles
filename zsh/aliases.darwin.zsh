@@ -25,33 +25,5 @@ alias crt-toggle='pgrep -x RetroVisor && pkill -x RetroVisor || open -a RetroVis
 # ── Peekaboo — screen capture for visual review ──
 alias peek='peekaboo'
 
-# ── Shader auto-rotate via launchd ───────────
-shader-auto() {
-  local plist="$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
-  local label="com.dotfiles.shader-rotate"
-  case "${1:-status}" in
-    start)
-      local interval=$(( ${2:-30} * 60 ))
-      local tmp; tmp="$(mktemp "${plist}.XXXXXX")"
-      sed "s|<integer>[0-9]*</integer>|<integer>${interval}</integer>|" "$plist" > "$tmp"
-      mv -f "$tmp" "$plist"
-      launchctl unload "$plist" 2>/dev/null
-      launchctl load "$plist"
-      echo "Shader auto-rotate started (every ${2:-30} minutes)"
-      ;;
-    stop)
-      launchctl unload "$plist" 2>/dev/null
-      echo "Shader auto-rotate stopped"
-      ;;
-    status)
-      if launchctl list "$label" &>/dev/null; then
-        echo "Shader auto-rotate: running"
-      else
-        echo "Shader auto-rotate: stopped"
-      fi
-      ;;
-    *)
-      echo "Usage: shader-auto {start [minutes]|stop|status}"
-      ;;
-  esac
-}
+# ── Shader auto-rotate ─────────────────────────
+# macOS launchd timer removed — Linux systemd timer is in aliases.linux.zsh
