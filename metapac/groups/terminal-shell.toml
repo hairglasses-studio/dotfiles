@@ -1,0 +1,24 @@
+# Terminal emulators, shell, prompt, multiplexer
+[arch]
+packages = [
+    # Terminals
+    { name = "ghostty" },
+    { name = "ghostty-shell-integration" },
+    { name = "ghostty-terminfo" },
+    { name = "foot" },
+
+    # Shell
+    { name = "oh-my-zsh" },
+
+    # Prompt & history
+    { name = "starship" },
+    { name = "atuin" },
+    { name = "zoxide" },
+
+    # Multiplexer
+    { name = "tmux" },
+    { name = "zellij" },
+
+    # Terminal effects
+    { name = "terminaltexteffects-git" },
+]

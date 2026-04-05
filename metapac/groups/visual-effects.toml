@@ -1,0 +1,38 @@
+# Terminal art, hacker aesthetic, matrix effects
+[arch]
+packages = [
+    # Matrix/rain
+    { name = "cmatrix" },
+    { name = "neo-matrix" },
+    { name = "unimatrix-git" },
+
+    # ASCII art & fun
+    { name = "pipes.sh" },
+    { name = "cbonsai" },
+    { name = "tty-clock-git" },
+    { name = "lolcat" },
+    { name = "figlet" },
+    { name = "toilet" },
+    { name = "cowsay" },
+    { name = "fortune-mod" },
+    { name = "asciiquarium" },
+    { name = "genact" },
+    { name = "hollywood" },
+    { name = "no-more-secrets" },
+    { name = "lavat-git" },
+    { name = "arttime-git" },
+    { name = "durdraw" },
+    { name = "ascii-image-converter" },
+    { name = "onefetch" },
+    { name = "fastfetch" },
+
+    # TUI players
+    { name = "tplay-git" },
+    { name = "browsh-bin" },
+    { name = "nodejs-mapscii" },
+]
+
+[cargo]
+packages = [
+    { name = "rusty-rain" },
+]

@@ -13,11 +13,11 @@ mkdir -p "$SCREENSHOT_DIR"
 FILENAME="$(date +%Y%m%d_%H%M%S).png"
 FILEPATH="$SCREENSHOT_DIR/$FILENAME"
 
-# Crop-select region with slurp, capture with grim
+# Crop-select region with slurp, capture with wayshot
 REGION=$(slurp 2>/dev/null)
 [[ -z "$REGION" ]] && exit 1
 
-grim -g "$REGION" "$FILEPATH" 2>/dev/null || exit 1
+wayshot -s "$REGION" -f "$FILEPATH" 2>/dev/null || exit 1
 
 # Copy filepath to clipboard for sharing
 echo -n "$FILEPATH" | wl-copy 2>/dev/null

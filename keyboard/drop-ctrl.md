@@ -93,8 +93,8 @@ These are shared with the Keychron V1 Ultra — both keyboards send the same key
 Screenshot binds moved from `Print` to `$mod+S` (since PrtSc now sends F13):
 
 ```ini
-bind = $mod, S, exec, grim - | wl-copy
-bind = $mod SHIFT, S, exec, grim -g "$(slurp)" - | wl-copy
+bind = $mod, S, exec, wayshot --stdout | wl-copy
+bind = $mod SHIFT, S, exec, wayshot -s "$(slurp)" --stdout | wl-copy
 bind = $mod CTRL, S, exec, screenshot-crop.sh
 ```
 

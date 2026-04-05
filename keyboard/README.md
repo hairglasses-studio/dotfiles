@@ -145,8 +145,8 @@ bind = , F14, movefocus, r
 Since Print Screen no longer sends `KC_PSCR`, screenshot binds use `$mod+S`:
 
 ```ini
-bind = $mod, S, exec, grim - | wl-copy
-bind = $mod SHIFT, S, exec, grim -g "$(slurp)" - | wl-copy
+bind = $mod, S, exec, wayshot --stdout | wl-copy
+bind = $mod SHIFT, S, exec, wayshot -s "$(slurp)" --stdout | wl-copy
 bind = $mod CTRL, S, exec, screenshot-crop.sh
 ```
 

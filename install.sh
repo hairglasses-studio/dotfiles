@@ -85,7 +85,7 @@ install_brew_packages() {
     fi
 }
 
-# ── Linux Package Management (yay/pacman) ──────
+# ── Linux Package Management (yay/paru/metapac) ─
 install_yay() {
     if command -v yay &>/dev/null; then
         log_success "yay already installed"
@@ -110,14 +110,61 @@ install_yay() {
     fi
 }
 
-install_linux_packages() {
-    local pacfile="$DOTFILES_DIR/Pacfile"
-    if [[ ! -f "$pacfile" ]]; then
-        log_warn "Pacfile not found at $pacfile — skipping Linux packages"
+install_paru() {
+    if command -v paru &>/dev/null; then
+        log_success "paru already installed"
         return 0
     fi
-    log_info "Installing packages from Pacfile..."
-    # Strip comments and blank lines, install via yay (handles both official + AUR)
+    log_info "Installing paru AUR helper..."
+    local helper="yay"
+    command -v yay &>/dev/null || helper="sudo pacman"
+    $helper -S --needed --noconfirm paru 2>&1 | while read -r line; do
+        log_info "  $line"
+    done
+    if command -v paru &>/dev/null; then
+        log_success "paru installed"
+    else
+        log_error "paru installation failed"
+        return 1
+    fi
+}
+
+install_metapac() {
+    if command -v metapac &>/dev/null; then
+        log_success "metapac already installed"
+        return 0
+    fi
+    log_info "Installing metapac..."
+    local helper="paru"
+    command -v paru &>/dev/null || helper="yay"
+    $helper -S --needed --noconfirm metapac 2>&1 | while read -r line; do
+        log_info "  $line"
+    done
+    if command -v metapac &>/dev/null; then
+        log_success "metapac installed"
+    else
+        log_error "metapac installation failed"
+        return 1
+    fi
+}
+
+install_linux_packages() {
+    # Prefer metapac if installed (declarative, multi-backend)
+    if command -v metapac &>/dev/null; then
+        log_info "Syncing packages via metapac..."
+        metapac sync --no-confirm 2>&1 | while read -r line; do
+            log_info "  $line"
+        done
+        return 0
+    fi
+
+    # Fallback to Pacfile for bootstrap (metapac not yet installed)
+    local pacfile="$DOTFILES_DIR/Pacfile"
+    if [[ ! -f "$pacfile" ]]; then
+        log_warn "Neither metapac nor Pacfile available — skipping packages"
+        return 0
+    fi
+    log_info "metapac not found — falling back to Pacfile..."
     grep -v '^\s*#' "$pacfile" | grep -v '^\s*$' | yay -S --needed --noconfirm - 2>&1 | while read -r line; do
         log_info "  $line"
     done
@@ -295,6 +342,7 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
         link_file "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
         link_file "$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf" "$HOME/.config/fontconfig/conf.d/51-monospace.conf"
+        link_file "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
     fi
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
@@ -405,6 +453,7 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
         check_link "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
         check_link "$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf" "$HOME/.config/fontconfig/conf.d/51-monospace.conf"
+        check_link "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
     fi
     check_link "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     check_link "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
@@ -474,8 +523,17 @@ check_symlinks() {
     fi
 
     if [[ "$OS" == "Linux" ]]; then
-        log_info "Checking pacman/AUR packages..."
-        if command -v yay &>/dev/null && [[ -f "$DOTFILES_DIR/Pacfile" ]]; then
+        if command -v metapac &>/dev/null; then
+            log_info "Checking metapac packages..."
+            local unmanaged
+            unmanaged="$(metapac unmanaged 2>&1)"
+            if echo "$unmanaged" | grep -q "no unmanaged packages"; then
+                log_success "All packages managed by metapac"
+            else
+                log_warn "Unmanaged packages found — run: metapac unmanaged"
+            fi
+        elif command -v yay &>/dev/null && [[ -f "$DOTFILES_DIR/Pacfile" ]]; then
+            log_info "Checking pacman/AUR packages (legacy Pacfile)..."
             local missing=0
             while IFS= read -r pkg; do
                 if ! yay -Qi "$pkg" &>/dev/null; then
@@ -487,8 +545,8 @@ check_symlinks() {
                 log_success "All Pacfile packages installed"
             fi
             errors=$((errors + missing))
-        elif ! command -v yay &>/dev/null; then
-            log_warn "yay not installed"
+        else
+            log_warn "Neither metapac nor yay installed"
             errors=$((errors + 1))
         fi
     fi
@@ -536,6 +594,8 @@ main() {
         install_brew_packages
     elif [[ "$OS" == "Linux" ]]; then
         install_yay
+        install_paru
+        install_metapac
         install_linux_packages
     fi
 

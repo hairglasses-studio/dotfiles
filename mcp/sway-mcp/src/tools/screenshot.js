@@ -6,9 +6,9 @@ import { join } from "path";
 const TMP_FILE = join(tmpdir(), "sway-mcp-screenshot.png");
 const MAX_DIM = 1568;
 
-async function captureAndScale(grimArgs = "") {
+async function captureAndScale(wayshotArgs = "") {
   const raw = join(tmpdir(), "sway-mcp-raw.png");
-  await execAsync(`grim ${grimArgs} "${raw}"`);
+  await execAsync(`wayshot ${wayshotArgs} -f "${raw}"`);
 
   // Scale down if needed, preserving aspect ratio
   await execAsync(
@@ -32,5 +32,5 @@ export async function screenshot({ output } = {}) {
 }
 
 export async function screenshotRegion({ x, y, width, height }) {
-  return captureAndScale(`-g "${x},${y} ${width}x${height}"`);
+  return captureAndScale(`-s "${x},${y} ${width}x${height}"`);
 }

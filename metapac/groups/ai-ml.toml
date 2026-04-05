@@ -1,0 +1,25 @@
+# AI, machine learning, and LLM tools
+[arch]
+packages = [
+    { name = "claude-desktop-bin" },
+    { name = "claude-cowork-service" },
+    { name = "ollama-cuda", hooks = { after_sync = ["sudo", "systemctl", "enable", "--now", "ollama.service"] } },
+    { name = "python-pytorch-opt-cuda" },
+    { name = "python-torchvision-cuda" },
+]
+
+[npm]
+packages = [
+    { name = "@anthropic-ai/sdk" },
+    { name = "@google/gemini-cli" },
+    { name = "@openai/codex" },
+]
+
+[pipx]
+packages = [
+    { name = "arch-mcp" },
+    { name = "gcalcli" },
+    { name = "git-filter-repo" },
+    { name = "mcp-server-notify" },
+    { name = "mcp-system-info" },
+]

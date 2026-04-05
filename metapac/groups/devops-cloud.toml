@@ -1,0 +1,69 @@
+# Containers, Kubernetes, cloud, IaC, networking, virtualization
+[arch]
+packages = [
+    # Containers
+    { name = "docker", hooks = { after_sync = ["sudo", "systemctl", "enable", "--now", "docker.service"] } },
+    { name = "docker-compose" },
+    { name = "podman" },
+    { name = "podman-compose" },
+    { name = "dive" },
+    { name = "lazydocker" },
+
+    # Kubernetes
+    { name = "kubectl" },
+    { name = "kubectx" },
+    { name = "k9s" },
+    { name = "helm" },
+    { name = "stern" },
+
+    # IaC
+    { name = "terraform" },
+    { name = "terragrunt" },
+
+    # Cloud
+    { name = "google-cloud-cli" },
+    { name = "aws-cli-v2" },
+
+    # Networking
+    { name = "networkmanager" },
+    { name = "network-manager-applet" },
+    { name = "tailscale", hooks = { after_sync = ["sudo", "systemctl", "enable", "--now", "tailscaled.service"] } },
+    { name = "nmap" },
+    { name = "openbsd-netcat" },
+    { name = "inetutils" },
+    { name = "w3m" },
+    { name = "avahi" },
+    { name = "nss-mdns" },
+    { name = "dnsmasq" },
+    { name = "wpa_supplicant" },
+    { name = "dhclient" },
+    { name = "wireless-regdb" },
+    { name = "nfs-utils" },
+    { name = "rsync" },
+    { name = "sshpass" },
+    { name = "age" },
+    { name = "rclone" },
+    { name = "wget" },
+
+    # Virtualization
+    { name = "qemu-system-x86" },
+    { name = "qemu-hw-display-virtio-vga" },
+    { name = "qemu-ui-gtk" },
+    { name = "edk2-ovmf" },
+
+    # Security
+    { name = "apparmor" },
+    { name = "ufw" },
+    { name = "gnome-keyring" },
+    { name = "1password-cli" },
+
+    # System admin
+    { name = "cronie" },
+    { name = "logrotate" },
+    { name = "s-nail" },
+    { name = "pacman-contrib" },
+    { name = "pacman-log-orphans-hook" },
+    { name = "pacseek" },
+    { name = "pamac-gtk" },
+    { name = "arch-install-scripts" },
+]
