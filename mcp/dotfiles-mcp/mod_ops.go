@@ -208,6 +208,22 @@ type PrePushStep struct {
 // ---------------------------------------------------------------------------
 
 var compileErrorRe = regexp.MustCompile(`^(.+):(\d+):(\d+): (.+)$`)
+
+// opsHasNPMScript checks if a package.json has a given script defined.
+func opsHasNPMScript(repoPath, script string) bool {
+	data, err := os.ReadFile(filepath.Join(repoPath, "package.json"))
+	if err != nil {
+		return false
+	}
+	var pkg struct {
+		Scripts map[string]string `json:"scripts"`
+	}
+	if err := json.Unmarshal(data, &pkg); err != nil {
+		return false
+	}
+	_, ok := pkg.Scripts[script]
+	return ok
+}
 var conventionalRe = regexp.MustCompile(`^(feat|fix|chore|docs|refactor|test|ci|perf|build)(\(.+\))?: .+`)
 
 func opsResolveRepo(repo string) (string, error) {
@@ -342,47 +358,66 @@ func opsParseGoTestJSON(output string) (passed []string, failures []TestFailure,
 	return
 }
 
-// opsParseNodeTestJSON parses Jest JSON output into pass/fail/skip.
+// opsParseNodeTestJSON parses Jest or Vitest JSON output into pass/fail/skip.
+// Detects format automatically: Jest uses testResults[].testResults[],
+// Vitest uses testResults[].assertionResults[].
 func opsParseNodeTestJSON(output string) (passed []string, failures []TestFailure, skipped int) {
-	var jestResult struct {
-		NumPassedTests  int `json:"numPassedTests"`
-		NumFailedTests  int `json:"numFailedTests"`
-		NumPendingTests int `json:"numPendingTests"`
-		TestResults     []struct {
-			TestFilePath string `json:"testFilePath"`
-			TestResults  []struct {
-				FullName string `json:"fullName"`
-				Status   string `json:"status"` // passed, failed, pending
-				Duration int    `json:"duration"`
-			} `json:"testResults"`
-			Message string `json:"message"`
-		} `json:"testResults"`
+	// Try to parse as generic JSON first to detect format
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(output), &raw); err != nil {
+		// Not JSON — fallback to line matching
+		return opsParseNodeTestLines(output)
 	}
-	if err := json.Unmarshal([]byte(output), &jestResult); err != nil {
-		// Fallback: count lines
-		for _, line := range strings.Split(output, "\n") {
-			if strings.Contains(line, "PASS") {
-				passed = append(passed, line)
-			} else if strings.Contains(line, "FAIL") {
-				failures = append(failures, TestFailure{Test: line, Output: line})
-			}
+
+	// Check for Vitest format (has assertionResults at suite level)
+	// Try Jest format first (more common)
+	type jestTest struct {
+		FullName string `json:"fullName"`
+		Title    string `json:"title"`
+		Status   string `json:"status"`
+		Duration int    `json:"duration"`
+	}
+	type jestSuite struct {
+		TestFilePath     string     `json:"testFilePath"`
+		Name             string     `json:"name"`
+		TestResults      []jestTest `json:"testResults"`
+		AssertionResults []jestTest `json:"assertionResults"` // Vitest uses this field name
+		Message          string     `json:"message"`
+	}
+	var result struct {
+		TestResults []jestSuite `json:"testResults"`
+	}
+	if err := json.Unmarshal([]byte(output), &result); err != nil {
+		return opsParseNodeTestLines(output)
+	}
+
+	for _, suite := range result.TestResults {
+		filePath := suite.TestFilePath
+		if filePath == "" {
+			filePath = suite.Name
 		}
-		return
-	}
-	for _, suite := range jestResult.TestResults {
-		for _, test := range suite.TestResults {
-			key := suite.TestFilePath + "/" + test.FullName
+		// Use whichever field has data (Jest=TestResults, Vitest=AssertionResults)
+		tests := suite.TestResults
+		if len(tests) == 0 {
+			tests = suite.AssertionResults
+		}
+		for _, test := range tests {
+			name := test.FullName
+			if name == "" {
+				name = test.Title
+			}
+			key := filePath + "/" + name
 			switch test.Status {
 			case "passed":
 				passed = append(passed, key)
 			case "failed":
 				failures = append(failures, TestFailure{
-					Package: suite.TestFilePath,
-					Test:    test.FullName,
+					Package: filePath,
+					Test:    name,
 					Output:  suite.Message,
 					Elapsed: float64(test.Duration) / 1000.0,
 				})
-			case "pending":
+			case "pending", "skipped", "todo":
 				skipped++
 			}
 		}
@@ -390,20 +425,51 @@ func opsParseNodeTestJSON(output string) (passed []string, failures []TestFailur
 	return
 }
 
-// opsParsePytestOutput parses pytest -v --tb=short -q output.
-func opsParsePytestOutput(output string) (passed []string, failures []TestFailure, skipped int) {
+// opsParseNodeTestLines is the text-based fallback for non-JSON test output.
+func opsParseNodeTestLines(output string) (passed []string, failures []TestFailure, skipped int) {
 	for _, line := range strings.Split(output, "\n") {
 		line = strings.TrimSpace(line)
-		if strings.HasSuffix(line, "PASSED") {
-			passed = append(passed, strings.TrimSuffix(line, " PASSED"))
-		} else if strings.HasSuffix(line, "FAILED") {
-			name := strings.TrimSuffix(line, " FAILED")
-			failures = append(failures, TestFailure{
-				Test:   name,
-				Output: line,
-			})
-		} else if strings.HasSuffix(line, "SKIPPED") {
+		if line == "" {
+			continue
+		}
+		// Match common test runner output patterns
+		if strings.Contains(line, "✓") || strings.Contains(line, "PASS") {
+			passed = append(passed, line)
+		} else if strings.Contains(line, "✗") || strings.Contains(line, "FAIL") || strings.Contains(line, "✕") {
+			failures = append(failures, TestFailure{Test: line, Output: line})
+		}
+	}
+	return
+}
+
+// opsParsePytestOutput parses pytest -v output into pass/fail/skip.
+// Handles standard verbose format: "test_file.py::test_name PASSED/FAILED/SKIPPED"
+func opsParsePytestOutput(output string) (passed []string, failures []TestFailure, skipped int) {
+	// Collect failure output blocks using index (not pointer, since append can relocate)
+	currentFailIdx := -1
+	for _, line := range strings.Split(output, "\n") {
+		trimmed := strings.TrimSpace(line)
+
+		// Match "path::test_name PASSED/FAILED/SKIPPED"
+		if strings.HasSuffix(trimmed, " PASSED") {
+			passed = append(passed, strings.TrimSuffix(trimmed, " PASSED"))
+			currentFailIdx = -1
+		} else if strings.HasSuffix(trimmed, " FAILED") {
+			name := strings.TrimSuffix(trimmed, " FAILED")
+			failures = append(failures, TestFailure{Test: name, Output: ""})
+			currentFailIdx = len(failures) - 1
+		} else if strings.HasSuffix(trimmed, " SKIPPED") || strings.HasSuffix(trimmed, " XFAIL") {
 			skipped++
+			currentFailIdx = -1
+		} else if currentFailIdx >= 0 && trimmed != "" {
+			// Accumulate failure output (traceback lines)
+			failures[currentFailIdx].Output += line + "\n"
+		}
+
+		// Also match summary line: "X passed, Y failed, Z skipped"
+		if strings.Contains(trimmed, " passed") && strings.Contains(trimmed, " failed") {
+			// This is the summary — we already have per-test data, skip
+			continue
 		}
 	}
 	return
@@ -1456,37 +1522,45 @@ func opsPrePush(ctx context.Context, input OpsPrePushInput) (OpsPrePushOutput, e
 		}
 
 	case "node":
-		// ESLint / npm lint
+		// Check if lint script exists in package.json before running
 		if !input.SkipLint {
-			start := time.Now()
-			_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "npm", "run", "lint")
-			lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
-			if lintCode != 0 {
-				lintStep.Status = "fail"
+			if opsHasNPMScript(repo, "lint") {
+				start := time.Now()
+				_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "npm", "run", "lint")
+				lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
+				if lintCode != 0 {
+					lintStep.Status = "fail"
+					steps = append(steps, lintStep)
+					return OpsPrePushOutput{
+						Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+						Steps: steps, FailedStep: "lint",
+					}, nil
+				}
 				steps = append(steps, lintStep)
-				return OpsPrePushOutput{
-					Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
-					Steps: steps, FailedStep: "lint",
-				}, nil
+			} else {
+				steps = append(steps, PrePushStep{Name: "lint", Status: "skip", DurationMs: 0})
 			}
-			steps = append(steps, lintStep)
 		}
 
 	case "python":
-		// Ruff or mypy
+		// Check if ruff is available before running
 		if !input.SkipLint {
-			start := time.Now()
-			_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "ruff", "check", ".")
-			lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
-			if lintCode != 0 {
-				lintStep.Status = "fail"
+			if _, err := exec.LookPath("ruff"); err == nil {
+				start := time.Now()
+				_, _, lintCode, _ := opsRunWithTimeout(60*time.Second, repo, "ruff", "check", ".")
+				lintStep := PrePushStep{Name: "lint", Status: "pass", DurationMs: time.Since(start).Milliseconds()}
+				if lintCode != 0 {
+					lintStep.Status = "fail"
+					steps = append(steps, lintStep)
+					return OpsPrePushOutput{
+						Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
+						Steps: steps, FailedStep: "lint",
+					}, nil
+				}
 				steps = append(steps, lintStep)
-				return OpsPrePushOutput{
-					Repo: repo, Overall: "fail", DurationMs: time.Since(totalStart).Milliseconds(),
-					Steps: steps, FailedStep: "lint",
-				}, nil
+			} else {
+				steps = append(steps, PrePushStep{Name: "lint", Status: "skip", DurationMs: 0})
 			}
-			steps = append(steps, lintStep)
 		}
 	}
 
