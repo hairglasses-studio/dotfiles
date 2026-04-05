@@ -35,14 +35,14 @@ Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — 
 
 ### Window Management
 - **macOS:** AeroSpace tiling + SketchyBar + JankyBorders
-- **Linux:** Hyprland + eww bar + mako notifications + wofi launcher + wlogout
+- **Linux:** Hyprland + eww bar + swaync notifications + wofi launcher + wlogout
 
 ### Shared Libraries
 - **`scripts/lib/compositor.sh`** — Compositor detection & IPC abstraction. Functions: `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_output`, `compositor_subscribe`, `compositor_reload`, `compositor_workspace`. Detects Hyprland/AeroSpace via env vars.
 - **`scripts/lib/config.sh`** — Atomic config operations. Functions: `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service`. All scripts that modify configs should source this.
 
 ### Claude Code Integration
-- **PostToolUse hook** — Auto-reloads Hyprland/mako/eww/waybar when Claude writes config files
+- **PostToolUse hook** — Auto-reloads Hyprland/swaync/eww/waybar when Claude writes config files
 - **MCP servers** — `dotfiles-mcp` (82 tools, consolidated from 4 servers), `systemd-mcp`, `tmux-mcp`, `process-mcp` — Go binaries in sibling repos, registered in `.mcp.json`.
 
 ### Wallpaper Shaders
