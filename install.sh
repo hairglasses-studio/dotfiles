@@ -249,6 +249,8 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/waybar/style.css" "$HOME/.config/waybar/style.css"
         link_file "$DOTFILES_DIR/waybar/colors.css" "$HOME/.config/waybar/colors.css"
         link_file "$DOTFILES_DIR/mako/config" "$HOME/.config/mako/config"
+        link_file "$DOTFILES_DIR/swaync/config.json" "$HOME/.config/swaync/config.json"
+        link_file "$DOTFILES_DIR/swaync/style.css" "$HOME/.config/swaync/style.css"
         link_file "$DOTFILES_DIR/wofi/config" "$HOME/.config/wofi/config"
         link_file "$DOTFILES_DIR/wofi/style.css" "$HOME/.config/wofi/style.css"
         link_file "$DOTFILES_DIR/foot/foot.ini" "$HOME/.config/foot/foot.ini"
