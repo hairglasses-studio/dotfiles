@@ -17,6 +17,17 @@
     "defaultMode": "bypassPermissions"
   },
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/hairglasses-studio/dotfiles/scripts/lib/prompt-capture.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Write|Edit",
