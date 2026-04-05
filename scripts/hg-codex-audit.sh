@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="${HG_STUDIO_ROOT:-/home/hg/hairglasses-studio}"
 WRITE_DOCS=0
 WRITE_WIKI_DOCS=0
+WRITE_JSON=0
 
 wiki_docs_dir_default() {
   printf '%s\n' "$ROOT/docs/projects/codex-migration"
@@ -16,6 +17,9 @@ for arg in "$@"; do
       ;;
     --write-wiki-docs)
       WRITE_WIKI_DOCS=1
+      ;;
+    --write-json)
+      WRITE_JSON=1
       ;;
     *)
       echo "Unknown argument: $arg" >&2
@@ -42,6 +46,8 @@ EXCLUDE_GLOBS=(
 )
 
 inventory_csv=""
+inventory_json_rows=""
+json_separator=""
 inventory_md=$'| Repo | `claude mcp` | `.claude/settings.json` | `claude_desktop_config.json` | `AGENTS.md` | `.codex/config.toml` | `.codex-plugin` |\n|------|--------------:|------------------------:|-----------------------------:|-----------:|---------------------:|----------------:|\n'
 
 count_matches() {
@@ -100,6 +106,16 @@ for repo in "${repos[@]}"; do
   fi
 
   inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${has_agents},${has_codex},${has_plugin}"$'\n'
+  inventory_json_rows+="${json_separator}"$'    {\n'
+  inventory_json_rows+="      \"repo\": \"${name}\","$'\n'
+  inventory_json_rows+="      \"claude_mcp_mentions\": ${claude_mcp},"$'\n'
+  inventory_json_rows+="      \"claude_settings_mentions\": ${claude_settings},"$'\n'
+  inventory_json_rows+="      \"claude_desktop_config_mentions\": ${claude_desktop},"$'\n'
+  inventory_json_rows+="      \"agents_md_count\": ${has_agents},"$'\n'
+  inventory_json_rows+="      \"codex_config_count\": ${has_codex},"$'\n'
+  inventory_json_rows+="      \"codex_plugin_count\": ${has_plugin}"$'\n'
+  inventory_json_rows+=$'    }\n'
+  json_separator=$',\n'
   inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${has_agents} | ${has_codex} | ${has_plugin} |"$'\n'
 done
 
@@ -113,6 +129,23 @@ repos missing AGENTS.md: $total_missing_agents
 repos missing .codex/config.toml: $total_missing_codex
 repos missing .codex-plugin/plugin.json: $total_missing_plugins
 EOF
+
+inventory_json="{
+  \"generated_on\": \"$(date +%Y-%m-%d)\",
+  \"root\": \"${ROOT}\",
+  \"summary\": {
+    \"repos_scanned\": ${scanned_repos},
+    \"claude_mcp_matches\": ${total_claude_mcp},
+    \"claude_settings_matches\": ${total_claude_settings},
+    \"claude_desktop_config_matches\": ${total_claude_desktop},
+    \"repos_missing_agents_md\": ${total_missing_agents},
+    \"repos_missing_codex_config\": ${total_missing_codex},
+    \"repos_missing_codex_plugin\": ${total_missing_plugins}
+  },
+  \"repos\": [
+${inventory_json_rows}
+  ]
+}"
 
 if [[ "$WRITE_DOCS" -eq 1 ]]; then
   docs_dir="$ROOT/docs/codex-migration"
@@ -158,4 +191,13 @@ Summary from the latest audit:
 
 ${inventory_md}
 EOF
+fi
+
+if [[ "$WRITE_JSON" -eq 1 ]]; then
+  docs_dir="$ROOT/docs/codex-migration"
+  wiki_docs_dir="$(wiki_docs_dir_default)"
+  mkdir -p "$docs_dir" "$wiki_docs_dir"
+
+  printf '%s\n' "$inventory_json" >"$docs_dir/repo-inventory.json"
+  printf '%s\n' "$inventory_json" >"$wiki_docs_dir/repo-inventory.json"
 fi
