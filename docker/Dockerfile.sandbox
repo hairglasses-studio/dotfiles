@@ -1,0 +1,75 @@
+# Dockerfile.sandbox — Arch Linux + Hyprland + NVIDIA for dotfile testing.
+# Runs Hyprland in headless mode with GPU acceleration via nvidia-container-toolkit.
+#
+# Build:
+#   docker build -f docker/Dockerfile.sandbox -t dotfiles-sandbox:latest .
+#
+# Run:
+#   docker run --gpus all --runtime=nvidia \
+#     -v $(pwd):/dotfiles:ro \
+#     --tmpfs /run/user/1000:exec,mode=700,uid=1000 \
+#     -e WLR_BACKENDS=headless -e WLR_RENDERER=vulkan \
+#     -e XDG_RUNTIME_DIR=/run/user/1000 \
+#     -e NVIDIA_VISIBLE_DEVICES=all \
+#     -e NVIDIA_DRIVER_CAPABILITIES=all \
+#     --cap-add SYS_ADMIN \
+#     dotfiles-sandbox:latest
+
+FROM archlinux:latest
+
+# ── System packages ──────────────────────────────────────────────────────
+# Subset of metapac groups needed for headless desktop validation.
+# AUR packages (eww, wayshot) can be layered on top later.
+RUN pacman -Syu --noconfirm && pacman -S --noconfirm \
+    # Hyprland core (desktop-hyprland.toml)
+    hyprland \
+    xdg-desktop-portal-hyprland \
+    xorg-xwayland \
+    # Notifications
+    swaync \
+    # Wayland tools (grim for screenshots)
+    wl-clipboard \
+    grim \
+    slurp \
+    socat \
+    # Terminal (terminal-shell.toml)
+    foot \
+    zsh \
+    starship \
+    # Dev tools for testing
+    git \
+    jq \
+    base-devel \
+    # Vulkan (NVIDIA userspace libs injected by nvidia-container-toolkit at runtime)
+    vulkan-tools \
+    vulkan-icd-loader \
+    # Image processing
+    imagemagick \
+    # Test framework
+    bats \
+    # Misc
+    sudo \
+    which \
+    && pacman -Scc --noconfirm
+
+# ── Non-root user (matching host UID) ────────────────────────────────────
+RUN useradd -m -u 1000 -s /bin/zsh hg && \
+    echo "hg ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    mkdir -p /run/user/1000 && chown 1000:1000 /run/user/1000
+
+# ── Sandbox config ───────────────────────────────────────────────────────
+COPY sandbox/hyprland-headless.conf /sandbox/hyprland-headless.conf
+COPY sandbox/entrypoint.sh /sandbox/entrypoint.sh
+RUN chmod +x /sandbox/entrypoint.sh
+
+# ── Runtime ──────────────────────────────────────────────────────────────
+USER hg
+WORKDIR /home/hg
+
+ENV XDG_RUNTIME_DIR=/run/user/1000
+ENV WLR_BACKENDS=headless
+ENV WLR_RENDERER=vulkan
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=all
+
+ENTRYPOINT ["/sandbox/entrypoint.sh"]
