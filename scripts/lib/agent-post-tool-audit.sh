@@ -32,7 +32,7 @@ errors=()
 # ── Phase 1: Reload affected service ─────────────────
 case "$file_path" in
   */hyprland/* | */hypr/*)  config_reload_service hyprland 2>/dev/null || errors+=("[reload] hyprland reload failed") ;;
-  */mako/*)                 config_reload_service mako     2>/dev/null || errors+=("[reload] mako reload failed") ;;
+  */swaync/*)               config_reload_service swaync   2>/dev/null || errors+=("[reload] swaync reload failed") ;;
   */eww/*)                  config_reload_service eww      2>/dev/null || errors+=("[reload] eww reload failed") ;;
   */waybar/*)               config_reload_service waybar   2>/dev/null || errors+=("[reload] waybar reload failed") ;;
   */tmux/*)                 config_reload_service tmux     2>/dev/null || errors+=("[reload] tmux reload failed") ;;
