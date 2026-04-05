@@ -83,6 +83,17 @@ Tattoo watches its config with 100ms debounce. Section-scoped sed to avoid hitti
 sed -e "/^\[shader\]/,/^\[/ s|^enabled = .*|enabled = true|"
 ```
 
+### Hyprland Plugin Reset
+If plugins stop working (dispatchers return "Invalid dispatcher" in log), do a clean cycle:
+```bash
+# Unload ALL plugins
+for so in /var/cache/hyprpm/hg/*/*.so; do hyprctl plugin unload "$so"; done
+sleep 2
+# Reload from clean state
+hyprpm reload -n
+```
+Do NOT run partial `hyprpm enable/disable` during a session — it corrupts the dispatcher registry. The `exec-once = hyprpm reload -n` in hyprland.conf handles boot-time loading.
+
 ### AeroSpace Float Rules
 No "ignore app" mode exists. Use `[[on-window-detected]]` with `layout floating`. Apps with no bundle ID (like glslViewer) must be matched by `if.app-name-regex-substring`.
 
