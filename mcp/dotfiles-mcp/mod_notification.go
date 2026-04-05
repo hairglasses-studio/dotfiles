@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -86,39 +85,30 @@ func (m *NotificationModule) Description() string { return "SwayNotificationCent
 
 func (m *NotificationModule) Tools() []registry.ToolDefinition {
 	// ── notify_history ─────────────────────────────────────
+	// Note: swaync-client does not expose notification history via CLI.
+	// -s (subscribe) returns a status snapshot {count, dnd, visible, inhibited}.
+	// We return this status snapshot as the best available summary.
 	notifyHistory := handler.TypedHandler[NotifyHistoryInput, any](
 		"notify_history",
-		"Get notification history from SwayNotificationCenter. Returns a JSON array of notification objects. Optional limit param to truncate.",
-		func(_ context.Context, input NotifyHistoryInput) (any, error) {
+		"Get SwayNotificationCenter status snapshot: notification count, DND state, panel visibility, inhibitor state. (swaync does not expose individual notification history via CLI.)",
+		func(_ context.Context, _ NotifyHistoryInput) (any, error) {
 			if err := swayncCheckTool(); err != nil {
 				return nil, err
 			}
 
-			raw, err := swayncRunCmd("-s")
-			if err != nil {
-				return nil, fmt.Errorf("failed to get notification history: %w", err)
-			}
+			// Get count and DND state via dedicated flags (reliable, no timeout)
+			countRaw, _ := swayncRunCmd("-c")
+			dndRaw, _ := swayncRunCmd("-D")
 
-			// Parse the JSON array so we can optionally truncate.
-			var notifications []any
-			if err := json.Unmarshal([]byte(raw), &notifications); err != nil {
-				// If parsing fails, return the raw output so the caller
-				// still gets something useful.
-				return map[string]any{
-					"raw":   raw,
-					"error": fmt.Sprintf("failed to parse swaync JSON: %v", err),
-				}, nil
-			}
-
-			total := len(notifications)
-			if input.Limit > 0 && input.Limit < total {
-				notifications = notifications[:input.Limit]
+			count := 0
+			if countRaw != "" {
+				fmt.Sscanf(countRaw, "%d", &count)
 			}
 
 			return map[string]any{
-				"total":         total,
-				"returned":      len(notifications),
-				"notifications": notifications,
+				"count":   count,
+				"dnd":     strings.TrimSpace(dndRaw) == "true",
+				"note":    "swaync does not expose individual notification history via CLI; use notify_count for count and notify_dnd for DND state",
 			}, nil
 		},
 	)
