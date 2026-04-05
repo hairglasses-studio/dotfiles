@@ -2845,3 +2845,341 @@ func opsChangelogGenerate(_ context.Context, input OpsChangelogGenerateInput) (O
 		LastTag:     lastTag,
 	}, nil
 }
+
+// ---------------------------------------------------------------------------
+// Codebase Intelligence handlers
+// ---------------------------------------------------------------------------
+
+// Protocol detection maps
+var protocolImports = map[string]string{
+	"google.golang.org/grpc":           "gRPC",
+	"github.com/gorilla/websocket":     "WebSocket",
+	"nhooyr.io/websocket":              "WebSocket",
+	"github.com/mark3labs/mcp-go":      "MCP",
+	"github.com/modelcontextprotocol":  "MCP",
+	"github.com/gin-gonic/gin":         "REST",
+	"github.com/labstack/echo":         "REST",
+	"github.com/gofiber/fiber":         "REST",
+	"net/http":                         "HTTP",
+}
+
+var frameworkPatterns = map[string][]string{
+	"LLM":       {"anthropic", "openai", "claude", "gemini"},
+	"Database":  {"postgres", "sqlite", "mysql", "mongodb", "gorm", "sqlx", "pgx"},
+	"Cache":     {"redis", "memcached", "ristretto"},
+	"Messaging": {"kafka", "rabbitmq", "nats", "mqtt"},
+	"CLI":       {"cobra", "urfave/cli", "kingpin"},
+	"TUI":       {"bubbletea", "lipgloss", "charm"},
+	"Observability": {"opentelemetry", "prometheus", "jaeger", "zap", "slog"},
+	"Testing":   {"testify", "gomock", "ginkgo"},
+}
+
+func opsRepoAnalyze(_ context.Context, input OpsRepoAnalyzeInput) (OpsRepoAnalyzeOutput, error) {
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsRepoAnalyzeOutput{}, err
+	}
+	start := time.Now()
+	name := filepath.Base(repo)
+	lang := opsDetectLanguage(repo)
+
+	out := OpsRepoAnalyzeOutput{
+		Repo:     repo,
+		Name:     name,
+		Language: lang,
+	}
+
+	// Detect all languages present
+	var languages []string
+	if lang != "unknown" {
+		languages = append(languages, lang)
+	}
+	if _, err := os.Stat(filepath.Join(repo, "go.mod")); err == nil && lang != "go" {
+		languages = append(languages, "go")
+	}
+	if _, err := os.Stat(filepath.Join(repo, "package.json")); err == nil && lang != "node" {
+		languages = append(languages, "node")
+	}
+	if _, err := os.Stat(filepath.Join(repo, "pyproject.toml")); err == nil && lang != "python" {
+		languages = append(languages, "python")
+	}
+	// Check for shell scripts, Rust, etc.
+	if entries, err := filepath.Glob(filepath.Join(repo, "*.sh")); err == nil && len(entries) > 0 {
+		languages = append(languages, "shell")
+	}
+	if _, err := os.Stat(filepath.Join(repo, "Cargo.toml")); err == nil {
+		languages = append(languages, "rust")
+	}
+	out.Languages = languages
+
+	// MCP detection (replicates hg-pipeline.sh logic)
+	isMCP := false
+	if _, err := os.Stat(filepath.Join(repo, ".mcp.json")); err == nil {
+		isMCP = true
+	}
+	if strings.HasSuffix(name, "-mcp") {
+		isMCP = true
+	}
+	if entries, _ := filepath.Glob(filepath.Join(repo, "cmd", "*mcp*")); len(entries) > 0 {
+		isMCP = true
+	}
+	out.IsMCP = isMCP
+
+	// Protocol and framework detection from Go imports
+	protocolSet := make(map[string]bool)
+	frameworkSet := make(map[string]bool)
+	var keyDeps []string
+
+	if lang == "go" {
+		// Parse go.mod for dependencies
+		gomodData, err := os.ReadFile(filepath.Join(repo, "go.mod"))
+		if err == nil {
+			for _, line := range strings.Split(string(gomodData), "\n") {
+				line = strings.TrimSpace(line)
+				if strings.HasPrefix(line, "require") || strings.HasPrefix(line, ")") || strings.HasPrefix(line, "module") || line == "" {
+					continue
+				}
+				// Extract import path (first field of require line)
+				parts := strings.Fields(line)
+				if len(parts) >= 1 {
+					dep := parts[0]
+					// Check protocols
+					for pattern, proto := range protocolImports {
+						if strings.HasPrefix(dep, pattern) {
+							protocolSet[proto] = true
+						}
+					}
+					// Check frameworks
+					for tag, patterns := range frameworkPatterns {
+						for _, p := range patterns {
+							if strings.Contains(strings.ToLower(dep), p) {
+								frameworkSet[tag] = true
+							}
+						}
+					}
+					// Key deps (org-internal or well-known)
+					if strings.Contains(dep, "hairglasses-studio") || strings.Contains(dep, "mcpkit") {
+						keyDeps = append(keyDeps, dep)
+					}
+				}
+			}
+		}
+	} else if lang == "node" {
+		// Parse package.json
+		data, err := os.ReadFile(filepath.Join(repo, "package.json"))
+		if err == nil {
+			var pkg struct {
+				Dependencies    map[string]string `json:"dependencies"`
+				DevDependencies map[string]string `json:"devDependencies"`
+			}
+			json.Unmarshal(data, &pkg)
+			allDeps := make(map[string]string)
+			for k, v := range pkg.Dependencies {
+				allDeps[k] = v
+			}
+			for k, v := range pkg.DevDependencies {
+				allDeps[k] = v
+			}
+			for dep := range allDeps {
+				lower := strings.ToLower(dep)
+				if strings.Contains(lower, "grpc") {
+					protocolSet["gRPC"] = true
+				}
+				if strings.Contains(lower, "express") || strings.Contains(lower, "fastify") || strings.Contains(lower, "koa") {
+					protocolSet["REST"] = true
+				}
+				if strings.Contains(lower, "ws") || strings.Contains(lower, "socket.io") {
+					protocolSet["WebSocket"] = true
+				}
+				if strings.Contains(lower, "mcp") || strings.Contains(lower, "modelcontextprotocol") {
+					protocolSet["MCP"] = true
+				}
+				for tag, patterns := range frameworkPatterns {
+					for _, p := range patterns {
+						if strings.Contains(lower, p) {
+							frameworkSet[tag] = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for p := range protocolSet {
+		out.Protocols = append(out.Protocols, p)
+	}
+	for f := range frameworkSet {
+		out.Frameworks = append(out.Frameworks, f)
+	}
+	out.KeyDeps = keyDeps
+
+	// Count test files
+	testCount := 0
+	filepath.Walk(repo, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			// Skip vendor, node_modules, .git
+			if info != nil && info.IsDir() && (info.Name() == "vendor" || info.Name() == "node_modules" || info.Name() == ".git") {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		name := info.Name()
+		if strings.HasSuffix(name, "_test.go") || strings.HasSuffix(name, ".test.ts") || strings.HasSuffix(name, ".test.js") || strings.HasSuffix(name, ".spec.ts") || strings.HasPrefix(name, "test_") {
+			testCount++
+		}
+		return nil
+	})
+	out.TestCount = testCount
+
+	// Project metadata
+	out.HasCI = sandboxFileExists(filepath.Join(repo, ".github", "workflows"))
+	out.HasCLAUDEMD = sandboxFileExists(filepath.Join(repo, "CLAUDE.md"))
+	out.HasReadme = sandboxFileExists(filepath.Join(repo, "README.md"))
+	out.HasLicense = sandboxFileExists(filepath.Join(repo, "LICENSE"))
+
+	// Build composite tags
+	var tags []string
+	if isMCP {
+		tags = append(tags, "mcp-server")
+	}
+	if testCount > 0 {
+		tags = append(tags, "tested")
+	}
+	if out.HasCI {
+		tags = append(tags, "ci")
+	}
+	for p := range protocolSet {
+		tags = append(tags, strings.ToLower(p))
+	}
+	out.Tags = tags
+
+	out.AnalysisTimeMs = time.Since(start).Milliseconds()
+	return out, nil
+}
+
+func opsDepGraph(_ context.Context, input OpsDepGraphInput) (OpsDepGraphOutput, error) {
+	dir := input.Dir
+	if dir == "" {
+		dir = filepath.Join(os.Getenv("HOME"), "hairglasses-studio")
+	}
+
+	filter := input.Filter
+	if filter == "" {
+		filter = "internal"
+	}
+	format := input.Format
+	if format == "" {
+		format = "mermaid"
+	}
+
+	// Run go mod graph
+	stdout, stderr, exitCode, err := opsRunWithTimeout(30*time.Second, dir, "go", "mod", "graph")
+	if err != nil || exitCode != 0 {
+		return OpsDepGraphOutput{}, fmt.Errorf("go mod graph failed: %s %s", stdout, stderr)
+	}
+
+	// Parse edges: "module1@version module2@version"
+	type edge struct {
+		from, to string
+	}
+	var edges []edge
+	moduleSet := make(map[string]bool)
+	orgPrefix := "github.com/hairglasses-studio/"
+
+	for _, line := range strings.Split(strings.TrimSpace(stdout), "\n") {
+		if line == "" {
+			continue
+		}
+		parts := strings.Fields(line)
+		if len(parts) != 2 {
+			continue
+		}
+		from := parts[0]
+		to := parts[1]
+
+		// Strip version for display
+		fromName := strings.Split(from, "@")[0]
+		toName := strings.Split(to, "@")[0]
+
+		if filter == "internal" {
+			// Only include edges where at least one side is internal
+			fromInternal := strings.HasPrefix(fromName, orgPrefix)
+			toInternal := strings.HasPrefix(toName, orgPrefix)
+			if !fromInternal && !toInternal {
+				continue
+			}
+		}
+
+		edges = append(edges, edge{from: fromName, to: toName})
+		moduleSet[fromName] = true
+		moduleSet[toName] = true
+	}
+
+	// Collect org modules
+	var orgModules []string
+	for mod := range moduleSet {
+		if strings.HasPrefix(mod, orgPrefix) {
+			orgModules = append(orgModules, strings.TrimPrefix(mod, orgPrefix))
+		}
+	}
+
+	// Generate output
+	var graph string
+	switch format {
+	case "mermaid":
+		var sb strings.Builder
+		sb.WriteString("graph LR\n")
+		// Shorten names for readability
+		shortName := func(mod string) string {
+			if strings.HasPrefix(mod, orgPrefix) {
+				return strings.TrimPrefix(mod, orgPrefix)
+			}
+			// External: use last two path segments
+			parts := strings.Split(mod, "/")
+			if len(parts) >= 2 {
+				return parts[len(parts)-2] + "/" + parts[len(parts)-1]
+			}
+			return mod
+		}
+		seen := make(map[string]bool)
+		for _, e := range edges {
+			key := e.from + "->" + e.to
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+			from := shortName(e.from)
+			to := shortName(e.to)
+			// Sanitize for Mermaid (replace special chars)
+			from = strings.ReplaceAll(strings.ReplaceAll(from, "/", "_"), "-", "_")
+			to = strings.ReplaceAll(strings.ReplaceAll(to, "/", "_"), "-", "_")
+			sb.WriteString(fmt.Sprintf("    %s --> %s\n", from, to))
+		}
+		graph = sb.String()
+
+	case "dot":
+		var sb strings.Builder
+		sb.WriteString("digraph deps {\n")
+		sb.WriteString("  rankdir=LR;\n")
+		sb.WriteString("  node [shape=box];\n")
+		seen := make(map[string]bool)
+		for _, e := range edges {
+			key := e.from + "->" + e.to
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+			sb.WriteString(fmt.Sprintf("  \"%s\" -> \"%s\";\n", e.from, e.to))
+		}
+		sb.WriteString("}\n")
+		graph = sb.String()
+	}
+
+	return OpsDepGraphOutput{
+		Graph:       graph,
+		Format:      format,
+		ModuleCount: len(moduleSet),
+		EdgeCount:   len(edges),
+		OrgModules:  orgModules,
+	}, nil
+}
