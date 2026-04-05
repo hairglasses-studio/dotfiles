@@ -2,7 +2,7 @@
 [arch]
 packages = [
     # Terminals
-    { name = "ghostty" },
+    { name = "ghostty", hooks = { after_sync = ["systemctl", "--user", "enable", "shader-rotate.timer"] } },
     { name = "ghostty-shell-integration" },
     { name = "ghostty-terminfo" },
     { name = "foot" },
@@ -16,7 +16,7 @@ packages = [
     { name = "zoxide" },
 
     # Multiplexer
-    { name = "tmux" },
+    { name = "tmux", hooks = { after_sync = ["systemctl", "--user", "enable", "tmux.service"] } },
     { name = "zellij" },
 
     # Terminal effects
