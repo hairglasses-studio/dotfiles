@@ -1,0 +1,2005 @@
+{
+  "version": 1,
+  "last_updated": "2026-04-05T14:16:36.383446Z",
+  "total_entries": 222,
+  "entries": {
+    "https://github.com/end-4/dots-hyprland": {
+      "name": "dots-hyprland",
+      "owner": "end-4",
+      "stars": 13754,
+      "category": "hyprland",
+      "file": "hyprland/end-4.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/caelestia-dots/shell": {
+      "name": "shell",
+      "owner": "caelestia-dots",
+      "stars": 8648,
+      "category": "bars",
+      "file": "bars/caelestia-dots.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/prasanthrangan/hyprdots": {
+      "name": "hyprdots",
+      "owner": "prasanthrangan",
+      "stars": 8533,
+      "category": "hyprland",
+      "file": "hyprland/prasanthrangan.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/noctalia-dev/noctalia-shell": {
+      "name": "noctalia-shell",
+      "owner": "noctalia-dev",
+      "stars": 5375,
+      "category": "bars",
+      "file": "bars/noctalia-dev.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mylinuxforwork/dotfiles": {
+      "name": "dotfiles",
+      "owner": "mylinuxforwork",
+      "stars": 4594,
+      "category": "hyprland",
+      "file": "hyprland/mylinuxforwork.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/gh0stzk/dotfiles": {
+      "name": "dotfiles",
+      "owner": "gh0stzk",
+      "stars": 4453,
+      "category": "hyprland",
+      "file": "hyprland/gh0stzk.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JaKooLit/Arch-Hyprland": {
+      "name": "Arch-Hyprland",
+      "owner": "JaKooLit",
+      "stars": 4417,
+      "category": "tools",
+      "file": "tools/jakoolit.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JaKooLit/Hyprland-Dots": {
+      "name": "Hyprland-Dots",
+      "owner": "JaKooLit",
+      "stars": 3304,
+      "category": "hyprland",
+      "file": "hyprland/jakoolit-hyprland-dots.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/caelestia-dots/caelestia": {
+      "name": "caelestia",
+      "owner": "caelestia-dots",
+      "stars": 2662,
+      "category": "hyprland",
+      "file": "hyprland/caelestia-dots-caelestia.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JaKooLit/Fedora-Hyprland": {
+      "name": "Fedora-Hyprland",
+      "owner": "JaKooLit",
+      "stars": 2330,
+      "category": "tools",
+      "file": "tools/jakoolit-fedora-hyprland.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dusklinux/dusky": {
+      "name": "dusky",
+      "owner": "dusklinux",
+      "stars": 2001,
+      "category": "hyprland",
+      "file": "hyprland/dusklinux.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/flickowoa/dotfiles": {
+      "name": "dotfiles",
+      "owner": "flickowoa",
+      "stars": 1911,
+      "category": "hyprland",
+      "file": "hyprland/flickowoa.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ryan4yin/nix-config": {
+      "name": "nix-config",
+      "owner": "ryan4yin",
+      "stars": 1876,
+      "category": "nixos",
+      "file": "nixos/ryan4yin.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/1amSimp1e/dots": {
+      "name": "dots",
+      "owner": "1amSimp1e",
+      "stars": 1689,
+      "category": "hyprland",
+      "file": "hyprland/1amsimp1e.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/linuxmobile/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "linuxmobile",
+      "stars": 1674,
+      "category": "hyprland",
+      "file": "hyprland/linuxmobile.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/koeqaife/hyprland-material-you": {
+      "name": "hyprland-material-you",
+      "owner": "koeqaife",
+      "stars": 1419,
+      "category": "hyprland",
+      "file": "hyprland/koeqaife.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/folke/dot": {
+      "name": "dot",
+      "owner": "folke",
+      "stars": 1261,
+      "category": "hyprland",
+      "file": "hyprland/folke.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/fufexan/dotfiles": {
+      "name": "dotfiles",
+      "owner": "fufexan",
+      "stars": 1070,
+      "category": "nixos",
+      "file": "nixos/fufexan.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/gvolpe/nix-config": {
+      "name": "nix-config",
+      "owner": "gvolpe",
+      "stars": 1060,
+      "category": "nixos",
+      "file": "nixos/gvolpe.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/binnewbs/arch-hyprland": {
+      "name": "arch-hyprland",
+      "owner": "binnewbs",
+      "stars": 1048,
+      "category": "hyprland",
+      "file": "hyprland/binnewbs.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/linkfrg/dotfiles": {
+      "name": "dotfiles",
+      "owner": "linkfrg",
+      "stars": 1017,
+      "category": "hyprland",
+      "file": "hyprland/linkfrg.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/yutkat/dotfiles": {
+      "name": "dotfiles",
+      "owner": "yutkat",
+      "stars": 945,
+      "category": "nixos",
+      "file": "nixos/yutkat.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/meowrch/meowrch": {
+      "name": "meowrch",
+      "owner": "meowrch",
+      "stars": 908,
+      "category": "hyprland",
+      "file": "hyprland/meowrch.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/XNM1/linux-nixos-hyprland-config-dotfiles": {
+      "name": "linux-nixos-hyprland-config-dotfiles",
+      "owner": "XNM1",
+      "stars": 904,
+      "category": "nixos",
+      "file": "nixos/xnm1.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Frost-Phoenix/nixos-config": {
+      "name": "nixos-config",
+      "owner": "Frost-Phoenix",
+      "stars": 899,
+      "category": "nixos",
+      "file": "nixos/frost-phoenix.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/elifouts/Dotfiles": {
+      "name": "Dotfiles",
+      "owner": "elifouts",
+      "stars": 890,
+      "category": "hyprland",
+      "file": "hyprland/elifouts.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sameemul-haque/dotfiles": {
+      "name": "dotfiles",
+      "owner": "sameemul-haque",
+      "stars": 860,
+      "category": "hyprland",
+      "file": "hyprland/sameemul-haque.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/qxb3/conf": {
+      "name": "conf",
+      "owner": "qxb3",
+      "stars": 795,
+      "category": "hyprland",
+      "file": "hyprland/qxb3.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ericmurphyxyz/dotfiles": {
+      "name": "dotfiles",
+      "owner": "ericmurphyxyz",
+      "stars": 730,
+      "category": "hyprland",
+      "file": "hyprland/ericmurphyxyz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Matt-FTW/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Matt-FTW",
+      "stars": 725,
+      "category": "hyprland",
+      "file": "hyprland/matt-ftw.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/zDyant/HyprNova": {
+      "name": "HyprNova",
+      "owner": "zDyant",
+      "stars": 717,
+      "category": "hyprland",
+      "file": "hyprland/zdyant.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AhmedSaadi0/NibrasShell": {
+      "name": "NibrasShell",
+      "owner": "AhmedSaadi0",
+      "stars": 697,
+      "category": "bars",
+      "file": "bars/ahmedsaadi0.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/diinki/linux-retroism": {
+      "name": "linux-retroism",
+      "owner": "diinki",
+      "stars": 632,
+      "category": "hyprland",
+      "file": "hyprland/diinki.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Axenide/Dotfiles": {
+      "name": "Dotfiles",
+      "owner": "Axenide",
+      "stars": 625,
+      "category": "hyprland",
+      "file": "hyprland/axenide.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/notusknot/dotfiles-nix": {
+      "name": "dotfiles-nix",
+      "owner": "notusknot",
+      "stars": 597,
+      "category": "nixos",
+      "file": "nixos/notusknot.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/debuggyo/Exo": {
+      "name": "Exo",
+      "owner": "debuggyo",
+      "stars": 595,
+      "category": "hyprland",
+      "file": "hyprland/debuggyo.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AmadeusWM/dotfiles-hyprland": {
+      "name": "dotfiles-hyprland",
+      "owner": "AmadeusWM",
+      "stars": 564,
+      "category": "hyprland",
+      "file": "hyprland/amadeuswm.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/SolDoesTech/hyprland": {
+      "name": "hyprland",
+      "owner": "SolDoesTech",
+      "stars": 532,
+      "category": "hyprland",
+      "file": "hyprland/soldoestech.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AymanLyesri/ArchEclipse": {
+      "name": "ArchEclipse",
+      "owner": "AymanLyesri",
+      "stars": 521,
+      "category": "hyprland",
+      "file": "hyprland/aymanlyesri.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MathisP75/summer-day-and-night": {
+      "name": "summer-day-and-night",
+      "owner": "MathisP75",
+      "stars": 516,
+      "category": "hyprland",
+      "file": "hyprland/mathisp75.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Sly-Harvey/NixOS": {
+      "name": "NixOS",
+      "owner": "Sly-Harvey",
+      "stars": 514,
+      "category": "nixos",
+      "file": "nixos/sly-harvey.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/anotherhadi/nixy": {
+      "name": "nixy",
+      "owner": "anotherhadi",
+      "stars": 513,
+      "category": "nixos",
+      "file": "nixos/anotherhadi.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Spelljinxer/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Spelljinxer",
+      "stars": 505,
+      "category": "hyprland",
+      "file": "hyprland/spelljinxer.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/raexera/yuki": {
+      "name": "yuki",
+      "owner": "raexera",
+      "stars": 483,
+      "category": "hyprland",
+      "file": "hyprland/raexera.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Ruixi-rebirth/melted-flakes": {
+      "name": "melted-flakes",
+      "owner": "Ruixi-rebirth",
+      "stars": 473,
+      "category": "nixos",
+      "file": "nixos/ruixi-rebirth.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Lunaris-Project/HyprLuna": {
+      "name": "HyprLuna",
+      "owner": "Lunaris-Project",
+      "stars": 457,
+      "category": "hyprland",
+      "file": "hyprland/lunaris-project.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/vyrx-dev/symphony": {
+      "name": "symphony",
+      "owner": "vyrx-dev",
+      "stars": 437,
+      "category": "hyprland",
+      "file": "hyprland/vyrx-dev.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Cybersnake223/Hypr": {
+      "name": "Hypr",
+      "owner": "Cybersnake223",
+      "stars": 428,
+      "category": "hyprland",
+      "file": "hyprland/cybersnake223.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/nabakdev/dotfiles": {
+      "name": "dotfiles",
+      "owner": "nabakdev",
+      "stars": 428,
+      "category": "hyprland",
+      "file": "hyprland/nabakdev.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/diinki/diinki-aero": {
+      "name": "diinki-aero",
+      "owner": "diinki",
+      "stars": 427,
+      "category": "hyprland",
+      "file": "hyprland/diinki-diinki-aero.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ad1822/hyprdots": {
+      "name": "hyprdots",
+      "owner": "ad1822",
+      "stars": 399,
+      "category": "hyprland",
+      "file": "hyprland/ad1822.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/isabelroses/dotfiles": {
+      "name": "dotfiles",
+      "owner": "isabelroses",
+      "stars": 383,
+      "category": "hyprland",
+      "file": "hyprland/isabelroses.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/donovanglover/nix-config": {
+      "name": "nix-config",
+      "owner": "donovanglover",
+      "stars": 383,
+      "category": "nixos",
+      "file": "nixos/donovanglover.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JaKooLit/NixOS-Hyprland": {
+      "name": "NixOS-Hyprland",
+      "owner": "JaKooLit",
+      "stars": 382,
+      "category": "nixos",
+      "file": "nixos/jakoolit-nixos-hyprland.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/junnunkarim/dotfiles_home": {
+      "name": "dotfiles_home",
+      "owner": "junnunkarim",
+      "stars": 377,
+      "category": "hyprland",
+      "file": "hyprland/junnunkarim.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Maciejonos/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Maciejonos",
+      "stars": 374,
+      "category": "hyprland",
+      "file": "hyprland/maciejonos.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/SolDoesTech/HyprV2": {
+      "name": "HyprV2",
+      "owner": "SolDoesTech",
+      "stars": 371,
+      "category": "hyprland",
+      "file": "hyprland/soldoestech-hyprv2.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/HeinzDev/Hyprland-dotfiles": {
+      "name": "Hyprland-dotfiles",
+      "owner": "HeinzDev",
+      "stars": 342,
+      "category": "nixos",
+      "file": "nixos/heinzdev.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/TheMaxMur/NixOS-Configuration": {
+      "name": "NixOS-Configuration",
+      "owner": "TheMaxMur",
+      "stars": 334,
+      "category": "nixos",
+      "file": "nixos/themaxmur.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/juminai/dotfiles": {
+      "name": "dotfiles",
+      "owner": "juminai",
+      "stars": 329,
+      "category": "hyprland",
+      "file": "hyprland/juminai.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/knightfallxz/Hyprland-Custom-Configuration": {
+      "name": "Hyprland-Custom-Configuration",
+      "owner": "knightfallxz",
+      "stars": 320,
+      "category": "hyprland",
+      "file": "hyprland/knightfallxz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/LierB/dotfiles": {
+      "name": "dotfiles",
+      "owner": "LierB",
+      "stars": 310,
+      "category": "hyprland",
+      "file": "hyprland/lierb.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/aorumbayev/awesome-omarchy": {
+      "name": "awesome-omarchy",
+      "owner": "aorumbayev",
+      "stars": 303,
+      "category": "hyprland",
+      "file": "hyprland/aorumbayev.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/taylor85345/hyprland-dotfiles": {
+      "name": "hyprland-dotfiles",
+      "owner": "taylor85345",
+      "stars": 300,
+      "category": "hyprland",
+      "file": "hyprland/taylor85345.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/3rfaan/dotfiles-hyprland": {
+      "name": "dotfiles-hyprland",
+      "owner": "3rfaan",
+      "stars": 295,
+      "category": "hyprland",
+      "file": "hyprland/3rfaan.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/S4NKALP/Modus": {
+      "name": "Modus",
+      "owner": "S4NKALP",
+      "stars": 295,
+      "category": "hyprland",
+      "file": "hyprland/s4nkalp.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/HANCORE-linux/waybar-themes": {
+      "name": "waybar-themes",
+      "owner": "HANCORE-linux",
+      "stars": 283,
+      "category": "bars",
+      "file": "bars/hancore-linux.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JaKooLit/Hyprland-v3": {
+      "name": "Hyprland-v3",
+      "owner": "JaKooLit",
+      "stars": 279,
+      "category": "tools",
+      "file": "tools/jakoolit-hyprland-v3.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/diinki/diinki-retrofuture": {
+      "name": "diinki-retrofuture",
+      "owner": "diinki",
+      "stars": 277,
+      "category": "hyprland",
+      "file": "hyprland/diinki-diinki-retrofuture.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/budimanjojo/nix-config": {
+      "name": "nix-config",
+      "owner": "budimanjojo",
+      "stars": 276,
+      "category": "nixos",
+      "file": "nixos/budimanjojo.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/coffebar/dotfiles": {
+      "name": "dotfiles",
+      "owner": "coffebar",
+      "stars": 250,
+      "category": "hyprland",
+      "file": "hyprland/coffebar.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/SeraphimeZelel/rion-ricing": {
+      "name": "rion-ricing",
+      "owner": "SeraphimeZelel",
+      "stars": 250,
+      "category": "hyprland",
+      "file": "hyprland/seraphimezelel.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/shell-ninja/hyprconf": {
+      "name": "hyprconf",
+      "owner": "shell-ninja",
+      "stars": 244,
+      "category": "hyprland",
+      "file": "hyprland/shell-ninja.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sudoharun/dotfiles": {
+      "name": "dotfiles",
+      "owner": "sudoharun",
+      "stars": 243,
+      "category": "hyprland",
+      "file": "hyprland/sudoharun.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/xeji01/hyprstellar": {
+      "name": "hyprstellar",
+      "owner": "xeji01",
+      "stars": 241,
+      "category": "hyprland",
+      "file": "hyprland/xeji01.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/saatvik333/hyprland-dotfiles": {
+      "name": "hyprland-dotfiles",
+      "owner": "saatvik333",
+      "stars": 228,
+      "category": "hyprland",
+      "file": "hyprland/saatvik333.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/2SSK/dot-files": {
+      "name": "dot-files",
+      "owner": "2SSK",
+      "stars": 227,
+      "category": "hyprland",
+      "file": "hyprland/2ssk.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/coffeeispower/woomer": {
+      "name": "woomer",
+      "owner": "coffeeispower",
+      "stars": 222,
+      "category": "components",
+      "file": "components/coffeeispower.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Anik200/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Anik200",
+      "stars": 219,
+      "category": "hyprland",
+      "file": "hyprland/anik200.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/khaneliman/dotfiles": {
+      "name": "dotfiles",
+      "owner": "khaneliman",
+      "stars": 215,
+      "category": "hyprland",
+      "file": "hyprland/khaneliman.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/retrozinndev/colorshell": {
+      "name": "colorshell",
+      "owner": "retrozinndev",
+      "stars": 211,
+      "category": "bars",
+      "file": "bars/retrozinndev.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/PilkDrinker/PilkDots": {
+      "name": "PilkDots",
+      "owner": "PilkDrinker",
+      "stars": 205,
+      "category": "hyprland",
+      "file": "hyprland/pilkdrinker.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/7KIR7/dots": {
+      "name": "dots",
+      "owner": "7KIR7",
+      "stars": 205,
+      "category": "hyprland",
+      "file": "hyprland/7kir7.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/greed-d/.dotfiles": {
+      "name": ".dotfiles",
+      "owner": "greed-d",
+      "stars": 202,
+      "category": "hyprland",
+      "file": "hyprland/greed-d.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/BlueManCZ/hyprmod": {
+      "name": "hyprmod",
+      "owner": "BlueManCZ",
+      "stars": 202,
+      "category": "hyprland",
+      "file": "hyprland/bluemancz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AmitGolden/dotfiles": {
+      "name": "dotfiles",
+      "owner": "AmitGolden",
+      "stars": 195,
+      "category": "hyprland",
+      "file": "hyprland/amitgolden.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ElysiaOS/ElysiaOS": {
+      "name": "ElysiaOS",
+      "owner": "ElysiaOS",
+      "stars": 192,
+      "category": "hyprland",
+      "file": "hyprland/elysiaos.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ViegPhunt/Dotfiles": {
+      "name": "Dotfiles",
+      "owner": "ViegPhunt",
+      "stars": 190,
+      "category": "hyprland",
+      "file": "hyprland/viegphunt.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/chikobara/dotfiles": {
+      "name": "dotfiles",
+      "owner": "chikobara",
+      "stars": 189,
+      "category": "hyprland",
+      "file": "hyprland/chikobara.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/masasam/dotfiles": {
+      "name": "dotfiles",
+      "owner": "masasam",
+      "stars": 188,
+      "category": "hyprland",
+      "file": "hyprland/masasam.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/niksingh710/gdots": {
+      "name": "gdots",
+      "owner": "niksingh710",
+      "stars": 188,
+      "category": "hyprland",
+      "file": "hyprland/niksingh710.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/0bCdian/Hyprland_dotfiles": {
+      "name": "Hyprland_dotfiles",
+      "owner": "0bCdian",
+      "stars": 186,
+      "category": "hyprland",
+      "file": "hyprland/0bcdian.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cybrcore/cybrland": {
+      "name": "cybrland",
+      "owner": "cybrcore",
+      "stars": 185,
+      "category": "hyprland",
+      "file": "hyprland/cybrcore.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Nytril-ark/rumda": {
+      "name": "rumda",
+      "owner": "Nytril-ark",
+      "stars": 185,
+      "category": "hyprland",
+      "file": "hyprland/nytril-ark.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/kotontrion/dotfiles": {
+      "name": "dotfiles",
+      "owner": "kotontrion",
+      "stars": 181,
+      "category": "hyprland",
+      "file": "hyprland/kotontrion.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cxOrz/dotfiles-hyprland": {
+      "name": "dotfiles-hyprland",
+      "owner": "cxOrz",
+      "stars": 180,
+      "category": "hyprland",
+      "file": "hyprland/cxorz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/DerAnsari/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "DerAnsari",
+      "stars": 173,
+      "category": "hyprland",
+      "file": "hyprland/deransari.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/NotMugil/dotfiles": {
+      "name": "dotfiles",
+      "owner": "NotMugil",
+      "stars": 168,
+      "category": "hyprland",
+      "file": "hyprland/notmugil.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Harman1307/dotfiles-Hyprland": {
+      "name": "dotfiles-Hyprland",
+      "owner": "Harman1307",
+      "stars": 165,
+      "category": "hyprland",
+      "file": "hyprland/harman1307.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cebem1nt/dotfiles": {
+      "name": "dotfiles",
+      "owner": "cebem1nt",
+      "stars": 163,
+      "category": "hyprland",
+      "file": "hyprland/cebem1nt.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/victorsosaMx/vsWaybar-Studio": {
+      "name": "vsWaybar-Studio",
+      "owner": "victorsosaMx",
+      "stars": 163,
+      "category": "bars",
+      "file": "bars/victorsosamx.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Ascaniolamp/Hyprlain": {
+      "name": "Hyprlain",
+      "owner": "Ascaniolamp",
+      "stars": 162,
+      "category": "hyprland",
+      "file": "hyprland/ascaniolamp.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/acdcbyl/Dotfiles-arch": {
+      "name": "Dotfiles-arch",
+      "owner": "acdcbyl",
+      "stars": 158,
+      "category": "hyprland",
+      "file": "hyprland/acdcbyl.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/RoccoRakete/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "RoccoRakete",
+      "stars": 154,
+      "category": "hyprland",
+      "file": "hyprland/roccorakete.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/saneaspect/dotfiles": {
+      "name": "dotfiles",
+      "owner": "saneaspect",
+      "stars": 153,
+      "category": "hyprland",
+      "file": "hyprland/saneaspect.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JohnOberhauser/dotfiles": {
+      "name": "dotfiles",
+      "owner": "JohnOberhauser",
+      "stars": 146,
+      "category": "hyprland",
+      "file": "hyprland/johnoberhauser.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ChrisLAS/hyprvibe": {
+      "name": "hyprvibe",
+      "owner": "ChrisLAS",
+      "stars": 143,
+      "category": "nixos",
+      "file": "nixos/chrislas.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/PoSayDone/.dotfiles_wayland": {
+      "name": ".dotfiles_wayland",
+      "owner": "PoSayDone",
+      "stars": 142,
+      "category": "hyprland",
+      "file": "hyprland/posaydone.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/atif-1402/minimal-waybar-themes": {
+      "name": "minimal-waybar-themes",
+      "owner": "atif-1402",
+      "stars": 140,
+      "category": "bars",
+      "file": "bars/atif-1402.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/IogaMaster/dotfiles": {
+      "name": "dotfiles",
+      "owner": "IogaMaster",
+      "stars": 139,
+      "category": "hyprland",
+      "file": "hyprland/iogamaster.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/SwayKh/dotfiles": {
+      "name": "dotfiles",
+      "owner": "SwayKh",
+      "stars": 138,
+      "category": "hyprland",
+      "file": "hyprland/swaykh.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Vantesh/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Vantesh",
+      "stars": 136,
+      "category": "hyprland",
+      "file": "hyprland/vantesh.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/exploitoverload/PwNixOS": {
+      "name": "PwNixOS",
+      "owner": "exploitoverload",
+      "stars": 135,
+      "category": "nixos",
+      "file": "nixos/exploitoverload.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/S4NKALP/hyprland": {
+      "name": "hyprland",
+      "owner": "S4NKALP",
+      "stars": 135,
+      "category": "hyprland",
+      "file": "hyprland/s4nkalp-hyprland.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/caelestia-dots/cli": {
+      "name": "cli",
+      "owner": "caelestia-dots",
+      "stars": 134,
+      "category": "hyprland",
+      "file": "hyprland/caelestia-dots-cli.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/bennetthardwick/dotfiles": {
+      "name": "dotfiles",
+      "owner": "bennetthardwick",
+      "stars": 134,
+      "category": "hyprland",
+      "file": "hyprland/bennetthardwick.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/xZepyx/hyprzepyx": {
+      "name": "hyprzepyx",
+      "owner": "xZepyx",
+      "stars": 134,
+      "category": "hyprland",
+      "file": "hyprland/xzepyx.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/newemperor221/hyprland-dotfiles": {
+      "name": "hyprland-dotfiles",
+      "owner": "newemperor221",
+      "stars": 128,
+      "category": "hyprland",
+      "file": "hyprland/newemperor221.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MarcusMix/dotfiles": {
+      "name": "dotfiles",
+      "owner": "MarcusMix",
+      "stars": 127,
+      "category": "hyprland",
+      "file": "hyprland/marcusmix.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/iamhrigved/Hyprdots": {
+      "name": "Hyprdots",
+      "owner": "iamhrigved",
+      "stars": 125,
+      "category": "hyprland",
+      "file": "hyprland/iamhrigved.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cybergaz/hyprconf": {
+      "name": "hyprconf",
+      "owner": "cybergaz",
+      "stars": 125,
+      "category": "hyprland",
+      "file": "hyprland/cybergaz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/notcandy001/Moonveil": {
+      "name": "Moonveil",
+      "owner": "notcandy001",
+      "stars": 124,
+      "category": "hyprland",
+      "file": "hyprland/notcandy001.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/CachyOS/cachyos-hyprland-settings": {
+      "name": "cachyos-hyprland-settings",
+      "owner": "CachyOS",
+      "stars": 121,
+      "category": "hyprland",
+      "file": "hyprland/cachyos.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cogikyo/dotfiles": {
+      "name": "dotfiles",
+      "owner": "cogikyo",
+      "stars": 120,
+      "category": "hyprland",
+      "file": "hyprland/cogikyo.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sekiryl/hyprdots": {
+      "name": "hyprdots",
+      "owner": "sekiryl",
+      "stars": 117,
+      "category": "hyprland",
+      "file": "hyprland/sekiryl.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/aadritobasu/HyprKenso": {
+      "name": "HyprKenso",
+      "owner": "aadritobasu",
+      "stars": 116,
+      "category": "hyprland",
+      "file": "hyprland/aadritobasu.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/EC2854/dotfiles": {
+      "name": "dotfiles",
+      "owner": "EC2854",
+      "stars": 115,
+      "category": "hyprland",
+      "file": "hyprland/ec2854.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/gasech/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "gasech",
+      "stars": 105,
+      "category": "hyprland",
+      "file": "hyprland/gasech.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/corecathx/whisker": {
+      "name": "whisker",
+      "owner": "corecathx",
+      "stars": 103,
+      "category": "hyprland",
+      "file": "hyprland/corecathx.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/luyu-wu/Config": {
+      "name": "Config",
+      "owner": "luyu-wu",
+      "stars": 103,
+      "category": "hyprland",
+      "file": "hyprland/luyu-wu.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Narmis-E/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "Narmis-E",
+      "stars": 100,
+      "category": "hyprland",
+      "file": "hyprland/narmis-e.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/LoneWolf4713/auspicious-dots": {
+      "name": "auspicious-dots",
+      "owner": "LoneWolf4713",
+      "stars": 97,
+      "category": "hyprland",
+      "file": "hyprland/lonewolf4713.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sh1zicus/dots-hyprland": {
+      "name": "dots-hyprland",
+      "owner": "sh1zicus",
+      "stars": 97,
+      "category": "hyprland",
+      "file": "hyprland/sh1zicus.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/smravec/.dotfiles-hyprland": {
+      "name": ".dotfiles-hyprland",
+      "owner": "smravec",
+      "stars": 94,
+      "category": "hyprland",
+      "file": "hyprland/smravec.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Vikash-Singh-Tanwar/Hypr-uwu": {
+      "name": "Hypr-uwu",
+      "owner": "Vikash-Singh-Tanwar",
+      "stars": 89,
+      "category": "hyprland",
+      "file": "hyprland/vikash-singh-tanwar.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/NischalDawadi/Wallpapers": {
+      "name": "Wallpapers",
+      "owner": "NischalDawadi",
+      "stars": 88,
+      "category": "components",
+      "file": "components/nischaldawadi.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/caioax/lyne-dots": {
+      "name": "lyne-dots",
+      "owner": "caioax",
+      "stars": 87,
+      "category": "hyprland",
+      "file": "hyprland/caioax.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sbalghari/sbdots": {
+      "name": "sbdots",
+      "owner": "sbalghari",
+      "stars": 82,
+      "category": "hyprland",
+      "file": "hyprland/sbalghari.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/SirEthanator/Hyprland-Dots": {
+      "name": "Hyprland-Dots",
+      "owner": "SirEthanator",
+      "stars": 81,
+      "category": "hyprland",
+      "file": "hyprland/sirethanator.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Andrey0189/hyprland-rice": {
+      "name": "hyprland-rice",
+      "owner": "Andrey0189",
+      "stars": 80,
+      "category": "hyprland",
+      "file": "hyprland/andrey0189.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Nocturnussx/Hyprland-DotFiles": {
+      "name": "Hyprland-DotFiles",
+      "owner": "Nocturnussx",
+      "stars": 78,
+      "category": "hyprland",
+      "file": "hyprland/nocturnussx.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/A-Knee09/dotfiles": {
+      "name": "dotfiles",
+      "owner": "A-Knee09",
+      "stars": 75,
+      "category": "hyprland",
+      "file": "hyprland/a-knee09.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JaKooLit/Ja_HyprLanD-dots": {
+      "name": "Ja_HyprLanD-dots",
+      "owner": "JaKooLit",
+      "stars": 75,
+      "category": "hyprland",
+      "file": "hyprland/jakoolit-ja_hyprland-dots.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/WasamiKirua/Kakikori-Hyprland-Rice": {
+      "name": "Kakikori-Hyprland-Rice",
+      "owner": "WasamiKirua",
+      "stars": 74,
+      "category": "hyprland",
+      "file": "hyprland/wasamikirua.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/myamusashi/vast-shell": {
+      "name": "vast-shell",
+      "owner": "myamusashi",
+      "stars": 71,
+      "category": "bars",
+      "file": "bars/myamusashi.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/husseinhareb/hyprland-eww": {
+      "name": "hyprland-eww",
+      "owner": "husseinhareb",
+      "stars": 70,
+      "category": "hyprland",
+      "file": "hyprland/husseinhareb.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/zhaleff/BlackNode": {
+      "name": "BlackNode",
+      "owner": "zhaleff",
+      "stars": 70,
+      "category": "hyprland",
+      "file": "hyprland/zhaleff.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/void-land/hyprland-void-dots": {
+      "name": "hyprland-void-dots",
+      "owner": "void-land",
+      "stars": 68,
+      "category": "hyprland",
+      "file": "hyprland/void-land.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mtkusbdevice/hyprland-hdready": {
+      "name": "hyprland-hdready",
+      "owner": "mtkusbdevice",
+      "stars": 68,
+      "category": "hyprland",
+      "file": "hyprland/mtkusbdevice.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/OldJobobo/omarchy-miasma-theme": {
+      "name": "omarchy-miasma-theme",
+      "owner": "OldJobobo",
+      "stars": 63,
+      "category": "themes",
+      "file": "themes/oldjobobo.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/poorlajka/dotfiles": {
+      "name": "dotfiles",
+      "owner": "poorlajka",
+      "stars": 61,
+      "category": "hyprland",
+      "file": "hyprland/poorlajka.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/end-4/dots-hyprland-wiki": {
+      "name": "dots-hyprland-wiki",
+      "owner": "end-4",
+      "stars": 60,
+      "category": "hyprland",
+      "file": "hyprland/end-4-dots-hyprland-wiki.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Qeatrix/UnixRises": {
+      "name": "UnixRises",
+      "owner": "Qeatrix",
+      "stars": 58,
+      "category": "nixos",
+      "file": "nixos/qeatrix.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Jyndev/dotfiles_v2": {
+      "name": "dotfiles_v2",
+      "owner": "Jyndev",
+      "stars": 58,
+      "category": "hyprland",
+      "file": "hyprland/jyndev.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AlvaroParker/config": {
+      "name": "config",
+      "owner": "AlvaroParker",
+      "stars": 57,
+      "category": "hyprland",
+      "file": "hyprland/alvaroparker.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/dhrruvsharma/shell": {
+      "name": "shell",
+      "owner": "dhrruvsharma",
+      "stars": 54,
+      "category": "bars",
+      "file": "bars/dhrruvsharma.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/klpod221/klpod0s": {
+      "name": "klpod0s",
+      "owner": "klpod221",
+      "stars": 54,
+      "category": "hyprland",
+      "file": "hyprland/klpod221.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/angelgauze/hyprland-catppuccin-dotz": {
+      "name": "hyprland-catppuccin-dotz",
+      "owner": "angelgauze",
+      "stars": 54,
+      "category": "hyprland",
+      "file": "hyprland/angelgauze.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Youwes09/Ateon": {
+      "name": "Ateon",
+      "owner": "Youwes09",
+      "stars": 53,
+      "category": "hyprland",
+      "file": "hyprland/youwes09.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/na-ive/nandoroid-shell": {
+      "name": "nandoroid-shell",
+      "owner": "na-ive",
+      "stars": 53,
+      "category": "bars",
+      "file": "bars/na-ive.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/RenaudAlly/dotfiles": {
+      "name": "dotfiles",
+      "owner": "RenaudAlly",
+      "stars": 53,
+      "category": "hyprland",
+      "file": "hyprland/renaudally.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/crawraps/widgets-collection": {
+      "name": "widgets-collection",
+      "owner": "crawraps",
+      "stars": 52,
+      "category": "hyprland",
+      "file": "hyprland/crawraps.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/FireStreaker2/dotfiles": {
+      "name": "dotfiles",
+      "owner": "FireStreaker2",
+      "stars": 51,
+      "category": "hyprland",
+      "file": "hyprland/firestreaker2.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/LinuxBeginnings/Hyprland-Dots": {
+      "name": "Hyprland-Dots",
+      "owner": "LinuxBeginnings",
+      "stars": 51,
+      "category": "hyprland",
+      "file": "hyprland/linuxbeginnings.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/d1rshan/dots": {
+      "name": "dots",
+      "owner": "d1rshan",
+      "stars": 51,
+      "category": "hyprland",
+      "file": "hyprland/d1rshan.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Savecoders/dotfiles": {
+      "name": "dotfiles",
+      "owner": "Savecoders",
+      "stars": 50,
+      "category": "hyprland",
+      "file": "hyprland/savecoders.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/jamsnxs/hyprpuccin": {
+      "name": "hyprpuccin",
+      "owner": "jamsnxs",
+      "stars": 49,
+      "category": "hyprland",
+      "file": "hyprland/jamsnxs.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/TheRiceCold/dots": {
+      "name": "dots",
+      "owner": "TheRiceCold",
+      "stars": 49,
+      "category": "nixos",
+      "file": "nixos/thericecold.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/parazeeknova/dotfiles": {
+      "name": "dotfiles",
+      "owner": "parazeeknova",
+      "stars": 49,
+      "category": "hyprland",
+      "file": "hyprland/parazeeknova.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/cherrynoize/dotfiles": {
+      "name": "dotfiles",
+      "owner": "cherrynoize",
+      "stars": 48,
+      "category": "hyprland",
+      "file": "hyprland/cherrynoize.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/bluebyt/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "bluebyt",
+      "stars": 48,
+      "category": "hyprland",
+      "file": "hyprland/bluebyt.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/mooncoffee1/MyHyprlandRice": {
+      "name": "MyHyprlandRice",
+      "owner": "mooncoffee1",
+      "stars": 47,
+      "category": "hyprland",
+      "file": "hyprland/mooncoffee1.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/hembramnishant50-glitch/omarchy-coppernight-theme": {
+      "name": "omarchy-coppernight-theme",
+      "owner": "hembramnishant50-glitch",
+      "stars": 44,
+      "category": "themes",
+      "file": "themes/hembramnishant50-glitch.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/AdiKsOnDev/HyprValley": {
+      "name": "HyprValley",
+      "owner": "AdiKsOnDev",
+      "stars": 44,
+      "category": "hyprland",
+      "file": "hyprland/adiksondev.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/F4NT0/FantoDocs_Rice": {
+      "name": "FantoDocs_Rice",
+      "owner": "F4NT0",
+      "stars": 42,
+      "category": "nixos",
+      "file": "nixos/f4nt0.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/GixoXYZ/HyprlandDotFiles": {
+      "name": "HyprlandDotFiles",
+      "owner": "GixoXYZ",
+      "stars": 42,
+      "category": "hyprland",
+      "file": "hyprland/gixoxyz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/m70v/DOTTY_DOTS": {
+      "name": "DOTTY_DOTS",
+      "owner": "m70v",
+      "stars": 41,
+      "category": "hyprland",
+      "file": "hyprland/m70v.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/vlppz/Everforest-Hyprland": {
+      "name": "Everforest-Hyprland",
+      "owner": "vlppz",
+      "stars": 40,
+      "category": "hyprland",
+      "file": "hyprland/vlppz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/lemniskett/hyprdose": {
+      "name": "hyprdose",
+      "owner": "lemniskett",
+      "stars": 40,
+      "category": "hyprland",
+      "file": "hyprland/lemniskett.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/OrynVail/OrynOS": {
+      "name": "OrynOS",
+      "owner": "OrynVail",
+      "stars": 39,
+      "category": "nixos",
+      "file": "nixos/orynvail.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/MrVivekRajan/Waybar-Wlogout-dots": {
+      "name": "Waybar-Wlogout-dots",
+      "owner": "MrVivekRajan",
+      "stars": 39,
+      "category": "hyprland",
+      "file": "hyprland/mrvivekrajan.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sid-kailasa/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "sid-kailasa",
+      "stars": 39,
+      "category": "hyprland",
+      "file": "hyprland/sid-kailasa.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ohxxm/dotfiles": {
+      "name": "dotfiles",
+      "owner": "ohxxm",
+      "stars": 38,
+      "category": "hyprland",
+      "file": "hyprland/ohxxm.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/rajiWanigasingha/dot.config": {
+      "name": "dot.config",
+      "owner": "rajiWanigasingha",
+      "stars": 38,
+      "category": "hyprland",
+      "file": "hyprland/rajiwanigasingha.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/xBLACKICEx/end-4-dots-hyprland-nixos": {
+      "name": "end-4-dots-hyprland-nixos",
+      "owner": "xBLACKICEx",
+      "stars": 38,
+      "category": "nixos",
+      "file": "nixos/xblackicex.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/maxtaran2010/hyprland-rice": {
+      "name": "hyprland-rice",
+      "owner": "maxtaran2010",
+      "stars": 37,
+      "category": "hyprland",
+      "file": "hyprland/maxtaran2010.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/3rfaan/autoricer": {
+      "name": "autoricer",
+      "owner": "3rfaan",
+      "stars": 37,
+      "category": "hyprland",
+      "file": "hyprland/3rfaan-autoricer.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/momcilovicluka/Hyprland-dots": {
+      "name": "Hyprland-dots",
+      "owner": "momcilovicluka",
+      "stars": 37,
+      "category": "hyprland",
+      "file": "hyprland/momcilovicluka.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/UnFunnyGuy/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "UnFunnyGuy",
+      "stars": 35,
+      "category": "hyprland",
+      "file": "hyprland/unfunnyguy.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/binarylinuxx/dots": {
+      "name": "dots",
+      "owner": "binarylinuxx",
+      "stars": 34,
+      "category": "hyprland",
+      "file": "hyprland/binarylinuxx.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Genograche/Archlinuxhyprdots": {
+      "name": "Archlinuxhyprdots",
+      "owner": "Genograche",
+      "stars": 33,
+      "category": "hyprland",
+      "file": "hyprland/genograche.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/alyanser/dotfiles": {
+      "name": "dotfiles",
+      "owner": "alyanser",
+      "stars": 32,
+      "category": "hyprland",
+      "file": "hyprland/alyanser.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JuiceyDew/frosted-dots-hyprland-": {
+      "name": "frosted-dots-hyprland-",
+      "owner": "JuiceyDew",
+      "stars": 32,
+      "category": "hyprland",
+      "file": "hyprland/juiceydew.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JaKooLit/HyprLanD": {
+      "name": "HyprLanD",
+      "owner": "JaKooLit",
+      "stars": 32,
+      "category": "tools",
+      "file": "tools/jakoolit-hyprland.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Beast-Viper/ViperDots-Hyprland": {
+      "name": "ViperDots-Hyprland",
+      "owner": "Beast-Viper",
+      "stars": 26,
+      "category": "hyprland",
+      "file": "hyprland/beast-viper.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/celesrenata/nix-flakes": {
+      "name": "nix-flakes",
+      "owner": "celesrenata",
+      "stars": 26,
+      "category": "nixos",
+      "file": "nixos/celesrenata.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/TXG0Fk3/Hyprland-Dots": {
+      "name": "Hyprland-Dots",
+      "owner": "TXG0Fk3",
+      "stars": 24,
+      "category": "hyprland",
+      "file": "hyprland/txg0fk3.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Roknor/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "Roknor",
+      "stars": 23,
+      "category": "hyprland",
+      "file": "hyprland/roknor.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ahmadhabibi14/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "ahmadhabibi14",
+      "stars": 22,
+      "category": "hyprland",
+      "file": "hyprland/ahmadhabibi14.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/SherLock707/hyprland_dots": {
+      "name": "hyprland_dots",
+      "owner": "SherLock707",
+      "stars": 22,
+      "category": "hyprland",
+      "file": "hyprland/sherlock707.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/nikoloc/dotfiles": {
+      "name": "dotfiles",
+      "owner": "nikoloc",
+      "stars": 20,
+      "category": "hyprland",
+      "file": "hyprland/nikoloc.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/vasujain275/old-dots": {
+      "name": "old-dots",
+      "owner": "vasujain275",
+      "stars": 18,
+      "category": "hyprland",
+      "file": "hyprland/vasujain275.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/krishna4a6av/.config": {
+      "name": ".config",
+      "owner": "krishna4a6av",
+      "stars": 17,
+      "category": "hyprland",
+      "file": "hyprland/krishna4a6av.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sunworms/hyprdots": {
+      "name": "hyprdots",
+      "owner": "sunworms",
+      "stars": 17,
+      "category": "hyprland",
+      "file": "hyprland/sunworms.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/primalkz/hyprland_dots": {
+      "name": "hyprland_dots",
+      "owner": "primalkz",
+      "stars": 17,
+      "category": "hyprland",
+      "file": "hyprland/primalkz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/VerdantEli/verdantdotfiles": {
+      "name": "verdantdotfiles",
+      "owner": "VerdantEli",
+      "stars": 16,
+      "category": "hyprland",
+      "file": "hyprland/verdanteli.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/happyzxzxz/valhallaDots": {
+      "name": "valhallaDots",
+      "owner": "happyzxzxz",
+      "stars": 16,
+      "category": "hyprland",
+      "file": "hyprland/happyzxzxz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Oman395/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "Oman395",
+      "stars": 15,
+      "category": "hyprland",
+      "file": "hyprland/oman395.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/abdalrahmanshaban0/Arch-Dots": {
+      "name": "Arch-Dots",
+      "owner": "abdalrahmanshaban0",
+      "stars": 14,
+      "category": "hyprland",
+      "file": "hyprland/abdalrahmanshaban0.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/YumYumYUmmy1/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "YumYumYUmmy1",
+      "stars": 14,
+      "category": "hyprland",
+      "file": "hyprland/yumyumyummy1.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/ygweygyigyigyigerig/Mine_Hyprland_dots": {
+      "name": "Mine_Hyprland_dots",
+      "owner": "ygweygyigyigyigerig",
+      "stars": 13,
+      "category": "hyprland",
+      "file": "hyprland/ygweygyigyigyigerig.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/vid4l-07/dotfiles-hyprland": {
+      "name": "dotfiles-hyprland",
+      "owner": "vid4l-07",
+      "stars": 12,
+      "category": "hyprland",
+      "file": "hyprland/vid4l-07.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/RedNekoderr/Hyprland-dots": {
+      "name": "Hyprland-dots",
+      "owner": "RedNekoderr",
+      "stars": 12,
+      "category": "hyprland",
+      "file": "hyprland/rednekoderr.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/itsjustneo-xo/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "itsjustneo-xo",
+      "stars": 11,
+      "category": "hyprland",
+      "file": "hyprland/itsjustneo-xo.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/veplix/Hyprland-Dotfiles": {
+      "name": "Hyprland-Dotfiles",
+      "owner": "veplix",
+      "stars": 11,
+      "category": "hyprland",
+      "file": "hyprland/veplix.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/nyxus-git/dots-hyprland": {
+      "name": "dots-hyprland",
+      "owner": "nyxus-git",
+      "stars": 11,
+      "category": "hyprland",
+      "file": "hyprland/nyxus-git.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/sweetbbak/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "sweetbbak",
+      "stars": 11,
+      "category": "hyprland",
+      "file": "hyprland/sweetbbak.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/JakeMartinezz/hyprland-dots": {
+      "name": "hyprland-dots",
+      "owner": "JakeMartinezz",
+      "stars": 11,
+      "category": "hyprland",
+      "file": "hyprland/jakemartinezz.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/liammmcauliffe/shell": {
+      "name": "shell",
+      "owner": "liammmcauliffe",
+      "stars": 11,
+      "category": "bars",
+      "file": "bars/liammmcauliffe.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/retrozinndev/Hyprland-Dots": {
+      "name": "Hyprland-Dots",
+      "owner": "retrozinndev",
+      "stars": 10,
+      "category": "hyprland",
+      "file": "hyprland/retrozinndev-hyprland-dots.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Nocturnussx/Hyprland-Installer": {
+      "name": "Hyprland-Installer",
+      "owner": "Nocturnussx",
+      "stars": 10,
+      "category": "hyprland",
+      "file": "hyprland/nocturnussx-hyprland-installer.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/Kiaryy/DotFiles": {
+      "name": "DotFiles",
+      "owner": "Kiaryy",
+      "stars": 10,
+      "category": "hyprland",
+      "file": "hyprland/kiaryy.md",
+      "discovered_in_round": 1,
+      "also_found_in_rounds": []
+    }
+  }
+}
