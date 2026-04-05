@@ -1,7 +1,7 @@
 {
   "version": 1,
   "last_updated": "2026-04-05T14:25:30.404923Z",
-  "total_entries": 851,
+  "total_entries": 852,
   "entries": {
     "https://github.com/end-4/dots-hyprland": {
       "name": "dots-hyprland",
@@ -7894,6 +7894,15 @@
       "category": "terminals",
       "file": "terminals/electron-highlighter.md",
       "discovered_in_round": 4,
+      "also_found_in_rounds": []
+    },
+    "https://github.com/hyprland-community/awesome-hyprland": {
+      "name": "awesome-hyprland",
+      "owner": "hyprland-community",
+      "stars": 4900,
+      "category": "collections",
+      "file": "collections/awesome-hyprland.md",
+      "discovered_in_round": 1,
       "also_found_in_rounds": []
     }
   }
