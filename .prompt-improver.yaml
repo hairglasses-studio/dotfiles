@@ -1,0 +1,19 @@
+preamble: |
+  Context: Cross-platform dotfiles repo for Manjaro Linux (Hyprland/Sway).
+  Tech stack: shell scripts, TOML/YAML configs, GLSL shaders, eww widgets (yuck/scss).
+
+rules:
+  - match: "shader|glsl|spirv"
+    prepend: "Ghostty transpiles GLSL at runtime. No #include support — each .glsl must be self-contained."
+  - match: "eww|widget|bar"
+    prepend: "eww uses yuck (Lisp-like) for layout and scss for styling."
+  - match: "hypr|sway|compositor"
+    prepend: "Hyprland compositor on Manjaro Linux. Config at ~/.config/hypr/hyprland.conf."
+  - match: "hook|skill|agent"
+    prepend: "Claude Code hooks live in .claude/settings.json. Skills in .claude/skills/. Agents in .claude/agents/."
+
+hook:
+  skip_score_threshold: 70
+  min_word_count: 5
+
+default_task_type: workflow
