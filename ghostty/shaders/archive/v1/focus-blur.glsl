@@ -8,7 +8,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec4 term = texture(iChannel0, uv);
 
     // When focused, pass through unmodified
-    if (iFocus == 0) {
+    if (iFocus == 1) {
         fragColor = term;
         return;
     }

@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
-# shader-playlist.sh — shuffled shader playlist engine for Ghostty + Tattoy
-# Source this from aliases.zsh; call shader-playlist-next or tattoy-playlist-next
+# shader-playlist.sh — shuffled shader playlist engine for Ghostty
+# Source this from aliases.zsh; call shader-playlist-next
 
 _shader_playlist_dir="${0:A:h:h}/playlists"
 _shader_state_dir="$HOME/.local/state/ghostty"
@@ -8,11 +8,6 @@ _shader_base_dir="$HOME/.config/ghostty/shaders"
 _shader_bar_state_dir="$HOME/.local/state/shader-cycle"
 _shader_bar_state_file="$_shader_bar_state_dir/current"
 _ghostty_config="$HOME/.config/ghostty/config"
-if [[ "$(uname)" == "Darwin" ]]; then
-  _tattoy_config="$HOME/Library/Application Support/tattoy/tattoy.toml"
-else
-  _tattoy_config="${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
-fi
 
 # Fisher-Yates shuffle: reads lines from file, prints shuffled
 _shader_shuffle() {
@@ -129,22 +124,4 @@ shader-playlist-next() {
   # Write state for eww bar
   command mkdir -p "$_shader_bar_state_dir" 2>/dev/null
   printf '%s' "$shader_path" > "$_shader_bar_state_file"
-}
-
-# Advance both Tattoy playlists (cursor + background) and update tattoy.toml
-# Uses anchor comments (# shader-path, # cursor-path) to target the right lines
-tattoy-playlist-next() {
-  [[ -f "$_tattoy_config" ]] || return 1
-
-  local cursor_shader bg_shader
-  cursor_shader="$(_shader_playlist_pick "tattoy-cursor")" || return 1
-  bg_shader="$(_shader_playlist_pick "tattoy-background")" || return 1
-
-  # Atomic config update (Tattoy uses relative paths)
-  local tmp
-  tmp="$(mktemp "${_tattoy_config}.XXXXXX")"
-  sed -e "s|^path = \"shaders/.*\"  # shader-path|path = \"shaders/$bg_shader\"  # shader-path|" \
-      -e "s|^path = \"shaders/.*\"  # cursor-path|path = \"shaders/$cursor_shader\"  # cursor-path|" \
-      "$_tattoy_config" > "$tmp"
-  command mv -f "$tmp" "$_tattoy_config"
 }
