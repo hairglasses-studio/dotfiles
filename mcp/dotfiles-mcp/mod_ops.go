@@ -33,13 +33,10 @@ const (
 )
 
 // ---------------------------------------------------------------------------
-// Session state
+// Session state — file-based persistence at ~/.local/state/ops/
 // ---------------------------------------------------------------------------
 
-var (
-	opsSessionMu sync.RWMutex
-	opsSessions  = make(map[string]*OpsSession)
-)
+var opsSessionMu sync.RWMutex // guards concurrent file access
 
 type OpsSession struct {
 	ID          string            `json:"id"`
@@ -70,8 +67,89 @@ type IterationSummary struct {
 
 func opsID() string {
 	b := make([]byte, 4)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		// Fallback to timestamp-based ID
+		return fmt.Sprintf("%08x", time.Now().UnixNano()&0xFFFFFFFF)
+	}
 	return hex.EncodeToString(b)
+}
+
+func opsStateDir() string {
+	home := os.Getenv("HOME")
+	if home == "" {
+		home = "/tmp"
+	}
+	return filepath.Join(home, ".local", "state", "ops")
+}
+
+func opsSessionDir(id string) string {
+	return filepath.Join(opsStateDir(), id)
+}
+
+func opsWriteSession(session *OpsSession) error {
+	dir := opsSessionDir(session.ID)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(session, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, "session.json"), data, 0o644)
+}
+
+func opsReadSession(id string) (*OpsSession, error) {
+	data, err := os.ReadFile(filepath.Join(opsSessionDir(id), "session.json"))
+	if err != nil {
+		return nil, fmt.Errorf("[%s] session %q not found", handler.ErrNotFound, id)
+	}
+	var session OpsSession
+	if err := json.Unmarshal(data, &session); err != nil {
+		return nil, fmt.Errorf("corrupt session %q: %w", id, err)
+	}
+	return &session, nil
+}
+
+func opsAppendIteration(id string, record IterationRecord) error {
+	dir := opsSessionDir(id)
+	f, err := os.OpenFile(filepath.Join(dir, "iterations.jsonl"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	data, _ := json.Marshal(record)
+	_, err = f.Write(append(data, '\n'))
+	return err
+}
+
+func opsReadIterations(id string) []IterationRecord {
+	data, err := os.ReadFile(filepath.Join(opsSessionDir(id), "iterations.jsonl"))
+	if err != nil {
+		return nil
+	}
+	var records []IterationRecord
+	scanner := bufio.NewScanner(strings.NewReader(string(data)))
+	for scanner.Scan() {
+		var r IterationRecord
+		if err := json.Unmarshal(scanner.Bytes(), &r); err == nil {
+			records = append(records, r)
+		}
+	}
+	return records
+}
+
+func opsListSessionIDs() []string {
+	entries, err := os.ReadDir(opsStateDir())
+	if err != nil {
+		return nil
+	}
+	var ids []string
+	for _, e := range entries {
+		if e.IsDir() {
+			ids = append(ids, e.Name())
+		}
+	}
+	return ids
 }
 
 // ---------------------------------------------------------------------------
@@ -267,18 +345,26 @@ func opsParseGoTestJSON(output string) (passed []string, failures []TestFailure,
 func opsCategorizeError(msg string) string {
 	lower := strings.ToLower(msg)
 	switch {
-	case strings.Contains(lower, "undefined:") || strings.Contains(lower, "undeclared name"):
+	case strings.Contains(lower, "undefined:") || strings.Contains(lower, "undeclared name") || strings.Contains(lower, "invalid identifier"):
 		return "type_error"
 	case strings.Contains(lower, "cannot use") || strings.Contains(lower, "not enough arguments") || strings.Contains(lower, "too many arguments"):
 		return "type_error"
-	case strings.Contains(lower, "cannot find package") || strings.Contains(lower, "no required module"):
+	case strings.Contains(lower, "cannot convert") || strings.Contains(lower, "incompatible type"):
+		return "type_error"
+	case strings.Contains(lower, "cannot find package") || strings.Contains(lower, "no required module") || strings.Contains(lower, "missing go.sum entry"):
 		return "missing_dep"
 	case strings.Contains(lower, "import cycle"):
 		return "import_cycle"
 	case strings.Contains(lower, "context deadline exceeded") || strings.Contains(lower, "test timed out"):
 		return "timeout"
-	case strings.Contains(lower, "panic:") || strings.Contains(lower, "fail"):
+	case strings.Contains(lower, "fatal error") || strings.Contains(lower, "undefined reference"):
+		return "fatal_error"
+	case strings.Contains(lower, "expected") && strings.Contains(lower, "got"):
 		return "test_assertion"
+	case strings.Contains(lower, "panic:"):
+		return "test_assertion"
+	case strings.Contains(lower, "syntax error") || strings.Contains(lower, "unexpected"):
+		return "syntax_error"
 	default:
 		return "compile_error"
 	}
@@ -352,6 +438,7 @@ type OpsTestSmartOutput struct {
 	Failures       []TestFailure `json:"failures,omitempty"`
 	PassedTests    []string      `json:"passed_tests,omitempty"`
 	ChangedFiles   []string      `json:"changed_files,omitempty"`
+	FallbackReason string        `json:"fallback_reason,omitempty"`
 }
 
 type OpsChangedFilesInput struct {
@@ -387,7 +474,7 @@ type OpsBranchInput struct {
 	Name   string `json:"name" jsonschema:"required,description=Branch name (auto-prefixed with type/ if no slash)"`
 	Type   string `json:"type,omitempty" jsonschema:"description=Branch type prefix,enum=feat,enum=fix,enum=chore,enum=docs,enum=refactor"`
 	From   string `json:"from,omitempty" jsonschema:"description=Base ref. Default: main."`
-	DryRun bool   `json:"dry_run,omitempty" jsonschema:"description=Preview without creating. Default: true."`
+	Execute bool `json:"execute,omitempty" jsonschema:"description=Set true to execute (default: dry-run)"`
 }
 type OpsBranchOutput struct {
 	Branch     string `json:"branch"`
@@ -400,7 +487,7 @@ type OpsCommitInput struct {
 	Repo    string   `json:"repo,omitempty" jsonschema:"description=Absolute repo path. Defaults to cwd."`
 	Message string   `json:"message" jsonschema:"required,description=Commit message (conventional: feat: fix: chore: etc.)"`
 	Files   []string `json:"files,omitempty" jsonschema:"description=Specific files to stage. Default: all modified tracked files."`
-	DryRun  bool     `json:"dry_run,omitempty" jsonschema:"description=Preview without committing. Default: true."`
+	Execute bool `json:"execute,omitempty" jsonschema:"description=Set true to execute (default: dry-run)"`
 }
 type OpsCommitOutput struct {
 	SHA         string   `json:"sha,omitempty"`
@@ -418,7 +505,7 @@ type OpsPRCreateInput struct {
 	Body   string `json:"body,omitempty" jsonschema:"description=PR body markdown"`
 	Base   string `json:"base,omitempty" jsonschema:"description=Base branch. Default: main."`
 	Draft  bool   `json:"draft,omitempty" jsonschema:"description=Create as draft PR"`
-	DryRun bool   `json:"dry_run,omitempty" jsonschema:"description=Preview without creating. Default: true."`
+	Execute bool `json:"execute,omitempty" jsonschema:"description=Set true to execute (default: dry-run)"`
 }
 type OpsPRCreateOutput struct {
 	URL     string `json:"url,omitempty"`
@@ -481,7 +568,7 @@ type OpsShipInput struct {
 	Title   string `json:"title,omitempty" jsonschema:"description=PR title. Defaults to commit message."`
 	Body    string `json:"body,omitempty" jsonschema:"description=PR body markdown."`
 	Draft   bool   `json:"draft,omitempty" jsonschema:"description=Create PR as draft."`
-	DryRun  bool   `json:"dry_run,omitempty" jsonschema:"description=Preview all steps. Default: true."`
+	Execute bool `json:"execute,omitempty" jsonschema:"description=Set true to execute (default: dry-run)"`
 }
 type OpsShipOutput struct {
 	DryRun    bool               `json:"dry_run"`
@@ -490,6 +577,7 @@ type OpsShipOutput struct {
 	PR        *OpsPRCreateOutput `json:"pr,omitempty"`
 	Overall   string             `json:"overall"`
 	BlockedAt string             `json:"blocked_at,omitempty"`
+	Error     string             `json:"error,omitempty"`
 }
 
 type OpsSessionCreateInput struct {
@@ -570,17 +658,17 @@ func (m *OpsModule) Tools() []registry.ToolDefinition {
 		// Atomic — Git & GitHub
 		handler.TypedHandler[OpsBranchInput, OpsBranchOutput](
 			"ops_branch_create",
-			"Create a feature branch with conventional naming (feat/fix/chore prefix). Dry-run by default — pass dry_run=false to create.",
+			"Create a feature branch with conventional naming (feat/fix/chore prefix). Dry-run by default — pass execute=true to create.",
 			opsBranchCreate,
 		),
 		handler.TypedHandler[OpsCommitInput, OpsCommitOutput](
 			"ops_commit",
-			"Stage changed files and create a conventional commit. Validates message format, never amends. Dry-run by default — pass dry_run=false to commit.",
+			"Stage changed files and create a conventional commit. Validates message format, never amends. Dry-run by default — pass execute=true to commit.",
 			opsCommit,
 		),
 		handler.TypedHandler[OpsPRCreateInput, OpsPRCreateOutput](
 			"ops_pr_create",
-			"Push branch and create a GitHub PR via gh CLI. Returns PR URL and number. Dry-run by default — pass dry_run=false to create.",
+			"Push branch and create a GitHub PR via gh CLI. Returns PR URL and number. Dry-run by default — pass execute=true to create.",
 			opsPRCreate,
 		),
 		// Atomic — CI
@@ -602,7 +690,7 @@ func (m *OpsModule) Tools() []registry.ToolDefinition {
 		),
 		handler.TypedHandler[OpsShipInput, OpsShipOutput](
 			"ops_ship",
-			"Ship changes: pre-push gate → commit → push → create PR. Only proceeds if gate passes. Dry-run by default — pass dry_run=false to ship.",
+			"Ship changes: pre-push gate → commit → push → create PR. Only proceeds if gate passes. Dry-run by default — pass execute=true to ship.",
 			opsShip,
 		),
 		// Sessions
@@ -685,9 +773,14 @@ func opsTestSmart(_ context.Context, input OpsTestSmartInput) (OpsTestSmartOutpu
 	} else {
 		pkgs, changedFiles, err = opsChangedGoPackages(repo, base)
 		if err != nil {
-			strategy = "all"
+			strategy = "all_fallback"
 			pkgs = []string{"./..."}
 		}
+	}
+	fallbackReason := ""
+	if strategy == "all_fallback" {
+		fallbackReason = "Could not determine changed packages; running full suite"
+		strategy = "all"
 	}
 
 	start := time.Now()
@@ -711,6 +804,9 @@ func opsTestSmart(_ context.Context, input OpsTestSmartInput) (OpsTestSmartOutpu
 	}
 	if input.Verbose {
 		out.PassedTests = passed
+	}
+	if fallbackReason != "" {
+		out.FallbackReason = fallbackReason
 	}
 	return out, nil
 }
@@ -889,7 +985,7 @@ func opsBranchCreate(_ context.Context, input OpsBranchInput) (OpsBranchOutput, 
 		}
 	}
 
-	if input.DryRun {
+	if !input.Execute {
 		return OpsBranchOutput{
 			Branch:     branch,
 			BaseBranch: base,
@@ -940,6 +1036,15 @@ func opsCommit(_ context.Context, input OpsCommitInput) (OpsCommitOutput, error)
 		stagedFiles = nil
 	}
 
+	// Early detection: nothing to commit
+	if len(stagedFiles) == 0 {
+		return OpsCommitOutput{
+			Message:  input.Message,
+			DryRun:   true,
+			Warnings: append(warnings, "Nothing to commit — no staged changes found"),
+		}, nil
+	}
+
 	// Get stats
 	stat, _ := runGit(repo, "diff", "--cached", "--stat")
 	ins, del := 0, 0
@@ -957,7 +1062,7 @@ func opsCommit(_ context.Context, input OpsCommitInput) (OpsCommitOutput, error)
 		}
 	}
 
-	if input.DryRun {
+	if !input.Execute {
 		// Unstage in dry-run mode
 		runGit(repo, "reset", "HEAD")
 		return OpsCommitOutput{
@@ -1004,7 +1109,7 @@ func opsPRCreate(_ context.Context, input OpsPRCreateInput) (OpsPRCreateOutput, 
 	countOut, _ := runGit(repo, "rev-list", "--count", base+".."+head)
 	commits, _ := strconv.Atoi(strings.TrimSpace(countOut))
 
-	if input.DryRun {
+	if !input.Execute {
 		return OpsPRCreateOutput{
 			Title:   input.Title,
 			Base:    base,
@@ -1038,7 +1143,9 @@ func opsPRCreate(_ context.Context, input OpsPRCreateInput) (OpsPRCreateOutput, 
 		URL    string `json:"url"`
 		Number int    `json:"number"`
 	}
-	json.Unmarshal([]byte(ghOut), &prData)
+	if err := json.Unmarshal([]byte(ghOut), &prData); err != nil {
+		return OpsPRCreateOutput{}, fmt.Errorf("parse gh output: %w (raw: %s)", err, ghOut)
+	}
 
 	return OpsPRCreateOutput{
 		URL:     prData.URL,
@@ -1080,7 +1187,9 @@ func opsCIStatus(_ context.Context, input OpsCIStatusInput) (OpsCIStatusOutput, 
 
 		var checks []CICheck
 		var rawChecks []map[string]any
-		json.Unmarshal([]byte(ghOut), &rawChecks)
+		if err := json.Unmarshal([]byte(ghOut), &rawChecks); err != nil || len(rawChecks) == 0 {
+			return checks, "no_ci"
+		}
 
 		allDone := true
 		anyFail := false
@@ -1246,16 +1355,18 @@ func opsIterate(ctx context.Context, input OpsIterateInput) (OpsIterateOutput, e
 		sessionID = createOut.SessionID
 	}
 
-	opsSessionMu.Lock()
-	session, ok := opsSessions[sessionID]
-	if !ok {
-		opsSessionMu.Unlock()
-		return OpsIterateOutput{}, fmt.Errorf("[%s] session %q not found", handler.ErrNotFound, sessionID)
+	opsSessionMu.RLock()
+	session, err := opsReadSession(sessionID)
+	if err != nil {
+		opsSessionMu.RUnlock()
+		return OpsIterateOutput{}, err
 	}
-	opsSessionMu.Unlock()
+	existingIters := opsReadIterations(sessionID)
+	iterNum := len(existingIters) + 1
+	opsSessionMu.RUnlock()
+	_ = session // used for context
 
 	iterStart := time.Now()
-	iterNum := len(session.Iterations) + 1
 
 	// Step 1: Build
 	buildOut, _ := opsBuild(ctx, OpsBuildInput{Repo: repo})
@@ -1305,12 +1416,11 @@ func opsIterate(ctx context.Context, input OpsIterateInput) (OpsIterateOutput, e
 	}
 
 	opsSessionMu.Lock()
-	session.Iterations = append(session.Iterations, record)
-	opsSessionMu.Unlock()
-
-	// Build history summary
+	opsAppendIteration(sessionID, record)
+	// Build history summary under lock
+	allIters := opsReadIterations(sessionID)
 	var history []IterationSummary
-	for _, iter := range session.Iterations {
+	for _, iter := range allIters {
 		history = append(history, IterationSummary{
 			Number:     iter.Number,
 			Status:     iter.Status,
@@ -1318,6 +1428,7 @@ func opsIterate(ctx context.Context, input OpsIterateInput) (OpsIterateOutput, e
 			DurationMs: iter.DurationMs,
 		})
 	}
+	opsSessionMu.Unlock()
 
 	return OpsIterateOutput{
 		SessionID:   sessionID,
@@ -1343,21 +1454,21 @@ func opsShip(ctx context.Context, input OpsShipInput) (OpsShipOutput, error) {
 
 	if prePush.Overall != "pass" {
 		return OpsShipOutput{
-			DryRun:    input.DryRun,
+			DryRun:    true,
 			PrePush:   &prePush,
 			Overall:   "blocked",
 			BlockedAt: "pre_push:" + prePush.FailedStep,
 		}, nil
 	}
 
-	if input.DryRun {
+	if !input.Execute {
 		// Preview commit
-		commitPreview, _ := opsCommit(ctx, OpsCommitInput{Repo: repo, Message: input.Message, DryRun: true})
+		commitPreview, _ := opsCommit(ctx, OpsCommitInput{Repo: repo, Message: input.Message})
 		title := input.Title
 		if title == "" {
 			title = input.Message
 		}
-		prPreview, _ := opsPRCreate(ctx, OpsPRCreateInput{Repo: repo, Title: title, Body: input.Body, Draft: input.Draft, DryRun: true})
+		prPreview, _ := opsPRCreate(ctx, OpsPRCreateInput{Repo: repo, Title: title, Body: input.Body, Draft: input.Draft})
 		return OpsShipOutput{
 			DryRun:  true,
 			PrePush: &prePush,
@@ -1368,12 +1479,13 @@ func opsShip(ctx context.Context, input OpsShipInput) (OpsShipOutput, error) {
 	}
 
 	// Step 2: Commit
-	commitOut, err := opsCommit(ctx, OpsCommitInput{Repo: repo, Message: input.Message, DryRun: false})
+	commitOut, err := opsCommit(ctx, OpsCommitInput{Repo: repo, Message: input.Message, Execute: true})
 	if err != nil {
 		return OpsShipOutput{
 			PrePush:   &prePush,
 			Overall:   "blocked",
 			BlockedAt: "commit",
+			Error:     err.Error(),
 		}, nil
 	}
 
@@ -1382,13 +1494,14 @@ func opsShip(ctx context.Context, input OpsShipInput) (OpsShipOutput, error) {
 	if title == "" {
 		title = input.Message
 	}
-	prOut, err := opsPRCreate(ctx, OpsPRCreateInput{Repo: repo, Title: title, Body: input.Body, Draft: input.Draft, DryRun: false})
+	prOut, err := opsPRCreate(ctx, OpsPRCreateInput{Repo: repo, Title: title, Body: input.Body, Draft: input.Draft, Execute: true})
 	if err != nil {
 		return OpsShipOutput{
 			PrePush:   &prePush,
 			Commit:    &commitOut,
 			Overall:   "blocked",
 			BlockedAt: "pr_create",
+			Error:     err.Error(),
 		}, nil
 	}
 
@@ -1424,8 +1537,11 @@ func opsSessionCreate(_ context.Context, input OpsSessionCreateInput) (OpsSessio
 	}
 
 	opsSessionMu.Lock()
-	opsSessions[id] = session
+	err = opsWriteSession(session)
 	opsSessionMu.Unlock()
+	if err != nil {
+		return OpsSessionCreateOutput{}, fmt.Errorf("write session: %w", err)
+	}
 
 	return OpsSessionCreateOutput{
 		SessionID: id,
@@ -1437,19 +1553,20 @@ func opsSessionCreate(_ context.Context, input OpsSessionCreateInput) (OpsSessio
 
 func opsSessionStatus(_ context.Context, input OpsSessionStatusInput) (OpsSessionStatusOutput, error) {
 	opsSessionMu.RLock()
-	session, ok := opsSessions[input.SessionID]
+	session, err := opsReadSession(input.SessionID)
 	opsSessionMu.RUnlock()
-
-	if !ok {
-		return OpsSessionStatusOutput{}, fmt.Errorf("[%s] session %q not found", handler.ErrNotFound, input.SessionID)
+	if err != nil {
+		return OpsSessionStatusOutput{}, err
 	}
+
+	iterations := opsReadIterations(input.SessionID)
 
 	var totalTime int64
 	var errorTrend []int
 	var history []IterationSummary
 	currentState := "untested"
 
-	for _, iter := range session.Iterations {
+	for _, iter := range iterations {
 		totalTime += iter.DurationMs
 		errorTrend = append(errorTrend, iter.ErrorCount)
 		history = append(history, IterationSummary{
@@ -1461,7 +1578,6 @@ func opsSessionStatus(_ context.Context, input OpsSessionStatusInput) (OpsSessio
 		currentState = iter.Status
 	}
 
-	// Detect convergence: errors decreasing over last 3+ iterations
 	converging := false
 	if len(errorTrend) >= 3 {
 		last3 := errorTrend[len(errorTrend)-3:]
@@ -1472,7 +1588,7 @@ func opsSessionStatus(_ context.Context, input OpsSessionStatusInput) (OpsSessio
 		SessionID:    session.ID,
 		Repo:         session.Repo,
 		Branch:       session.Branch,
-		Iterations:   len(session.Iterations),
+		Iterations:   len(iterations),
 		TotalTimeMs:  totalTime,
 		CurrentState: currentState,
 		ErrorTrend:   errorTrend,
@@ -1486,16 +1602,21 @@ func opsSessionList(_ context.Context, _ OpsSessionListInput) (OpsSessionListOut
 	defer opsSessionMu.RUnlock()
 
 	var sessions []SessionSummary
-	for _, s := range opsSessions {
+	for _, id := range opsListSessionIDs() {
+		s, err := opsReadSession(id)
+		if err != nil {
+			continue
+		}
+		iterations := opsReadIterations(id)
 		state := "untested"
-		if len(s.Iterations) > 0 {
-			state = s.Iterations[len(s.Iterations)-1].Status
+		if len(iterations) > 0 {
+			state = iterations[len(iterations)-1].Status
 		}
 		sessions = append(sessions, SessionSummary{
 			SessionID:   s.ID,
 			Repo:        s.Repo,
 			Branch:      s.Branch,
-			Iterations:  len(s.Iterations),
+			Iterations:  len(iterations),
 			State:       state,
 			StartedAt:   s.CreatedAt.Format(time.RFC3339),
 			Description: s.Description,
