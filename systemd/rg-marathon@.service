@@ -8,7 +8,7 @@ OnFailure=notify-failure@%n.service
 [Service]
 Type=simple
 WorkingDirectory=%h/hairglasses-studio/%i
-ExecStart=%h/hairglasses-studio/ralphglasses/marathon.sh -b 100 -d 12 -c 80 -v
+ExecStart=%h/hairglasses-studio/ralphglasses/marathon.sh -b 100 -d 12 -c 80
 Restart=on-failure
 RestartSec=30
 SyslogIdentifier=rg-marathon-%i
