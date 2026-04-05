@@ -5,10 +5,10 @@
 # quick-terminal-animation-duration = 0.12
 
 # ── Font ────────────────────────────────────────
-font-family = CaskaydiaMono Nerd Font Mono
-font-family-bold = MonaspiceXe Nerd Font Mono
-font-family-italic = MonaspiceAr Nerd Font Mono
-font-family-bold-italic = MonaspiceKr Nerd Font Mono
+font-family = Maple Mono NF CN
+font-family-bold = Maple Mono NF CN
+font-family-italic = Maple Mono NF CN
+font-family-bold-italic = Maple Mono NF CN
 font-style = Regular
 font-style-bold = Bold
 font-style-italic = Italic
@@ -66,7 +66,7 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/digital-mist.glsl
+custom-shader = shaders/film-grain-pro.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────

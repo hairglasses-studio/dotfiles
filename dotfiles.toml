@@ -28,7 +28,7 @@ ghosttyfetch = true
 hyprland = true
 eww = true
 waybar = true
-mako = true
+mako = false           # quarantined — replaced by swaync
 wofi = true
 wlogout = true
 
@@ -72,9 +72,9 @@ makima = true
 
 # ── MCP servers (separate repos, binaries) ───────
 [mcp]
-hyprland-mcp = true
-dotfiles-mcp = true
-shader-mcp = true
+dotfiles-mcp = true    # unified — replaced hyprland-mcp, shader-mcp, input-mcp
+hyprland-mcp = false   # deprecated — consolidated into dotfiles-mcp
+shader-mcp = false     # deprecated — consolidated into dotfiles-mcp
 
 # ── Profiles ─────────────────────────────────────
 # Use: ./manjaro/install.sh --profile <name>
