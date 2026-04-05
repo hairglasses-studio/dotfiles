@@ -7,6 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/lib/ghostty-config.sh" 2>/dev/null || true
 
 JSON_MODE=false
 SECTION="all"
@@ -198,9 +199,9 @@ test_tools() {
 test_shader() {
   echo "── Shader Status ──" >&2
   local shader
-  shader="$(grep '^custom-shader = ' "$HOME/.config/ghostty/config" 2>/dev/null | sed 's/custom-shader = //' || true)"
+  shader="$(ghostty_get_shader_path || true)"
   local anim
-  anim="$(grep '^custom-shader-animation = ' "$HOME/.config/ghostty/config" 2>/dev/null | sed 's/custom-shader-animation = //' || true)"
+  anim="$(ghostty_get_shader_animation || true)"
   add_result shader "active_shader" pass "${shader:-none}"
   add_result shader "animation" pass "${anim:-false}"
 

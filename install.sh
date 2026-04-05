@@ -345,6 +345,10 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
         link_file "$DOTFILES_DIR/paru/paru.conf" "$HOME/.config/paru/paru.conf"
         link_file "$DOTFILES_DIR/topgrade/topgrade.toml" "$HOME/.config/topgrade.toml"
+        link_file "$DOTFILES_DIR/wlogout/layout" "$HOME/.config/wlogout/layout"
+        link_file "$DOTFILES_DIR/wlogout/style.css" "$HOME/.config/wlogout/style.css"
+        link_file "$DOTFILES_DIR/gtk/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
+        link_file "$DOTFILES_DIR/xdg-desktop-portal/portals.conf" "$HOME/.config/xdg-desktop-portal/portals.conf"
     fi
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
@@ -396,6 +400,16 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/systemd/rg-marathon@.service" "$HOME/.config/systemd/user/rg-marathon@.service"
         link_file "$DOTFILES_DIR/systemd/makima.service" "$HOME/.config/systemd/user/makima.service"
         systemctl --user daemon-reload
+
+        # Validate cross-repo symlinks (warn if sibling repos are missing)
+        local cross_repo_links=(
+            "$DOTFILES_DIR/scripts/rg-status-bar.sh"
+        )
+        for link in "${cross_repo_links[@]}"; do
+            if [[ -L "$link" ]] && [[ ! -e "$link" ]]; then
+                log_warn "Broken cross-repo symlink: $link -> $(readlink "$link")"
+            fi
+        done
     fi
 }
 
@@ -457,6 +471,10 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
         check_link "$DOTFILES_DIR/paru/paru.conf" "$HOME/.config/paru/paru.conf"
         check_link "$DOTFILES_DIR/topgrade/topgrade.toml" "$HOME/.config/topgrade.toml"
+        check_link "$DOTFILES_DIR/wlogout/layout" "$HOME/.config/wlogout/layout"
+        check_link "$DOTFILES_DIR/wlogout/style.css" "$HOME/.config/wlogout/style.css"
+        check_link "$DOTFILES_DIR/gtk/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
+        check_link "$DOTFILES_DIR/xdg-desktop-portal/portals.conf" "$HOME/.config/xdg-desktop-portal/portals.conf"
     fi
     check_link "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     check_link "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"

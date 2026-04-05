@@ -34,7 +34,6 @@ case "$file_path" in
   */hyprland/* | */hypr/*)  config_reload_service hyprland 2>/dev/null || errors+=("[reload] hyprland reload failed") ;;
   */swaync/*)               config_reload_service swaync   2>/dev/null || errors+=("[reload] swaync reload failed") ;;
   */eww/*)                  config_reload_service eww      2>/dev/null || errors+=("[reload] eww reload failed") ;;
-  */waybar/*)               config_reload_service waybar   2>/dev/null || errors+=("[reload] waybar reload failed") ;;
   */tmux/*)                 config_reload_service tmux     2>/dev/null || errors+=("[reload] tmux reload failed") ;;
   */metapac/*)
     # Validate TOML and check for unmanaged packages
@@ -47,8 +46,8 @@ case "$file_path" in
     ;;
 esac
 
-# Brief settle time for reload to take effect
-sleep 0.5
+# Brief settle for reload (100ms — down from 500ms)
+sleep 0.1
 
 # ── Phase 2: Targeted audit ──────────────────────────
 case "$file_path" in

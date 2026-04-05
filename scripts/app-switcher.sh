@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # app-switcher.sh — wofi-based window switcher for Hyprland
 hyprctl clients -j | jq -r '.[] | "\(.address) \(.class) — \(.title)"' | \
   wofi --dmenu --prompt "Switch to" --insensitive | \

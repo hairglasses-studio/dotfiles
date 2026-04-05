@@ -4,6 +4,7 @@
 
 source "$HG_DOTFILES/scripts/lib/compositor.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/config.sh" 2>/dev/null
+source "$HG_DOTFILES/scripts/lib/ghostty-config.sh" 2>/dev/null
 
 # Snazzy palette allowed hex values (lowercase, no #)
 _SNAZZY_ALLOWED="57c7ff|ff6ac1|5af78e|f3f99d|ff5c57|686868|9aedfe|eff0eb|f1f1f0|000000|1a1a1a|1a1b26"
@@ -30,10 +31,9 @@ _rice_status() {
   printf " %s%-14s%s %s%s%s\n" "$HG_DIM" "compositor" "$HG_RESET" "$HG_CYAN" "$comp" "$HG_RESET"
 
   # Active shader
-  local shader_line shader_name
-  shader_line="$(grep -m1 '^custom-shader = ' "$HOME/.config/ghostty/config" 2>/dev/null || true)"
-  if [[ -n "$shader_line" && "$shader_line" != *"none"* ]]; then
-    shader_name="$(basename "${shader_line#custom-shader = }" .glsl)"
+  local shader_name
+  shader_name="$(ghostty_get_shader_name)"
+  if [[ -n "$shader_name" ]]; then
     printf " %s%-14s%s %s%s%s\n" "$HG_DIM" "shader" "$HG_RESET" "$HG_MAGENTA" "$shader_name" "$HG_RESET"
   else
     printf " %s%-14s%s %snone%s\n" "$HG_DIM" "shader" "$HG_RESET" "$HG_DIM" "$HG_RESET"
@@ -53,8 +53,6 @@ _rice_status() {
   # Bar
   if pgrep -x eww &>/dev/null; then
     printf " %s%-14s%s %seww%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
-  elif pgrep -x waybar &>/dev/null; then
-    printf " %s%-14s%s %swaybar%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
     printf " %s%-14s%s %snone%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_RED" "$HG_RESET"
   fi
@@ -73,8 +71,6 @@ _rice_services() {
     "swaync:swaync"
     "swww:swww-daemon"
     "hypridle:hypridle"
-    "waybar:waybar"
-    "antimicrox:antimicrox"
     "hyprsunset:hyprsunset"
   )
 
@@ -98,7 +94,6 @@ _rice_palette() {
     "$HG_DOTFILES/swaync"
     "$HG_DOTFILES/wofi"
     "$HG_DOTFILES/wlogout"
-    "$HG_DOTFILES/waybar"
     "$HG_DOTFILES/foot"
   )
 
@@ -128,10 +123,8 @@ _rice_palette() {
 }
 
 _rice_reload_all() {
-  hg_info "Reloading all services..."
-  config_reload_service hyprland
-  config_reload_service swaync
-  config_reload_service eww
+  hg_info "Reloading all services in parallel..."
+  config_reload_parallel hyprland swaync eww
   hg_ok "All services reloaded"
 }
 
