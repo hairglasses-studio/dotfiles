@@ -1,0 +1,131 @@
+# MIDI Default Configuration
+# Standard MIDI mappings for aftrs-studio projects
+
+# ============================================================
+# MIDI CHANNELS
+# ============================================================
+
+channels:
+  master: 1             # Master controls
+  layers: 2             # Layer controls
+  effects: 3            # Effect controls
+  transport: 10         # Transport/tempo
+  triggers: 16          # One-shot triggers
+
+# ============================================================
+# COMMON CC MAPPINGS
+# ============================================================
+
+# Control Change assignments
+# CC 0-31: High-resolution MSB
+# CC 32-63: High-resolution LSB
+# CC 64-127: Switches and misc
+
+cc_mappings:
+  # Standard controllers
+  mod_wheel: 1
+  breath: 2
+  volume: 7
+  pan: 10
+  expression: 11
+  sustain: 64
+
+  # Custom mappings for visual control
+  master_opacity: 20
+  layer1_opacity: 21
+  layer2_opacity: 22
+  layer3_opacity: 23
+  layer4_opacity: 24
+
+  effect1_intensity: 30
+  effect2_intensity: 31
+  effect3_intensity: 32
+
+  # Transport
+  bpm_coarse: 40        # BPM whole numbers
+  bpm_fine: 41          # BPM decimals
+
+  # Crossfader
+  crossfader: 50
+
+# ============================================================
+# NOTE MAPPINGS
+# ============================================================
+
+# MIDI notes for triggers (using middle octave)
+note_mappings:
+  # Clip triggers (row 1)
+  clip_1_1: 36          # C2
+  clip_1_2: 37          # C#2
+  clip_1_3: 38          # D2
+  clip_1_4: 39          # D#2
+  clip_1_5: 40          # E2
+  clip_1_6: 41          # F2
+  clip_1_7: 42          # F#2
+  clip_1_8: 43          # G2
+
+  # Clip triggers (row 2)
+  clip_2_1: 44          # G#2
+  clip_2_2: 45          # A2
+  clip_2_3: 46          # A#2
+  clip_2_4: 47          # B2
+  clip_2_5: 48          # C3
+  clip_2_6: 49          # C#3
+  clip_2_7: 50          # D3
+  clip_2_8: 51          # D#3
+
+  # Effect triggers
+  flash: 60             # C4
+  strobe: 61            # C#4
+  blackout: 62          # D4
+  whiteout: 63          # D#4
+
+  # Transport
+  play: 64              # E4
+  stop: 65              # F4
+  tap_tempo: 66         # F#4
+
+# ============================================================
+# CONTROLLER PROFILES
+# ============================================================
+
+# Common MIDI controller mappings
+controllers:
+  akai_apc40:
+    name: "Akai APC40"
+    clip_launch_start: 0
+    faders: [7, 14, 21, 28, 35, 42, 49, 56]
+    master_fader: 14
+    crossfader: 15
+
+  novation_launchpad:
+    name: "Novation Launchpad"
+    grid_start: 0
+    grid_size: 64
+    side_buttons: [8, 24, 40, 56, 72, 88, 104, 120]
+
+  korg_nanokontrol:
+    name: "Korg nanoKONTROL2"
+    faders: [0, 1, 2, 3, 4, 5, 6, 7]
+    knobs: [16, 17, 18, 19, 20, 21, 22, 23]
+    buttons_s: [32, 33, 34, 35, 36, 37, 38, 39]
+    buttons_m: [48, 49, 50, 51, 52, 53, 54, 55]
+    buttons_r: [64, 65, 66, 67, 68, 69, 70, 71]
+
+  generic_8fader:
+    name: "Generic 8-Fader Controller"
+    faders: [1, 2, 3, 4, 5, 6, 7, 8]
+    buttons: [9, 10, 11, 12, 13, 14, 15, 16]
+
+# ============================================================
+# VIRTUAL MIDI
+# ============================================================
+
+virtual_ports:
+  # macOS IAC Driver ports
+  iac_bus_1: "IAC Driver Bus 1"
+  iac_bus_2: "IAC Driver Bus 2"
+
+  # Recommended setup:
+  # Bus 1: DAW → Visual apps
+  # Bus 2: Visual apps → DAW

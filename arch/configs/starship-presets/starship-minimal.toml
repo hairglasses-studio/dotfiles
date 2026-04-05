@@ -1,0 +1,57 @@
+# Starship Minimal Configuration
+# Lightweight preset for fast terminal startup
+
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$cmd_duration\
+$line_break\
+$character"""
+
+command_timeout = 100
+scan_timeout = 10
+add_newline = true
+
+[username]
+show_always = false
+format = "[$user]($style) "
+style_user = "cyan"
+style_root = "red bold"
+
+[hostname]
+ssh_only = true
+format = "[@$hostname](yellow) "
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+format = "[$path]($style) "
+style = "blue bold"
+
+[git_branch]
+format = "[$symbol$branch]($style) "
+symbol = "git:"
+style = "purple"
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+style = "red"
+ahead = "↑"
+behind = "↓"
+diverged = "↕"
+untracked = "?"
+modified = "*"
+staged = "+"
+deleted = "-"
+
+[cmd_duration]
+min_time = 5_000
+format = "[$duration]($style) "
+style = "yellow"
+
+[character]
+success_symbol = "[>](green)"
+error_symbol = "[>](red)"

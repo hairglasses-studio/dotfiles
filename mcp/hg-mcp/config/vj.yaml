@@ -1,0 +1,198 @@
+# VJ Configuration
+# Multi-user VJ settings for Resolume Arena sync and control
+
+# VJ User Profiles
+users:
+  - username: hairglasses
+    display_name: Hairglasses
+    # VJ packs this user syncs by default
+    default_packs:
+      - hackerglasses
+      - hairglasses
+      - masks
+      - algorave
+    # Full pack sync (for machines with enough space)
+    full_packs:
+      - hackerglasses
+      - hairglasses
+      - fetz
+      - masks
+      - algorave
+      - relic
+      - mantissa
+      - tricky
+      - church
+      - footage
+    # Resolume preferences
+    resolume:
+      default_bpm: 128
+      master_level: 100
+      output_resolution: "1920x1080"
+    # Machine-specific settings
+    machines:
+      baeblade:  # Windows VJ laptop, 4TB drive
+        disk_margin_gb: 100
+        sync_mode: full
+        media_path: "C:\\Users\\Mitch\\Documents\\Resolume Arena\\Media"
+      macbook:  # MacBook, 500GB drive
+        disk_margin_gb: 50
+        sync_mode: essential
+        media_path: "~/Documents/Resolume Arena/Media"
+
+  - username: luke-lasley
+    display_name: Luke
+    default_packs:
+      - hackerglasses
+      - masks
+    full_packs:
+      - hackerglasses
+      - hairglasses
+      - masks
+      - algorave
+    resolume:
+      default_bpm: 140
+      master_level: 100
+      output_resolution: "1920x1080"
+    machines:
+      default:
+        disk_margin_gb: 50
+        sync_mode: essential
+        media_path: "~/Documents/Resolume Arena/Media"
+
+# VJ Pack Definitions
+packs:
+  hackerglasses:
+    folder: HACKERGLASSES
+    description: "Hacker-themed visuals"
+    priority: essential
+    estimated_size_gb: 0.5
+
+  hairglasses:
+    folder: "Hairglasses Visuals"
+    description: "Main Hairglasses visual pack"
+    priority: essential
+    estimated_size_gb: 50
+
+  fetz:
+    folder: "Fetz VJ Storage"
+    description: "Fetz visual collection"
+    priority: full
+    estimated_size_gb: 100
+
+  masks:
+    folder: Masks
+    description: "Visual masks and overlays"
+    priority: essential
+    estimated_size_gb: 2
+
+  algorave:
+    folder: Algorave
+    description: "Algorave/livecoding visuals"
+    priority: essential
+    estimated_size_gb: 1
+
+  relic:
+    folder: "Relic VJ Clips"
+    description: "Relic visual collection"
+    priority: full
+    estimated_size_gb: 200
+
+  mantissa:
+    folder: Mantissa
+    description: "Mantissa visuals"
+    priority: full
+    estimated_size_gb: 100
+
+  tricky:
+    folder: "TrickyFM Visuals"
+    description: "TrickyFM visual pack"
+    priority: full
+    estimated_size_gb: 50
+
+  church:
+    folder: "Hairglasses at Church"
+    description: "Church performance recordings"
+    priority: full
+    estimated_size_gb: 100
+
+  footage:
+    folder: "Hairglasses Footage"
+    description: "Raw footage collection"
+    priority: full
+    estimated_size_gb: 200
+
+# Sync Settings
+sync:
+  gdrive_base: "gdrive:Video/VJ Tools (Laptop Salvage)/DXV3 1080p HQ Clips"
+  local_base: "~/Documents/Resolume Arena/Media"
+
+  # rclone settings for optimal large file sync
+  rclone:
+    transfers: 8
+    checkers: 16
+    buffer_size: "256M"
+    drive_chunk_size: "128M"
+
+  # Disk space thresholds (GB)
+  disk_thresholds:
+    full_sync: 3500      # Sync all packs
+    standard_sync: 200   # Sync essential packs
+    minimal_sync: 50     # Sync core packs only
+    warning: 25          # Low space warning
+
+# VJ Clip Zip Packs (downloadable archives)
+zip_packs:
+  supreme_cyphers_v3:
+    name: "SUPREME CYPHERS vol.3"
+    path: "DXV3 1080p HQ Clips/Fetz VJ Storage/3D Rendered Beeple & SWIII LOOPS/COMPLETE PACK (zipped folder)/SUPREME CYPHERS vol.3 [complete pack].zip"
+    size_gb: 2.00
+    description: "Supreme Cyphers visual pack volume 3"
+    tags: ["3d", "beeple", "loops"]
+
+  supreme_cyphers_v2:
+    name: "Supreme Cyphers vol.2"
+    path: "DXV3 1080p HQ Clips/Fetz VJ Storage/3D Rendered Beeple & SWIII LOOPS/COMPLETE PACK ZIPPED FOLDER/_Supreme Cyphers (vol.2) complete pack.zip"
+    size_gb: 1.43
+    description: "Supreme Cyphers visual pack volume 2"
+    tags: ["3d", "beeple", "loops"]
+
+  nikita_vision_pack:
+    name: "Nikita Vision Pack"
+    path: "DXV3 1080p HQ Clips/Fetz VJ Storage/Homie VJ Packs/DXV3 Nikita Vision Pack (Get Permission Before Use)"
+    size_gb: 6.47  # Total of all 4 parts
+    description: "Nikita Vision VJ loop collection (4 parts, requires permission)"
+    tags: ["loops", "dxv3", "nikita"]
+    parts:
+      - "NIKITAVISIION VJ LOOP DUMP-20231209T073242Z-001.zip"
+      - "NIKITAVISIION VJ LOOP DUMP-20231209T073242Z-002.zip"
+      - "NIKITAVISIION VJ LOOP DUMP-20231209T073242Z-003.zip"
+      - "NIKITAVISIION VJ LOOP DUMP-20231209T073242Z-004.zip"
+
+  beeple_brainfeeder:
+    name: "Beeple Brainfeeder VJ Clips"
+    path: "DXV3 1080p HQ Clips/Fetz VJ Storage/3D Rendered Beeple & SWIII LOOPS/brainfeeder_beeple-vjclips/vj clips.zip"
+    size_gb: 1.25
+    description: "Beeple VJ clips from Brainfeeder collection"
+    tags: ["beeple", "brainfeeder", "loops"]
+
+  beeple_resolume:
+    name: "Beeple Resolume Pack"
+    path: "DXV3 1080p HQ Clips/Fetz VJ Storage/3D Rendered Beeple & SWIII LOOPS/beeple-resolume_pack"
+    size_gb: 0.02
+    description: "Beeple C4D project files for Resolume"
+    tags: ["beeple", "c4d", "project"]
+
+  ubersketch:
+    name: "Ubersketch Project Files"
+    path: "DXV3 1080p HQ Clips/Fetz VJ Storage/3D Rendered Beeple & SWIII LOOPS/Ubersketch/ubersketch project files.zip"
+    size_gb: 0.03
+    description: "Ubersketch project files"
+    tags: ["project", "ubersketch"]
+
+# Resolume Defaults
+resolume:
+  osc_port: 7000
+  api_port: auto  # Auto-discover
+  default_bpm: 128
+  clip_trigger_style: "Normal"
+  beat_snap: "1 Bar"
