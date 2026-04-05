@@ -14,6 +14,13 @@ HYPR_LOG="/tmp/hyprland.log"
 # ── Phase 0: Fix container quirks ────────────────────────────────────────
 dbus-uuidgen > /etc/machine-id 2>/dev/null || true
 
+# ── Minimal profile: skip Hyprland entirely ──────────────────────────────
+if [[ "${SANDBOX_SKIP_HYPRLAND:-0}" == "1" ]]; then
+    echo "[sandbox] Minimal profile — skipping Hyprland"
+    touch "$READY_SIGNAL"
+    exec sleep infinity
+fi
+
 # ── Phase 1: Create config symlinks ──────────────────────────────────────
 echo "[sandbox] Creating config symlinks..."
 mkdir -p "$HOME/.config"
@@ -43,6 +50,14 @@ export NVD_BACKEND=direct
 
 if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then
     echo "[sandbox] ERROR: WAYLAND_DISPLAY not set. Mount the host's wayland socket."
+    exit 1
+fi
+
+# Validate the socket file exists
+WAYLAND_SOCKET="$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
+if [[ ! -S "$WAYLAND_SOCKET" ]]; then
+    echo "[sandbox] ERROR: Wayland socket not found at $WAYLAND_SOCKET"
+    echo "[sandbox] Ensure the host's wayland socket is bind-mounted into the container."
     exit 1
 fi
 
