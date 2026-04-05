@@ -246,7 +246,7 @@ visual_test_shader() {
   cat > "$tmp_config" << EOF
 custom-shader = $shader_path
 custom-shader-animation = true
-font-family = JetBrainsMono Nerd Font
+font-family = Maple Mono NF CN
 font-size = 14
 background = #000000
 foreground = #f1f1f0
