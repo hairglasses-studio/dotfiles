@@ -455,6 +455,8 @@ check_symlinks() {
         check_link "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
         check_link "$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf" "$HOME/.config/fontconfig/conf.d/51-monospace.conf"
         check_link "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
+        check_link "$DOTFILES_DIR/paru/paru.conf" "$HOME/.config/paru/paru.conf"
+        check_link "$DOTFILES_DIR/topgrade/topgrade.toml" "$HOME/.config/topgrade.toml"
     fi
     check_link "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
     check_link "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
