@@ -176,7 +176,7 @@ This repository serves as the centralized MCP server for the AFTRS ecosystem, ag
 
 ## Webb Project Insights (Reference Implementation)
 
-Analysis of ~/acmecorp/webb reveals production-grade patterns for Go MCP servers:
+Analysis of ~/example-corp/webb reveals production-grade patterns for Go MCP servers:
 
 ### Architecture Patterns to Adopt
 
@@ -623,7 +623,7 @@ externalSecrets:
 
 ### 2025-12-29: Webb Analysis Complete
 
-- Analyzed ~/acmecorp/webb for Go MCP patterns
+- Analyzed ~/example-corp/webb for Go MCP patterns
 - Documented modular tool system, lazy loading, consolidated tools
 - Identified authentication, observability, caching patterns
 - Created implementation roadmap based on webb architecture

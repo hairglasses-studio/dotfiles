@@ -7,7 +7,7 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/mitch/aftrs-studio/hg-mcp/bin/music-sync</string>
+        <string>~/aftrs-studio/hg-mcp/bin/music-sync</string>
         <string>--all</string>
     </array>
 
@@ -15,7 +15,7 @@
     <integer>3600</integer>
 
     <key>WorkingDirectory</key>
-    <string>/Users/mitch/aftrs-studio/hg-mcp</string>
+    <string>~/aftrs-studio/hg-mcp</string>
 
     <key>EnvironmentVariables</key>
     <dict>

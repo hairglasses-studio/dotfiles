@@ -1,6 +1,6 @@
 # AFTRS-MCP Architecture Roadmap
 
-> Research findings from analyzing ~/acmecorp/webb - a mature MCP server with 1,254 tools
+> Research findings from analyzing ~/example-corp/webb - a mature MCP server with 1,254 tools
 
 **Last Updated:** January 2026
 
@@ -392,12 +392,12 @@ type FeedbackMetrics struct {
 ## Key Files to Reference
 
 **Webb Architecture:**
-- `~/acmecorp/webb/internal/mcp/tools/registry.go` (2047 lines)
-- `~/acmecorp/webb/internal/mcp/context.go`
-- `~/acmecorp/webb/internal/mcp/hooks.go`
-- `~/acmecorp/webb/internal/chains/executor.go`
-- `~/acmecorp/webb/internal/clients/knowledgegraph.go` (130KB)
-- `~/acmecorp/webb/internal/clients/self_healing.go` (98KB)
+- `~/example-corp/webb/internal/mcp/tools/registry.go` (2047 lines)
+- `~/example-corp/webb/internal/mcp/context.go`
+- `~/example-corp/webb/internal/mcp/hooks.go`
+- `~/example-corp/webb/internal/chains/executor.go`
+- `~/example-corp/webb/internal/clients/knowledgegraph.go` (130KB)
+- `~/example-corp/webb/internal/clients/self_healing.go` (98KB)
 
 **AFTRS Files to Modify:**
 - `internal/mcp/tools/registry.go` - Enhance ToolDefinition

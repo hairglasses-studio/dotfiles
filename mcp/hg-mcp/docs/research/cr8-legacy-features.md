@@ -1,6 +1,6 @@
 # CR8-CLI Legacy Features Documentation
 
-Extracted from legacy codebase at `/Users/mitch/.cursor/worktrees/cr8-cli__Workspace_/ky8nu/` (frozen Nov 12, 2025).
+Extracted from legacy codebase at `~/.cursor/worktrees/cr8-cli__Workspace_/ky8nu/` (frozen Nov 12, 2025).
 
 ## Features to Preserve
 
@@ -166,14 +166,14 @@ After extracting features above:
 mkdir -p ~/Archives/cr8-cli-legacy-2025-11
 
 # Move legacy worktree
-mv ~/.cursor/worktrees/cr8-cli__Workspace_/ky8nu ~/Archives/cr8-cli-legacy-2025-11/
+mv ~/.cursor/worktrees/cr8-cli__Workspace_/ky8nu/ ~/Archives/cr8-cli-legacy-2025-11/
 
 # Create README in archive
 cat > ~/Archives/cr8-cli-legacy-2025-11/README.md << 'EOF'
 # CR8-CLI Legacy Codebase Archive
 
 Frozen: November 12, 2025
-Primary codebase: /Users/mitch/Docs/cr8-cli/cr8-cli/
+Primary codebase: ~/Docs/cr8-cli/cr8-cli/
 
 Features extracted to hg-mcp research docs:
 - YAML playlist registry pattern
