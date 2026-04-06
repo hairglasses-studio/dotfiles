@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "profiles": [
+    {
+      "name": "dotfiles_review",
+      "from": "dotfiles",
+      "mode": "review",
+      "comment": "Discovery-first dotfiles MCP profile for fleet and rice inspection.",
+      "read_only": true,
+      "enabled_tools": [
+        "dotfiles_tool_search",
+        "dotfiles_tool_schema",
+        "dotfiles_tool_catalog",
+        "dotfiles_tool_stats",
+        "dotfiles_fleet_audit",
+        "dotfiles_health_check",
+        "dotfiles_dep_audit",
+        "dotfiles_rice_check"
+      ]
+    },
+    {
+      "name": "dotfiles_workspace",
+      "from": "dotfiles",
+      "mode": "workspace",
+      "comment": "Broader dotfiles MCP profile for repo operations and desktop reload workflows.",
+      "enabled_tools": [
+        "dotfiles_tool_search",
+        "dotfiles_tool_schema",
+        "dotfiles_tool_catalog",
+        "dotfiles_tool_stats",
+        "dotfiles_fleet_audit",
+        "dotfiles_health_check",
+        "dotfiles_dep_audit",
+        "dotfiles_pipeline_run",
+        "dotfiles_bulk_pipeline",
+        "dotfiles_create_repo",
+        "dotfiles_onboard_repo",
+        "dotfiles_cascade_reload",
+        "dotfiles_rice_check"
+      ]
+    }
+  ]
+}

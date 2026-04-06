@@ -66,6 +66,25 @@ link_file() {
     log_success "Linked: $dst -> $src"
 }
 
+copy_mutable_file() {
+    local src="$1" dst="$2"
+
+    # Leave existing live config alone; apps may mutate it locally.
+    if [[ -f "$dst" ]]; then
+        log_success "Already present: $dst"
+        return 0
+    fi
+
+    if [[ -e "$dst" ]] || [[ -L "$dst" ]]; then
+        backup_file "$dst"
+    fi
+
+    mkdir -p "$(dirname "$dst")"
+    command cp -f "$src" "$dst"
+    chmod 600 "$dst"
+    log_success "Seeded copy: $dst"
+}
+
 # ── Homebrew ────────────────────────────────────
 install_homebrew() {
     if ! command -v brew &>/dev/null; then
@@ -310,9 +329,11 @@ create_symlinks() {
     link_file "$DOTFILES_DIR/git/gitconfig"          "$HOME/.gitconfig"
     link_file "$DOTFILES_DIR/ssh/config"             "$HOME/.ssh/config"
     link_file "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
+    copy_mutable_file "$DOTFILES_DIR/codex/config.toml" "$HOME/.codex/config.toml"
 
     # Directory symlinks
-    link_file "$DOTFILES_DIR/ghostty"    "$HOME/.config/ghostty"
+    link_file "$DOTFILES_DIR/kitty"      "$HOME/.config/kitty"
+    # link_file "$DOTFILES_DIR/ghostty"    "$HOME/.config/ghostty"  # kept for shader pipeline
     link_file "$DOTFILES_DIR/nvim"       "$HOME/.config/nvim"
     link_file "$DOTFILES_DIR/bat"        "$HOME/.config/bat"
     link_file "$DOTFILES_DIR/fastfetch"  "$HOME/.config/fastfetch"
@@ -338,6 +359,7 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/hyprland" "$HOME/.config/hypr"
         link_file "$DOTFILES_DIR/pypr/config.toml" "$HOME/.config/pypr/config.toml"
         link_file "$DOTFILES_DIR/eww" "$HOME/.config/eww"
+        link_file "$DOTFILES_DIR/ironbar" "$HOME/.config/ironbar"
         link_file "$DOTFILES_DIR/helix/config.toml" "$HOME/.config/helix/config.toml"
         link_file "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
         link_file "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
@@ -441,6 +463,12 @@ check_symlinks() {
     check_link "$DOTFILES_DIR/git/gitconfig"          "$HOME/.gitconfig"
     check_link "$DOTFILES_DIR/ssh/config"             "$HOME/.ssh/config"
     check_link "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
+    if [[ -f "$HOME/.codex/config.toml" ]]; then
+        log_success "OK (copy): $HOME/.codex/config.toml"
+    else
+        log_error "Missing: $HOME/.codex/config.toml"
+        errors=$((errors + 1))
+    fi
     check_link "$DOTFILES_DIR/ghostty"    "$HOME/.config/ghostty"
     check_link "$DOTFILES_DIR/nvim"       "$HOME/.config/nvim"
     check_link "$DOTFILES_DIR/bat"        "$HOME/.config/bat"

@@ -2,18 +2,22 @@
 set -euo pipefail
 
 ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
-WRITE_DOCS=0
+WRITE_WORKSPACE_CACHE=0
 WRITE_WIKI_DOCS=0
 WRITE_JSON=0
 
-wiki_docs_dir_default() {
+workspace_cache_dir() {
+  printf '%s\n' "$ROOT/docs/codex-migration"
+}
+
+wiki_docs_dir() {
   printf '%s\n' "$ROOT/docs/projects/codex-migration"
 }
 
 for arg in "$@"; do
   case "$arg" in
-    --write-docs)
-      WRITE_DOCS=1
+    --write-docs|--write-workspace-cache)
+      WRITE_WORKSPACE_CACHE=1
       ;;
     --write-wiki-docs)
       WRITE_WIKI_DOCS=1
@@ -33,6 +37,11 @@ if ! command -v rg >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq is required" >&2
+  exit 1
+fi
+
 EXCLUDE_GLOBS=(
   "--glob=!whiteclaw/**"
   "--glob=!.git/**"
@@ -48,7 +57,7 @@ EXCLUDE_GLOBS=(
 inventory_csv=""
 inventory_json_rows=""
 json_separator=""
-inventory_md=$'| Repo | `claude mcp` | `.claude/settings.json` | `claude_desktop_config.json` | `AGENTS.md` | `.codex/config.toml` | `.codex-plugin` |\n|------|--------------:|------------------------:|-----------------------------:|-----------:|---------------------:|----------------:|\n'
+inventory_md=$'| Repo | `claude mcp` | `.claude/settings.json` | `claude_desktop_config.json` | `AGENTS.md` | `AGENTS.override.md` | `CLAUDE.md` | `GEMINI.md` | `copilot-instructions.md` | `.codex/config.toml` | full profiles | `.mcp.json` | repo MCP servers | MCP policy files | generated MCP configs | unmanaged MCP blocks | example-only `.mcp.json` | Codex MCP servers | curated Codex MCP servers | raw Codex MCP servers | legacy `gpt-5.4-xhigh` | `.mcp.json` without policy | `.mcp.json` without curated Codex | `.codex/agents/*.toml` | `.codex-plugin` | Codex workflows | `codex_hooks = true` |\n|------|--------------:|------------------------:|-----------------------------:|-----------:|--------------------:|-----------:|-----------:|--------------------------:|---------------------:|--------------:|-----------:|-----------------:|-----------------:|----------------------:|---------------------:|----------------------:|------------------:|--------------------------:|---------------------:|------------------------:|--------------------------:|-------------------------------:|-------------------------:|----------------:|----------------:|----------------------:|\n'
 
 count_matches() {
   local repo="$1"
@@ -58,11 +67,186 @@ count_matches() {
   printf '%s' "$count"
 }
 
+find_repo() {
+  local repo="$1"
+  shift
+  find "$repo" \
+    \( \
+      -path '*/.git' -o \
+      -path '*/node_modules' -o \
+      -path '*/.claude/worktrees' -o \
+      -path '*/.ralph/worktrees' -o \
+      -path '*/.github/docs' -o \
+      -path '*/bin' -o \
+      -path '*/build' -o \
+      -path '*/dist' \
+    \) -prune -o "$@"
+}
+
 count_files() {
   local repo="$1"
   local path_pattern="$2"
   local count
-  count=$(find "$repo" -path "$path_pattern" 2>/dev/null | wc -l | tr -d ' ')
+  count=$(find_repo "$repo" -path "$path_pattern" -print 2>/dev/null | wc -l | tr -d ' ')
+  printf '%s' "$count"
+}
+
+count_named_files() {
+  local repo="$1"
+  shift
+  local count=0
+  local name
+  for name in "$@"; do
+    local matches
+    matches=$(find_repo "$repo" -type f -name "$name" -print 2>/dev/null | wc -l | tr -d ' ')
+    count=$((count + matches))
+  done
+  printf '%s' "$count"
+}
+
+count_root_mcp_servers() {
+  local repo="$1"
+  local root_mcp="$repo/.mcp.json"
+  if [[ ! -f "$root_mcp" ]]; then
+    printf '0'
+    return
+  fi
+
+  jq -r '
+    if (.mcpServers | type == "object") then
+      [.mcpServers | to_entries[]? | select(.key | startswith("_") | not)] | length
+    else
+      0
+    end
+  ' "$root_mcp" 2>/dev/null || printf '0'
+}
+
+count_full_profile_configs() {
+  local repo="$1"
+  local count=0
+  while IFS= read -r config; do
+    [[ -f "$config" ]] || continue
+    if grep -q '^\[profiles\.readonly_quiet\]' "$config" &&
+       grep -q '^\[profiles\.review\]' "$config" &&
+       grep -q '^\[profiles\.workspace_auto\]' "$config" &&
+       grep -q '^\[profiles\.ci_json\]' "$config"; then
+      count=$((count + 1))
+    fi
+  done < <(find_repo "$repo" -path '*/.codex/config.toml' -type f -print 2>/dev/null | sort)
+  printf '%s' "$count"
+}
+
+count_mcp_server_blocks_in_file() {
+  local config="$1"
+  grep -Ec '^\[mcp_servers\.[A-Za-z0-9_-]+\]$' "$config" 2>/dev/null || true
+}
+
+count_curated_mcp_server_blocks_in_file() {
+  local config="$1"
+  awk '
+    /^\[mcp_servers\.[A-Za-z0-9_-]+\]$/ {
+      if (in_server && curated) {
+        count++
+      }
+      in_server = 1
+      curated = 0
+      next
+    }
+    /^\[/ {
+      if (in_server && curated) {
+        count++
+      }
+      in_server = 0
+      curated = 0
+      next
+    }
+    in_server && /^[[:space:]]*(enabled_tools|disabled_tools)[[:space:]]*=/ {
+      curated = 1
+    }
+    END {
+      if (in_server && curated) {
+        count++
+      }
+      print count + 0
+    }
+  ' "$config"
+}
+
+count_unmanaged_mcp_server_blocks_in_file() {
+  local config="$1"
+  awk '
+    /^# BEGIN GENERATED MCP SERVERS: / {
+      in_generated = 1
+      next
+    }
+    /^# END GENERATED MCP SERVERS: / {
+      in_generated = 0
+      next
+    }
+    !in_generated && /^\[mcp_servers\.[A-Za-z0-9_-]+\]$/ {
+      count++
+    }
+    END {
+      print count + 0
+    }
+  ' "$config"
+}
+
+count_codex_mcp_servers() {
+  local repo="$1"
+  local count=0
+  local config
+  while IFS= read -r config; do
+    [[ -f "$config" ]] || continue
+    count=$((count + $(count_mcp_server_blocks_in_file "$config")))
+  done < <(find_repo "$repo" -path '*/.codex/config.toml' -type f -print 2>/dev/null | sort)
+  printf '%s' "$count"
+}
+
+count_curated_codex_mcp_servers() {
+  local repo="$1"
+  local count=0
+  local config
+  while IFS= read -r config; do
+    [[ -f "$config" ]] || continue
+    count=$((count + $(count_curated_mcp_server_blocks_in_file "$config")))
+  done < <(find_repo "$repo" -path '*/.codex/config.toml' -type f -print 2>/dev/null | sort)
+  printf '%s' "$count"
+}
+
+count_unmanaged_codex_mcp_servers() {
+  local repo="$1"
+  local count=0
+  local config
+  while IFS= read -r config; do
+    [[ -f "$config" ]] || continue
+    count=$((count + $(count_unmanaged_mcp_server_blocks_in_file "$config")))
+  done < <(find_repo "$repo" -path '*/.codex/config.toml' -type f -print 2>/dev/null | sort)
+  printf '%s' "$count"
+}
+
+count_generated_mcp_config_files() {
+  local repo="$1"
+  local count=0
+  local config
+  while IFS= read -r config; do
+    [[ -f "$config" ]] || continue
+    if grep -q '^# BEGIN GENERATED MCP SERVERS: codex-mcp-sync$' "$config"; then
+      count=$((count + 1))
+    fi
+  done < <(find_repo "$repo" -path '*/.codex/config.toml' -type f -print 2>/dev/null | sort)
+  printf '%s' "$count"
+}
+
+count_matches_in_codex_configs() {
+  local repo="$1"
+  local pattern="$2"
+  local count=0
+  local config
+  while IFS= read -r config; do
+    [[ -f "$config" ]] || continue
+    count=$((count + $(rg -n "$pattern" "$config" 2>/dev/null | wc -l | tr -d ' ')))
+  done < <(find_repo "$repo" -path '*/.codex/config.toml' -type f -print 2>/dev/null | sort)
   printf '%s' "$count"
 }
 
@@ -77,46 +261,145 @@ total_claude_desktop=0
 total_missing_agents=0
 total_missing_codex=0
 total_missing_plugins=0
+total_missing_copilot=0
+total_missing_gemini=0
+total_with_full_profiles=0
+total_with_codex_agents=0
+total_with_codex_workflows=0
+total_with_agents_override=0
+total_with_codex_hooks=0
+total_mcp_json=0
+total_repo_mcp_servers=0
+total_codex_mcp_servers=0
+total_curated_codex_mcp_servers=0
+total_raw_codex_mcp_servers=0
+total_unmanaged_codex_mcp_servers=0
+total_legacy_model_tokens=0
+total_repos_with_mcp_json=0
+total_repos_with_codex_mcp_servers=0
+total_repos_with_curated_codex_mcp_servers=0
+total_repos_with_raw_codex_mcp_servers=0
+total_repos_with_policy_managed_mcp=0
+total_repos_with_generated_codex_mcp=0
+total_repos_with_unmanaged_codex_mcp=0
+total_repos_with_mcp_without_policy=0
+total_repos_with_example_only_mcp_json=0
+total_repos_with_legacy_model_tokens=0
+total_repos_with_mcp_without_curated_codex=0
 scanned_repos=0
 
 for repo in "${repos[@]}"; do
   name=$(basename "$repo")
-  if [[ "$name" == "docs" || "$name" == "whiteclaw" ]]; then
+  if [[ "$name" == "whiteclaw" ]]; then
     continue
   fi
+
   scanned_repos=$((scanned_repos + 1))
+
   claude_mcp=$(count_matches "$repo" 'claude mcp')
   claude_settings=$(count_matches "$repo" '\.claude/settings\.json')
   claude_desktop=$(count_matches "$repo" 'claude_desktop_config\.json')
-  has_agents=$(count_files "$repo" '*/AGENTS.md')
-  has_codex=$(count_files "$repo" '*/.codex/config.toml')
-  has_plugin=$(count_files "$repo" '*/.codex-plugin/plugin.json')
+  agents_md=$(count_files "$repo" '*/AGENTS.md')
+  agents_override=$(count_files "$repo" '*/AGENTS.override.md')
+  claude_md=$(count_files "$repo" '*/CLAUDE.md')
+  gemini_md=$(count_files "$repo" '*/GEMINI.md')
+  copilot_instructions=$(count_files "$repo" '*/.github/copilot-instructions.md')
+  codex_config=$(count_files "$repo" '*/.codex/config.toml')
+  codex_full_profiles=$(count_full_profile_configs "$repo")
+  repo_mcp_servers=$(count_root_mcp_servers "$repo")
+  mcp_json=0
+  mcp_policy=$(count_files "$repo" '*/.codex/mcp-profile-policy.json')
+  if [[ "$repo_mcp_servers" -gt 0 ]]; then
+    mcp_json=1
+  fi
+  example_only_mcp_json=0
+  if [[ -f "$repo/.mcp.json" && "$repo_mcp_servers" -eq 0 ]]; then
+    example_only_mcp_json=1
+  fi
+  codex_mcp_servers=$(count_codex_mcp_servers "$repo")
+  codex_curated_mcp_servers=$(count_curated_codex_mcp_servers "$repo")
+  codex_raw_mcp_servers=$((codex_mcp_servers - codex_curated_mcp_servers))
+  codex_unmanaged_mcp_servers=$(count_unmanaged_codex_mcp_servers "$repo")
+  generated_mcp_configs=$(count_generated_mcp_config_files "$repo")
+  legacy_model_tokens=$(count_matches_in_codex_configs "$repo" 'gpt-5\.4-xhigh')
+  mcp_without_policy=0
+  if [[ "$repo_mcp_servers" -gt 0 && "$mcp_policy" -eq 0 ]]; then
+    mcp_without_policy=1
+  fi
+  mcp_without_curated_codex=0
+  if [[ "$repo_mcp_servers" -gt 0 && "$codex_curated_mcp_servers" -eq 0 ]]; then
+    mcp_without_curated_codex=1
+  fi
+  codex_agents=$(count_files "$repo" '*/.codex/agents/*.toml')
+  codex_plugin=$(count_files "$repo" '*/.codex-plugin/plugin.json')
+  codex_workflows=$(count_named_files "$repo/.github/workflows" 'codex-*.yml' 'codex-*.yaml' 'ai-dispatch.yml')
+  codex_hooks=$(count_matches "$repo" 'codex_hooks[[:space:]]*=[[:space:]]*true')
 
   total_claude_mcp=$((total_claude_mcp + claude_mcp))
   total_claude_settings=$((total_claude_settings + claude_settings))
   total_claude_desktop=$((total_claude_desktop + claude_desktop))
-  if [[ "$has_agents" -eq 0 ]]; then
-    total_missing_agents=$((total_missing_agents + 1))
-  fi
-  if [[ "$has_codex" -eq 0 ]]; then
-    total_missing_codex=$((total_missing_codex + 1))
-  fi
-  if [[ "$has_plugin" -eq 0 ]]; then
-    total_missing_plugins=$((total_missing_plugins + 1))
-  fi
+  total_mcp_json=$((total_mcp_json + mcp_json))
+  total_repo_mcp_servers=$((total_repo_mcp_servers + repo_mcp_servers))
+  total_codex_mcp_servers=$((total_codex_mcp_servers + codex_mcp_servers))
+  total_curated_codex_mcp_servers=$((total_curated_codex_mcp_servers + codex_curated_mcp_servers))
+  total_raw_codex_mcp_servers=$((total_raw_codex_mcp_servers + codex_raw_mcp_servers))
+  total_unmanaged_codex_mcp_servers=$((total_unmanaged_codex_mcp_servers + codex_unmanaged_mcp_servers))
+  total_legacy_model_tokens=$((total_legacy_model_tokens + legacy_model_tokens))
 
-  inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${has_agents},${has_codex},${has_plugin}"$'\n'
+  [[ "$agents_md" -eq 0 ]] && total_missing_agents=$((total_missing_agents + 1))
+  [[ "$codex_config" -eq 0 ]] && total_missing_codex=$((total_missing_codex + 1))
+  [[ "$codex_plugin" -eq 0 ]] && total_missing_plugins=$((total_missing_plugins + 1))
+  [[ "$copilot_instructions" -eq 0 ]] && total_missing_copilot=$((total_missing_copilot + 1))
+  [[ "$gemini_md" -eq 0 ]] && total_missing_gemini=$((total_missing_gemini + 1))
+  [[ "$codex_full_profiles" -gt 0 ]] && total_with_full_profiles=$((total_with_full_profiles + 1))
+  [[ "$mcp_json" -gt 0 ]] && total_repos_with_mcp_json=$((total_repos_with_mcp_json + 1))
+  [[ "$codex_mcp_servers" -gt 0 ]] && total_repos_with_codex_mcp_servers=$((total_repos_with_codex_mcp_servers + 1))
+  [[ "$codex_curated_mcp_servers" -gt 0 ]] && total_repos_with_curated_codex_mcp_servers=$((total_repos_with_curated_codex_mcp_servers + 1))
+  [[ "$codex_raw_mcp_servers" -gt 0 ]] && total_repos_with_raw_codex_mcp_servers=$((total_repos_with_raw_codex_mcp_servers + 1))
+  [[ "$mcp_policy" -gt 0 ]] && total_repos_with_policy_managed_mcp=$((total_repos_with_policy_managed_mcp + 1))
+  [[ "$generated_mcp_configs" -gt 0 ]] && total_repos_with_generated_codex_mcp=$((total_repos_with_generated_codex_mcp + 1))
+  [[ "$codex_unmanaged_mcp_servers" -gt 0 ]] && total_repos_with_unmanaged_codex_mcp=$((total_repos_with_unmanaged_codex_mcp + 1))
+  [[ "$mcp_without_policy" -gt 0 ]] && total_repos_with_mcp_without_policy=$((total_repos_with_mcp_without_policy + 1))
+  [[ "$example_only_mcp_json" -gt 0 ]] && total_repos_with_example_only_mcp_json=$((total_repos_with_example_only_mcp_json + 1))
+  [[ "$legacy_model_tokens" -gt 0 ]] && total_repos_with_legacy_model_tokens=$((total_repos_with_legacy_model_tokens + 1))
+  [[ "$mcp_without_curated_codex" -gt 0 ]] && total_repos_with_mcp_without_curated_codex=$((total_repos_with_mcp_without_curated_codex + 1))
+  [[ "$codex_agents" -gt 0 ]] && total_with_codex_agents=$((total_with_codex_agents + 1))
+  [[ "$codex_workflows" -gt 0 ]] && total_with_codex_workflows=$((total_with_codex_workflows + 1))
+  [[ "$agents_override" -gt 0 ]] && total_with_agents_override=$((total_with_agents_override + 1))
+  [[ "$codex_hooks" -gt 0 ]] && total_with_codex_hooks=$((total_with_codex_hooks + 1))
+
+  inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${agents_md},${agents_override},${claude_md},${gemini_md},${copilot_instructions},${codex_config},${codex_full_profiles},${mcp_json},${repo_mcp_servers},${mcp_policy},${generated_mcp_configs},${codex_unmanaged_mcp_servers},${example_only_mcp_json},${codex_mcp_servers},${codex_curated_mcp_servers},${codex_raw_mcp_servers},${legacy_model_tokens},${mcp_without_policy},${mcp_without_curated_codex},${codex_agents},${codex_plugin},${codex_workflows},${codex_hooks}"$'\n'
   inventory_json_rows+="${json_separator}"$'    {\n'
   inventory_json_rows+="      \"repo\": \"${name}\","$'\n'
   inventory_json_rows+="      \"claude_mcp_mentions\": ${claude_mcp},"$'\n'
   inventory_json_rows+="      \"claude_settings_mentions\": ${claude_settings},"$'\n'
   inventory_json_rows+="      \"claude_desktop_config_mentions\": ${claude_desktop},"$'\n'
-  inventory_json_rows+="      \"agents_md_count\": ${has_agents},"$'\n'
-  inventory_json_rows+="      \"codex_config_count\": ${has_codex},"$'\n'
-  inventory_json_rows+="      \"codex_plugin_count\": ${has_plugin}"$'\n'
+  inventory_json_rows+="      \"agents_md_count\": ${agents_md},"$'\n'
+  inventory_json_rows+="      \"agents_override_md_count\": ${agents_override},"$'\n'
+  inventory_json_rows+="      \"claude_md_count\": ${claude_md},"$'\n'
+  inventory_json_rows+="      \"gemini_md_count\": ${gemini_md},"$'\n'
+  inventory_json_rows+="      \"copilot_instructions_count\": ${copilot_instructions},"$'\n'
+  inventory_json_rows+="      \"codex_config_count\": ${codex_config},"$'\n'
+  inventory_json_rows+="      \"codex_full_profile_pack_count\": ${codex_full_profiles},"$'\n'
+  inventory_json_rows+="      \"mcp_json_count\": ${mcp_json},"$'\n'
+  inventory_json_rows+="      \"repo_mcp_server_count\": ${repo_mcp_servers},"$'\n'
+  inventory_json_rows+="      \"mcp_policy_count\": ${mcp_policy},"$'\n'
+  inventory_json_rows+="      \"generated_codex_mcp_config_count\": ${generated_mcp_configs},"$'\n'
+  inventory_json_rows+="      \"unmanaged_codex_mcp_server_count\": ${codex_unmanaged_mcp_servers},"$'\n'
+  inventory_json_rows+="      \"example_only_mcp_json\": ${example_only_mcp_json},"$'\n'
+  inventory_json_rows+="      \"codex_mcp_server_count\": ${codex_mcp_servers},"$'\n'
+  inventory_json_rows+="      \"codex_curated_mcp_server_count\": ${codex_curated_mcp_servers},"$'\n'
+  inventory_json_rows+="      \"codex_raw_mcp_server_count\": ${codex_raw_mcp_servers},"$'\n'
+  inventory_json_rows+="      \"legacy_codex_model_token_count\": ${legacy_model_tokens},"$'\n'
+  inventory_json_rows+="      \"mcp_without_policy\": ${mcp_without_policy},"$'\n'
+  inventory_json_rows+="      \"mcp_without_curated_codex\": ${mcp_without_curated_codex},"$'\n'
+  inventory_json_rows+="      \"codex_agent_count\": ${codex_agents},"$'\n'
+  inventory_json_rows+="      \"codex_plugin_count\": ${codex_plugin},"$'\n'
+  inventory_json_rows+="      \"codex_workflow_count\": ${codex_workflows},"$'\n'
+  inventory_json_rows+="      \"codex_hooks_enabled_count\": ${codex_hooks}"$'\n'
   inventory_json_rows+=$'    }\n'
   json_separator=$',\n'
-  inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${has_agents} | ${has_codex} | ${has_plugin} |"$'\n'
+  inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${agents_md} | ${agents_override} | ${claude_md} | ${gemini_md} | ${copilot_instructions} | ${codex_config} | ${codex_full_profiles} | ${mcp_json} | ${repo_mcp_servers} | ${mcp_policy} | ${generated_mcp_configs} | ${codex_unmanaged_mcp_servers} | ${example_only_mcp_json} | ${codex_mcp_servers} | ${codex_curated_mcp_servers} | ${codex_raw_mcp_servers} | ${legacy_model_tokens} | ${mcp_without_policy} | ${mcp_without_curated_codex} | ${codex_agents} | ${codex_plugin} | ${codex_workflows} | ${codex_hooks} |"$'\n'
 done
 
 cat <<EOF
@@ -126,8 +409,33 @@ claude mcp matches: $total_claude_mcp
 .claude/settings.json matches: $total_claude_settings
 claude_desktop_config.json matches: $total_claude_desktop
 repos missing AGENTS.md: $total_missing_agents
+repos missing GEMINI.md: $total_missing_gemini
+repos missing .github/copilot-instructions.md: $total_missing_copilot
 repos missing .codex/config.toml: $total_missing_codex
 repos missing .codex-plugin/plugin.json: $total_missing_plugins
+repos with full Codex profile packs: $total_with_full_profiles
+repo-local .mcp.json files with real servers: $total_mcp_json
+repos with .mcp.json: $total_repos_with_mcp_json
+repos with example-only .mcp.json: $total_repos_with_example_only_mcp_json
+repo MCP server entries: $total_repo_mcp_servers
+Codex MCP server blocks: $total_codex_mcp_servers
+curated Codex MCP server blocks: $total_curated_codex_mcp_servers
+raw Codex MCP server blocks: $total_raw_codex_mcp_servers
+unmanaged Codex MCP server blocks: $total_unmanaged_codex_mcp_servers
+repos with repo-local Codex MCP servers: $total_repos_with_codex_mcp_servers
+repos with curated Codex MCP servers: $total_repos_with_curated_codex_mcp_servers
+repos with raw Codex MCP servers: $total_repos_with_raw_codex_mcp_servers
+repos with MCP policy files: $total_repos_with_policy_managed_mcp
+repos with generated Codex MCP configs: $total_repos_with_generated_codex_mcp
+repos with unmanaged Codex MCP blocks: $total_repos_with_unmanaged_codex_mcp
+legacy gpt-5.4-xhigh token matches: $total_legacy_model_tokens
+repos with legacy gpt-5.4-xhigh tokens: $total_repos_with_legacy_model_tokens
+repos with .mcp.json but no MCP policy file: $total_repos_with_mcp_without_policy
+repos with .mcp.json but no curated Codex MCP servers: $total_repos_with_mcp_without_curated_codex
+repos with .codex/agents/*.toml: $total_with_codex_agents
+repos with Codex workflows: $total_with_codex_workflows
+repos with AGENTS.override.md: $total_with_agents_override
+repos with codex_hooks enabled: $total_with_codex_hooks
 EOF
 
 inventory_json="{
@@ -139,51 +447,104 @@ inventory_json="{
     \"claude_settings_matches\": ${total_claude_settings},
     \"claude_desktop_config_matches\": ${total_claude_desktop},
     \"repos_missing_agents_md\": ${total_missing_agents},
+    \"repos_missing_gemini_md\": ${total_missing_gemini},
+    \"repos_missing_copilot_instructions\": ${total_missing_copilot},
     \"repos_missing_codex_config\": ${total_missing_codex},
-    \"repos_missing_codex_plugin\": ${total_missing_plugins}
+    \"repos_missing_codex_plugin\": ${total_missing_plugins},
+    \"repos_with_full_profile_pack\": ${total_with_full_profiles},
+    \"mcp_json_files\": ${total_mcp_json},
+    \"repos_with_mcp_json\": ${total_repos_with_mcp_json},
+    \"repos_with_example_only_mcp_json\": ${total_repos_with_example_only_mcp_json},
+    \"repo_mcp_server_entries\": ${total_repo_mcp_servers},
+    \"codex_mcp_server_blocks\": ${total_codex_mcp_servers},
+    \"curated_codex_mcp_server_blocks\": ${total_curated_codex_mcp_servers},
+    \"raw_codex_mcp_server_blocks\": ${total_raw_codex_mcp_servers},
+    \"unmanaged_codex_mcp_server_blocks\": ${total_unmanaged_codex_mcp_servers},
+    \"repos_with_codex_mcp_servers\": ${total_repos_with_codex_mcp_servers},
+    \"repos_with_curated_codex_mcp_servers\": ${total_repos_with_curated_codex_mcp_servers},
+    \"repos_with_raw_codex_mcp_servers\": ${total_repos_with_raw_codex_mcp_servers},
+    \"repos_with_policy_managed_mcp\": ${total_repos_with_policy_managed_mcp},
+    \"repos_with_generated_codex_mcp\": ${total_repos_with_generated_codex_mcp},
+    \"repos_with_unmanaged_codex_mcp\": ${total_repos_with_unmanaged_codex_mcp},
+    \"legacy_codex_model_token_matches\": ${total_legacy_model_tokens},
+    \"repos_with_legacy_codex_model_tokens\": ${total_repos_with_legacy_model_tokens},
+    \"repos_with_mcp_without_policy\": ${total_repos_with_mcp_without_policy},
+    \"repos_with_mcp_without_curated_codex\": ${total_repos_with_mcp_without_curated_codex},
+    \"repos_with_codex_agents\": ${total_with_codex_agents},
+    \"repos_with_codex_workflows\": ${total_with_codex_workflows},
+    \"repos_with_agents_override_md\": ${total_with_agents_override},
+    \"repos_with_codex_hooks_enabled\": ${total_with_codex_hooks}
   },
   \"repos\": [
 ${inventory_json_rows}
   ]
 }"
 
-if [[ "$WRITE_DOCS" -eq 1 ]]; then
-  docs_dir="$ROOT/docs/codex-migration"
+write_workspace_cache() {
+  local docs_dir
+  docs_dir="$(workspace_cache_dir)"
   mkdir -p "$docs_dir"
 
   cat >"$docs_dir/repo-inventory.csv" <<EOF
-repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,codex_config_count,codex_plugin_count
+repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,mcp_json_count,repo_mcp_server_count,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count
 ${inventory_csv%$'\n'}
 EOF
 
   cat >"$docs_dir/repo-inventory.md" <<EOF
 # Repo Inventory
 
-Generated by \`dotfiles/scripts/hg-codex-audit.sh --write-docs\` on $(date +%Y-%m-%d).
+Generated by \`dotfiles/scripts/hg-codex-audit.sh --write-workspace-cache\` on $(date +%Y-%m-%d).
+
+Summary from the latest audit:
+
+- Repos scanned: ${scanned_repos}
+- \`claude mcp\` matches: ${total_claude_mcp}
+- \`.claude/settings.json\` matches: ${total_claude_settings}
+- \`claude_desktop_config.json\` matches: ${total_claude_desktop}
+- Repos missing \`AGENTS.md\`: ${total_missing_agents}
+- Repos missing \`GEMINI.md\`: ${total_missing_gemini}
+- Repos missing \`.github/copilot-instructions.md\`: ${total_missing_copilot}
+- Repos missing \`.codex/config.toml\`: ${total_missing_codex}
+- Repos missing \`.codex-plugin/plugin.json\`: ${total_missing_plugins}
+- Repos with full Codex profile packs: ${total_with_full_profiles}
+- Repo-local \`.mcp.json\` files with real servers: ${total_mcp_json}
+- Repos with \`.mcp.json\`: ${total_repos_with_mcp_json}
+- Repos with example-only \`.mcp.json\`: ${total_repos_with_example_only_mcp_json}
+- Repo MCP server entries: ${total_repo_mcp_servers}
+- Codex MCP server blocks: ${total_codex_mcp_servers}
+- Curated Codex MCP server blocks: ${total_curated_codex_mcp_servers}
+- Raw Codex MCP server blocks: ${total_raw_codex_mcp_servers}
+- Unmanaged Codex MCP server blocks: ${total_unmanaged_codex_mcp_servers}
+- Repos with repo-local Codex MCP servers: ${total_repos_with_codex_mcp_servers}
+- Repos with curated Codex MCP servers: ${total_repos_with_curated_codex_mcp_servers}
+- Repos with raw Codex MCP servers: ${total_repos_with_raw_codex_mcp_servers}
+- Repos with MCP policy files: ${total_repos_with_policy_managed_mcp}
+- Repos with generated Codex MCP configs: ${total_repos_with_generated_codex_mcp}
+- Repos with unmanaged Codex MCP blocks: ${total_repos_with_unmanaged_codex_mcp}
+- Legacy \`gpt-5.4-xhigh\` token matches: ${total_legacy_model_tokens}
+- Repos with legacy \`gpt-5.4-xhigh\` tokens: ${total_repos_with_legacy_model_tokens}
+- Repos with \`.mcp.json\` but no MCP policy file: ${total_repos_with_mcp_without_policy}
+- Repos with \`.mcp.json\` but no curated Codex MCP servers: ${total_repos_with_mcp_without_curated_codex}
+- Repos with \`.codex/agents/*.toml\`: ${total_with_codex_agents}
+- Repos with Codex workflows: ${total_with_codex_workflows}
+- Repos with \`AGENTS.override.md\`: ${total_with_agents_override}
+- Repos with \`codex_hooks = true\`: ${total_with_codex_hooks}
 
 ${inventory_md}
 EOF
-fi
+}
 
-if [[ "$WRITE_JSON" -eq 1 ]]; then
-  docs_dir="$ROOT/docs/codex-migration"
-  wiki_docs_dir="$(wiki_docs_dir_default)"
-  mkdir -p "$docs_dir" "$wiki_docs_dir"
+write_wiki_docs() {
+  local docs_dir
+  docs_dir="$(wiki_docs_dir)"
+  mkdir -p "$docs_dir"
 
-  printf '%s\n' "$inventory_json" >"$docs_dir/repo-inventory.json"
-  printf '%s\n' "$inventory_json" >"$wiki_docs_dir/repo-inventory.json"
-fi
-
-if [[ "$WRITE_WIKI_DOCS" -eq 1 ]]; then
-  wiki_docs_dir="$(wiki_docs_dir_default)"
-  mkdir -p "$wiki_docs_dir"
-
-  cat >"$wiki_docs_dir/repo-inventory.csv" <<EOF
-repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,codex_config_count,codex_plugin_count
+  cat >"$docs_dir/repo-inventory.csv" <<EOF
+repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,mcp_json_count,repo_mcp_server_count,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count
 ${inventory_csv%$'\n'}
 EOF
 
-  cat >"$wiki_docs_dir/repo-inventory.md" <<EOF
+  cat >"$docs_dir/repo-inventory.md" <<EOF
 # Repo Inventory
 
 Generated by \`dotfiles/scripts/hg-codex-audit.sh --write-wiki-docs\` on $(date +%Y-%m-%d).
@@ -195,18 +556,55 @@ Summary from the latest audit:
 - \`.claude/settings.json\` matches: ${total_claude_settings}
 - \`claude_desktop_config.json\` matches: ${total_claude_desktop}
 - Repos missing \`AGENTS.md\`: ${total_missing_agents}
+- Repos missing \`GEMINI.md\`: ${total_missing_gemini}
+- Repos missing \`.github/copilot-instructions.md\`: ${total_missing_copilot}
 - Repos missing \`.codex/config.toml\`: ${total_missing_codex}
 - Repos missing \`.codex-plugin/plugin.json\`: ${total_missing_plugins}
+- Repos with full Codex profile packs: ${total_with_full_profiles}
+- Repo-local \`.mcp.json\` files with real servers: ${total_mcp_json}
+- Repos with \`.mcp.json\`: ${total_repos_with_mcp_json}
+- Repos with example-only \`.mcp.json\`: ${total_repos_with_example_only_mcp_json}
+- Repo MCP server entries: ${total_repo_mcp_servers}
+- Codex MCP server blocks: ${total_codex_mcp_servers}
+- Curated Codex MCP server blocks: ${total_curated_codex_mcp_servers}
+- Raw Codex MCP server blocks: ${total_raw_codex_mcp_servers}
+- Unmanaged Codex MCP server blocks: ${total_unmanaged_codex_mcp_servers}
+- Repos with repo-local Codex MCP servers: ${total_repos_with_codex_mcp_servers}
+- Repos with curated Codex MCP servers: ${total_repos_with_curated_codex_mcp_servers}
+- Repos with raw Codex MCP servers: ${total_repos_with_raw_codex_mcp_servers}
+- Repos with MCP policy files: ${total_repos_with_policy_managed_mcp}
+- Repos with generated Codex MCP configs: ${total_repos_with_generated_codex_mcp}
+- Repos with unmanaged Codex MCP blocks: ${total_repos_with_unmanaged_codex_mcp}
+- Legacy \`gpt-5.4-xhigh\` token matches: ${total_legacy_model_tokens}
+- Repos with legacy \`gpt-5.4-xhigh\` tokens: ${total_repos_with_legacy_model_tokens}
+- Repos with \`.mcp.json\` but no MCP policy file: ${total_repos_with_mcp_without_policy}
+- Repos with \`.mcp.json\` but no curated Codex MCP servers: ${total_repos_with_mcp_without_curated_codex}
+- Repos with \`.codex/agents/*.toml\`: ${total_with_codex_agents}
+- Repos with Codex workflows: ${total_with_codex_workflows}
+- Repos with \`AGENTS.override.md\`: ${total_with_agents_override}
+- Repos with \`codex_hooks = true\`: ${total_with_codex_hooks}
 
 ${inventory_md}
 EOF
+}
+
+write_json_outputs() {
+  local workspace_dir wiki_dir
+  workspace_dir="$(workspace_cache_dir)"
+  wiki_dir="$(wiki_docs_dir)"
+  mkdir -p "$workspace_dir" "$wiki_dir"
+  printf '%s\n' "$inventory_json" >"$workspace_dir/repo-inventory.json"
+  printf '%s\n' "$inventory_json" >"$wiki_dir/repo-inventory.json"
+}
+
+if [[ "$WRITE_WORKSPACE_CACHE" -eq 1 ]]; then
+  write_workspace_cache
+fi
+
+if [[ "$WRITE_WIKI_DOCS" -eq 1 ]]; then
+  write_wiki_docs
 fi
 
 if [[ "$WRITE_JSON" -eq 1 ]]; then
-  docs_dir="$ROOT/docs/codex-migration"
-  wiki_docs_dir="$(wiki_docs_dir_default)"
-  mkdir -p "$docs_dir" "$wiki_docs_dir"
-
-  printf '%s\n' "$inventory_json" >"$docs_dir/repo-inventory.json"
-  printf '%s\n' "$inventory_json" >"$wiki_docs_dir/repo-inventory.json"
+  write_json_outputs
 fi

@@ -72,7 +72,7 @@ hg_ok "Created LICENSE, CONTRIBUTING.md (issue/PR templates inherited from org)"
 # ── CI workflows ─────────────────────────────
 mkdir -p .github/workflows
 # Copy standard workflows from the org templates
-for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml dependabot-auto-merge.yml; do
+for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml codex-structured-audit.yml codex-baseline-guard.yml ai-dispatch.yml dependabot-auto-merge.yml; do
   src="$ORG_GITHUB/workflow-templates/$wf"
   [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
   [[ -f "$src" ]] && command cp -f "$src" ".github/workflows/$wf"
@@ -110,11 +110,6 @@ updates:
       prefix: "deps(actions)"
 DEPEOF
 hg_ok "Created CI workflows + dependabot.yml"
-
-# ── .codex config ────────────────────────────
-mkdir -p .codex
-printf 'model = "gpt-5.4-xhigh"\n' > .codex/config.toml
-hg_ok "Created .codex/config.toml"
 
 # ── Language-specific files ──────────────────
 case "$LANG" in
@@ -180,9 +175,11 @@ PYEOF
     ;;
 esac
 
-# ── CLAUDE.md skeleton ───────────────────────
-cat > CLAUDE.md << CLEOF
-# $NAME
+# ── AGENTS.md skeleton ───────────────────────
+cat > AGENTS.md << AGEOF
+# $NAME — Agent Instructions
+
+> Canonical instructions: AGENTS.md
 
 ## Build & Test
 
@@ -199,12 +196,17 @@ TODO: Describe the project structure.
 ## Key Patterns
 
 TODO: Document conventions specific to this project.
-CLEOF
-hg_ok "Created CLAUDE.md skeleton"
+AGEOF
+hg_ok "Created AGENTS.md skeleton"
 
 # ── Derived agent docs ───────────────────────
-"$SCRIPT_DIR/hg-agent-docs.sh" "$REPO_DIR"
-hg_ok "Generated AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
+"$SCRIPT_DIR/hg-agent-docs.sh" --source agents "$REPO_DIR"
+hg_ok "Generated CLAUDE.md, GEMINI.md, and .github/copilot-instructions.md"
+
+# ── Codex config baseline ────────────────────
+mkdir -p .codex
+command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/config.toml
+hg_ok "Created .codex/config.toml from shared standard"
 
 # ── Pre-commit hooks ─────────────────────────
 "$SCRIPT_DIR/hg-install-hooks.sh"
