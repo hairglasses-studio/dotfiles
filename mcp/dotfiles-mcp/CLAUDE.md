@@ -10,7 +10,7 @@ go test ./... -count=1
 go install .
 ```
 
-## Tools (93)
+## Tools (99)
 
 ### Config Management (4)
 - `dotfiles_list_configs` — List dotfiles config directories with symlink health and format
@@ -135,11 +135,12 @@ go install .
 - `dotfiles_oss_score` — Score a repo's open-source readiness (0-100) across 8 categories: community files, README quality, Go module, testing, CI/CD, security, release, maintenance. Returns structured report with per-check pass/fail and top action items.
 - `dotfiles_oss_check` — Run checks for a single category with detailed suggestions
 
-### SDLC Operations (15)
+### SDLC Operations (21)
 - `ops_build` — Build project (Go/Node/Python), parse compile errors into structured JSON
 - `ops_test_smart` — Run tests on changed packages only (Go: go test -json, Node: jest --json, Python: pytest -v)
 - `ops_changed_files` — List changed files with diff stats and Go package mapping
 - `ops_analyze_failures` — Categorize build/test failures (type_error, missing_dep, timeout, etc.) with fix suggestions
+- `ops_auto_fix` — Auto-fix mechanical failures: missing deps (go mod tidy), missing imports (goimports), unused vars. Dry-run by default
 - `ops_branch_create` — Create feature branch with conventional naming (dry-run by default)
 - `ops_commit` — Stage + commit with conventional message validation (dry-run by default)
 - `ops_pr_create` — Push branch + create PR via gh CLI (dry-run by default)
@@ -151,6 +152,11 @@ go install .
 - `ops_session_create` — Create SDLC iteration tracking session (persisted to ~/.local/state/ops/)
 - `ops_session_status` — Session stats: iterations, error trend, convergence detection
 - `ops_session_list` — List active sessions (auto-cleans >7 days old)
+- `ops_session_handoff` — Generate Agent Handoff Protocol document from session + git state
+- `ops_fleet_diff` — Fleet-wide changes since a date: per-repo commits, churn, commit types, authors
+- `ops_tech_debt` — Score tech debt 0-100 across 6 dimensions with fleet mode and trend tracking
+- `ops_research_check` — Search docs knowledge base for existing research with gap detection
+- `ops_iteration_patterns` — Mine historical sessions for common failures, convergence rates, hot files
 
 ### Sandbox Testing (13)
 - `sandbox_create` — Create Docker container with GPU (nvidia-container-toolkit)
