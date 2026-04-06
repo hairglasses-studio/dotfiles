@@ -4,7 +4,7 @@
 
 source "$HG_DOTFILES/scripts/lib/compositor.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/config.sh" 2>/dev/null
-source "$HG_DOTFILES/scripts/lib/ghostty-config.sh" 2>/dev/null
+source "$HG_DOTFILES/scripts/lib/kitty-config.sh" 2>/dev/null
 
 # Snazzy palette allowed hex values (lowercase, no #)
 _SNAZZY_ALLOWED="57c7ff|ff6ac1|5af78e|f3f99d|ff5c57|686868|9aedfe|eff0eb|f1f1f0|000000|1a1a1a|1a1b26"
@@ -30,14 +30,13 @@ _rice_status() {
   comp="$(compositor_type 2>/dev/null || echo "unknown")"
   printf " %s%-14s%s %s%s%s\n" "$HG_DIM" "compositor" "$HG_RESET" "$HG_CYAN" "$comp" "$HG_RESET"
 
-  # Active shader
-  local shader_name
-  shader_name="$(ghostty_get_shader_name)"
-  if [[ -n "$shader_name" ]]; then
-    printf " %s%-14s%s %s%s%s\n" "$HG_DIM" "shader" "$HG_RESET" "$HG_MAGENTA" "$shader_name" "$HG_RESET"
-  else
-    printf " %s%-14s%s %snone%s\n" "$HG_DIM" "shader" "$HG_RESET" "$HG_DIM" "$HG_RESET"
-  fi
+  # Terminal
+  local kitty_font kitty_opacity
+  kitty_font="$(kitty_get_font 2>/dev/null || echo "unknown")"
+  kitty_opacity="$(kitty_get_opacity 2>/dev/null || echo "unknown")"
+  printf " %s%-14s%s %s%s%s\n" "$HG_DIM" "terminal" "$HG_RESET" "$HG_MAGENTA" "kitty" "$HG_RESET"
+  printf " %s%-14s%s %s%s%s\n" "$HG_DIM" "font" "$HG_RESET" "$HG_CYAN" "$kitty_font" "$HG_RESET"
+  printf " %s%-14s%s %s%s%s\n" "$HG_DIM" "opacity" "$HG_RESET" "$HG_CYAN" "$kitty_opacity" "$HG_RESET"
 
   # Wallpaper
   if pgrep -f shaderbg &>/dev/null; then

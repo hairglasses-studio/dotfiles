@@ -253,9 +253,9 @@
 
 (deflisten bar_mode `$HOME/hairglasses-studio/dotfiles/scripts/eww-mode.sh`)
 
-; ── Shader indicator (reads directly from Ghostty config) ──
+; ── Terminal visual indicator ──
 (defpoll current_shader :interval "5s" :initial ""
-  `grep '^custom-shader' ~/.config/ghostty/config 2>/dev/null | sed 's|.*/||;s|\.glsl||' | head -1`)
+  `grep '^tab_bar_style ' ~/.config/kitty/kitty.conf 2>/dev/null | awk '{print $2}' | head -1`)
 
 ; ── Submap/mode indicator (listens to Hyprland socket) ──
 (deflisten active_submap :initial ""
@@ -379,13 +379,13 @@
     (label :class "bar-icon green" :text bar_gamepad)))
 
 (defwidget bar-bt-display []
-  (eventbox :onclick "ghostty --gtk-single-instance=false -e bluetoothctl"
+  (eventbox :onclick "kitty -e bluetoothctl"
     (box :class "bar-metric" :spacing 4 :visible {bar_bt > 0}
       (label :class "bar-icon cyan" :text "󰂯")
       (label :class "bar-metric-val" :text bar_bt))))
 
 (defwidget bar-updates-display []
-  (eventbox :onclick "ghostty --gtk-single-instance=false -e yay"
+  (eventbox :onclick "kitty -e yay"
     (box :class "bar-metric" :spacing 4 :visible {bar_updates != ""}
       (label :class "bar-icon yellow" :text "")
       (label :class "bar-metric-val" :text bar_updates))))
@@ -403,7 +403,7 @@
 (defwidget bar-sys []
   (eventbox :onhover "eww update sys_hover=true" :onhoverlost "eww update sys_hover=false"
     (box :class "bar-sys" :orientation "h" :spacing 12
-      (eventbox :onclick "ghostty --gtk-single-instance=false -e htop"
+      (eventbox :onclick "kitty -e htop"
         (box :class "bar-metric" :spacing 4
           (label :class "bar-icon ${bar_cpu >= 90 ? 'red' : bar_cpu >= 70 ? 'yellow' : 'cyan'}" :text "")
           (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
@@ -412,7 +412,7 @@
         (label :class "bar-icon ${bar_cpu_temp >= 85 ? 'red' : bar_cpu_temp >= 70 ? 'yellow' : 'green'}" :text "")
         (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
           (label :class "bar-metric-val ${bar_cpu_temp >= 85 ? 'metric-crit' : bar_cpu_temp >= 70 ? 'metric-warn' : ''}" :text "${bar_cpu_temp}°")))
-      (eventbox :onclick "ghostty --gtk-single-instance=false -e btop"
+      (eventbox :onclick "kitty -e btop"
         (box :class "bar-metric" :spacing 4
           (label :class "bar-icon ${bar_mem >= 90 ? 'red' : bar_mem >= 70 ? 'yellow' : 'magenta'}" :text "")
           (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
@@ -424,7 +424,7 @@
       (bar-mx-battery)
       (bar-vol-display)
       (bar-weather-display)
-      (eventbox :onclick "ghostty --gtk-single-instance=false -e nmtui"
+      (eventbox :onclick "kitty -e nmtui"
         (box :class "bar-metric" :spacing 4
           (label :class "bar-icon green" :text "")
           (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"

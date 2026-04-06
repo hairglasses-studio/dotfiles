@@ -31,14 +31,22 @@ yay() {
   return $rc
 }
 
-# ── Shader auto-rotate via systemd timer ─────
+# ── Kitty shader playlist ──────────────────────────
+alias shader-next='kitty-shader-playlist next ambient'
+alias shader-prev='kitty-shader-playlist prev ambient'
+alias shader-random='kitty-shader-playlist random'
+alias shader-current='kitty-shader-playlist current'
+alias shader-list='kitty-shader-playlist list'
+alias shader-set='kitty-shader-playlist set'
+alias shader-engine='kitty-shader-playlist engine'
+alias shader-build='kitty-shader-playlist build'
+
 shader-auto() {
   local timer="shader-rotate.timer"
   local service="shader-rotate.service"
   case "${1:-status}" in
     start)
       local interval="${2:-30}"
-      # Create/update the systemd timer unit
       local timer_dir="$HOME/.config/systemd/user"
       mkdir -p "$timer_dir"
       cat > "$timer_dir/$timer" <<UNIT
@@ -55,11 +63,11 @@ WantedBy=timers.target
 UNIT
       cat > "$timer_dir/$service" <<UNIT
 [Unit]
-Description=Rotate Ghostty shader
+Description=Rotate kitty shader
 
 [Service]
 Type=oneshot
-ExecStart=%h/.config/ghostty/shaders/bin/shader-auto-rotate.sh
+ExecStart=/usr/bin/env bash %h/hairglasses-studio/dotfiles/scripts/kitty-shader-playlist.sh next ambient
 Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 UNIT
       systemctl --user daemon-reload

@@ -5,7 +5,7 @@ set -euo pipefail
 # presents them sorted A-Z, and focuses the selected one.
 
 windows=$(hyprctl clients -j | jq -r '
-  .[] | select(.class == "com.mitchellh.ghostty" and (.title | test("^────")))
+  .[] | select(.class == "kitty" and (.title | test("^────")))
   | "\(.address)\t\(.title)"
 ' | sort -t$'\t' -k2)
 

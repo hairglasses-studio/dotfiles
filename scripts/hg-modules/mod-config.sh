@@ -42,7 +42,7 @@ _config_cmd_check() {
 
   printf " %sSYMLINKS%s\n" "$HG_BOLD" "$HG_RESET"
   local -a _checks=(
-    "$HOME/.config/ghostty:$HG_DOTFILES/ghostty:ghostty"
+    "$HOME/.config/kitty:$HG_DOTFILES/kitty:kitty"
     "$HOME/.config/hypr:$HG_DOTFILES/hyprland:hyprland"
     "$HOME/.config/eww:$HG_DOTFILES/eww:eww"
     "$HOME/.config/swaync:$HG_DOTFILES/swaync:swaync"
@@ -86,7 +86,7 @@ _config_cmd_check() {
 _config_cmd_list() {
   printf "\n %s%smanaged components%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
   local -a _components=(
-    "ghostty:$HG_DOTFILES/ghostty:auto-reload (FSEvents)"
+    "kitty:$HG_DOTFILES/kitty:SIGUSR1 reload"
     "hyprland:$HG_DOTFILES/hyprland:hyprctl reload"
     "eww:$HG_DOTFILES/eww:eww reload"
     "swaync:$HG_DOTFILES/swaync:swaync-client --reload-config"

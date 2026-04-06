@@ -51,13 +51,13 @@
 | `Super+Shift+Space` | Toggle float |
 | `Super+Space` | Cycle focus |
 | `Super+A` | Focus urgent/last |
-| `Super+\\` | Cycle orientation |
-| `Super+T` | Swap with master |
+| `Super+\\` | Toggle split direction |
+| `Super+T` | Equalize workspace |
 | `Super+-` | Swap with next |
-| `Super+]` | Increase master ratio |
-| `Super+[` | Decrease master ratio |
-| `Super+Shift+]` | Add master |
-| `Super+Shift+[` | Remove master |
+| `Super+]` | Next workspace |
+| `Super+[` | Previous workspace |
+| `Super+Shift+]` | Move to next workspace |
+| `Super+Shift+[` | Move to previous workspace |
 | `Super+,` | Swap prev |
 | `Super+.` | Swap next |
 
@@ -210,4 +210,3 @@
 |-----|--------|
 | `Super+O` | Toggle dashboard workspace |
 | `Super+Shift+O` | Move to dashboard |
-

@@ -72,7 +72,7 @@ hg_ok "Created LICENSE, CONTRIBUTING.md (issue/PR templates inherited from org)"
 # ── CI workflows ─────────────────────────────
 mkdir -p .github/workflows
 # Copy standard workflows from the org templates
-for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml dependabot-auto-merge.yml; do
+for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml codex-structured-audit.yml codex-baseline-guard.yml ai-dispatch.yml dependabot-auto-merge.yml; do
   src="$ORG_GITHUB/workflow-templates/$wf"
   [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
   [[ -f "$src" ]] && command cp -f "$src" ".github/workflows/$wf"
@@ -110,11 +110,6 @@ updates:
       prefix: "deps(actions)"
 DEPEOF
 hg_ok "Created CI workflows + dependabot.yml"
-
-# ── .codex config ────────────────────────────
-mkdir -p .codex
-printf 'model = "gpt-5.4-xhigh"\n' > .codex/config.toml
-hg_ok "Created .codex/config.toml"
 
 # ── Language-specific files ──────────────────
 case "$LANG" in
@@ -180,9 +175,11 @@ PYEOF
     ;;
 esac
 
-# ── CLAUDE.md skeleton ───────────────────────
-cat > CLAUDE.md << CLEOF
-# $NAME
+# ── AGENTS.md skeleton ───────────────────────
+cat > AGENTS.md << AGEOF
+# $NAME — Agent Instructions
+
+> Canonical instructions: AGENTS.md
 
 ## Build & Test
 
@@ -199,12 +196,67 @@ TODO: Describe the project structure.
 ## Key Patterns
 
 TODO: Document conventions specific to this project.
-CLEOF
-hg_ok "Created CLAUDE.md skeleton"
+
+## Explicit Skill Surface
+
+- Canonical reusable workflow skills live under \`.agents/skills/\`.
+- Generated compatibility mirrors under \`.claude/skills/\` must come from \`dotfiles/scripts/hg-skill-surface-sync.sh\`.
+- \`.codex/agents/*.toml\` is for Codex delegation roles, not the primary workflow-skill surface.
+AGEOF
+hg_ok "Created AGENTS.md skeleton"
 
 # ── Derived agent docs ───────────────────────
-"$SCRIPT_DIR/hg-agent-docs.sh" "$REPO_DIR"
-hg_ok "Generated AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
+"$SCRIPT_DIR/hg-agent-docs.sh" --source agents "$REPO_DIR"
+hg_ok "Generated CLAUDE.md, GEMINI.md, and .github/copilot-instructions.md"
+
+# ── Codex config baseline ────────────────────
+mkdir -p .codex
+command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/config.toml
+hg_ok "Created .codex/config.toml from shared standard"
+
+# ── Canonical skill surface ──────────────────
+SKILL_NAME="${NAME//-/_}_ops"
+mkdir -p ".agents/skills/$SKILL_NAME"
+cat > .agents/skills/surface.yaml << EOF
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "$SKILL_NAME",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    }
+  ]
+}
+EOF
+cat > ".agents/skills/$SKILL_NAME/SKILL.md" << EOF
+---
+name: $SKILL_NAME
+description: Core build, test, release, and maintenance workflow for the $NAME repo.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+---
+
+# ${NAME} Ops
+
+Use this skill for the default repo workflow in \`$NAME\`.
+
+## Default loop
+
+1. Read \`AGENTS.md\` and confirm the repo-specific build and test commands.
+2. Inspect the relevant code or docs before editing.
+3. Make focused changes that preserve existing conventions.
+4. Run the narrowest useful verification first, then the broader repo checks before finishing.
+5. Summarize outcome, verification, and any remaining risks.
+
+Read files under \`.agents/skills/$SKILL_NAME/references/\` if this repo later grows domain-specific workflows.
+EOF
+"$SCRIPT_DIR/hg-skill-surface-sync.sh" "$REPO_DIR" >/dev/null
+hg_ok "Created canonical .agents/skills surface"
 
 # ── Pre-commit hooks ─────────────────────────
 "$SCRIPT_DIR/hg-install-hooks.sh"

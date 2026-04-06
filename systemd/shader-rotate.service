@@ -1,8 +1,8 @@
 [Unit]
-Description=Advance Ghostty shader rotation
+Description=Advance kitty shader rotation
 ConditionPathExists=%t/hypr
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/env zsh %h/hairglasses-studio/dotfiles/ghostty/shaders/bin/shader-auto-rotate.sh
+ExecStart=/usr/bin/env bash %h/hairglasses-studio/dotfiles/scripts/kitty-shader-playlist.sh next ambient
 Environment=PATH=%h/.local/bin:/usr/bin:/usr/local/bin:/bin

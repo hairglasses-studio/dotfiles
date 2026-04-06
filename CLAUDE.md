@@ -153,7 +153,7 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 | `hg-new-repo.sh` | Scaffold new repo with standard files |
 | `hg-workflow-sync.sh` | Sync CI workflows across repos |
 | `hg-onboard-repo.sh` | Onboard repo with standard config |
-| `hg-agent-docs.sh` | Generate AGENTS.md, GEMINI.md from CLAUDE.md |
+| `hg-agent-docs.sh` | Generate compatibility docs from canonical AGENTS.md or legacy CLAUDE.md |
 | `hg-codex-audit.sh` | Repo inventory and parity audit |
 
 ### System/Boot

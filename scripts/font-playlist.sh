@@ -9,8 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/notify.sh"
 
-_ghostty_config="$HG_DOTFILES/ghostty/config"
-_playlist_dir="$HG_DOTFILES/ghostty/fonts"
+_kitty_config="$HG_DOTFILES/kitty/kitty.conf"
+_playlist_dir="$HG_DOTFILES/kitty/fonts"
 _state_dir="$HOME/.local/state/fonts"
 _default_playlist="dense-tryout"
 
@@ -54,22 +54,29 @@ _parse_size()   { echo "$1" | cut -d'|' -f2; }
 
 _apply_font() {
   local family="$1" size="$2"
+  local bold italic bold_italic
   local tmp
-  tmp="$(mktemp "${_ghostty_config}.XXXXXX")"
-  sed -e "s|^font-family = .*|font-family = $family|" \
-      -e "s|^font-size = .*|font-size = $size|" \
-      "$_ghostty_config" > "$tmp"
-  mv -f "$tmp" "$_ghostty_config"
-  # Poke the symlink so Ghostty's inotify picks up the change
-  touch "$HOME/.config/ghostty/config" 2>/dev/null || true
+  bold="${family} Bold"
+  italic="${family} Italic"
+  bold_italic="${family} Bold Italic"
+  tmp="$(mktemp "${_kitty_config}.XXXXXX")"
+  sed -e "s|^font_family .*|font_family      $family|" \
+      -e "s|^bold_font .*|bold_font        $bold|" \
+      -e "s|^italic_font .*|italic_font      $italic|" \
+      -e "s|^bold_italic_font .*|bold_italic_font $bold_italic|" \
+      -e "s|^font_size .*|font_size $size|" \
+      "$_kitty_config" > "$tmp"
+  mv -f "$tmp" "$_kitty_config"
+  # Reload kitty via SIGUSR1
+  kill -USR1 "$(pidof kitty)" 2>/dev/null || true
 }
 
 _current_font() {
-  grep '^font-family = ' "$_ghostty_config" | head -1 | sed 's/^font-family = //'
+  grep '^font_family ' "$_kitty_config" | head -1 | sed 's/^font_family  *//'
 }
 
 _current_size() {
-  grep '^font-size = ' "$_ghostty_config" | head -1 | sed 's/^font-size = //'
+  grep '^font_size ' "$_kitty_config" | head -1 | awk '{print $2}'
 }
 
 cmd_next() {
@@ -114,7 +121,7 @@ cmd_set() {
   family=$(_current_font)
   size=$(_current_size)
   hg_ok "Locked: $family @ ${size}pt"
-  hg_info "Update bold/italic families manually if switching font families."
+  hg_info "Bold/italic faces now track the selected family automatically."
 }
 
 cmd_list() {

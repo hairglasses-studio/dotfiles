@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 # mod-shader.sh — hg shader module
 # Wraps the existing shader management scripts in ghostty/shaders/bin/
+# NOTE: Shader pipeline is Ghostty-specific. Kitty does not support custom shaders.
 
 _SHADER_BIN="$HG_DOTFILES/ghostty/shaders/bin"
 _SHADER_DIR="$HOME/.config/ghostty/shaders"
+
+if [[ ! -d "$_SHADER_DIR" ]]; then
+  shader_description() { echo "Shader pipeline (Ghostty-only, inactive)"; }
+  shader_commands() { echo "status	Shader pipeline requires Ghostty terminal"; }
+  return 0 2>/dev/null || exit 0
+fi
 
 source "$HG_DOTFILES/scripts/lib/ghostty-config.sh" 2>/dev/null
 
