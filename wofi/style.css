@@ -5,7 +5,7 @@ window {
     border: 2px solid #57c7ff;
     border-radius: 8px;
     background-color: rgba(0, 0, 0, 0.92);
-    font-family: "Maple Mono NF CN", monospace;
+    font-family: "Hack Nerd Font", monospace;
     font-size: 14px;
     animation: fade-in 0.15s ease-out;
 }

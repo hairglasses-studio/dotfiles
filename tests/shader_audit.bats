@@ -57,7 +57,7 @@ GLSL
     # Create a fake Ghostty config for swap_shader and restore
     export TEST_CONFIG="${BATS_TEST_TMPDIR}/ghostty-config"
     cat > "$TEST_CONFIG" << 'CFG'
-font-family = Maple Mono NF CN
+font-family = Hack Nerd Font
 font-size = 12
 custom-shader = /some/shader.glsl
 custom-shader-animation = false
@@ -245,7 +245,7 @@ teardown() {
     bash "$AUDIT_HELPERS" swap_shader "/new/path/test.glsl" "false"
     run grep '^font-family = ' "$TEST_CONFIG"
     assert_success
-    assert_output "font-family = Maple Mono NF CN"
+    assert_output "font-family = Hack Nerd Font"
 }
 
 # --- Shader list building with category filter ---

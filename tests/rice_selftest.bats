@@ -26,8 +26,8 @@ setup() {
         # Mock out all external command checks
         echo 'hyprctl() { echo ""; }'  # empty = no errors
         echo 'pgrep() { return 0; }'   # everything is running
-        echo 'ghostty() { echo "font-family = Maple Mono NF CN"; }'
-        echo 'fc-list() { echo "Maple Mono NF CN:style=Regular"; }'
+        echo 'ghostty() { echo "font-family = Hack Nerd Font"; }'
+        echo 'fc-list() { echo "Hack Nerd Font:style=Regular"; }'
         echo 'command() { return 0; }'  # all tools found
         echo "find() { echo ''; }"     # stub
         echo ""

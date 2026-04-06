@@ -2,7 +2,7 @@
 # Replaces eww bar — GTK4, GPU-accelerated
 
 position = "top"
-height = 36
+height = 28
 anchor_to_edges = true
 
 [ironvar_defaults]
@@ -139,5 +139,5 @@ label = "{{60000:n=$(wc -l < ~/.local/state/mcpkit/audit.jsonl 2>/dev/null); [ \
 # System tray
 [[end]]
 type = "tray"
-icon_size = 20
+icon_size = 18
 direction = "horizontal"
