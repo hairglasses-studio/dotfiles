@@ -1,10 +1,11 @@
 # dotfiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Shaders](https://img.shields.io/badge/GLSL_Shaders-138-purple)](ghostty/shaders/)
+[![Shaders](https://img.shields.io/badge/GLSL_Shaders-138+-purple)](ghostty/shaders/)
+[![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 
-Cyberpunk rice for Manjaro Linux (Hyprland) and macOS (AeroSpace). Snazzy-on-black palette from the compositor down to every TUI.
+Cyberpunk rice for Manjaro Linux (Hyprland) and macOS (AeroSpace). Snazzy-on-black palette from the compositor down to every TUI. Ships with **138+ GLSL shaders** and **1,400+ MCP tools** across 7 Go + 3 JS servers.
 
 Hyprland + eww bar + swaync + wofi + Ghostty + 138 GLSL shaders + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
 
@@ -114,6 +115,22 @@ dotfiles/
 ├── install.sh      → symlink installer
 └── Brewfile        → macOS Homebrew packages
 ```
+
+## MCP Servers
+
+All MCP tools are consolidated under `mcp/` (7 Go modules + 3 JS servers via `go.work`). Total: **1,400+ tools**.
+
+| Server | Tools | Description |
+|--------|-------|-------------|
+| `dotfiles-mcp` | 82 | Desktop config management, Hyprland control, shader pipeline, input devices |
+| `hg-mcp` | 200+ | SDLC ops, fleet management, repo analysis, prompt pipeline |
+| `systemd-mcp` | 10 | Systemd unit management |
+| `tmux-mcp` | 11 | Tmux session management |
+| `process-mcp` | 8 | Process debugging and port investigation |
+| `mapitall` | 30+ | Controller/MIDI mapping engine |
+| `mapping` | 20+ | Input mapping profiles |
+
+All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
 
 ## Troubleshooting
 
