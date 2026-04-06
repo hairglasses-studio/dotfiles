@@ -1,7 +1,7 @@
 # dotfiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Shaders](https://img.shields.io/badge/GLSL_Shaders-138+-purple)](ghostty/shaders/)
+[![Shaders](https://img.shields.io/badge/GLSL_Shaders-131-purple)](ghostty/shaders/)
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 
@@ -9,7 +9,7 @@ Full-stack development environment for Manjaro Linux (Hyprland) and macOS (AeroS
 
 ### Technical Highlights
 
-- **GPU Shaders**: 138 GLSL shaders with runtime compilation, playlist rotation, and auto-benchmarking
+- **GPU Shaders**: 131 GLSL shaders with runtime compilation, playlist rotation, and auto-benchmarking
 - **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, shader pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
@@ -71,7 +71,7 @@ hyprpm reload -n
 | `swaync/` | Notification center — Snazzy themed, visibility filtering |
 | `wofi/` | App launcher and emoji picker |
 | `wlogout/` | Power menu overlay |
-| `ghostty/` | GPU terminal with 138 GLSL shaders, shuffled playlists, shader-cycle scripts |
+| `ghostty/` | GPU terminal with 131 GLSL shaders, shuffled playlists, shader-cycle scripts |
 | `foot/` | Lightweight terminal (dropdown/fallback) |
 | `zsh/` | Oh My Zsh, Starship prompt, 650+ aliases |
 | `starship/` | Fill-based right alignment, git metrics, cloud context |
@@ -96,7 +96,7 @@ hyprpm reload -n
 dotfiles/
 ├── hyprland/       → ~/.config/hypr (WM + hypridle + hyprlock + pyprland)
 ├── eww/            → ~/.config/eww (bar + widgets)
-├── ghostty/        → ~/.config/ghostty (terminal + 138 shaders)
+├── ghostty/        → ~/.config/ghostty (terminal + 131 shaders)
 ├── swaync/         → ~/.config/swaync (notifications)
 ├── wofi/           → ~/.config/wofi (launcher)
 ├── wlogout/        → ~/.config/wlogout (power menu)
