@@ -66,7 +66,7 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = /home/hg/hairglasses-studio/dotfiles/ghostty/shaders/neon-glow.glsl
+custom-shader = shaders/film-grain-pro.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
