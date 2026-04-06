@@ -66,7 +66,7 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/cyberpunk-hud.glsl
+custom-shader = /home/hg/hairglasses-studio/dotfiles/ghostty/shaders/neon-glow.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
