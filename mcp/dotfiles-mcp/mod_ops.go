@@ -903,6 +903,143 @@ type OpsChangelogGenerateOutput struct {
 }
 
 // ---------------------------------------------------------------------------
+// Wave 7 — Auto-fix, Fleet Intelligence, Knowledge, Iteration Patterns
+// ---------------------------------------------------------------------------
+
+// --- ops_auto_fix ---
+type OpsAutoFixInput struct {
+	Repo    string          `json:"repo,omitempty" jsonschema:"description=Repository path (default: cwd)"`
+	Issues  []AnalyzedIssue `json:"issues" jsonschema:"description=Issues from ops_analyze_failures"`
+	Execute bool            `json:"execute,omitempty" jsonschema:"description=Apply patches (default: dry-run preview)"`
+}
+
+type Patch struct {
+	File    string `json:"file"`
+	Line    int    `json:"line,omitempty"`
+	Action  string `json:"action"`
+	Before  string `json:"before,omitempty"`
+	After   string `json:"after,omitempty"`
+	Applied bool   `json:"applied"`
+}
+
+type OpsAutoFixOutput struct {
+	Repo            string          `json:"repo"`
+	PatchCount      int             `json:"patch_count"`
+	AppliedCount    int             `json:"applied_count"`
+	Patches         []Patch         `json:"patches"`
+	RemainingIssues []AnalyzedIssue `json:"remaining_issues"`
+	DryRun          bool            `json:"dry_run"`
+}
+
+// --- ops_fleet_diff ---
+type OpsFleetDiffInput struct {
+	Dir      string `json:"dir,omitempty" jsonschema:"description=Root directory (default: ~/hairglasses-studio)"`
+	Since    string `json:"since" jsonschema:"description=Date (2024-04-01) or relative (3d/1w) or git ref"`
+	Language string `json:"language,omitempty" jsonschema:"description=Filter by language (go/node/python/all)"`
+	MaxRepos int    `json:"max_repos,omitempty" jsonschema:"description=Max repos to scan (default: 30)"`
+}
+
+type FleetRepoDiff struct {
+	Repo        string         `json:"repo"`
+	Commits     int            `json:"commits"`
+	Insertions  int            `json:"insertions"`
+	Deletions   int            `json:"deletions"`
+	CommitTypes map[string]int `json:"commit_types"`
+	Authors     []string       `json:"authors,omitempty"`
+}
+
+type OpsFleetDiffOutput struct {
+	Since           string          `json:"since"`
+	TotalRepos      int             `json:"total_repos"`
+	ActiveRepos     int             `json:"active_repos"`
+	TotalCommits    int             `json:"total_commits"`
+	TotalInsertions int             `json:"total_insertions"`
+	TotalDeletions  int             `json:"total_deletions"`
+	MostActive      []string        `json:"most_active"`
+	Repos           []FleetRepoDiff `json:"repos"`
+}
+
+// --- ops_tech_debt ---
+type OpsTechDebtInput struct {
+	Repo  string `json:"repo,omitempty" jsonschema:"description=Single repo path (omit for fleet mode)"`
+	Dir   string `json:"dir,omitempty" jsonschema:"description=Fleet root directory (default: ~/hairglasses-studio)"`
+	Store bool   `json:"store,omitempty" jsonschema:"description=Persist scores for trend tracking"`
+}
+
+type TechDebtScore struct {
+	Repo        string         `json:"repo"`
+	Overall     int            `json:"overall"`
+	Dimensions  map[string]int `json:"dimensions"`
+	ActionItems []string       `json:"action_items"`
+	Trend       string         `json:"trend,omitempty"`
+}
+
+type OpsTechDebtOutput struct {
+	Scores     []TechDebtScore `json:"scores"`
+	FleetAvg   int             `json:"fleet_avg,omitempty"`
+	WorstRepos []string        `json:"worst_repos,omitempty"`
+}
+
+// --- ops_research_check ---
+type OpsResearchCheckInput struct {
+	Query      string `json:"query" jsonschema:"description=Topic or keywords to search for"`
+	DocsPath   string `json:"docs_path,omitempty" jsonschema:"description=Docs repo path (default: ~/hairglasses-studio/docs)"`
+	MaxResults int    `json:"max_results,omitempty" jsonschema:"description=Max results (default: 10)"`
+}
+
+type ResearchMatch struct {
+	Path      string   `json:"path"`
+	Title     string   `json:"title"`
+	Relevance float64  `json:"relevance"`
+	Excerpt   string   `json:"excerpt"`
+	Tags      []string `json:"tags,omitempty"`
+}
+
+type OpsResearchCheckOutput struct {
+	Query      string          `json:"query"`
+	Results    []ResearchMatch `json:"results"`
+	TotalDocs  int             `json:"total_docs"`
+	Gaps       []string        `json:"gaps"`
+	Suggestion string          `json:"suggestion,omitempty"`
+}
+
+// --- ops_session_handoff ---
+type OpsSessionHandoffInput struct {
+	SessionID string `json:"session_id,omitempty" jsonschema:"description=Ops session ID (default: most recent)"`
+	Repo      string `json:"repo,omitempty" jsonschema:"description=Repository path (default: cwd)"`
+	Write     bool   `json:"write,omitempty" jsonschema:"description=Write handoff doc to repo"`
+}
+
+type OpsSessionHandoffOutput struct {
+	Handoff     string `json:"handoff"`
+	SessionID   string `json:"session_id,omitempty"`
+	Repo        string `json:"repo"`
+	Branch      string `json:"branch"`
+	WrittenPath string `json:"written_path,omitempty"`
+}
+
+// --- ops_iteration_patterns ---
+type OpsIterationPatternsInput struct {
+	Window string `json:"window,omitempty" jsonschema:"description=Time window (default: 30d)"`
+	Repo   string `json:"repo,omitempty" jsonschema:"description=Filter to specific repo"`
+}
+
+type HotFile struct {
+	File        string `json:"file"`
+	Appearances int    `json:"appearances"`
+}
+
+type OpsIterationPatternsOutput struct {
+	TotalSessions   int            `json:"total_sessions"`
+	TotalIterations int            `json:"total_iterations"`
+	AvgIterations   float64        `json:"avg_iterations"`
+	ConvergenceRate float64        `json:"convergence_rate"`
+	CommonErrors    map[string]int `json:"common_errors"`
+	HotFiles        []HotFile      `json:"hot_files"`
+	Recommendations []string       `json:"recommendations"`
+}
+
+// ---------------------------------------------------------------------------
 // Module
 // ---------------------------------------------------------------------------
 
@@ -1033,6 +1170,37 @@ func (m *OpsModule) Tools() []registry.ToolDefinition {
 			"ops_dep_graph",
 			"Generate a dependency graph for a Go workspace or module. Uses go mod graph for accurate module-level dependencies. Outputs Mermaid markdown (for GitHub rendering) or DOT format. Filter to internal org modules or include all transitive deps.",
 			opsDepGraph,
+		),
+		// Wave 7 — Intelligence & Autonomy
+		handler.TypedHandler[OpsAutoFixInput, OpsAutoFixOutput](
+			"ops_auto_fix",
+			"Auto-fix mechanical failures from ops_analyze_failures: missing deps (go mod tidy), missing imports (goimports), unused vars (remove). Pass issues from analyze output. Dry-run by default — pass execute=true to apply patches.",
+			opsAutoFix,
+		),
+		handler.TypedHandler[OpsFleetDiffInput, OpsFleetDiffOutput](
+			"ops_fleet_diff",
+			"Show what changed across all repos since a date or ref. Returns per-repo commit counts, insertions/deletions, commit type breakdown (feat/fix/chore), and fleet-wide totals. Use since='3d' for relative or '2024-04-01' for absolute.",
+			opsFleetDiff,
+		),
+		handler.TypedHandler[OpsTechDebtInput, OpsTechDebtOutput](
+			"ops_tech_debt",
+			"Score tech debt 0-100 across 6 dimensions: dependency freshness, test coverage, lint cleanliness, CI health, documentation, code age. Single repo or fleet mode. Set store=true for trend tracking.",
+			opsTechDebt,
+		),
+		handler.TypedHandler[OpsResearchCheckInput, OpsResearchCheckOutput](
+			"ops_research_check",
+			"Search the docs knowledge base for existing research on a topic. Returns matching documents with relevance scores and identifies gaps where no research exists. Check this before starting new research to avoid duplication.",
+			opsResearchCheck,
+		),
+		handler.TypedHandler[OpsSessionHandoffInput, OpsSessionHandoffOutput](
+			"ops_session_handoff",
+			"Generate an Agent Handoff Protocol document from the current ops session and git state. Captures branch, dirty files, iteration history, and pending work. Set write=true to persist to repo.",
+			opsSessionHandoff,
+		),
+		handler.TypedHandler[OpsIterationPatternsInput, OpsIterationPatternsOutput](
+			"ops_iteration_patterns",
+			"Analyze historical SDLC sessions for patterns: common failure types, average iterations to convergence, hot files that appear in most failures. Useful for identifying systemic issues and improving auto-fix heuristics.",
+			opsIterationPatterns,
 		),
 	}
 }
@@ -3182,4 +3350,32 @@ func opsDepGraph(_ context.Context, input OpsDepGraphInput) (OpsDepGraphOutput, 
 		EdgeCount:   len(edges),
 		OrgModules:  orgModules,
 	}, nil
+}
+
+// ---------------------------------------------------------------------------
+// Wave 7 stubs — to be fully implemented in Marathon 2
+// ---------------------------------------------------------------------------
+
+func opsAutoFix(_ context.Context, input OpsAutoFixInput) (OpsAutoFixOutput, error) {
+	return OpsAutoFixOutput{DryRun: !input.Execute, Patches: nil, RemainingIssues: input.Issues}, nil
+}
+
+func opsFleetDiff(_ context.Context, input OpsFleetDiffInput) (OpsFleetDiffOutput, error) {
+	return OpsFleetDiffOutput{Since: input.Since}, nil
+}
+
+func opsTechDebt(_ context.Context, input OpsTechDebtInput) (OpsTechDebtOutput, error) {
+	return OpsTechDebtOutput{}, nil
+}
+
+func opsResearchCheck(_ context.Context, input OpsResearchCheckInput) (OpsResearchCheckOutput, error) {
+	return OpsResearchCheckOutput{Query: input.Query, Gaps: []string{"stub: not yet implemented"}}, nil
+}
+
+func opsSessionHandoff(_ context.Context, input OpsSessionHandoffInput) (OpsSessionHandoffOutput, error) {
+	return OpsSessionHandoffOutput{Handoff: "stub: not yet implemented"}, nil
+}
+
+func opsIterationPatterns(_ context.Context, input OpsIterationPatternsInput) (OpsIterationPatternsOutput, error) {
+	return OpsIterationPatternsOutput{}, nil
 }
