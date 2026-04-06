@@ -1,7 +1,7 @@
 # Webb Architecture Analysis
 
 *Research conducted: December 23, 2025*
-*Source: /Users/mitch/acmecorp/webb (Acme Platform Operations CLI)*
+*Source: ~/example-corp/webb (Platform Operations CLI)*
 
 ## Overview
 

@@ -44,7 +44,7 @@ luke@Lukes-MacBook-Pro ~ %
 
 ### Your Home Folder
 
-The `~` symbol means your home folder: `/Users/luke`
+The `~` symbol means your home folder: `~/`
 
 This is where your Documents, Downloads, Desktop, etc. live.
 
