@@ -116,6 +116,8 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 | `scripts/lib/ghostty-config.sh` | `ghostty_get_shader_path`, `ghostty_get_shader_name`, `ghostty_get_shader_animation` | Shared Ghostty config queries (eliminates inline grep/sed) |
 | `scripts/lib/agent-post-tool-audit.sh` | PostToolUse hook | Reloads services on config edits, validates hyprland/eww/systemd errors, checks metapac coverage, enforces Snazzy palette |
 | `scripts/lib/agent-pre-tool-validate.sh` | PreToolUse hook | Validates .yuck paren balance and .scss syntax before writes |
+| `scripts/lib/claude-post-tool-reload.sh` | Compatibility shim | Delegates to `agent-post-tool-reload.sh` for legacy Claude hook configs |
+| `scripts/lib/claude-pre-tool-validate.sh` | Compatibility shim | Delegates to `agent-pre-tool-validate.sh` for legacy Claude hook configs |
 | `scripts/lib/prompt-capture.sh` | UserPromptSubmit hook | Captures multi-line prompts to docs/prompts/ with TOML frontmatter + SQLite indexing |
 
 ## Scripts Reference
