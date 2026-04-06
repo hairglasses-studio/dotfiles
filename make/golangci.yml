@@ -53,25 +53,28 @@ linters:
         - G107         # HTTP request with variable URL — standard in MCP tools/clients
         - G115         # Integer overflow on conversion — too noisy, most int conversions are safe
         - G204         # Subprocess with variable args — required by shell-wrapping MCP tools
+        - G301         # Directory permissions — 0755 via os.MkdirAll is standard Go idiom
+        - G302         # File permissions — 0644 for non-secret files is fine
         - G304         # File path from variable — required by config management tools
         - G306         # Poor file permissions — default os.WriteFile perms are fine
+        - G602         # Slice bounds — too many false positives on pre-checked slices
 
     staticcheck:
       checks:
         - "all"
         - "-SA1019"   # Allow deprecated usage for controlled migration
 
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gosec
+    paths:
+      - vendor
+      - node_modules
+      - dist
+
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
-        - gosec
-
-  exclude-dirs:
-    - vendor
-    - node_modules
-    - dist

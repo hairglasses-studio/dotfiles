@@ -1,0 +1,81 @@
+precision highp float;
+// Glass Shatter — angular shard decomposition with chromatic aberration
+// Category: Post-FX | Cost: MED | Source: ikz87/picom-shaders
+// Ported from picom-shaders by ikz87
+// https://github.com/ikz87/picom-shaders
+// Original used picom opacity transitions; adapted to iTime-driven animation
+
+#define PI 3.14159265
+#define TWO_PI 6.28318530
+
+float random(vec2 st) {
+    return fract(sin(dot(st, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+    vec2 uv = fragCoord / iResolution.xy;
+    vec2 res = iResolution.xy;
+    vec2 center = vec2(0.5);
+
+    const float num_shards = 20.0;
+
+    // Animate: smooth assembly/shatter cycle over 6 seconds
+    float animation_progress = 0.5 + 0.5 * cos(iTime * 1.047); // ~6s cycle
+
+    // Fragment's relation to center
+    vec2 toCenter = uv - center;
+    float angle = atan(toCenter.y, toCenter.x);
+    if (angle < 0.0) angle += TWO_PI;
+    float shard_id = floor(angle / (TWO_PI / num_shards));
+
+    // Staggered timing per shard
+    float shard_delay = random(vec2(shard_id, shard_id * 0.31));
+    float individual_duration = 0.7;
+    float ripple_spread = 1.0 - individual_duration;
+    float stagger_start = shard_delay * ripple_spread;
+    float stagger_end = stagger_start + individual_duration;
+    float shard_progress = smoothstep(stagger_start, stagger_end, animation_progress);
+
+    if (shard_progress < 0.001) {
+        fragColor = vec4(0.0);
+        return;
+    }
+
+    float displacement = 1.0 - shard_progress;
+
+    // Shard motion parameters
+    float max_translation = 0.15; // 15% of screen
+    float max_rotation = (PI / 180.0) * 25.0 * random(vec2(shard_id * 0.7, shard_id));
+
+    float shard_angle = (shard_id + 0.5) * (TWO_PI / num_shards);
+    vec2 radial_dir = vec2(cos(shard_angle), sin(shard_angle));
+
+    vec2 translation = radial_dir * max_translation * displacement;
+    float rotation = max_rotation * displacement;
+
+    // Inverse transform: find source UV
+    vec2 p = uv - translation;
+    vec2 rel = p - center;
+    float c = cos(rotation);
+    float s = sin(rotation);
+    vec2 rotated = vec2(c * rel.x - s * rel.y, s * rel.x + c * rel.y);
+    vec2 sampleUv = rotated + center;
+
+    if (sampleUv.x < 0.0 || sampleUv.x > 1.0 || sampleUv.y < 0.0 || sampleUv.y > 1.0) {
+        fragColor = vec4(0.0);
+        return;
+    }
+
+    // Chromatic aberration per shard
+    float ca_strength = 0.008 * displacement;
+    vec2 ca_offset = radial_dir * ca_strength;
+
+    vec4 out_color;
+    out_color.r = texture(iChannel0, sampleUv + ca_offset).r;
+    out_color.g = texture(iChannel0, sampleUv).g;
+    out_color.b = texture(iChannel0, sampleUv - ca_offset).b;
+    out_color.a = texture(iChannel0, sampleUv).a;
+
+    out_color.a *= shard_progress;
+    fragColor = out_color;
+}
