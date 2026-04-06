@@ -301,18 +301,37 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 	return []registry.ToolDefinition{search, schema, catalog, stats, serverHealth}
 }
 
+// annotatedModule wraps a ToolModule to apply MCP annotations and circuit breaker groups.
+type annotatedModule struct {
+	inner registry.ToolModule
+}
+
+func (m *annotatedModule) Name() string        { return m.inner.Name() }
+func (m *annotatedModule) Description() string { return m.inner.Description() }
+func (m *annotatedModule) Tools() []registry.ToolDefinition {
+	tools := m.inner.Tools()
+	for i := range tools {
+		tools[i] = registry.ApplyMCPAnnotations(tools[i], "dotfiles_")
+		if strings.HasPrefix(tools[i].Tool.Name, "dotfiles_gh_") {
+			tools[i].CircuitBreakerGroup = "github"
+		}
+	}
+	return tools
+}
+
 func registerDotfilesModules(reg *registry.ToolRegistry, resReg *resources.ResourceRegistry, promptReg *prompts.PromptRegistry, version string) {
 	reg.RegisterModule(&DotfilesDiscoveryModule{reg: reg, resources: resReg, prompts: promptReg, version: version})
 
 	profile := dotfilesProfile()
 	for _, module := range dotfilesModules() {
+		wrapped := &annotatedModule{inner: module}
 		deferred := make(map[string]bool)
-		for _, td := range module.Tools() {
+		for _, td := range wrapped.Tools() {
 			if shouldDeferDotfilesTool(profile, td) {
 				deferred[td.Tool.Name] = true
 			}
 		}
-		reg.RegisterDeferredModule(module, deferred)
+		reg.RegisterDeferredModule(wrapped, deferred)
 	}
 }
 
