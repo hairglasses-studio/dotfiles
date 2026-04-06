@@ -57,7 +57,7 @@ EXCLUDE_GLOBS=(
 inventory_csv=""
 inventory_json_rows=""
 json_separator=""
-inventory_md=$'| Repo | `claude mcp` | `.claude/settings.json` | `claude_desktop_config.json` | `AGENTS.md` | `AGENTS.override.md` | `CLAUDE.md` | `GEMINI.md` | `copilot-instructions.md` | `.codex/config.toml` | full profiles | `.agents/skills/surface.yaml` | canonical `.agents/skills/*` | generated `.claude/skills/*` | generated plugin skills | `.mcp.json` | repo MCP servers | MCP policy files | generated MCP configs | unmanaged MCP blocks | example-only `.mcp.json` | Codex MCP servers | curated Codex MCP servers | raw Codex MCP servers | legacy `gpt-5.4-xhigh` | `.mcp.json` without policy | `.mcp.json` without curated Codex | `.codex/agents/*.toml` | `.codex-plugin` | Codex workflows | `codex_hooks = true` |\n|------|--------------:|------------------------:|-----------------------------:|-----------:|--------------------:|-----------:|-----------:|--------------------------:|---------------------:|--------------:|-------------------------------:|----------------------------:|----------------------------:|------------------------:|-----------:|-----------------:|-----------------:|----------------------:|---------------------:|----------------------:|------------------:|--------------------------:|---------------------:|------------------------:|--------------------------:|-------------------------------:|-------------------------:|----------------:|----------------:|----------------------:|\n'
+inventory_md=$'| Repo | `claude mcp` | `.claude/settings.json` | `claude_desktop_config.json` | `AGENTS.md` | `AGENTS.override.md` | `CLAUDE.md` | `GEMINI.md` | `copilot-instructions.md` | `.codex/config.toml` | full profiles | `.agents/skills/surface.yaml` | canonical `.agents/skills/*` | generated `.claude/skills/*` | generated plugin skills | `.mcp.json` | repo MCP servers | MCP discovery contract | MCP resources | MCP prompts | MCP server health | full MCP contract | MCP policy files | generated MCP configs | unmanaged MCP blocks | example-only `.mcp.json` | Codex MCP servers | curated Codex MCP servers | raw Codex MCP servers | legacy `gpt-5.4-xhigh` | `.mcp.json` without policy | `.mcp.json` without curated Codex | `.codex/agents/*.toml` | `.codex-plugin` | Codex workflows | `codex_hooks = true` |\n|------|--------------:|------------------------:|-----------------------------:|-----------:|--------------------:|-----------:|-----------:|--------------------------:|---------------------:|--------------:|-------------------------------:|----------------------------:|----------------------------:|------------------------:|-----------:|-----------------:|-----------------------:|----------------:|--------------:|--------------------:|--------------------:|-----------------:|----------------------:|---------------------:|----------------------:|------------------:|--------------------------:|---------------------:|------------------------:|--------------------------:|-------------------------------:|-------------------------:|----------------:|----------------:|----------------------:|\n'
 
 count_matches() {
   local repo="$1"
@@ -264,6 +264,69 @@ count_matches_in_codex_configs() {
   printf '%s' "$count"
 }
 
+has_mcp_discovery_contract() {
+  local repo="$1"
+  local root_mcp_servers="$2"
+  if [[ "$root_mcp_servers" -eq 0 ]]; then
+    printf '0'
+    return
+  fi
+
+  local pattern
+  for pattern in '_tool_search"' '_tool_schema"' '_tool_catalog"' '_tool_stats"'; do
+    if ! rg -n -q "$pattern" "$repo" "${EXCLUDE_GLOBS[@]}" --glob '*.go' 2>/dev/null; then
+      printf '0'
+      return
+    fi
+  done
+  printf '1'
+}
+
+has_mcp_resource_contract() {
+  local repo="$1"
+  local root_mcp_servers="$2"
+  if [[ "$root_mcp_servers" -eq 0 ]]; then
+    printf '0'
+    return
+  fi
+
+  if rg -n -q 'NewResourceRegistry\(' "$repo" "${EXCLUDE_GLOBS[@]}" --glob '*.go' 2>/dev/null; then
+    printf '1'
+  else
+    printf '0'
+  fi
+}
+
+has_mcp_prompt_contract() {
+  local repo="$1"
+  local root_mcp_servers="$2"
+  if [[ "$root_mcp_servers" -eq 0 ]]; then
+    printf '0'
+    return
+  fi
+
+  if rg -n -q 'NewPromptRegistry\(' "$repo" "${EXCLUDE_GLOBS[@]}" --glob '*.go' 2>/dev/null; then
+    printf '1'
+  else
+    printf '0'
+  fi
+}
+
+has_mcp_server_health_tool() {
+  local repo="$1"
+  local root_mcp_servers="$2"
+  if [[ "$root_mcp_servers" -eq 0 ]]; then
+    printf '0'
+    return
+  fi
+
+  if rg -n -q '_server_health"' "$repo" "${EXCLUDE_GLOBS[@]}" --glob '*.go' 2>/dev/null; then
+    printf '1'
+  else
+    printf '0'
+  fi
+}
+
 repos=()
 while IFS= read -r repo; do
   repos+=("$repo")
@@ -304,6 +367,11 @@ total_repos_with_mcp_without_policy=0
 total_repos_with_example_only_mcp_json=0
 total_repos_with_legacy_model_tokens=0
 total_repos_with_mcp_without_curated_codex=0
+total_repos_with_mcp_discovery_contract=0
+total_repos_with_mcp_resource_contract=0
+total_repos_with_mcp_prompt_contract=0
+total_repos_with_mcp_server_health=0
+total_repos_with_full_mcp_contract=0
 scanned_repos=0
 
 for repo in "${repos[@]}"; do
@@ -337,6 +405,14 @@ for repo in "${repos[@]}"; do
   example_only_mcp_json=0
   if [[ -f "$repo/.mcp.json" && "$repo_mcp_servers" -eq 0 ]]; then
     example_only_mcp_json=1
+  fi
+  mcp_discovery_contract=$(has_mcp_discovery_contract "$repo" "$repo_mcp_servers")
+  mcp_resource_contract=$(has_mcp_resource_contract "$repo" "$repo_mcp_servers")
+  mcp_prompt_contract=$(has_mcp_prompt_contract "$repo" "$repo_mcp_servers")
+  mcp_server_health=$(has_mcp_server_health_tool "$repo" "$repo_mcp_servers")
+  full_mcp_contract=0
+  if [[ "$mcp_discovery_contract" -eq 1 && "$mcp_resource_contract" -eq 1 && "$mcp_prompt_contract" -eq 1 && "$mcp_server_health" -eq 1 ]]; then
+    full_mcp_contract=1
   fi
   codex_mcp_servers=$(count_codex_mcp_servers "$repo")
   codex_curated_mcp_servers=$(count_curated_codex_mcp_servers "$repo")
@@ -389,12 +465,17 @@ for repo in "${repos[@]}"; do
   [[ "$example_only_mcp_json" -gt 0 ]] && total_repos_with_example_only_mcp_json=$((total_repos_with_example_only_mcp_json + 1))
   [[ "$legacy_model_tokens" -gt 0 ]] && total_repos_with_legacy_model_tokens=$((total_repos_with_legacy_model_tokens + 1))
   [[ "$mcp_without_curated_codex" -gt 0 ]] && total_repos_with_mcp_without_curated_codex=$((total_repos_with_mcp_without_curated_codex + 1))
+  [[ "$mcp_discovery_contract" -gt 0 ]] && total_repos_with_mcp_discovery_contract=$((total_repos_with_mcp_discovery_contract + 1))
+  [[ "$mcp_resource_contract" -gt 0 ]] && total_repos_with_mcp_resource_contract=$((total_repos_with_mcp_resource_contract + 1))
+  [[ "$mcp_prompt_contract" -gt 0 ]] && total_repos_with_mcp_prompt_contract=$((total_repos_with_mcp_prompt_contract + 1))
+  [[ "$mcp_server_health" -gt 0 ]] && total_repos_with_mcp_server_health=$((total_repos_with_mcp_server_health + 1))
+  [[ "$full_mcp_contract" -gt 0 ]] && total_repos_with_full_mcp_contract=$((total_repos_with_full_mcp_contract + 1))
   [[ "$codex_agents" -gt 0 ]] && total_with_codex_agents=$((total_with_codex_agents + 1))
   [[ "$codex_workflows" -gt 0 ]] && total_with_codex_workflows=$((total_with_codex_workflows + 1))
   [[ "$agents_override" -gt 0 ]] && total_with_agents_override=$((total_with_agents_override + 1))
   [[ "$codex_hooks" -gt 0 ]] && total_with_codex_hooks=$((total_with_codex_hooks + 1))
 
-  inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${agents_md},${agents_override},${claude_md},${gemini_md},${copilot_instructions},${codex_config},${codex_full_profiles},${skill_surface_manifest},${canonical_skills},${generated_claude_skills},${generated_plugin_skills},${mcp_json},${repo_mcp_servers},${mcp_policy},${generated_mcp_configs},${codex_unmanaged_mcp_servers},${example_only_mcp_json},${codex_mcp_servers},${codex_curated_mcp_servers},${codex_raw_mcp_servers},${legacy_model_tokens},${mcp_without_policy},${mcp_without_curated_codex},${codex_agents},${codex_plugin},${codex_workflows},${codex_hooks}"$'\n'
+  inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${agents_md},${agents_override},${claude_md},${gemini_md},${copilot_instructions},${codex_config},${codex_full_profiles},${skill_surface_manifest},${canonical_skills},${generated_claude_skills},${generated_plugin_skills},${mcp_json},${repo_mcp_servers},${mcp_discovery_contract},${mcp_resource_contract},${mcp_prompt_contract},${mcp_server_health},${full_mcp_contract},${mcp_policy},${generated_mcp_configs},${codex_unmanaged_mcp_servers},${example_only_mcp_json},${codex_mcp_servers},${codex_curated_mcp_servers},${codex_raw_mcp_servers},${legacy_model_tokens},${mcp_without_policy},${mcp_without_curated_codex},${codex_agents},${codex_plugin},${codex_workflows},${codex_hooks}"$'\n'
   inventory_json_rows+="${json_separator}"$'    {\n'
   inventory_json_rows+="      \"repo\": \"${name}\","$'\n'
   inventory_json_rows+="      \"claude_mcp_mentions\": ${claude_mcp},"$'\n'
@@ -413,6 +494,11 @@ for repo in "${repos[@]}"; do
   inventory_json_rows+="      \"generated_plugin_skill_count\": ${generated_plugin_skills},"$'\n'
   inventory_json_rows+="      \"mcp_json_count\": ${mcp_json},"$'\n'
   inventory_json_rows+="      \"repo_mcp_server_count\": ${repo_mcp_servers},"$'\n'
+  inventory_json_rows+="      \"mcp_discovery_contract\": ${mcp_discovery_contract},"$'\n'
+  inventory_json_rows+="      \"mcp_resource_contract\": ${mcp_resource_contract},"$'\n'
+  inventory_json_rows+="      \"mcp_prompt_contract\": ${mcp_prompt_contract},"$'\n'
+  inventory_json_rows+="      \"mcp_server_health_contract\": ${mcp_server_health},"$'\n'
+  inventory_json_rows+="      \"full_mcp_contract\": ${full_mcp_contract},"$'\n'
   inventory_json_rows+="      \"mcp_policy_count\": ${mcp_policy},"$'\n'
   inventory_json_rows+="      \"generated_codex_mcp_config_count\": ${generated_mcp_configs},"$'\n'
   inventory_json_rows+="      \"unmanaged_codex_mcp_server_count\": ${codex_unmanaged_mcp_servers},"$'\n'
@@ -429,7 +515,7 @@ for repo in "${repos[@]}"; do
   inventory_json_rows+="      \"codex_hooks_enabled_count\": ${codex_hooks}"$'\n'
   inventory_json_rows+=$'    }\n'
   json_separator=$',\n'
-  inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${agents_md} | ${agents_override} | ${claude_md} | ${gemini_md} | ${copilot_instructions} | ${codex_config} | ${codex_full_profiles} | ${skill_surface_manifest} | ${canonical_skills} | ${generated_claude_skills} | ${generated_plugin_skills} | ${mcp_json} | ${repo_mcp_servers} | ${mcp_policy} | ${generated_mcp_configs} | ${codex_unmanaged_mcp_servers} | ${example_only_mcp_json} | ${codex_mcp_servers} | ${codex_curated_mcp_servers} | ${codex_raw_mcp_servers} | ${legacy_model_tokens} | ${mcp_without_policy} | ${mcp_without_curated_codex} | ${codex_agents} | ${codex_plugin} | ${codex_workflows} | ${codex_hooks} |"$'\n'
+  inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${agents_md} | ${agents_override} | ${claude_md} | ${gemini_md} | ${copilot_instructions} | ${codex_config} | ${codex_full_profiles} | ${skill_surface_manifest} | ${canonical_skills} | ${generated_claude_skills} | ${generated_plugin_skills} | ${mcp_json} | ${repo_mcp_servers} | ${mcp_discovery_contract} | ${mcp_resource_contract} | ${mcp_prompt_contract} | ${mcp_server_health} | ${full_mcp_contract} | ${mcp_policy} | ${generated_mcp_configs} | ${codex_unmanaged_mcp_servers} | ${example_only_mcp_json} | ${codex_mcp_servers} | ${codex_curated_mcp_servers} | ${codex_raw_mcp_servers} | ${legacy_model_tokens} | ${mcp_without_policy} | ${mcp_without_curated_codex} | ${codex_agents} | ${codex_plugin} | ${codex_workflows} | ${codex_hooks} |"$'\n'
 done
 
 cat <<EOF
@@ -462,6 +548,11 @@ repos with raw Codex MCP servers: $total_repos_with_raw_codex_mcp_servers
 repos with MCP policy files: $total_repos_with_policy_managed_mcp
 repos with generated Codex MCP configs: $total_repos_with_generated_codex_mcp
 repos with unmanaged Codex MCP blocks: $total_repos_with_unmanaged_codex_mcp
+repos with MCP discovery contract: $total_repos_with_mcp_discovery_contract
+repos with MCP resource contract: $total_repos_with_mcp_resource_contract
+repos with MCP prompt contract: $total_repos_with_mcp_prompt_contract
+repos with MCP server health tool: $total_repos_with_mcp_server_health
+repos with full MCP server contract: $total_repos_with_full_mcp_contract
 legacy gpt-5.4-xhigh token matches: $total_legacy_model_tokens
 repos with legacy gpt-5.4-xhigh tokens: $total_repos_with_legacy_model_tokens
 repos with .mcp.json but no MCP policy file: $total_repos_with_mcp_without_policy
@@ -504,6 +595,11 @@ inventory_json="{
     \"repos_with_policy_managed_mcp\": ${total_repos_with_policy_managed_mcp},
     \"repos_with_generated_codex_mcp\": ${total_repos_with_generated_codex_mcp},
     \"repos_with_unmanaged_codex_mcp\": ${total_repos_with_unmanaged_codex_mcp},
+    \"repos_with_mcp_discovery_contract\": ${total_repos_with_mcp_discovery_contract},
+    \"repos_with_mcp_resource_contract\": ${total_repos_with_mcp_resource_contract},
+    \"repos_with_mcp_prompt_contract\": ${total_repos_with_mcp_prompt_contract},
+    \"repos_with_mcp_server_health\": ${total_repos_with_mcp_server_health},
+    \"repos_with_full_mcp_contract\": ${total_repos_with_full_mcp_contract},
     \"legacy_codex_model_token_matches\": ${total_legacy_model_tokens},
     \"repos_with_legacy_codex_model_tokens\": ${total_repos_with_legacy_model_tokens},
     \"repos_with_mcp_without_policy\": ${total_repos_with_mcp_without_policy},
@@ -524,7 +620,7 @@ write_workspace_cache() {
   mkdir -p "$docs_dir"
 
   cat >"$docs_dir/repo-inventory.csv" <<EOF
-repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count
+repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count
 ${inventory_csv%$'\n'}
 EOF
 
@@ -563,6 +659,11 @@ Summary from the latest audit:
 - Repos with MCP policy files: ${total_repos_with_policy_managed_mcp}
 - Repos with generated Codex MCP configs: ${total_repos_with_generated_codex_mcp}
 - Repos with unmanaged Codex MCP blocks: ${total_repos_with_unmanaged_codex_mcp}
+- Repos with MCP discovery contract: ${total_repos_with_mcp_discovery_contract}
+- Repos with MCP resource contract: ${total_repos_with_mcp_resource_contract}
+- Repos with MCP prompt contract: ${total_repos_with_mcp_prompt_contract}
+- Repos with MCP server health tool: ${total_repos_with_mcp_server_health}
+- Repos with full MCP server contract: ${total_repos_with_full_mcp_contract}
 - Legacy \`gpt-5.4-xhigh\` token matches: ${total_legacy_model_tokens}
 - Repos with legacy \`gpt-5.4-xhigh\` tokens: ${total_repos_with_legacy_model_tokens}
 - Repos with \`.mcp.json\` but no MCP policy file: ${total_repos_with_mcp_without_policy}
@@ -582,7 +683,7 @@ write_wiki_docs() {
   mkdir -p "$docs_dir"
 
   cat >"$docs_dir/repo-inventory.csv" <<EOF
-repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,mcp_json_count,repo_mcp_server_count,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count
+repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count
 ${inventory_csv%$'\n'}
 EOF
 
@@ -617,6 +718,11 @@ Summary from the latest audit:
 - Repos with MCP policy files: ${total_repos_with_policy_managed_mcp}
 - Repos with generated Codex MCP configs: ${total_repos_with_generated_codex_mcp}
 - Repos with unmanaged Codex MCP blocks: ${total_repos_with_unmanaged_codex_mcp}
+- Repos with MCP discovery contract: ${total_repos_with_mcp_discovery_contract}
+- Repos with MCP resource contract: ${total_repos_with_mcp_resource_contract}
+- Repos with MCP prompt contract: ${total_repos_with_mcp_prompt_contract}
+- Repos with MCP server health tool: ${total_repos_with_mcp_server_health}
+- Repos with full MCP server contract: ${total_repos_with_full_mcp_contract}
 - Legacy \`gpt-5.4-xhigh\` token matches: ${total_legacy_model_tokens}
 - Repos with legacy \`gpt-5.4-xhigh\` tokens: ${total_repos_with_legacy_model_tokens}
 - Repos with \`.mcp.json\` but no MCP policy file: ${total_repos_with_mcp_without_policy}
