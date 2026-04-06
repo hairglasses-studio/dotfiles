@@ -2,7 +2,7 @@
 
 Aftrs Studio Operations Platform via MCP Server
 
-A centralized MCP server for managing creative studio operations with **1,190+ tools across 119 modules**, organized into 10 runtime groups, inspired by [webb](https://github.com/acmecorp/webb). Includes discovery tools so large installations can be navigated without treating the full catalog as the default working surface.
+A centralized MCP server for managing creative studio operations with **1,190+ tools across 119 modules**, organized into 10 runtime groups, inspired by [webb](https://github.com/example-corp/webb). Includes discovery tools so large installations can be navigated without treating the full catalog as the default working surface.
 
 ## Team
 

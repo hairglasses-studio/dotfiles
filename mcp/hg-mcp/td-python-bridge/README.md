@@ -270,8 +270,8 @@ Get project information.
 ```json
 {
   "name": "myproject.toe",
-  "folder": "/Users/luke/projects",
-  "save_file": "/Users/luke/projects/myproject.toe"
+  "folder": "~/projects",
+  "save_file": "~/projects/myproject.toe"
 }
 ```
 
