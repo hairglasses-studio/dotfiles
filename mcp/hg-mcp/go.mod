@@ -14,7 +14,7 @@ require (
 	github.com/dh1tw/streamdeck v1.0.0
 	github.com/eclipse/paho.mqtt.golang v1.5.1
 	github.com/google/uuid v1.6.0
-	github.com/hairglasses-studio/mcpkit v0.4.0
+	github.com/hairglasses-studio/mcpkit v0.4.1
 	github.com/hypebeast/go-osc v0.0.0-20220308234300-cec5a8a1e5f5
 	github.com/mark3labs/mcp-go v0.47.0
 	github.com/prometheus/client_golang v1.23.2
