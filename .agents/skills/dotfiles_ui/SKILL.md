@@ -1,0 +1,32 @@
+---
+name: dotfiles_ui
+description: Desktop UI, rice, shader, eww, Hyprland, and screenshot workflow for the hairglasses dotfiles repo.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - mcp__dotfiles__dotfiles_eww_status
+  - mcp__dotfiles__dotfiles_eww_restart
+  - mcp__dotfiles__dotfiles_eww_get
+  - mcp__dotfiles__dotfiles_cascade_reload
+  - mcp__dotfiles__shader_status
+  - mcp__dotfiles__shader_list
+  - mcp__dotfiles__shader_set
+  - mcp__dotfiles__shader_cycle
+  - mcp__dotfiles__shader_random
+  - mcp__dotfiles__hypr_screenshot
+---
+
+# Dotfiles UI
+
+Use this skill for visual desktop work: eww widgets, Hyprland behavior, shaders, screenshots, and rice-quality iterations.
+
+## Default loop
+
+1. Inspect the live visual state before editing config.
+2. Prefer the repo’s reload and screenshot helpers over manual desktop poking.
+3. Verify layout or shader changes with screenshots or visible state checks, not just syntax.
+4. Keep aesthetic changes intentional and cohesive with the repo’s established visual language.
+
+Read `references/workflows.md` for the compressed workflow catalog that replaces the previous UI-focused Claude skill set.
