@@ -48,3 +48,7 @@ clipse/tmp_files/
 id_rsa*
 id_ed25519*
 **/.beatport-state.json
+
+# AI tool configs (local-only)
+.codex/
+.gemini/
