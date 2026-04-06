@@ -3353,29 +3353,901 @@ func opsDepGraph(_ context.Context, input OpsDepGraphInput) (OpsDepGraphOutput, 
 }
 
 // ---------------------------------------------------------------------------
-// Wave 7 stubs — to be fully implemented in Marathon 2
+// Wave 7 handlers — Auto-fix
 // ---------------------------------------------------------------------------
 
 func opsAutoFix(_ context.Context, input OpsAutoFixInput) (OpsAutoFixOutput, error) {
-	return OpsAutoFixOutput{DryRun: !input.Execute, Patches: nil, RemainingIssues: input.Issues}, nil
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsAutoFixOutput{}, err
+	}
+
+	var patches []Patch
+	var remaining []AnalyzedIssue
+
+	for _, issue := range input.Issues {
+		patch, fixable := opsGeneratePatch(issue)
+		if fixable {
+			patches = append(patches, patch)
+		} else {
+			remaining = append(remaining, issue)
+		}
+	}
+
+	applied := 0
+	if input.Execute {
+		needsModTidy := false
+		needsGoimports := false
+		goimportsDirs := make(map[string]bool)
+
+		for i, p := range patches {
+			switch p.Action {
+			case "go_mod_tidy":
+				needsModTidy = true
+				patches[i].Applied = true
+				applied++
+			case "goimports":
+				needsGoimports = true
+				if p.File != "" && strings.HasSuffix(p.File, ".go") {
+					goimportsDirs[filepath.Dir(filepath.Join(repo, p.File))] = true
+				}
+				patches[i].Applied = true
+				applied++
+			case "remove_line":
+				if err := opsRemoveLine(repo, p.File, p.Line); err == nil {
+					patches[i].Applied = true
+					applied++
+				}
+			case "remove_unused_import":
+				needsGoimports = true
+				patches[i].Applied = true
+				applied++
+			}
+		}
+		if needsModTidy {
+			opsRunWithTimeout(30*time.Second, repo, "go", "mod", "tidy")
+		}
+		if needsGoimports {
+			for dir := range goimportsDirs {
+				opsRunWithTimeout(15*time.Second, dir, "goimports", "-w", ".")
+			}
+			if len(goimportsDirs) == 0 {
+				opsRunWithTimeout(15*time.Second, repo, "goimports", "-w", ".")
+			}
+		}
+	}
+
+	return OpsAutoFixOutput{
+		Repo:            repo,
+		PatchCount:      len(patches),
+		AppliedCount:    applied,
+		Patches:         patches,
+		RemainingIssues: remaining,
+		DryRun:          !input.Execute,
+	}, nil
 }
+
+func opsGeneratePatch(issue AnalyzedIssue) (Patch, bool) {
+	switch issue.Category {
+	case "missing_dep":
+		return Patch{
+			File: issue.File, Line: issue.Line, Action: "go_mod_tidy",
+			Before: issue.Message, After: "go mod tidy",
+		}, true
+	case "type_error":
+		if strings.Contains(issue.Message, "undefined:") || strings.Contains(issue.Message, "undeclared name") {
+			return Patch{
+				File: issue.File, Line: issue.Line, Action: "goimports",
+				Before: issue.Message, After: "goimports -w (auto-add missing imports)",
+			}, true
+		}
+		return Patch{}, false
+	case "unused_var":
+		return Patch{
+			File: issue.File, Line: issue.Line, Action: "remove_line",
+			Before: issue.Message, After: "(line removed)",
+		}, true
+	case "unused_import":
+		return Patch{
+			File: issue.File, Line: issue.Line, Action: "remove_unused_import",
+			Before: issue.Message, After: "goimports -w (remove unused import)",
+		}, true
+	case "import_cycle", "test_assertion", "timeout":
+		return Patch{}, false
+	default:
+		if issue.Severity == "blocker" && issue.File != "" && strings.HasSuffix(issue.File, ".go") {
+			return Patch{
+				File: issue.File, Line: issue.Line, Action: "goimports",
+				Before: issue.Message, After: "goimports -w (best-effort)",
+			}, true
+		}
+		return Patch{}, false
+	}
+}
+
+func opsRemoveLine(repo, file string, line int) error {
+	if line <= 0 || file == "" {
+		return fmt.Errorf("invalid file/line")
+	}
+	path := filepath.Join(repo, file)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(string(data), "\n")
+	if line > len(lines) {
+		return fmt.Errorf("line %d out of range", line)
+	}
+	lines = append(lines[:line-1], lines[line:]...)
+	return os.WriteFile(path, []byte(strings.Join(lines, "\n")), 0o644)
+}
+
+// ---------------------------------------------------------------------------
+// Wave 7 handlers — Fleet Diff
+// ---------------------------------------------------------------------------
 
 func opsFleetDiff(_ context.Context, input OpsFleetDiffInput) (OpsFleetDiffOutput, error) {
-	return OpsFleetDiffOutput{Since: input.Since}, nil
+	dir := input.Dir
+	if dir == "" {
+		dir = filepath.Join(os.Getenv("HOME"), "hairglasses-studio")
+	}
+	since := input.Since
+	if since == "" {
+		since = "7d"
+	}
+	gitSince := opsResolveSince(since)
+	maxRepos := input.MaxRepos
+	if maxRepos <= 0 {
+		maxRepos = 30
+	}
+	langFilter := input.Language
+	if langFilter == "" {
+		langFilter = "all"
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return OpsFleetDiffOutput{}, fmt.Errorf("[%s] cannot read directory: %w", handler.ErrInvalidParam, err)
+	}
+
+	var repos []FleetRepoDiff
+	totalCommits, totalIns, totalDel := 0, 0, 0
+	scanned := 0
+
+	for _, e := range entries {
+		if !e.IsDir() || scanned >= maxRepos {
+			continue
+		}
+		repoPath := filepath.Join(dir, e.Name())
+		if !sandboxFileExists(filepath.Join(repoPath, ".git")) {
+			continue
+		}
+		if langFilter != "all" && opsDetectLanguage(repoPath) != langFilter {
+			continue
+		}
+		scanned++
+
+		logOut, err := runGit(repoPath, "log", "--oneline", "--since="+gitSince)
+		if err != nil || strings.TrimSpace(logOut) == "" {
+			continue
+		}
+
+		lines := strings.Split(strings.TrimSpace(logOut), "\n")
+		commitCount := len(lines)
+
+		// Categorize by conventional prefix
+		types := make(map[string]int)
+		for _, line := range lines {
+			parts := strings.SplitN(line, " ", 2)
+			if len(parts) < 2 {
+				continue
+			}
+			prefix := "other"
+			for _, p := range []string{"feat", "fix", "chore", "docs", "refactor", "test", "style", "perf", "ci"} {
+				if strings.HasPrefix(parts[1], p+":") || strings.HasPrefix(parts[1], p+"(") {
+					prefix = p
+					break
+				}
+			}
+			types[prefix]++
+		}
+
+		// Aggregate insertions/deletions from log --shortstat
+		logStatOut, _ := runGit(repoPath, "log", "--shortstat", "--since="+gitSince)
+		ins, del := opsAggregateLogShortstat(logStatOut)
+
+		// Authors
+		authorsOut, _ := runGit(repoPath, "log", "--format=%aN", "--since="+gitSince)
+		authorSet := make(map[string]bool)
+		for _, a := range strings.Split(strings.TrimSpace(authorsOut), "\n") {
+			if a != "" {
+				authorSet[a] = true
+			}
+		}
+		var authors []string
+		for a := range authorSet {
+			authors = append(authors, a)
+		}
+
+		repos = append(repos, FleetRepoDiff{
+			Repo: e.Name(), Commits: commitCount,
+			Insertions: ins, Deletions: del,
+			CommitTypes: types, Authors: authors,
+		})
+		totalCommits += commitCount
+		totalIns += ins
+		totalDel += del
+	}
+
+	// Sort by most active
+	for i := 0; i < len(repos); i++ {
+		for j := i + 1; j < len(repos); j++ {
+			if repos[j].Commits > repos[i].Commits {
+				repos[i], repos[j] = repos[j], repos[i]
+			}
+		}
+	}
+	var mostActive []string
+	for i, r := range repos {
+		if i >= 5 {
+			break
+		}
+		mostActive = append(mostActive, fmt.Sprintf("%s (%d)", r.Repo, r.Commits))
+	}
+
+	return OpsFleetDiffOutput{
+		Since: gitSince, TotalRepos: scanned, ActiveRepos: len(repos),
+		TotalCommits: totalCommits, TotalInsertions: totalIns, TotalDeletions: totalDel,
+		MostActive: mostActive, Repos: repos,
+	}, nil
 }
+
+func opsResolveSince(since string) string {
+	if len(since) >= 2 {
+		numStr := since[:len(since)-1]
+		unit := since[len(since)-1]
+		if num, err := strconv.Atoi(numStr); err == nil {
+			switch unit {
+			case 'd':
+				return fmt.Sprintf("%d days ago", num)
+			case 'w':
+				return fmt.Sprintf("%d weeks ago", num)
+			case 'm':
+				return fmt.Sprintf("%d months ago", num)
+			}
+		}
+	}
+	return since
+}
+
+func opsAggregateLogShortstat(out string) (int, int) {
+	totalIns, totalDel := 0, 0
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.Contains(line, "changed") {
+			continue
+		}
+		parts := strings.Fields(line)
+		for i, p := range parts {
+			if strings.HasPrefix(p, "insertion") && i > 0 {
+				n, _ := strconv.Atoi(parts[i-1])
+				totalIns += n
+			}
+			if strings.HasPrefix(p, "deletion") && i > 0 {
+				n, _ := strconv.Atoi(parts[i-1])
+				totalDel += n
+			}
+		}
+	}
+	return totalIns, totalDel
+}
+
+// ---------------------------------------------------------------------------
+// Wave 7 handlers — Tech Debt
+// ---------------------------------------------------------------------------
 
 func opsTechDebt(_ context.Context, input OpsTechDebtInput) (OpsTechDebtOutput, error) {
-	return OpsTechDebtOutput{}, nil
+	if input.Repo != "" {
+		repo, err := opsResolveRepo(input.Repo)
+		if err != nil {
+			return OpsTechDebtOutput{}, err
+		}
+		score := opsScoreRepoDebt(repo, filepath.Base(repo))
+		if input.Store {
+			opsStoreTechDebt(score)
+		}
+		return OpsTechDebtOutput{Scores: []TechDebtScore{score}}, nil
+	}
+
+	dir := input.Dir
+	if dir == "" {
+		dir = filepath.Join(os.Getenv("HOME"), "hairglasses-studio")
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return OpsTechDebtOutput{}, fmt.Errorf("[%s] cannot read directory: %w", handler.ErrInvalidParam, err)
+	}
+
+	var scores []TechDebtScore
+	totalScore := 0
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		repoPath := filepath.Join(dir, e.Name())
+		if opsDetectLanguage(repoPath) == "unknown" {
+			continue
+		}
+		score := opsScoreRepoDebt(repoPath, e.Name())
+		if input.Store {
+			opsStoreTechDebt(score)
+		}
+		scores = append(scores, score)
+		totalScore += score.Overall
+	}
+
+	// Sort by worst debt (lowest score first)
+	for i := 0; i < len(scores); i++ {
+		for j := i + 1; j < len(scores); j++ {
+			if scores[j].Overall < scores[i].Overall {
+				scores[i], scores[j] = scores[j], scores[i]
+			}
+		}
+	}
+
+	var worstRepos []string
+	for i, s := range scores {
+		if i >= 5 {
+			break
+		}
+		worstRepos = append(worstRepos, fmt.Sprintf("%s (%d)", s.Repo, s.Overall))
+	}
+
+	avg := 0
+	if len(scores) > 0 {
+		avg = totalScore / len(scores)
+	}
+
+	return OpsTechDebtOutput{Scores: scores, FleetAvg: avg, WorstRepos: worstRepos}, nil
 }
+
+func opsScoreRepoDebt(repoPath, name string) TechDebtScore {
+	dims := make(map[string]int)
+	var actions []string
+
+	// 1. Dependency freshness
+	depScore := 100
+	if _, err := os.Stat(filepath.Join(repoPath, "go.mod")); err == nil {
+		stdout, _, exitCode, _ := opsRunWithTimeout(15*time.Second, repoPath, "go", "list", "-m", "-u", "-json", "all")
+		if exitCode == 0 && stdout != "" {
+			outdated := strings.Count(stdout, `"Update"`)
+			total := strings.Count(stdout, `"Path"`)
+			if total > 0 {
+				depScore = int(100 * (1 - float64(outdated)/float64(total)))
+				if depScore < 0 {
+					depScore = 0
+				}
+			}
+			if outdated > 5 {
+				actions = append(actions, fmt.Sprintf("Update %d outdated Go deps", outdated))
+			}
+		}
+	}
+	dims["dep_freshness"] = depScore
+
+	// 2. Test coverage
+	testCount, goCount := 0, 0
+	filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info == nil || info.IsDir() {
+			if info != nil && info.IsDir() && (info.Name() == "vendor" || info.Name() == "node_modules" || info.Name() == ".git") {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if strings.HasSuffix(info.Name(), "_test.go") {
+			testCount++
+		} else if strings.HasSuffix(info.Name(), ".go") {
+			goCount++
+		}
+		return nil
+	})
+	testScore := 0
+	if goCount > 0 {
+		testScore = int(math.Min(100, float64(testCount)/float64(goCount)*200))
+	}
+	if testCount == 0 {
+		actions = append(actions, "Add tests")
+	} else if testScore < 50 {
+		actions = append(actions, fmt.Sprintf("Improve test ratio (%d tests / %d sources)", testCount, goCount))
+	}
+	dims["test_coverage"] = testScore
+
+	// 3. Lint cleanliness
+	lintScore := 100
+	_, stderr, exitCode, _ := opsRunWithTimeout(15*time.Second, repoPath, "go", "vet", "./...")
+	if exitCode != 0 {
+		issues := strings.Count(stderr, "\n")
+		lintScore = int(math.Max(0, float64(100-issues*10)))
+		actions = append(actions, fmt.Sprintf("Fix %d vet issues", issues))
+	}
+	dims["lint_clean"] = lintScore
+
+	// 4. CI health
+	ciScore := 0
+	if sandboxFileExists(filepath.Join(repoPath, ".github", "workflows")) {
+		ciScore = 100
+	} else if sandboxFileExists(filepath.Join(repoPath, "Makefile")) {
+		ciScore = 50
+		actions = append(actions, "Add CI workflow")
+	} else {
+		actions = append(actions, "Add CI/CD pipeline")
+	}
+	dims["ci_health"] = ciScore
+
+	// 5. Documentation
+	docScore := 0
+	if sandboxFileExists(filepath.Join(repoPath, "README.md")) {
+		info, err := os.Stat(filepath.Join(repoPath, "README.md"))
+		if err == nil && info.Size() > 200 {
+			docScore += 40
+		} else {
+			docScore += 20
+			actions = append(actions, "Expand README.md")
+		}
+	} else {
+		actions = append(actions, "Create README.md")
+	}
+	if sandboxFileExists(filepath.Join(repoPath, "CLAUDE.md")) {
+		docScore += 30
+	}
+	if sandboxFileExists(filepath.Join(repoPath, "LICENSE")) {
+		docScore += 30
+	} else {
+		actions = append(actions, "Add LICENSE")
+	}
+	dims["documentation"] = docScore
+
+	// 6. Code age
+	ageScore := 50
+	totalOut, _ := runGit(repoPath, "rev-list", "--count", "HEAD")
+	recentOut, _ := runGit(repoPath, "rev-list", "--count", "--since=6 months ago", "HEAD")
+	total, _ := strconv.Atoi(strings.TrimSpace(totalOut))
+	recent, _ := strconv.Atoi(strings.TrimSpace(recentOut))
+	if total > 0 {
+		ageScore = int(math.Min(100, float64(recent)/float64(total)*100))
+	}
+	if recent == 0 {
+		actions = append(actions, "Stale: no commits in 6 months")
+	}
+	dims["code_age"] = ageScore
+
+	overall := (depScore*20 + testScore*25 + lintScore*15 + ciScore*15 + docScore*15 + ageScore*10) / 100
+	trend := opsTechDebtTrend(name)
+
+	return TechDebtScore{Repo: name, Overall: overall, Dimensions: dims, ActionItems: actions, Trend: trend}
+}
+
+func opsStoreTechDebt(score TechDebtScore) {
+	dir := filepath.Join(opsStateDir(), "tech-debt")
+	os.MkdirAll(dir, 0o755)
+	entry := struct {
+		TechDebtScore
+		Timestamp int64 `json:"timestamp"`
+	}{score, time.Now().Unix()}
+	data, _ := json.Marshal(entry)
+	f, err := os.OpenFile(filepath.Join(dir, score.Repo+".jsonl"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	f.Write(append(data, '\n'))
+}
+
+func opsTechDebtTrend(repo string) string {
+	path := filepath.Join(opsStateDir(), "tech-debt", repo+".jsonl")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	var scores []int
+	scanner := bufio.NewScanner(strings.NewReader(string(data)))
+	for scanner.Scan() {
+		var entry struct {
+			Overall int `json:"overall"`
+		}
+		if json.Unmarshal(scanner.Bytes(), &entry) == nil {
+			scores = append(scores, entry.Overall)
+		}
+	}
+	if len(scores) < 2 {
+		return ""
+	}
+	prev := scores[len(scores)-2]
+	curr := scores[len(scores)-1]
+	if curr > prev+5 {
+		return "improving"
+	} else if curr < prev-5 {
+		return "degrading"
+	}
+	return "stable"
+}
+
+// ---------------------------------------------------------------------------
+// Wave 7 handlers — Research Check
+// ---------------------------------------------------------------------------
 
 func opsResearchCheck(_ context.Context, input OpsResearchCheckInput) (OpsResearchCheckOutput, error) {
-	return OpsResearchCheckOutput{Query: input.Query, Gaps: []string{"stub: not yet implemented"}}, nil
+	docsPath := input.DocsPath
+	if docsPath == "" {
+		docsPath = filepath.Join(os.Getenv("HOME"), "hairglasses-studio", "docs")
+	}
+	maxResults := input.MaxResults
+	if maxResults <= 0 {
+		maxResults = 10
+	}
+	query := strings.ToLower(input.Query)
+	queryTerms := strings.Fields(query)
+	if len(queryTerms) == 0 {
+		return OpsResearchCheckOutput{}, fmt.Errorf("[%s] query is required", handler.ErrInvalidParam)
+	}
+
+	var allDocs []ResearchMatch
+	totalDocs := 0
+
+	filepath.Walk(docsPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info == nil || info.IsDir() {
+			if info != nil && info.IsDir() && (info.Name() == ".git" || info.Name() == "node_modules") {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(info.Name(), ".md") {
+			return nil
+		}
+		totalDocs++
+
+		relPath, _ := filepath.Rel(docsPath, path)
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil
+		}
+		content := string(data)
+		if len(content) > 2048 {
+			content = content[:2048]
+		}
+		lower := strings.ToLower(content)
+
+		// Extract title
+		title := info.Name()
+		for _, line := range strings.Split(content, "\n") {
+			if strings.HasPrefix(line, "# ") {
+				title = strings.TrimPrefix(line, "# ")
+				break
+			}
+		}
+
+		// Score relevance
+		score := 0.0
+		for _, term := range queryTerms {
+			if strings.Contains(strings.ToLower(title), term) {
+				score += 3.0
+			}
+			if strings.Contains(strings.ToLower(relPath), term) {
+				score += 2.0
+			}
+			count := strings.Count(lower, term)
+			if count > 0 {
+				score += math.Min(float64(count)*0.5, 5.0)
+			}
+		}
+
+		if score > 0 {
+			excerpt := ""
+			for _, line := range strings.Split(content, "\n") {
+				line = strings.TrimSpace(line)
+				if line != "" && !strings.HasPrefix(line, "#") && !strings.HasPrefix(line, "---") && len(line) > 20 {
+					excerpt = line
+					if len(excerpt) > 200 {
+						excerpt = excerpt[:200] + "..."
+					}
+					break
+				}
+			}
+			var tags []string
+			for _, part := range strings.Split(filepath.Dir(relPath), string(filepath.Separator)) {
+				if part != "." && part != "" {
+					tags = append(tags, part)
+				}
+			}
+			allDocs = append(allDocs, ResearchMatch{
+				Path: relPath, Title: title, Relevance: score, Excerpt: excerpt, Tags: tags,
+			})
+		}
+		return nil
+	})
+
+	// Sort by relevance desc
+	for i := 0; i < len(allDocs); i++ {
+		for j := i + 1; j < len(allDocs); j++ {
+			if allDocs[j].Relevance > allDocs[i].Relevance {
+				allDocs[i], allDocs[j] = allDocs[j], allDocs[i]
+			}
+		}
+	}
+	results := allDocs
+	if len(results) > maxResults {
+		results = results[:maxResults]
+	}
+
+	// Gap detection
+	knownDomains := []string{"mcp", "agents", "orchestration", "cost-optimization", "go-ecosystem", "terminal", "competitive"}
+	var gaps []string
+	for _, term := range queryTerms {
+		found := false
+		for _, doc := range results {
+			if strings.Contains(strings.ToLower(doc.Path), term) || strings.Contains(strings.ToLower(doc.Title), term) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			gaps = append(gaps, term)
+		}
+	}
+
+	suggestion := ""
+	if len(gaps) > 0 {
+		domain := "research"
+		for _, d := range knownDomains {
+			for _, g := range gaps {
+				if strings.Contains(d, g) || strings.Contains(g, d) {
+					domain = "research/" + d
+				}
+			}
+		}
+		suggestion = fmt.Sprintf("No docs found for %v — consider adding to docs/%s/", gaps, domain)
+	}
+
+	return OpsResearchCheckOutput{
+		Query: input.Query, Results: results, TotalDocs: totalDocs,
+		Gaps: gaps, Suggestion: suggestion,
+	}, nil
 }
+
+// ---------------------------------------------------------------------------
+// Wave 7 handlers — Session Handoff
+// ---------------------------------------------------------------------------
 
 func opsSessionHandoff(_ context.Context, input OpsSessionHandoffInput) (OpsSessionHandoffOutput, error) {
-	return OpsSessionHandoffOutput{Handoff: "stub: not yet implemented"}, nil
+	repo, err := opsResolveRepo(input.Repo)
+	if err != nil {
+		return OpsSessionHandoffOutput{}, err
+	}
+
+	sessionID := input.SessionID
+	if sessionID == "" {
+		ids := opsListSessionIDs()
+		var newest string
+		var newestTime time.Time
+		for _, id := range ids {
+			info, err := os.Stat(filepath.Join(opsSessionDir(id), "session.json"))
+			if err == nil && info.ModTime().After(newestTime) {
+				newestTime = info.ModTime()
+				newest = id
+			}
+		}
+		sessionID = newest
+	}
+
+	branch := opsCurrentBranch(repo)
+	head, _ := runGit(repo, "rev-parse", "--short", "HEAD")
+	head = strings.TrimSpace(head)
+
+	statusOut, _ := runGit(repo, "status", "--porcelain")
+	var dirtyFiles []string
+	for _, line := range strings.Split(strings.TrimSpace(statusOut), "\n") {
+		if line != "" {
+			dirtyFiles = append(dirtyFiles, strings.TrimSpace(line))
+		}
+	}
+
+	unpushedOut, _ := runGit(repo, "log", "--oneline", "@{upstream}..HEAD")
+	var unpushed []string
+	for _, line := range strings.Split(strings.TrimSpace(unpushedOut), "\n") {
+		if line != "" {
+			unpushed = append(unpushed, line)
+		}
+	}
+
+	var sb strings.Builder
+	sb.WriteString("# Agent Handoff Protocol\n\n")
+	sb.WriteString(fmt.Sprintf("**Generated:** %s\n", time.Now().Format(time.RFC3339)))
+	sb.WriteString(fmt.Sprintf("**Repo:** %s\n", filepath.Base(repo)))
+	sb.WriteString(fmt.Sprintf("**Branch:** %s @ %s\n\n", branch, head))
+
+	if sessionID != "" {
+		session, err := opsReadSession(sessionID)
+		if err == nil {
+			sb.WriteString("## Session State\n\n")
+			sb.WriteString(fmt.Sprintf("- **Session ID:** %s\n", session.ID))
+			sb.WriteString(fmt.Sprintf("- **Description:** %s\n", session.Description))
+			sb.WriteString(fmt.Sprintf("- **Created:** %s\n", session.CreatedAt.Format(time.RFC3339)))
+			sb.WriteString(fmt.Sprintf("- **Iterations:** %d\n", len(session.Iterations)))
+			if len(session.Iterations) > 0 {
+				last := session.Iterations[len(session.Iterations)-1]
+				sb.WriteString(fmt.Sprintf("- **Last Status:** %s\n", last.Status))
+				sb.WriteString(fmt.Sprintf("- **Last Error Count:** %d\n", last.ErrorCount))
+				if len(session.Iterations) >= 2 {
+					sb.WriteString("- **Error Trend:** ")
+					for i, iter := range session.Iterations {
+						if i > 0 {
+							sb.WriteString(" -> ")
+						}
+						sb.WriteString(fmt.Sprintf("%d", iter.ErrorCount))
+					}
+					sb.WriteString("\n")
+				}
+			}
+			sb.WriteString("\n")
+		}
+	}
+
+	sb.WriteString("## Sources of Truth\n\n")
+	sb.WriteString(fmt.Sprintf("- Git: `%s` branch `%s`\n", filepath.Base(repo), branch))
+	if sandboxFileExists(filepath.Join(repo, "CLAUDE.md")) {
+		sb.WriteString("- CLAUDE.md: project conventions\n")
+	}
+	if sandboxFileExists(filepath.Join(repo, "go.mod")) {
+		sb.WriteString("- go.mod: dependency versions\n")
+	}
+	sb.WriteString("\n")
+
+	sb.WriteString("## Current State\n\n")
+	if len(dirtyFiles) > 0 {
+		sb.WriteString(fmt.Sprintf("**Dirty files (%d):**\n", len(dirtyFiles)))
+		for _, f := range dirtyFiles {
+			sb.WriteString(fmt.Sprintf("- `%s`\n", f))
+		}
+	} else {
+		sb.WriteString("Working tree is clean.\n")
+	}
+	sb.WriteString("\n")
+
+	if len(unpushed) > 0 {
+		sb.WriteString(fmt.Sprintf("**Unpushed commits (%d):**\n", len(unpushed)))
+		for _, c := range unpushed {
+			sb.WriteString(fmt.Sprintf("- %s\n", c))
+		}
+		sb.WriteString("\n")
+	}
+
+	sb.WriteString("## Receiving Agent Instructions\n\n")
+	sb.WriteString("1. Read CLAUDE.md for project conventions\n")
+	sb.WriteString("2. Run `ops_session_status` to check iteration state\n")
+	sb.WriteString("3. Run `ops_iterate` to continue the build/test loop\n")
+	if len(dirtyFiles) > 0 {
+		sb.WriteString("4. Review dirty files before continuing\n")
+	}
+	if len(unpushed) > 0 {
+		sb.WriteString("5. Push unpushed commits or continue iterating\n")
+	}
+
+	handoff := sb.String()
+	writtenPath := ""
+	if input.Write {
+		writtenPath = filepath.Join(repo, "HANDOFF.md")
+		if err := os.WriteFile(writtenPath, []byte(handoff), 0o644); err != nil {
+			writtenPath = ""
+		}
+	}
+
+	return OpsSessionHandoffOutput{
+		Handoff: handoff, SessionID: sessionID,
+		Repo: filepath.Base(repo), Branch: branch, WrittenPath: writtenPath,
+	}, nil
 }
 
+// ---------------------------------------------------------------------------
+// Wave 7 handlers — Iteration Patterns
+// ---------------------------------------------------------------------------
+
 func opsIterationPatterns(_ context.Context, input OpsIterationPatternsInput) (OpsIterationPatternsOutput, error) {
-	return OpsIterationPatternsOutput{}, nil
+	window := input.Window
+	if window == "" {
+		window = "30d"
+	}
+	cutoff := time.Now().Add(-30 * 24 * time.Hour)
+	if len(window) >= 2 {
+		numStr := window[:len(window)-1]
+		unit := window[len(window)-1]
+		if num, err := strconv.Atoi(numStr); err == nil {
+			switch unit {
+			case 'd':
+				cutoff = time.Now().Add(-time.Duration(num) * 24 * time.Hour)
+			case 'w':
+				cutoff = time.Now().Add(-time.Duration(num) * 7 * 24 * time.Hour)
+			case 'm':
+				cutoff = time.Now().Add(-time.Duration(num) * 30 * 24 * time.Hour)
+			}
+		}
+	}
+
+	ids := opsListSessionIDs()
+	totalSessions, totalIterations, converged := 0, 0, 0
+	errorCounts := make(map[string]int)
+	repoCounts := make(map[string]int)
+
+	for _, id := range ids {
+		session, err := opsReadSession(id)
+		if err != nil || session.CreatedAt.Before(cutoff) {
+			continue
+		}
+		if input.Repo != "" && !strings.Contains(session.Repo, input.Repo) {
+			continue
+		}
+
+		totalSessions++
+		iterations := opsReadIterations(id)
+		totalIterations += len(iterations)
+
+		if len(iterations) > 0 {
+			last := iterations[len(iterations)-1]
+			if last.ErrorCount == 0 && last.BuildOK {
+				converged++
+			}
+		}
+		for _, iter := range iterations {
+			if iter.Status != "" {
+				errorCounts[iter.Status]++
+			}
+		}
+		if session.Repo != "" {
+			repoCounts[filepath.Base(session.Repo)]++
+		}
+	}
+
+	var hotFiles []HotFile
+	for file, count := range repoCounts {
+		if count >= 2 {
+			hotFiles = append(hotFiles, HotFile{File: file, Appearances: count})
+		}
+	}
+	for i := 0; i < len(hotFiles); i++ {
+		for j := i + 1; j < len(hotFiles); j++ {
+			if hotFiles[j].Appearances > hotFiles[i].Appearances {
+				hotFiles[i], hotFiles[j] = hotFiles[j], hotFiles[i]
+			}
+		}
+	}
+	if len(hotFiles) > 10 {
+		hotFiles = hotFiles[:10]
+	}
+
+	avgIter, convergenceRate := 0.0, 0.0
+	if totalSessions > 0 {
+		avgIter = float64(totalIterations) / float64(totalSessions)
+		convergenceRate = float64(converged) / float64(totalSessions) * 100
+	}
+
+	var recs []string
+	if avgIter > 5 {
+		recs = append(recs, "Avg iterations >5 — improve auto-fix for common failures")
+	}
+	if convergenceRate < 50 && totalSessions > 0 {
+		recs = append(recs, fmt.Sprintf("Convergence rate %.0f%% — many sessions don't reach green", convergenceRate))
+	}
+	if errorCounts["build_fail"] > errorCounts["test_fail"]*2 {
+		recs = append(recs, "Build failures dominate — add stricter linting or pre-commit hooks")
+	}
+	if len(recs) == 0 {
+		recs = append(recs, "Iteration health looks good")
+	}
+
+	return OpsIterationPatternsOutput{
+		TotalSessions: totalSessions, TotalIterations: totalIterations,
+		AvgIterations:   math.Round(avgIter*10) / 10,
+		ConvergenceRate: math.Round(convergenceRate*10) / 10,
+		CommonErrors: errorCounts, HotFiles: hotFiles, Recommendations: recs,
+	}, nil
 }
