@@ -5,9 +5,17 @@
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 
-Cyberpunk rice for Manjaro Linux (Hyprland) and macOS (AeroSpace). Snazzy-on-black palette from the compositor down to every TUI. Ships with **138+ GLSL shaders** and **1,400+ MCP tools** across 7 Go + 3 JS servers.
+Full-stack development environment for Manjaro Linux (Hyprland) and macOS (AeroSpace). Combines GPU-rendered shader pipelines, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
-Hyprland + eww bar + swaync + wofi + Ghostty + 138 GLSL shaders + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
+### Technical Highlights
+
+- **GPU Shaders**: 138 GLSL shaders with runtime compilation, playlist rotation, and auto-benchmarking
+- **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, shader pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
+- **Package Management**: Declarative metapac with 12 groups (paru backend)
+- **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
+
+Hyprland + eww bar + swaync + wofi + Ghostty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
 
 ## Install
 
