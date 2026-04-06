@@ -52,3 +52,4 @@ id_ed25519*
 # AI tool configs (local-only)
 .codex/
 .gemini/
+.agents/
