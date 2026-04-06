@@ -346,6 +346,7 @@ create_symlinks() {
         link_file "$DOTFILES_DIR/wlogout/layout" "$HOME/.config/wlogout/layout"
         link_file "$DOTFILES_DIR/wlogout/style.css" "$HOME/.config/wlogout/style.css"
         link_file "$DOTFILES_DIR/gtk/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
+        link_file "$DOTFILES_DIR/gtk-4.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini"
         link_file "$DOTFILES_DIR/xdg-desktop-portal/portals.conf" "$HOME/.config/xdg-desktop-portal/portals.conf"
     fi
     link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"

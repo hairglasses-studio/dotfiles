@@ -251,8 +251,18 @@
 
 /* ── System tray ─────────────────────────── */
 
+.tray {
+  padding: 0 4px;
+}
+
 .tray .item {
   padding: 0 4px;
+  -gtk-icon-style: symbolic;
+}
+
+.tray .item image {
+  color: @fg;
+  -gtk-icon-filter: none;
 }
 
 /* ── Popups (shared) ─────────────────────── */

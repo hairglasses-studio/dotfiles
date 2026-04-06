@@ -4,6 +4,7 @@
 position = "top"
 height = 28
 anchor_to_edges = true
+icon_theme = "Papirus-Dark"
 
 [ironvar_defaults]
 rg_fleet = ""
