@@ -47,7 +47,6 @@ Managed via `opnsense-monolith` (Go MCP server). Features: VLANs, firewall rules
 | hg-mcp | 1,190 | DJ/VJ/creative studio (10 runtime groups) |
 | mesmer | 1,790 | MSP/IT consulting (70 modules) |
 | webb | 1,371 | Enterprise ops (Kubernetes, AWS, DBs) |
-| shielddd | 115 | Employment law evidence |
 
 ## MCP Transport Modes
 
