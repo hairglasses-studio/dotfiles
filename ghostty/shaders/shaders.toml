@@ -977,3 +977,153 @@ source = "original"
 description = "Holographic display with data corruption and block displacement"
 playlists = ["best-of", "high-intensity"]
 
+# ── Picom Shader Ports ──────────────────────────────────────────
+# Ported from ikz87/picom-shaders (https://github.com/ikz87/picom-shaders)
+
+[shaders."picom-chromatic"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Chromatic aberration — RGB channel offset scaled by distance from center"
+playlists = ["picom", "post-fx"]
+
+[shaders."picom-grayscale"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "CIELAB luminance-based desaturation filter"
+playlists = ["picom"]
+
+[shaders."picom-vignette"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Polynomial edge darkening vignette effect"
+playlists = ["picom", "post-fx"]
+
+[shaders."picom-shiny"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Animated diagonal specular highlight sweep"
+playlists = ["picom", "cyberpunk"]
+
+[shaders."picom-brightness"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Proportional brightness adjustment"
+playlists = ["picom"]
+
+[shaders."picom-gamma"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Power-law gamma correction"
+playlists = ["picom"]
+
+[shaders."picom-zoom"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Magnification/demagnification centered on terminal"
+playlists = ["picom"]
+
+[shaders."picom-chroma-key"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Color-distance transparency gradient"
+playlists = ["picom"]
+
+[shaders."picom-value-fade"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Brightness-based transparency gradient"
+playlists = ["picom"]
+
+[shaders."picom-border-glow"]
+category = "Post-FX"
+cost = "LOW"
+source = "ikz87/picom-shaders"
+description = "Animated hue-rotating border around terminal edges"
+playlists = ["picom", "cyberpunk"]
+
+[shaders."picom-bloom"]
+category = "Post-FX"
+cost = "MED"
+source = "ikz87/picom-shaders"
+description = "Gaussian blur + screen blending on bright pixels"
+playlists = ["picom", "post-fx"]
+
+[shaders."picom-dither"]
+category = "Post-FX"
+cost = "MED"
+source = "ikz87/picom-shaders"
+description = "Ordered dithering with 2x2 Bayer pattern and 9 levels"
+playlists = ["picom", "post-fx"]
+
+[shaders."picom-crt-retro"]
+category = "CRT"
+cost = "MED"
+source = "ikz87/picom-shaders"
+description = "Scanlines, spherical curvature, color distortion, edge shadow"
+playlists = ["picom", "crt"]
+
+[shaders."picom-pixelize"]
+category = "Post-FX"
+cost = "MED"
+source = "ikz87/picom-shaders"
+description = "Animated block mosaic oscillating between sharp and pixelated"
+playlists = ["picom", "post-fx"]
+
+[shaders."picom-glass"]
+category = "Post-FX"
+cost = "MED"
+source = "ikz87/picom-shaders"
+description = "Glass shatter — angular shard decomposition with chromatic aberration"
+playlists = ["picom", "post-fx"]
+
+[shaders."picom-cube"]
+category = "Post-FX"
+cost = "HIGH"
+source = "ikz87/picom-shaders"
+description = "Terminal content projected onto a rotating 3D cube via pinhole camera"
+playlists = ["picom", "trippy"]
+
+[shaders."picom-sphere"]
+category = "Post-FX"
+cost = "HIGH"
+source = "ikz87/picom-shaders"
+description = "Terminal content projected onto a rotating 3D sphere via raycasting"
+playlists = ["picom", "trippy"]
+
+[shaders."picom-cylinder"]
+category = "Post-FX"
+cost = "HIGH"
+source = "ikz87/picom-shaders"
+description = "Terminal content wrapped onto a rotating 3D cylinder"
+playlists = ["picom", "trippy"]
+
+[shaders."picom-cross"]
+category = "Post-FX"
+cost = "HIGH"
+source = "ikz87/picom-shaders"
+description = "Terminal content on two perpendicular rotating planes"
+playlists = ["picom", "trippy"]
+
+[shaders."picom-plane"]
+category = "Post-FX"
+cost = "HIGH"
+source = "ikz87/picom-shaders"
+description = "Terminal content on a single rotating flat plane in 3D space"
+playlists = ["picom", "trippy"]
+
+[shaders."picom-dissolve"]
+category = "Post-FX"
+cost = "MED"
+source = "ikz87/picom-shaders"
+description = "Balatro-style burn dissolve with FBM noise"
+playlists = ["picom", "post-fx"]
+
