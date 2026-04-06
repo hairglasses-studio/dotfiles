@@ -162,7 +162,7 @@ fi
 
 # ── Standard workflows (all repos) ──────────
 $DRY_RUN || mkdir -p .github/workflows
-for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml dependabot-auto-merge.yml; do
+for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml codex-structured-audit.yml codex-baseline-guard.yml ai-dispatch.yml dependabot-auto-merge.yml; do
   if [[ ! -f ".github/workflows/$wf" ]]; then
     src="$ORG_GITHUB/workflow-templates/$wf"
     [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
@@ -179,18 +179,30 @@ if [[ ! -f .codex/config.toml ]]; then
     add_file ".codex/config.toml"
   else
     mkdir -p .codex
-    printf 'model = "gpt-5.4-xhigh"\n' > .codex/config.toml
+    command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/config.toml
     add_file ".codex/config.toml"
   fi
 fi
 
-# ── Derived agent docs ───────────────────────
-if [[ -f CLAUDE.md ]] && { [[ ! -f AGENTS.md ]] || [[ ! -f GEMINI.md ]] || [[ ! -f .github/copilot-instructions.md ]]; }; then
+# ── Codex MCP sync ───────────────────────────
+if [[ -f .mcp.json && -f .codex/mcp-profile-policy.json ]]; then
   if $DRY_RUN; then
-    add_file "AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
+    add_file ".codex/config.toml MCP block sync"
+  else
+    "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$PWD" >/dev/null
+    add_file ".codex/config.toml MCP block sync"
+  fi
+elif [[ -f .mcp.json && ! -f .codex/mcp-profile-policy.json ]]; then
+  hg_warn "$REPO_NAME: found .mcp.json but no .codex/mcp-profile-policy.json; skipping Codex MCP sync"
+fi
+
+# ── Derived agent docs ───────────────────────
+if { [[ -f CLAUDE.md ]] || [[ -f AGENTS.md ]]; } && { [[ ! -f CLAUDE.md ]] || [[ ! -f AGENTS.md ]] || [[ ! -f GEMINI.md ]] || [[ ! -f .github/copilot-instructions.md ]]; }; then
+  if $DRY_RUN; then
+    add_file "CLAUDE.md, AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
   else
     "$SCRIPT_DIR/hg-agent-docs.sh" "$PWD" >/dev/null
-    add_file "AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
+    add_file "CLAUDE.md, AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
   fi
 fi
 

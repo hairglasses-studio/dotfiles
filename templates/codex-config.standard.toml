@@ -3,6 +3,17 @@
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 
+# Add repo-local MCP servers below using the generated block pattern from
+# dotfiles/scripts/hg-codex-mcp-sync.sh. Keep hand-edited policy outside the
+# generated markers and always scope large servers with enabled_tools.
+#
+# # BEGIN GENERATED MCP SERVERS: codex-mcp-sync
+# [mcp_servers.repo_review]
+# command = "go"
+# args = ["run", "./cmd/repo-mcp"]
+# enabled_tools = ["repo_tool_search", "repo_health"]
+# # END GENERATED MCP SERVERS: codex-mcp-sync
+
 [profiles.readonly_quiet]
 approval_policy = "never"
 sandbox_mode = "read-only"
