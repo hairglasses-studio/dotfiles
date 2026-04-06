@@ -238,6 +238,21 @@
     iters: "\(.iters.total // 0) iters"
   }' /tmp/rg-status.json 2>/dev/null || echo '{"fleet":"","loops":"","cost":"","models":"","repos":"","iters":""}'`)
 
+(defpoll rg_loops :interval "30s" :initial ""
+  `rg-status-bar.sh --segment loops --waybar 2>/dev/null || echo ""`)
+
+(defpoll rg_cost :interval "30s" :initial ""
+  `rg-status-bar.sh --segment cost --waybar 2>/dev/null || echo ""`)
+
+(defpoll rg_models :interval "30s" :initial ""
+  `rg-status-bar.sh --segment models --waybar 2>/dev/null || echo ""`)
+
+(defpoll rg_repos :interval "30s" :initial ""
+  `rg-status-bar.sh --segment repos --waybar 2>/dev/null || echo ""`)
+
+(defpoll rg_iters :interval "30s" :initial ""
+  `rg-status-bar.sh --segment iters --waybar 2>/dev/null || echo ""`)
+
 (defpoll k8s_ctx :interval "30s" :initial ""
   `$HOME/hairglasses-studio/dotfiles/scripts/k8s-context.sh 2>/dev/null | jq -r '.text // ""'`)
 
