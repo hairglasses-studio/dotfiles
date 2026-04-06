@@ -1,5 +1,7 @@
 # Dotfiles
 
+This repo uses [AGENTS.md](AGENTS.md) as the canonical instruction file.
+
 Cross-platform development environment (macOS + Manjaro Linux) managed with symlinks. Config files live here and are symlinked into `~/.config/` and `~/Library/Application Support/` by `install.sh`.
 
 ## Architecture
