@@ -9,7 +9,7 @@ MODE="${2:-both}"
 
 export PLAYWRIGHT_BROWSERS_PATH=./node_modules/playwright-core/.local-browsers
 export BEATPORT_USERNAME="${BEATPORT_USERNAME:-hairglasses}"
-export BEATPORT_PASSWORD="${BEATPORT_PASSWORD:-REDACTED_PASSWORD}"
+export BEATPORT_PASSWORD="${BEATPORT_PASSWORD:-${BEATPORT_PASSWORD}}"
 
 echo "=== Beatport Playlist Sync ==="
 echo "Playlist: $PLAYLIST_ID"
