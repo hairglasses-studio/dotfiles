@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
+SCOPE_MANIFEST="$ROOT/docs/projects/codex-migration/repo-scope.json"
 WRITE_WORKSPACE_CACHE=0
 WRITE_WIKI_DOCS=0
 WRITE_JSON=0
@@ -42,6 +43,11 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ ! -f "$SCOPE_MANIFEST" ]]; then
+  echo "Scope manifest missing: $SCOPE_MANIFEST" >&2
+  exit 1
+fi
+
 EXCLUDE_GLOBS=(
   "--glob=!whiteclaw/**"
   "--glob=!.git/**"
@@ -49,10 +55,33 @@ EXCLUDE_GLOBS=(
   "--glob=!.claude/worktrees/**"
   "--glob=!.ralph/worktrees/**"
   "--glob=!.github/docs/**"
+  "--glob=!.venv/**"
+  "--glob=!venv/**"
+  "--glob=!venv_test/**"
+  "--glob=!__pycache__/**"
+  "--glob=!.pytest_cache/**"
+  "--glob=!.mypy_cache/**"
+  "--glob=!.ruff_cache/**"
+  "--glob=!htmlcov/**"
+  "--glob=!_salvage/**"
   "--glob=!bin/**"
   "--glob=!build/**"
   "--glob=!dist/**"
 )
+
+build_repo_rg_args() {
+  local repo="$1"
+  REPO_RG_ARGS=("${EXCLUDE_GLOBS[@]}")
+
+  case "$(basename "$repo")" in
+    jobb)
+      REPO_RG_ARGS+=("--glob=!python/**")
+      ;;
+    ralphglasses)
+      REPO_RG_ARGS+=("--glob=!cmd/runmylife/**")
+      ;;
+  esac
+}
 
 inventory_csv=""
 inventory_json_rows=""
@@ -63,8 +92,48 @@ count_matches() {
   local repo="$1"
   local pattern="$2"
   local count
-  count=$(rg -n "$pattern" "$repo" "${EXCLUDE_GLOBS[@]}" 2>/dev/null | wc -l | tr -d ' ')
+  build_repo_rg_args "$repo"
+  count=$(rg -n "$pattern" "$repo" "${REPO_RG_ARGS[@]}" 2>/dev/null | wc -l | tr -d ' ')
   printf '%s' "$count"
+}
+
+scope_default() {
+  jq -r '.default_scope // "active_first_party"' "$SCOPE_MANIFEST"
+}
+
+scope_override_bool() {
+  local repo="$1"
+  local key="$2"
+  local default="$3"
+  jq -r \
+    --arg repo "$repo" \
+    --arg key "$key" \
+    --argjson def "$default" \
+    '
+      if ((.repo_overrides[$repo] // {}) | has($key)) then
+        if .repo_overrides[$repo][$key] then 1 else 0 end
+      else
+        $def
+      end
+    ' \
+    "$SCOPE_MANIFEST"
+}
+
+repo_scope() {
+  local repo="$1"
+  jq -r --arg repo "$repo" '(.repo_overrides[$repo].scope // .default_scope // "active_first_party")' "$SCOPE_MANIFEST"
+}
+
+scope_is_active() {
+  local scope="$1"
+  case "$scope" in
+    active_operator|active_first_party)
+      printf '1'
+      ;;
+    *)
+      printf '0'
+      ;;
+  esac
 }
 
 find_repo() {
@@ -77,6 +146,15 @@ find_repo() {
       -path '*/.claude/worktrees' -o \
       -path '*/.ralph/worktrees' -o \
       -path '*/.github/docs' -o \
+      -path '*/.venv' -o \
+      -path '*/venv' -o \
+      -path '*/venv_test' -o \
+      -path '*/__pycache__' -o \
+      -path '*/.pytest_cache' -o \
+      -path '*/.mypy_cache' -o \
+      -path '*/.ruff_cache' -o \
+      -path '*/htmlcov' -o \
+      -path '*/_salvage' -o \
       -path '*/bin' -o \
       -path '*/build' -o \
       -path '*/dist' \
@@ -126,13 +204,46 @@ count_root_mcp_servers() {
     return
   fi
 
-  jq -r '
+  local repo_name count=0 name command args
+  repo_name=$(basename "$repo")
+
+  while IFS=$'\t' read -r name command args; do
+    [[ -n "$name" ]] || continue
+    if is_owned_mcp_entry "$repo" "$repo_name" "$command" "$args"; then
+      count=$((count + 1))
+    fi
+  done < <(jq -r '
     if (.mcpServers | type == "object") then
-      [.mcpServers | to_entries[]? | select(.key | startswith("_") | not)] | length
+      .mcpServers
+      | to_entries[]?
+      | select(.key | startswith("_") | not)
+      | [.key, (.value.command // ""), ((.value.args // []) | map(tostring) | join(" "))]
+      | @tsv
     else
-      0
+      empty
     end
-  ' "$root_mcp" 2>/dev/null || printf '0'
+  ' "$root_mcp" 2>/dev/null)
+
+  printf '%s' "$count"
+}
+
+is_owned_mcp_entry() {
+  local repo="$1"
+  local repo_name="$2"
+  local command="$3"
+  local args="$4"
+  local combined
+  combined="${command} ${args}"
+
+  if [[ "$combined" == *"./"* ||
+        "$combined" == *"\$HOME/hairglasses-studio/${repo_name}/"* ||
+        "$combined" == *"${repo}/"* ||
+        "$combined" == *"go run ."* ||
+        "$combined" == *"go run ./"* ]]; then
+    return 0
+  fi
+
+  return 1
 }
 
 count_full_profile_configs() {
@@ -272,13 +383,20 @@ has_mcp_discovery_contract() {
     return
   fi
 
-  local pattern
-  for pattern in '_tool_search"' '_tool_schema"' '_tool_catalog"' '_tool_stats"'; do
-    if ! rg -n -q "$pattern" "$repo" "${EXCLUDE_GLOBS[@]}" --glob '*.go' 2>/dev/null; then
-      printf '0'
-      return
-    fi
-  done
+  build_repo_rg_args "$repo"
+
+  if ! rg -n -q '_tool_schema["'\'']' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
+    printf '0'
+    return
+  fi
+  if ! rg -n -q '_tool_stats["'\'']' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
+    printf '0'
+    return
+  fi
+  if ! rg -n -q '(_tool_(discover|search|catalog|groups|help)|_load_tool_group)["'\'']' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
+    printf '0'
+    return
+  fi
   printf '1'
 }
 
@@ -290,7 +408,9 @@ has_mcp_resource_contract() {
     return
   fi
 
-  if rg -n -q 'NewResourceRegistry\(' "$repo" "${EXCLUDE_GLOBS[@]}" --glob '*.go' 2>/dev/null; then
+  build_repo_rg_args "$repo"
+
+  if rg -n -q 'NewResourceRegistry\(|RegisterResources\(|AddResource\(|AddResourceTemplate\(|@mcp\.resource\(|\.(resource|addResource)\(' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
     printf '1'
   else
     printf '0'
@@ -305,7 +425,9 @@ has_mcp_prompt_contract() {
     return
   fi
 
-  if rg -n -q 'NewPromptRegistry\(' "$repo" "${EXCLUDE_GLOBS[@]}" --glob '*.go' 2>/dev/null; then
+  build_repo_rg_args "$repo"
+
+  if rg -n -q 'NewPromptRegistry\(|RegisterPrompts\(|AddPrompt\(|AddPrompts\(|@mcp\.prompt\(|\.(prompt|addPrompt)\(' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
     printf '1'
   else
     printf '0'
@@ -320,7 +442,9 @@ has_mcp_server_health_tool() {
     return
   fi
 
-  if rg -n -q '_server_health"' "$repo" "${EXCLUDE_GLOBS[@]}" --glob '*.go' 2>/dev/null; then
+  build_repo_rg_args "$repo"
+
+  if rg -n -q '(_server_health["'\'']|["'\''](ping|doctor|health_check|server_stats)["'\'']|_[a-z0-9]+_health(_full)?["'\''])' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
     printf '1'
   else
     printf '0'
@@ -372,6 +496,21 @@ total_repos_with_mcp_resource_contract=0
 total_repos_with_mcp_prompt_contract=0
 total_repos_with_mcp_server_health=0
 total_repos_with_full_mcp_contract=0
+total_active_scope_repos=0
+total_active_operator_repos=0
+total_active_first_party_repos=0
+total_excluded_repos=0
+total_active_missing_agents=0
+total_active_missing_gemini=0
+total_active_missing_copilot=0
+total_active_missing_codex=0
+total_active_missing_full_profiles=0
+total_active_missing_codex_agents=0
+total_active_missing_codex_workflows=0
+total_active_missing_codex_plugins=0
+total_active_mcp_repos=0
+total_active_mcp_repos_missing_full_contract=0
+total_active_missing_codex_hooks=0
 scanned_repos=0
 
 for repo in "${repos[@]}"; do
@@ -432,6 +571,23 @@ for repo in "${repos[@]}"; do
   codex_plugin=$(count_files "$repo" '*/.codex-plugin/plugin.json')
   codex_workflows=$(count_named_files "$repo/.github/workflows" 'codex-*.yml' 'codex-*.yaml' 'ai-dispatch.yml')
   codex_hooks=$(count_matches "$repo" 'codex_hooks[[:space:]]*=[[:space:]]*true')
+  scope=$(repo_scope "$name")
+  active_scope=$(scope_is_active "$scope")
+  expected_codex_baseline=$active_scope
+  expected_full_profiles=0
+  expected_codex_agents=0
+  expected_codex_workflows=0
+  if [[ "$scope" == "active_operator" ]]; then
+    expected_full_profiles=1
+    expected_codex_agents=1
+    expected_codex_workflows=1
+  fi
+  expected_codex_plugin=$(scope_override_bool "$name" "expect_codex_plugin" 0)
+  expected_codex_hooks=$(scope_override_bool "$name" "expect_codex_hooks" 0)
+  expected_mcp_contract=0
+  if [[ "$active_scope" -eq 1 && "$repo_mcp_servers" -gt 0 ]]; then
+    expected_mcp_contract=1
+  fi
 
   total_claude_mcp=$((total_claude_mcp + claude_mcp))
   total_claude_settings=$((total_claude_settings + claude_settings))
@@ -475,7 +631,32 @@ for repo in "${repos[@]}"; do
   [[ "$agents_override" -gt 0 ]] && total_with_agents_override=$((total_with_agents_override + 1))
   [[ "$codex_hooks" -gt 0 ]] && total_with_codex_hooks=$((total_with_codex_hooks + 1))
 
-  inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${agents_md},${agents_override},${claude_md},${gemini_md},${copilot_instructions},${codex_config},${codex_full_profiles},${skill_surface_manifest},${canonical_skills},${generated_claude_skills},${generated_plugin_skills},${mcp_json},${repo_mcp_servers},${mcp_discovery_contract},${mcp_resource_contract},${mcp_prompt_contract},${mcp_server_health},${full_mcp_contract},${mcp_policy},${generated_mcp_configs},${codex_unmanaged_mcp_servers},${example_only_mcp_json},${codex_mcp_servers},${codex_curated_mcp_servers},${codex_raw_mcp_servers},${legacy_model_tokens},${mcp_without_policy},${mcp_without_curated_codex},${codex_agents},${codex_plugin},${codex_workflows},${codex_hooks}"$'\n'
+  if [[ "$scope" == "active_operator" ]]; then
+    total_active_operator_repos=$((total_active_operator_repos + 1))
+  fi
+  if [[ "$scope" == "active_first_party" ]]; then
+    total_active_first_party_repos=$((total_active_first_party_repos + 1))
+  fi
+  if [[ "$active_scope" -eq 1 ]]; then
+    total_active_scope_repos=$((total_active_scope_repos + 1))
+    [[ "$agents_md" -eq 0 ]] && total_active_missing_agents=$((total_active_missing_agents + 1))
+    [[ "$gemini_md" -eq 0 ]] && total_active_missing_gemini=$((total_active_missing_gemini + 1))
+    [[ "$copilot_instructions" -eq 0 ]] && total_active_missing_copilot=$((total_active_missing_copilot + 1))
+    [[ "$codex_config" -eq 0 ]] && total_active_missing_codex=$((total_active_missing_codex + 1))
+    [[ "$expected_full_profiles" -eq 1 && "$codex_full_profiles" -eq 0 ]] && total_active_missing_full_profiles=$((total_active_missing_full_profiles + 1))
+    [[ "$expected_codex_agents" -eq 1 && "$codex_agents" -eq 0 ]] && total_active_missing_codex_agents=$((total_active_missing_codex_agents + 1))
+    [[ "$expected_codex_workflows" -eq 1 && "$codex_workflows" -eq 0 ]] && total_active_missing_codex_workflows=$((total_active_missing_codex_workflows + 1))
+    [[ "$expected_codex_plugin" -eq 1 && "$codex_plugin" -eq 0 ]] && total_active_missing_codex_plugins=$((total_active_missing_codex_plugins + 1))
+    [[ "$expected_codex_hooks" -eq 1 && "$codex_hooks" -eq 0 ]] && total_active_missing_codex_hooks=$((total_active_missing_codex_hooks + 1))
+    if [[ "$expected_mcp_contract" -eq 1 ]]; then
+      total_active_mcp_repos=$((total_active_mcp_repos + 1))
+      [[ "$full_mcp_contract" -eq 0 ]] && total_active_mcp_repos_missing_full_contract=$((total_active_mcp_repos_missing_full_contract + 1))
+    fi
+  else
+    total_excluded_repos=$((total_excluded_repos + 1))
+  fi
+
+  inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${agents_md},${agents_override},${claude_md},${gemini_md},${copilot_instructions},${codex_config},${codex_full_profiles},${skill_surface_manifest},${canonical_skills},${generated_claude_skills},${generated_plugin_skills},${mcp_json},${repo_mcp_servers},${mcp_discovery_contract},${mcp_resource_contract},${mcp_prompt_contract},${mcp_server_health},${full_mcp_contract},${mcp_policy},${generated_mcp_configs},${codex_unmanaged_mcp_servers},${example_only_mcp_json},${codex_mcp_servers},${codex_curated_mcp_servers},${codex_raw_mcp_servers},${legacy_model_tokens},${mcp_without_policy},${mcp_without_curated_codex},${codex_agents},${codex_plugin},${codex_workflows},${codex_hooks},${scope},${active_scope},${expected_codex_baseline},${expected_full_profiles},${expected_codex_agents},${expected_codex_workflows},${expected_codex_plugin},${expected_mcp_contract},${expected_codex_hooks}"$'\n'
   inventory_json_rows+="${json_separator}"$'    {\n'
   inventory_json_rows+="      \"repo\": \"${name}\","$'\n'
   inventory_json_rows+="      \"claude_mcp_mentions\": ${claude_mcp},"$'\n'
@@ -512,7 +693,16 @@ for repo in "${repos[@]}"; do
   inventory_json_rows+="      \"codex_agent_count\": ${codex_agents},"$'\n'
   inventory_json_rows+="      \"codex_plugin_count\": ${codex_plugin},"$'\n'
   inventory_json_rows+="      \"codex_workflow_count\": ${codex_workflows},"$'\n'
-  inventory_json_rows+="      \"codex_hooks_enabled_count\": ${codex_hooks}"$'\n'
+  inventory_json_rows+="      \"codex_hooks_enabled_count\": ${codex_hooks},"$'\n'
+  inventory_json_rows+="      \"scope\": \"${scope}\","$'\n'
+  inventory_json_rows+="      \"active_scope\": ${active_scope},"$'\n'
+  inventory_json_rows+="      \"expected_codex_baseline\": ${expected_codex_baseline},"$'\n'
+  inventory_json_rows+="      \"expected_full_profile_pack\": ${expected_full_profiles},"$'\n'
+  inventory_json_rows+="      \"expected_codex_agents\": ${expected_codex_agents},"$'\n'
+  inventory_json_rows+="      \"expected_codex_workflows\": ${expected_codex_workflows},"$'\n'
+  inventory_json_rows+="      \"expected_codex_plugin\": ${expected_codex_plugin},"$'\n'
+  inventory_json_rows+="      \"expected_mcp_contract\": ${expected_mcp_contract},"$'\n'
+  inventory_json_rows+="      \"expected_codex_hooks\": ${expected_codex_hooks}"$'\n'
   inventory_json_rows+=$'    }\n'
   json_separator=$',\n'
   inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${agents_md} | ${agents_override} | ${claude_md} | ${gemini_md} | ${copilot_instructions} | ${codex_config} | ${codex_full_profiles} | ${skill_surface_manifest} | ${canonical_skills} | ${generated_claude_skills} | ${generated_plugin_skills} | ${mcp_json} | ${repo_mcp_servers} | ${mcp_discovery_contract} | ${mcp_resource_contract} | ${mcp_prompt_contract} | ${mcp_server_health} | ${full_mcp_contract} | ${mcp_policy} | ${generated_mcp_configs} | ${codex_unmanaged_mcp_servers} | ${example_only_mcp_json} | ${codex_mcp_servers} | ${codex_curated_mcp_servers} | ${codex_raw_mcp_servers} | ${legacy_model_tokens} | ${mcp_without_policy} | ${mcp_without_curated_codex} | ${codex_agents} | ${codex_plugin} | ${codex_workflows} | ${codex_hooks} |"$'\n'
@@ -561,6 +751,20 @@ repos with .codex/agents/*.toml: $total_with_codex_agents
 repos with Codex workflows: $total_with_codex_workflows
 repos with AGENTS.override.md: $total_with_agents_override
 repos with codex_hooks enabled: $total_with_codex_hooks
+active-scope repos: $total_active_scope_repos
+active operator repos: $total_active_operator_repos
+active first-party repos: $total_active_first_party_repos
+excluded repos: $total_excluded_repos
+active repos missing AGENTS.md: $total_active_missing_agents
+active repos missing GEMINI.md: $total_active_missing_gemini
+active repos missing .github/copilot-instructions.md: $total_active_missing_copilot
+active repos missing .codex/config.toml: $total_active_missing_codex
+active operator repos missing full profile packs: $total_active_missing_full_profiles
+active operator repos missing .codex/agents/*.toml: $total_active_missing_codex_agents
+active operator repos missing Codex workflows: $total_active_missing_codex_workflows
+active repos missing expected Codex plugins: $total_active_missing_codex_plugins
+active repos missing expected codex_hooks: $total_active_missing_codex_hooks
+active MCP repos missing full contract: $total_active_mcp_repos_missing_full_contract
 EOF
 
 inventory_json="{
@@ -607,7 +811,22 @@ inventory_json="{
     \"repos_with_codex_agents\": ${total_with_codex_agents},
     \"repos_with_codex_workflows\": ${total_with_codex_workflows},
     \"repos_with_agents_override_md\": ${total_with_agents_override},
-    \"repos_with_codex_hooks_enabled\": ${total_with_codex_hooks}
+    \"repos_with_codex_hooks_enabled\": ${total_with_codex_hooks},
+    \"active_scope_repos\": ${total_active_scope_repos},
+    \"active_operator_repos\": ${total_active_operator_repos},
+    \"active_first_party_repos\": ${total_active_first_party_repos},
+    \"excluded_repos\": ${total_excluded_repos},
+    \"active_repos_missing_agents_md\": ${total_active_missing_agents},
+    \"active_repos_missing_gemini_md\": ${total_active_missing_gemini},
+    \"active_repos_missing_copilot_instructions\": ${total_active_missing_copilot},
+    \"active_repos_missing_codex_config\": ${total_active_missing_codex},
+    \"active_operator_repos_missing_full_profile_pack\": ${total_active_missing_full_profiles},
+    \"active_operator_repos_missing_codex_agents\": ${total_active_missing_codex_agents},
+    \"active_operator_repos_missing_codex_workflows\": ${total_active_missing_codex_workflows},
+    \"active_repos_missing_expected_codex_plugin\": ${total_active_missing_codex_plugins},
+    \"active_repos_missing_expected_codex_hooks\": ${total_active_missing_codex_hooks},
+    \"active_mcp_repos\": ${total_active_mcp_repos},
+    \"active_mcp_repos_missing_full_contract\": ${total_active_mcp_repos_missing_full_contract}
   },
   \"repos\": [
 ${inventory_json_rows}
@@ -620,7 +839,7 @@ write_workspace_cache() {
   mkdir -p "$docs_dir"
 
   cat >"$docs_dir/repo-inventory.csv" <<EOF
-repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count
+repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count,scope,active_scope,expected_codex_baseline,expected_full_profile_pack,expected_codex_agents,expected_codex_workflows,expected_codex_plugin,expected_mcp_contract,expected_codex_hooks
 ${inventory_csv%$'\n'}
 EOF
 
@@ -672,6 +891,20 @@ Summary from the latest audit:
 - Repos with Codex workflows: ${total_with_codex_workflows}
 - Repos with \`AGENTS.override.md\`: ${total_with_agents_override}
 - Repos with \`codex_hooks = true\`: ${total_with_codex_hooks}
+- Active-scope repos: ${total_active_scope_repos}
+- Active operator repos: ${total_active_operator_repos}
+- Active first-party repos: ${total_active_first_party_repos}
+- Excluded repos: ${total_excluded_repos}
+- Active repos missing \`AGENTS.md\`: ${total_active_missing_agents}
+- Active repos missing \`GEMINI.md\`: ${total_active_missing_gemini}
+- Active repos missing \`.github/copilot-instructions.md\`: ${total_active_missing_copilot}
+- Active repos missing \`.codex/config.toml\`: ${total_active_missing_codex}
+- Active operator repos missing full Codex profile packs: ${total_active_missing_full_profiles}
+- Active operator repos missing \`.codex/agents/*.toml\`: ${total_active_missing_codex_agents}
+- Active operator repos missing Codex workflows: ${total_active_missing_codex_workflows}
+- Active repos missing expected Codex plugins: ${total_active_missing_codex_plugins}
+- Active repos missing expected \`codex_hooks = true\`: ${total_active_missing_codex_hooks}
+- Active MCP repos missing the full contract: ${total_active_mcp_repos_missing_full_contract}
 
 ${inventory_md}
 EOF
@@ -683,7 +916,7 @@ write_wiki_docs() {
   mkdir -p "$docs_dir"
 
   cat >"$docs_dir/repo-inventory.csv" <<EOF
-repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count
+repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count,scope,active_scope,expected_codex_baseline,expected_full_profile_pack,expected_codex_agents,expected_codex_workflows,expected_codex_plugin,expected_mcp_contract,expected_codex_hooks
 ${inventory_csv%$'\n'}
 EOF
 
@@ -731,6 +964,20 @@ Summary from the latest audit:
 - Repos with Codex workflows: ${total_with_codex_workflows}
 - Repos with \`AGENTS.override.md\`: ${total_with_agents_override}
 - Repos with \`codex_hooks = true\`: ${total_with_codex_hooks}
+- Active-scope repos: ${total_active_scope_repos}
+- Active operator repos: ${total_active_operator_repos}
+- Active first-party repos: ${total_active_first_party_repos}
+- Excluded repos: ${total_excluded_repos}
+- Active repos missing \`AGENTS.md\`: ${total_active_missing_agents}
+- Active repos missing \`GEMINI.md\`: ${total_active_missing_gemini}
+- Active repos missing \`.github/copilot-instructions.md\`: ${total_active_missing_copilot}
+- Active repos missing \`.codex/config.toml\`: ${total_active_missing_codex}
+- Active operator repos missing full Codex profile packs: ${total_active_missing_full_profiles}
+- Active operator repos missing \`.codex/agents/*.toml\`: ${total_active_missing_codex_agents}
+- Active operator repos missing Codex workflows: ${total_active_missing_codex_workflows}
+- Active repos missing expected Codex plugins: ${total_active_missing_codex_plugins}
+- Active repos missing expected \`codex_hooks = true\`: ${total_active_missing_codex_hooks}
+- Active MCP repos missing the full contract: ${total_active_mcp_repos_missing_full_contract}
 
 ${inventory_md}
 EOF
@@ -738,11 +985,14 @@ EOF
 
 write_json_outputs() {
   local workspace_dir wiki_dir
-  workspace_dir="$(workspace_cache_dir)"
   wiki_dir="$(wiki_docs_dir)"
-  mkdir -p "$workspace_dir" "$wiki_dir"
-  printf '%s\n' "$inventory_json" >"$workspace_dir/repo-inventory.json"
+  mkdir -p "$wiki_dir"
   printf '%s\n' "$inventory_json" >"$wiki_dir/repo-inventory.json"
+  if [[ "$WRITE_WORKSPACE_CACHE" -eq 1 ]]; then
+    workspace_dir="$(workspace_cache_dir)"
+    mkdir -p "$workspace_dir"
+    printf '%s\n' "$inventory_json" >"$workspace_dir/repo-inventory.json"
+  fi
 }
 
 if [[ "$WRITE_WORKSPACE_CACHE" -eq 1 ]]; then

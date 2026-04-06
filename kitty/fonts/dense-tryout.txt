@@ -1,0 +1,18 @@
+# Dense terminal font tryout — family|size
+# Cycle with: font-playlist.sh next dense-tryout
+Monaspace Neon|12
+Monaspace Argon|12
+Monaspace Xenon|12
+Monaspace Radon|12
+Monaspace Krypton|12
+Maple Mono NF CN|12
+Iosevka Nerd Font Mono|12
+CommitMono Nerd Font Mono|12
+GeistMono Nerd Font Mono|12
+BlexMono Nerd Font Mono|12
+Fira Code|12
+Hack Nerd Font Mono|12
+SauceCodePro Nerd Font Mono|12
+VictorMono Nerd Font Mono|12
+Terminus Nerd Font Mono|13
+JetBrainsMono Nerd Font Mono|12
