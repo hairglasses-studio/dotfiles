@@ -4,7 +4,7 @@
 ; Pages:  0=Home  1=Media  2=Fleet
 
 ; ── Polling variables ─────────────────────────────
-; Sidebar reuses bar_cpu, bar_mem, bar_time, bar_date, bar_mpris (defined below)
+; Shared variables: bar_cpu, bar_mem, bar_time, bar_date, bar_mpris, bar_vol (defined below)
 
 (defpoll gpu_temp :interval "5s" :initial "0"
   `nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>/dev/null || echo "N/A"`)
@@ -31,9 +31,6 @@
 
 (defpoll cal_events :interval "300s" :initial "[]"
   `$HOME/hairglasses-studio/dotfiles/scripts/eww-events.sh 2>/dev/null || echo '[]'`)
-
-; ── Cava audio visualization ────────────────────
-(deflisten cava_bars `$HOME/hairglasses-studio/dotfiles/scripts/eww-cava.sh`)
 
 ; ── Sidebar state variables ──────────────────────
 (defvar sidebar-page 0)
@@ -199,14 +196,6 @@
           (label :class "cal-event-time" :text {ev.time})
           (label :class "cal-event-title" :text {ev.title} :limit-width 30))))))
 
-; ── Bar cava visualizer widget ──────────────────
-
-(defwidget bar-cava []
-  (box :class "bar-cava" :orientation "h" :spacing 1 :valign "end" :visible {cava_bars != "[]" && cava_bars != ""}
-    (for bar in {cava_bars ?: "[0,0,0,0,0,0,0,0]"}
-      (box :class "cava-bar" :orientation "v" :valign "end"
-        (box :class "cava-fill" :style "min-height: ${bar * 16 / 100}px;")))))
-
 ; ── Sidebar container ────────────────────────────
 
 (defwidget sidebar-content []
@@ -218,48 +207,9 @@
       (sidebar-fleet)
       (sidebar-calendar))))
 
-; ══════════════════════════════════════════════════
-; ── STATUS BAR (replaces waybar) ─────────────────
-; ══════════════════════════════════════════════════
-
-; ── Bar polling variables ────────────────────────
+; ── Shared polling variables (used by sidebar) ──
 
 (deflisten bar_vol `$HOME/hairglasses-studio/dotfiles/scripts/eww-volume.sh`)
-
-(defpoll bar_weather :interval "1800s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/eww-weather.sh 2>/dev/null || echo ""`)
-
-(defpoll bar_shader :interval "10s" :initial ""
-  `cat ~/.local/state/shader-cycle/current 2>/dev/null | xargs basename 2>/dev/null | sed 's/\.glsl$//' || echo ""`)
-
-(defpoll bar_gpu_power :interval "10s" :initial ""
-  `nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null | awk '{printf "%.0f", $1}' || echo ""`)
-
-(defpoll bar_gamepad :interval "30s" :initial ""
-  `test -e /dev/input/js0 && echo "󰊗" || echo ""`)
-
-(defpoll bar_bt :interval "10s" :initial "0"
-  `bluetoothctl devices Connected 2>/dev/null | wc -l | tr -d ' '`)
-
-(defpoll bar_updates :interval "3600s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/eww-updates.sh`)
-
-(deflisten bar_workspaces_dp1
-  `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh "$(hyprctl monitors -j 2>/dev/null | jq -r 'sort_by(.x) | .[0].name // "DP-1"')"`)
-(deflisten bar_workspaces_dp2
-  `$HOME/hairglasses-studio/dotfiles/scripts/eww-workspaces.sh "$(hyprctl monitors -j 2>/dev/null | jq -r 'sort_by(.x) | .[1].name // "DP-2"')"`)
-
-(deflisten bar_window `$HOME/hairglasses-studio/dotfiles/scripts/eww-activewindow.sh`)
-
-(deflisten bar_mode `$HOME/hairglasses-studio/dotfiles/scripts/eww-mode.sh`)
-
-; ── Terminal visual indicator ──
-(defpoll current_shader :interval "5s" :initial ""
-  `grep '^tab_bar_style ' ~/.config/kitty/kitty.conf 2>/dev/null | awk '{print $2}' | head -1`)
-
-; ── Submap/mode indicator (listens to Hyprland socket) ──
-(deflisten active_submap :initial ""
-  `bash -c 'socat -U -T 10 - UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | stdbuf -oL grep --line-buffered "^submap>>" | stdbuf -oL sed -u "s/^submap>>//"'`)
 
 (defpoll bar_time :interval "1s" :initial "00:00"
   `date '+%H:%M'`)
@@ -270,23 +220,11 @@
 (defpoll bar_cpu :interval "3s" :initial "0"
   `awk '/^cpu /{printf "%.0f", ($2+$4)/($2+$4+$5)*100}' /proc/stat 2>/dev/null || echo "0"`)
 
-(defpoll bar_cpu_temp :interval "3s" :initial "0"
-  `sensors -u k10temp-pci-00c3 2>/dev/null | awk '/Tctl/{getline; printf "%.0f", $2}' || echo "0"`)
-
 (defpoll bar_mem :interval "5s" :initial "0"
   `free -m 2>/dev/null | awk '/Mem:/{printf "%.0f", $3/$2*100}' || echo "0"`)
 
-(defpoll bar_net :interval "5s" :initial ""
-  `ip -j route get 1.1.1.1 2>/dev/null | jq -r '.[0].dev // "none"'`)
-
 (defpoll bar_mpris :interval "3s" :initial ""
   `playerctl metadata --format '{{artist}} — {{title}}' 2>/dev/null || echo ""`)
-
-(defpoll bar_mx_battery :interval "300s" :initial ""
-  `$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r '.percentage // empty' || echo ""`)
-
-(defpoll bar_mx_class :interval "300s" :initial "disconnected"
-  `$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r '.class // "disconnected"' || echo "disconnected"`)
 
 ; ── Ralphglasses fleet variables (single cache read) ──
 
@@ -310,205 +248,10 @@
     cost_spark: ([.loops[]?.spend_usd // 0] | if length > 0 then map(. * 8 | floor | if . < 0 then 0 elif . > 7 then 7 else . end) | map(["▁","▂","▃","▄","▅","▆","▇","█"][.]) | join("") else "" end)
   }' /tmp/rg-status.json 2>/dev/null || echo '{"state":"closed","cost_spark":""}'`)
 
-(defvar vol_hover false)
-(defvar sys_hover false)
-
-; ── Bar widgets ──────────────────────────────────
-
-(defwidget bar-workspaces [workspaces]
-  (box :class "bar-workspaces" :orientation "h" :spacing 4
-    (for ws in {workspaces ?: "[]"}
-      (button :class "bar-ws ${ws.focused ? 'bar-ws-active' : ''} ${ws.urgent ? 'bar-ws-urgent' : ''} ${!ws.occupied && !ws.focused ? 'bar-ws-empty' : ''} ${ws.prev_empty ? 'round-left' : ''} ${ws.next_empty ? 'round-right' : ''}"
-              :onclick "hyprctl dispatch workspace ${ws.num}"
-        "${ws.num}"))))
-
-(defwidget bar-mode-display []
-  (box :class "bar-mode ${bar_mode != 'default' ? 'bar-mode-active' : ''}"
-       :visible {bar_mode != "default"}
-    (label :text "${bar_mode}")))
-
-(defwidget shader-indicator []
-  (eventbox :onclick "shader-cycle.sh next"
-            :onrightclick "shader-random.sh"
-    (box :class "shader-indicator" :space-evenly false :spacing 4
-      (label :text "" :class "shader-icon")
-      (label :text {current_shader ?: "none"} :class "shader-name" :limit-width 18))))
-
-(defwidget mode-indicator []
-  (box :class "mode-indicator ${active_submap != '' ? 'active' : ''}"
-       :visible {active_submap != ""}
-    (label :text "󰌌 ${active_submap}" :class "mode-text")))
-
-(defwidget bar-window-title []
-  (label :class "bar-title" :text {bar_window ?: ""} :limit-width 40))
-
-(defwidget bar-clock []
-  (eventbox :onclick "eww open --toggle sidebar" :onrightclick "eww open --toggle calendar-popup"
-    (box :class "bar-clock" :orientation "v" :space-evenly false :valign "center"
-      (label :class "bar-time" :text bar_time)
-      (label :class "bar-date" :text bar_date))))
-
-(defwidget bar-vol-display []
-  (eventbox :onhover "eww update vol_hover=true" :onhoverlost "eww update vol_hover=false"
-            :onclick "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-    (box :class "bar-metric bar-vol" :spacing 4
-      (label :class "bar-icon yellow" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
-      (label :class "bar-metric-val" :text "${bar_vol}%")
-      (revealer :transition "slideleft" :reveal vol_hover :duration "150ms"
-        (scale :class "bar-vol-slider" :min 0 :max 101 :value bar_vol
-               :orientation "h"
-               :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ {}%")))))
-
-(defwidget bar-shader-display []
-  (eventbox :onclick "shader-cycle.sh next" :onmiddleclick "shader-random.sh"
-    (box :class "bar-shader" :spacing 4 :visible {bar_shader != ""}
-      (label :class "bar-icon magenta" :text "")
-      (label :class "bar-shader-name" :text bar_shader))))
-
-(defwidget bar-gpu-power-display []
-  (box :class "bar-metric" :spacing 4 :visible {bar_gpu_power != ""}
-    (label :class "bar-icon yellow" :text "⚡")
-    (label :class "bar-metric-val" :text "${bar_gpu_power}W")))
-
-(defwidget bar-gamepad-display []
-  (box :class "bar-metric" :spacing 4 :visible {bar_gamepad != ""}
-    (label :class "bar-icon green" :text bar_gamepad)))
-
-(defwidget bar-bt-display []
-  (eventbox :onclick "kitty -e bluetoothctl"
-    (box :class "bar-metric" :spacing 4 :visible {bar_bt > 0}
-      (label :class "bar-icon cyan" :text "󰂯")
-      (label :class "bar-metric-val" :text bar_bt))))
-
-(defwidget bar-updates-display []
-  (eventbox :onclick "kitty -e yay"
-    (box :class "bar-metric" :spacing 4 :visible {bar_updates != ""}
-      (label :class "bar-icon yellow" :text "")
-      (label :class "bar-metric-val" :text bar_updates))))
-
-(defwidget bar-mx-battery []
-  (box :class "bar-mx-battery" :spacing 4 :visible {bar_mx_battery != ""}
-    (label :class "bar-icon ${bar_mx_class == 'critical' ? 'red' : bar_mx_class == 'warning' ? 'yellow' : 'green'}"
-           :text {bar_mx_battery == "" ? "" : bar_mx_battery <= 20 ? "󰁺" : bar_mx_battery <= 50 ? "󰁾" : "󰂂"})
-    (label :class "bar-metric-val mx-${bar_mx_class}" :text "${bar_mx_battery}%")))
-
-(defwidget bar-weather-display []
-  (box :class "bar-metric" :spacing 4 :visible {bar_weather != ""}
-    (label :class "bar-icon cyan" :text {bar_weather ?: ""})))
-
-(defwidget bar-sys []
-  (eventbox :onhover "eww update sys_hover=true" :onhoverlost "eww update sys_hover=false"
-    (box :class "bar-sys" :orientation "h" :spacing 12
-      (eventbox :onclick "kitty -e htop"
-        (box :class "bar-metric" :spacing 4
-          (label :class "bar-icon ${bar_cpu >= 90 ? 'red' : bar_cpu >= 70 ? 'yellow' : 'cyan'}" :text "")
-          (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
-            (label :class "bar-metric-val ${bar_cpu >= 90 ? 'metric-crit' : bar_cpu >= 70 ? 'metric-warn' : ''}" :text "${bar_cpu}%"))))
-      (box :class "bar-metric" :spacing 4
-        (label :class "bar-icon ${bar_cpu_temp >= 85 ? 'red' : bar_cpu_temp >= 70 ? 'yellow' : 'green'}" :text "")
-        (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
-          (label :class "bar-metric-val ${bar_cpu_temp >= 85 ? 'metric-crit' : bar_cpu_temp >= 70 ? 'metric-warn' : ''}" :text "${bar_cpu_temp}°")))
-      (eventbox :onclick "kitty -e btop"
-        (box :class "bar-metric" :spacing 4
-          (label :class "bar-icon ${bar_mem >= 90 ? 'red' : bar_mem >= 70 ? 'yellow' : 'magenta'}" :text "")
-          (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
-            (label :class "bar-metric-val ${bar_mem >= 90 ? 'metric-crit' : bar_mem >= 70 ? 'metric-warn' : ''}" :text "${bar_mem}%"))))
-      (bar-gpu-power-display)
-      (bar-gamepad-display)
-      (bar-bt-display)
-      (bar-updates-display)
-      (bar-mx-battery)
-      (bar-vol-display)
-      (bar-weather-display)
-      (eventbox :onclick "kitty -e nmtui"
-        (box :class "bar-metric" :spacing 4
-          (label :class "bar-icon green" :text "")
-          (revealer :transition "slideleft" :reveal sys_hover :duration "150ms"
-            (label :class "bar-metric-val" :text {bar_net ?: "—"})))))))
-
-(defwidget bar-mpris-display []
-  (eventbox :onclick "playerctl play-pause" :onmiddleclick "playerctl next"
-    (box :class "bar-mpris" :visible {bar_mpris != ""}
-      (label :class "bar-mpris-text" :text "♫ ${bar_mpris}" :limit-width 30))))
-
-(defwidget rg-segment [label value color]
-  (box :class "rg-seg ${value == '' || value == 'idle' || value == 'offline' ? 'rg-idle' : ''}" :spacing 4
-    (label :class "rg-icon ${value == '' || value == 'idle' || value == 'offline' ? 'dim' : color}" :text label)
-    (label :class "rg-val" :text {value == "" || value == "idle" ? "—" : value == "offline" ? "off" : value})))
-
-(defwidget bar-fleet []
-  (box :class "bar-fleet" :orientation "h" :spacing 8
-    (rg-segment :label "↻" :value {rg_data.fleet} :color "green")
-    (rg-segment :label "⟳" :value {rg_data.loops} :color "magenta")
-    (rg-segment :label "$" :value {rg_data.cost} :color "green")
-    (rg-segment :label "󰧑" :value {rg_data.models} :color "yellow")
-    (rg-segment :label "🔍" :value {rg_data.repos} :color "cyan")
-    (rg-segment :label "󰔚" :value {rg_data.iters} :color "dim")
-    (box :class "rg-seg ${k8s_ctx == '' || k8s_ctx == 'offline' ? 'rg-idle' : ''}" :spacing 4
-      (label :class "rg-icon ${k8s_ctx == '' || k8s_ctx == 'offline' ? 'dim' : 'cyan'}" :text "⎈")
-      (label :class "rg-val" :text {k8s_ctx == "" || k8s_ctx == "offline" ? "—" : k8s_ctx}))))
-
-(defwidget bar-left [workspaces]
-  (box :class "bar-left" :orientation "h" :spacing 8 :halign "start"
-    (bar-workspaces :workspaces workspaces)
-    (bar-mode-display)
-    (mode-indicator)
-    (bar-window-title)))
-
-(defwidget bar-center []
-  (box :class "bar-center" :halign "center"
-    (bar-clock)))
-
-(defwidget bar-right []
-  (box :class "bar-right" :orientation "h" :spacing 12 :halign "end"
-    (bar-fleet)
-    (shader-indicator)
-    (bar-shader-display)
-    (bar-mpris-display)
-    (bar-cava)
-    (bar-sys)
-    (systray :pack-direction "ltr" :icon-size 20)))
-
-(defwidget bar-layout [workspaces]
-  (centerbox :class "bar-container" :orientation "h"
-    (bar-left :workspaces workspaces)
-    (bar-center)
-    (bar-right)))
-
-(defwindow calendar-popup
-  :monitor 0
-  :geometry (geometry :x "0px" :y "30px" :width "280px" :height "280px" :anchor "top center")
-  :stacking "overlay"
-  :exclusive false
-  :focusable false
-  (box :class "calendar-popup"
-    (calendar :class "cal" :show-heading true :show-day-names true)))
-
-; ── Bar window ───────────────────────────────────
-
-(defwindow bar
-  :monitor 0
-  :geometry (geometry :x "0px" :y "0px"
-                      :width "100%" :height "36px"
-                      :anchor "top center")
-  :stacking "fg"
-  :exclusive true
-  :focusable false
-  (bar-layout :workspaces bar_workspaces_dp1))
-
-(defwindow bar-secondary
-  :monitor 1
-  :geometry (geometry :x "0px" :y "0px"
-                      :width "100%" :height "36px"
-                      :anchor "top center")
-  :stacking "fg"
-  :exclusive true
-  :focusable false
-  (bar-layout :workspaces bar_workspaces_dp2))
-
 ; ══════════════════════════════════════════════════
 ; ── POWER MENU ───────────────────────────────────
 ; ══════════════════════════════════════════════════
+
 
 (defvar powermenu-visible false)
 

@@ -19,7 +19,6 @@ packages = [
     # Media server
     { name = "jellyfin-server" },
     { name = "jellyfin-web" },
-    { name = "stash-bin" },
 
     # Cloud storage
     { name = "megacmd-bin" },
