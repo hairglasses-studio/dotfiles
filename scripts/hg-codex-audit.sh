@@ -496,6 +496,9 @@ total_repos_with_mcp_resource_contract=0
 total_repos_with_mcp_prompt_contract=0
 total_repos_with_mcp_server_health=0
 total_repos_with_full_mcp_contract=0
+total_repos_with_legacy_claude_commands=0
+total_repos_with_unported_legacy_commands=0
+total_legacy_claude_command_count=0
 total_active_scope_repos=0
 total_active_operator_repos=0
 total_active_first_party_repos=0
@@ -571,6 +574,11 @@ for repo in "${repos[@]}"; do
   codex_plugin=$(count_files "$repo" '*/.codex-plugin/plugin.json')
   codex_workflows=$(count_named_files "$repo/.github/workflows" 'codex-*.yml' 'codex-*.yaml' 'ai-dispatch.yml')
   codex_hooks=$(count_matches "$repo" 'codex_hooks[[:space:]]*=[[:space:]]*true')
+  legacy_claude_commands=$(count_files "$repo" '*/.claude/commands/*.md')
+  legacy_commands_unported=0
+  if [[ "$legacy_claude_commands" -gt 0 && "$skill_surface_manifest" -eq 0 ]]; then
+    legacy_commands_unported=$legacy_claude_commands
+  fi
   scope=$(repo_scope "$name")
   active_scope=$(scope_is_active "$scope")
   expected_codex_baseline=$active_scope
@@ -630,6 +638,11 @@ for repo in "${repos[@]}"; do
   [[ "$codex_workflows" -gt 0 ]] && total_with_codex_workflows=$((total_with_codex_workflows + 1))
   [[ "$agents_override" -gt 0 ]] && total_with_agents_override=$((total_with_agents_override + 1))
   [[ "$codex_hooks" -gt 0 ]] && total_with_codex_hooks=$((total_with_codex_hooks + 1))
+  if [[ "$legacy_claude_commands" -gt 0 ]]; then
+    total_repos_with_legacy_claude_commands=$((total_repos_with_legacy_claude_commands + 1))
+    total_legacy_claude_command_count=$((total_legacy_claude_command_count + legacy_claude_commands))
+  fi
+  [[ "$legacy_commands_unported" -gt 0 ]] && total_repos_with_unported_legacy_commands=$((total_repos_with_unported_legacy_commands + 1))
 
   if [[ "$scope" == "active_operator" ]]; then
     total_active_operator_repos=$((total_active_operator_repos + 1))
@@ -702,7 +715,9 @@ for repo in "${repos[@]}"; do
   inventory_json_rows+="      \"expected_codex_workflows\": ${expected_codex_workflows},"$'\n'
   inventory_json_rows+="      \"expected_codex_plugin\": ${expected_codex_plugin},"$'\n'
   inventory_json_rows+="      \"expected_mcp_contract\": ${expected_mcp_contract},"$'\n'
-  inventory_json_rows+="      \"expected_codex_hooks\": ${expected_codex_hooks}"$'\n'
+  inventory_json_rows+="      \"expected_codex_hooks\": ${expected_codex_hooks},"$'\n'
+  inventory_json_rows+="      \"legacy_claude_command_count\": ${legacy_claude_commands},"$'\n'
+  inventory_json_rows+="      \"legacy_commands_unported\": ${legacy_commands_unported}"$'\n'
   inventory_json_rows+=$'    }\n'
   json_separator=$',\n'
   inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${agents_md} | ${agents_override} | ${claude_md} | ${gemini_md} | ${copilot_instructions} | ${codex_config} | ${codex_full_profiles} | ${skill_surface_manifest} | ${canonical_skills} | ${generated_claude_skills} | ${generated_plugin_skills} | ${mcp_json} | ${repo_mcp_servers} | ${mcp_discovery_contract} | ${mcp_resource_contract} | ${mcp_prompt_contract} | ${mcp_server_health} | ${full_mcp_contract} | ${mcp_policy} | ${generated_mcp_configs} | ${codex_unmanaged_mcp_servers} | ${example_only_mcp_json} | ${codex_mcp_servers} | ${codex_curated_mcp_servers} | ${codex_raw_mcp_servers} | ${legacy_model_tokens} | ${mcp_without_policy} | ${mcp_without_curated_codex} | ${codex_agents} | ${codex_plugin} | ${codex_workflows} | ${codex_hooks} |"$'\n'
@@ -765,6 +780,11 @@ active operator repos missing Codex workflows: $total_active_missing_codex_workf
 active repos missing expected Codex plugins: $total_active_missing_codex_plugins
 active repos missing expected codex_hooks: $total_active_missing_codex_hooks
 active MCP repos missing full contract: $total_active_mcp_repos_missing_full_contract
+repos with legacy .claude/commands: $total_repos_with_legacy_claude_commands
+total legacy .claude/commands files: $total_legacy_claude_command_count
+repos with unported legacy commands (no surface.yaml): $total_repos_with_unported_legacy_commands
+global user skills in ~/.claude/commands: $(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+global user skills in ~/.agents/skills: $(find "$HOME/.agents/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
 EOF
 
 inventory_json="{
@@ -826,7 +846,12 @@ inventory_json="{
     \"active_repos_missing_expected_codex_plugin\": ${total_active_missing_codex_plugins},
     \"active_repos_missing_expected_codex_hooks\": ${total_active_missing_codex_hooks},
     \"active_mcp_repos\": ${total_active_mcp_repos},
-    \"active_mcp_repos_missing_full_contract\": ${total_active_mcp_repos_missing_full_contract}
+    \"active_mcp_repos_missing_full_contract\": ${total_active_mcp_repos_missing_full_contract},
+    \"repos_with_legacy_claude_commands\": ${total_repos_with_legacy_claude_commands},
+    \"total_legacy_claude_command_count\": ${total_legacy_claude_command_count},
+    \"repos_with_unported_legacy_commands\": ${total_repos_with_unported_legacy_commands},
+    \"global_claude_commands\": $(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' '),
+    \"global_agents_skills\": $(find "$HOME/.agents/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
   },
   \"repos\": [
 ${inventory_json_rows}
@@ -905,6 +930,9 @@ Summary from the latest audit:
 - Active repos missing expected Codex plugins: ${total_active_missing_codex_plugins}
 - Active repos missing expected \`codex_hooks = true\`: ${total_active_missing_codex_hooks}
 - Active MCP repos missing the full contract: ${total_active_mcp_repos_missing_full_contract}
+- Repos with legacy \`.claude/commands\`: ${total_repos_with_legacy_claude_commands} (${total_legacy_claude_command_count} files)
+- Repos with unported legacy commands (no surface.yaml): ${total_repos_with_unported_legacy_commands}
+- Global user skills: $(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' ') Claude / $(find "$HOME/.agents/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ') Codex-compatible
 
 ${inventory_md}
 EOF
