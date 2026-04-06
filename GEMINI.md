@@ -1,5 +1,7 @@
 # dotfiles — Gemini CLI Instructions
 
+This repo uses [AGENTS.md](AGENTS.md) as the canonical instruction file.
+
 This repo still keeps its detailed repo guidance in [CLAUDE.md](CLAUDE.md). Read that file before making changes.
 
 ## Working Rules
