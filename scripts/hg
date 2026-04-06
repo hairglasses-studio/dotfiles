@@ -80,7 +80,8 @@ hg_doctor() {
     "$HOME/.config/kitty:kitty"
     "$HOME/.config/hypr:hyprland"
     "$HOME/.config/eww:eww"
-    "$HOME/.config/mako:mako"
+    "$HOME/.config/swaync:swaync"
+    "$HOME/.config/ironbar:ironbar"
   )
   for _entry in "${_links[@]}"; do
     local _path="${_entry%%:*}" _name="${_entry#*:}"

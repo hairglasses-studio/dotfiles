@@ -288,10 +288,6 @@
 (defpoll bar_mx_class :interval "300s" :initial "disconnected"
   `$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r '.class // "disconnected"' || echo "disconnected"`)
 
-; ── MCP audit summary ──
-(defpoll audit_summary :interval "60s" :initial ""
-  `wc -l < ~/.local/state/mcpkit/audit.jsonl 2>/dev/null | awk '{if($1>0) print $1" calls"}' || echo ""`)
-
 ; ── Ralphglasses fleet variables (single cache read) ──
 
 (defpoll rg_data :interval "30s" :initial '{"fleet":"","loops":"","cost":"","models":"","repos":"","iters":""}'
@@ -471,13 +467,7 @@
     (bar-mpris-display)
     (bar-cava)
     (bar-sys)
-    (bar-audit)
     (systray :pack-direction "ltr" :icon-size 20)))
-
-(defwidget bar-audit []
-  (box :class "bar-metric" :spacing 4 :visible {audit_summary != ""}
-    (label :class "bar-icon dim" :text "󰒋")
-    (label :class "bar-metric-val" :text audit_summary)))
 
 (defwidget bar-layout [workspaces]
   (centerbox :class "bar-container" :orientation "h"
