@@ -7,8 +7,8 @@ source "$(cd "$(dirname "$0")/lib" && pwd)/notify.sh"
 
 # Devices to connect at boot (MAC -> friendly name)
 declare -A DEVICES=(
-  [AC:BF:71:C8:DB:95]="Headphones"
-  [D2:8E:C5:DE:9F:C8]="MX Master 4"
+  [${BT_HEADPHONES:-AC:BF:71:C8:DB:95}]="Headphones"
+  [${BT_MX_MASTER:-D2:8E:C5:DE:9F:C8}]="MX Master 4"
 )
 
 # Wait for BT adapter

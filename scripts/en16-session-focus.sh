@@ -13,7 +13,7 @@ PAGE="${2:-0}"
 INDEX=$(( PAGE * 12 + N - 1 ))
 
 addr=$(hyprctl clients -j | jq -r '
-  [.[] | select(.class == "com.mitchellh.ghostty" and (.title | test("^────")))]
+  [.[] | select(.class == "kitty" and (.title | test("^────")))]
   | sort_by(.title) | .['"$INDEX"'].address // empty
 ')
 

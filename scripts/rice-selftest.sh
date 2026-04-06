@@ -7,7 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh" 2>/dev/null || true
-source "$SCRIPT_DIR/lib/ghostty-config.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/lib/kitty-config.sh" 2>/dev/null || true
 
 JSON_MODE=false
 SECTION="all"
@@ -121,20 +121,28 @@ test_services() {
 test_fonts() {
   echo "── Font Status ──" >&2
 
-  # Ghostty active font
+  # Kitty active font
   local font
-  font="$(ghostty +show-config 2>/dev/null | grep '^font-family ' | head -1 | sed 's/font-family = //')"
+  local match
+  font="$(kitty_get_font 2>/dev/null)"
   if [[ -n "$font" ]]; then
-    add_result fonts "ghostty_font" pass "$font"
+    add_result fonts "kitty_font" pass "$font"
+    match="$(fc-match -f '%{family}\n' "$font" 2>/dev/null | head -1 || true)"
+    if [[ -n "$match" && "$match" == *"$font"* ]]; then
+      add_result fonts "kitty_font_available" pass "installed"
+    else
+      add_result fonts "kitty_font_available" fail "missing — active kitty font resolved to ${match:-unknown}"
+    fi
   else
-    add_result fonts "ghostty_font" warn "could not query"
+    add_result fonts "kitty_font" warn "could not query"
   fi
 
-  # Check standard font (Maple Mono NF CN) is installed
-  if fc-list "Maple Mono NF CN" | grep -q .; then
-    add_result fonts "maple_mono_nf_cn" pass "installed"
+  # Monaspace availability for the default Kitty profile
+  match="$(fc-match -f '%{family}\n' 'Monaspace Neon' 2>/dev/null | head -1 || true)"
+  if [[ -n "$match" && "$match" == *"Monaspace Neon"* ]]; then
+    add_result fonts "monaspace_neon" pass "installed"
   else
-    add_result fonts "maple_mono_nf_cn" fail "missing — standard font not found"
+    add_result fonts "monaspace_neon" fail "missing — default Kitty font family resolved to ${match:-unknown}"
   fi
 }
 
@@ -197,18 +205,17 @@ test_tools() {
 
 # ── Section: Shader ────────────────────────────────
 test_shader() {
-  echo "── Shader Status ──" >&2
-  local shader
-  shader="$(ghostty_get_shader_path || true)"
-  local anim
-  anim="$(ghostty_get_shader_animation || true)"
-  add_result shader "active_shader" pass "${shader:-none}"
-  add_result shader "animation" pass "${anim:-false}"
+  echo "── Visual Status ──" >&2
+  local opacity tab_style
+  opacity="$(kitty_get_opacity 2>/dev/null || echo "unknown")"
+  tab_style="$(kitty_get_tab_style 2>/dev/null || echo "unknown")"
+  add_result shader "background_opacity" pass "${opacity}"
+  add_result shader "tab_bar_style" pass "${tab_style}"
 
-  # Shader count
-  local count
-  count="$(find "$HOME/.config/ghostty/shaders" -maxdepth 2 -name "*.glsl" 2>/dev/null | wc -l || true)"
-  add_result shader "shader_count" pass "$count shaders"
+  # Cursor trail check
+  local trail
+  trail="$(grep '^cursor_trail ' "$HOME/.config/kitty/kitty.conf" 2>/dev/null | awk '{print $2}' || echo "0")"
+  add_result shader "cursor_trail" pass "${trail:-disabled}"
 }
 
 # ── Run sections ───────────────────────────────────

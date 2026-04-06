@@ -4,7 +4,7 @@
 # Usage: mx-reset.sh [--full]
 set -euo pipefail
 
-DEVICE_MAC="D2:8E:C5:DE:9F:C8"
+DEVICE_MAC="${BT_MX_MASTER:-D2:8E:C5:DE:9F:C8}"
 DEVICE_NAME="MX Master 4"
 
 info()  { printf '\033[0;36m:: %s\033[0m\n' "$*"; }

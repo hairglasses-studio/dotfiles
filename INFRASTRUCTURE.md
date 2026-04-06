@@ -62,7 +62,7 @@ dotfiles/                          .github/ (org repo)
 |--------|---------|-------|
 | `hg-pipeline.sh` | Universal build+test for Go/Node/Python | `make pipeline-check` or `/pipeline` skill |
 | `hg-new-repo.sh` | Scaffold new repo with standard governance, workflows, and agent docs | `hg-new-repo.sh <name> [go\|node\|python]` |
-| `hg-agent-docs.sh` | Generate AGENTS.md, GEMINI.md, and copilot instructions from CLAUDE.md | Run after editing CLAUDE.md |
+| `hg-agent-docs.sh` | Generate compatibility docs from canonical AGENTS.md or legacy CLAUDE.md | Run after editing the repo's canonical instruction file |
 | `hg-go-sync.sh` | Sync Go version across all repos | `hg-go-sync.sh [--dry-run] [--tidy]` |
 | `hg-gitignore.sh` | Assemble .gitignore from templates | `hg-gitignore.sh go > .gitignore` |
 | `hg-install-hooks.sh` | Install language-appropriate pre-commit hooks | `make install-hooks` |
