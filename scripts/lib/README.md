@@ -30,7 +30,7 @@ source "$(dirname "$0")/lib/config.sh"
 config_atomic_write "$CONFIG" "$tmp"   # mktemp + mv pattern
 config_sed_replace "$file" "s/old/new/"
 config_backup "$file"                   # timestamped backup
-config_reload_service "mako"            # reload via compositor
+config_reload_service "swaync"          # reload via compositor
 ```
 
 ## compositor.sh

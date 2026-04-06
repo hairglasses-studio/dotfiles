@@ -22,8 +22,8 @@ _config_cmd_reload() {
   local component="${1:-}"
   [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> (hyprland|swaync|eww|tmux)"
   case "$component" in
-    hyprland|hypr|swaync|eww|waybar|tmux) ;;
-    *) hg_die "Unknown component: $component (hyprland|swaync|eww|tmux)" ;;
+    hyprland|hypr|swaync|eww|ironbar|tmux) ;;
+    *) hg_die "Unknown component: $component (hyprland|swaync|eww|ironbar|tmux)" ;;
   esac
   config_reload_service "$component"
   hg_ok "Reloaded $component"

@@ -19,7 +19,7 @@ packages = [
 
     # Bar & widgets
     { name = "eww" },
-    { name = "waybar" },
+    { name = "ironbar" },
 
     # Notifications
     { name = "swaync" },
@@ -32,7 +32,6 @@ packages = [
     { name = "greetd" },
     { name = "greetd-tuigreet" },
     { name = "gtklock" },
-    { name = "rofi" },
     { name = "dex" },
 
     # Wayland tools
