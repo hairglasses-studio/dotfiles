@@ -77,7 +77,7 @@ hg_doctor() {
 
   printf "\n %sSYMLINKS%s\n" "$HG_BOLD" "$HG_RESET"
   local -a _links=(
-    "$HOME/.config/ghostty:ghostty"
+    "$HOME/.config/kitty:kitty"
     "$HOME/.config/hypr:hyprland"
     "$HOME/.config/eww:eww"
     "$HOME/.config/mako:mako"

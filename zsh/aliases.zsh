@@ -851,7 +851,14 @@ command_not_found_handler() {
 alias hgs='cd ~/hairglasses-studio'
 alias mcplog='tail -f /tmp/mcp-*.log 2>/dev/null || echo "No MCP logs found"'
 
-# ── Ghostty shader switching ──────────────────
+# ── Kitty terminal ────────────────────────────
+alias kitty-reload='kill -USR1 $(pidof kitty) 2>/dev/null'
+alias icat='kitten icat'
+alias kdiff='kitten diff'
+alias kssh='kitten ssh'
+
+# ── Ghostty shader switching (inactive without Ghostty) ──
+if [[ -d "$HOME/.config/ghostty/shaders" ]]; then
 shader-crt() {
   local cfg="$HOME/.config/ghostty/config" tmp
   tmp="$(mktemp "${cfg}.XXXXXX")"
@@ -1047,6 +1054,7 @@ shader-pick() {
   mv "$tmp" "$cfg"
   echo "Shader set to: $shader_name (animation=$anim)"
 }
+fi  # end ghostty shader guard
 
 # MCP audit dashboard
 alias audit='$HOME/hairglasses-studio/dotfiles/scripts/audit-dashboard.sh'

@@ -354,15 +354,17 @@ $red: #ff5c57;
 }
 
 @keyframes icon-bounce {
-  0%, 100% { margin-top: 0; }
-  50%      { margin-top: -3px; }
+  0%   { margin-top: 0; }
+  50%  { margin-top: -3px; }
+  100% { margin-top: 0; }
 }
 
 @keyframes heartbeat {
-  0%, 100% { opacity: 1.0; text-shadow: 0 0 4px $red; }
-  25%      { opacity: 0.6; text-shadow: 0 0 12px $red; }
-  50%      { opacity: 1.0; text-shadow: 0 0 4px $red; }
-  75%      { opacity: 0.7; text-shadow: 0 0 10px $red; }
+  0%   { opacity: 1.0; text-shadow: 0 0 4px $red; }
+  25%  { opacity: 0.6; text-shadow: 0 0 12px $red; }
+  50%  { opacity: 1.0; text-shadow: 0 0 4px $red; }
+  75%  { opacity: 0.7; text-shadow: 0 0 10px $red; }
+  100% { opacity: 1.0; text-shadow: 0 0 4px $red; }
 }
 
 @keyframes data-shimmer {
@@ -1005,7 +1007,7 @@ $red: #ff5c57;
 }
 
 .rg-idle:hover {
-  opacity: 0.8 !important;
+  opacity: 0.8;
 }
 
 .rg-idle:hover .rg-val {
