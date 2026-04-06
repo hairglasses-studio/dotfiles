@@ -66,13 +66,14 @@ window-padding-balance = true
 window-theme = ghostty
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/film-grain-pro.glsl
-custom-shader-animation = true
+custom-shader = shaders/neon-glow.glsl
+custom-shader-animation = false
 
 # ── Links ───────────────────────────────────────
 link-url = true
 
 # ── Terminal behavior ───────────────────────────
+term = ghostty
 gtk-single-instance = false
 scrollback-limit = 10000
 copy-on-select = true
