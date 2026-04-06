@@ -1,0 +1,143 @@
+# Cyberpunk Snazzy ironbar config
+# Replaces eww bar — GTK4, GPU-accelerated
+
+position = "top"
+height = 36
+anchor_to_edges = true
+
+[ironvar_defaults]
+rg_fleet = ""
+rg_loops = ""
+rg_cost = ""
+rg_models = ""
+rg_repos = ""
+rg_iters = ""
+
+# ── LEFT ──────────────────────────────────────────
+
+[[start]]
+type = "workspaces"
+all_monitors = false
+sort = "added"
+favorites = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
+[[start]]
+type = "focused"
+show_icon = false
+show_title = true
+truncate.mode = "end"
+truncate.max_length = 40
+
+# ── CENTER ────────────────────────────────────────
+
+[[center]]
+type = "clock"
+format = "%H:%M"
+format_popup = "%A %B %d, %Y\n%H:%M:%S"
+
+# ── RIGHT ─────────────────────────────────────────
+
+# Fleet status (ralphglasses)
+[[end]]
+type = "custom"
+class = "bar-fleet"
+bar = [
+  { type = "label", class = "rg-seg", label = "{{30000:jq -r '\"\\(.fleet.running // 0)/\\(.fleet.total // 0) 󰑮\"' /tmp/rg-status.json 2>/dev/null || echo ''}}" },
+  { type = "label", class = "rg-seg", label = "{{30000:jq -r '\"\\(.loops.total_runs // 0) loops\"' /tmp/rg-status.json 2>/dev/null || echo ''}}" },
+  { type = "label", class = "rg-seg rg-cost", label = "{{30000:jq -r '\"$\\(.cost.total_spend_usd // 0)\"' /tmp/rg-status.json 2>/dev/null || echo ''}}" },
+]
+
+# Shader indicator
+[[end]]
+type = "custom"
+class = "shader-indicator"
+on_click_left = "!kitty-shader-playlist next ambient"
+on_click_right = "!kitty-shader-playlist random"
+bar = [
+  { type = "label", label = " {{10000:cat ~/.local/state/kitty-shaders/current 2>/dev/null | sed 's/\\.glsl$//' || cat ~/.local/state/shader-cycle/current 2>/dev/null | xargs basename 2>/dev/null | sed 's/\\.glsl$//' || echo 'none'}}" },
+]
+
+# MPRIS media
+[[end]]
+type = "music"
+player_type = "mpris"
+format = "{icon} {title} — {artist}"
+truncate.mode = "end"
+truncate.max_length = 30
+icons.playing = ""
+icons.paused = ""
+
+# Cava audio bars (text-based, Unicode block chars)
+[[end]]
+type = "script"
+class = "bar-cava"
+mode = "watch"
+cmd = "$HOME/hairglasses-studio/dotfiles/scripts/ironbar-cava.sh"
+
+# System metrics
+[[end]]
+type = "sys_info"
+format = [" {cpu_percent}%", " {temp_c:k10temp-Tctl}°", " {memory_percent}%"]
+interval.cpu = 3
+interval.temps = 5
+interval.memory = 5
+
+# GPU power
+[[end]]
+type = "label"
+class = "bar-gpu"
+label = "{{10000:nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null | awk '{printf \"%.0fW\", $1}' || echo ''}}"
+
+# Bluetooth
+[[end]]
+type = "label"
+class = "bar-bt"
+label = "{{10000:n=$(bluetoothctl devices Connected 2>/dev/null | wc -l); [ \"$n\" -gt 0 ] && echo \"󰂯 $n\" || echo ''}}"
+
+# Updates
+[[end]]
+type = "label"
+class = "bar-updates"
+label = "{{3600000:n=$(checkupdates 2>/dev/null | wc -l); [ \"$n\" -gt 0 ] && echo \" $n\" || echo ''}}"
+on_click_left = "!kitty -e yay"
+
+# MX mouse battery
+[[end]]
+type = "label"
+class = "bar-mx"
+label = "{{300000:$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r 'if .percentage then \"󰂂 \\(.percentage)%\" else \"\" end' || echo ''}}"
+
+# Volume
+[[end]]
+type = "volume"
+format = "{icon} {percentage}%"
+max_volume = 100
+icons.volume_high = "󰕾"
+icons.volume_medium = "󰖀"
+icons.volume_low = "󰕿"
+icons.muted = "󰝟"
+
+# Weather
+[[end]]
+type = "label"
+class = "bar-weather"
+label = "{{1800000:$HOME/hairglasses-studio/dotfiles/scripts/eww-weather.sh 2>/dev/null || echo ''}}"
+
+# Network
+[[end]]
+type = "label"
+class = "bar-net"
+label = "{{5000: ip -j route get 1.1.1.1 2>/dev/null | jq -r '.[0].dev // \"none\"'}}"
+on_click_left = "!kitty -e nmtui"
+
+# Audit
+[[end]]
+type = "label"
+class = "bar-audit"
+label = "{{60000:n=$(wc -l < ~/.local/state/mcpkit/audit.jsonl 2>/dev/null); [ \"$n\" -gt 0 ] && echo \"󰒋 $n calls\" || echo ''}}"
+
+# System tray
+[[end]]
+type = "tray"
+icon_size = 20
+direction = "horizontal"
