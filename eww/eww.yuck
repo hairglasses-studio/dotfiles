@@ -487,7 +487,7 @@
 
 (defwindow calendar-popup
   :monitor 0
-  :geometry (geometry :x "0px" :y "40px" :width "280px" :height "280px" :anchor "top center")
+  :geometry (geometry :x "0px" :y "30px" :width "280px" :height "280px" :anchor "top center")
   :stacking "overlay"
   :exclusive false
   :focusable false
@@ -553,8 +553,8 @@
 
 (defwindow sidebar
   :monitor 0
-  :geometry (geometry :x "0px" :y "40px"
-                      :width "360px" :height "100%"
+  :geometry (geometry :x "0px" :y "30px"
+                      :width "320px" :height "100%"
                       :anchor "top right")
   :stacking "overlay"
   :exclusive false

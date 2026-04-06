@@ -18,7 +18,7 @@ setup() {
     # Create synthetic playlist
     cat > "${TEST_PLAYLIST_DIR}/test-playlist.txt" << 'EOF'
 # Test font playlist — family|size
-Maple Mono NF CN|12
+Hack Nerd Font|12
 Iosevka Nerd Font Mono|12
 Fira Code|14
 Hack Nerd Font Mono|13
@@ -26,7 +26,7 @@ EOF
 
     # Create a minimal Ghostty config
     cat > "$TEST_CONFIG" << 'CFG'
-font-family = Maple Mono NF CN
+font-family = Hack Nerd Font
 font-size = 12
 background = #000000
 CFG
@@ -80,7 +80,7 @@ teardown() {
 @test "font-playlist: list shows playlist entries" {
     run bash "$PATCHED_SCRIPT" list
     assert_success
-    assert_output --partial "Maple Mono NF CN"
+    assert_output --partial "Hack Nerd Font"
     assert_output --partial "Iosevka Nerd Font Mono"
     assert_output --partial "Fira Code"
     assert_output --partial "Hack Nerd Font Mono"
@@ -131,7 +131,7 @@ teardown() {
     bash "$PATCHED_SCRIPT" next
     run bash "$PATCHED_SCRIPT" next
     assert_success
-    assert_output --partial "Maple Mono NF CN"
+    assert_output --partial "Hack Nerd Font"
     assert_output --partial "[1/4]"
 }
 
@@ -171,7 +171,7 @@ teardown() {
 @test "font-playlist: current shows active font and size" {
     run bash "$PATCHED_SCRIPT" current
     assert_success
-    assert_output --partial "Maple Mono NF CN"
+    assert_output --partial "Hack Nerd Font"
     assert_output --partial "12pt"
 }
 

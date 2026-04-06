@@ -11,7 +11,7 @@
 @define-color red #ff5c57;
 
 * {
-  font-family: "Maple Mono NF CN", monospace;
+  font-family: "Hack Nerd Font", monospace;
   font-size: 12px;
   color: @fg;
   border: none;
@@ -21,7 +21,7 @@
 #bar {
   background-color: @bg_dark;
   border-bottom: 1px solid alpha(@cyan, 0.3);
-  padding: 0 8px;
+  padding: 0 4px;
 }
 
 .background {
@@ -38,7 +38,7 @@
   color: @dim;
   padding: 2px 8px;
   margin: 2px 1px;
-  border-radius: 4px;
+  border-radius: 3px;
   border-bottom: 2px solid transparent;
   transition: all 150ms ease;
 }
@@ -80,14 +80,14 @@
 
 .clock {
   font-weight: bold;
-  padding: 0 16px;
+  padding: 0 8px;
   color: @fg;
 }
 
 .popup-clock {
   background-color: @bg_dark;
   border: 1px solid alpha(@cyan, 0.3);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 16px;
 }
 
@@ -218,7 +218,7 @@
 .popup-volume {
   background-color: @bg_dark;
   border: 1px solid alpha(@cyan, 0.3);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 12px;
 }
 
@@ -268,7 +268,7 @@
 popover, popover > contents {
   background-color: @bg_dark;
   border: 1px solid alpha(@cyan, 0.3);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 12px;
   color: @fg;
 }

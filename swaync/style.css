@@ -47,7 +47,7 @@
 /* ── Notification text ──────────────────────────── */
 .summary {
     color: #57c7ff;
-    font-family: "Maple Mono NF CN";
+    font-family: "Hack Nerd Font";
     font-size: 12px;
     font-weight: bold;
     text-shadow: 0 0 4px rgba(87, 199, 255, 0.4);
@@ -55,13 +55,13 @@
 
 .body {
     color: #f1f1f0;
-    font-family: "Maple Mono NF CN";
+    font-family: "Hack Nerd Font";
     font-size: 11px;
 }
 
 .time {
     color: @noti-fg-dim;
-    font-family: "Maple Mono NF CN";
+    font-family: "Hack Nerd Font";
     font-size: 10px;
 }
 
@@ -127,7 +127,7 @@
 /* ── Control center title ───────────────────────── */
 .widget-title {
     color: @cyan;
-    font-family: "Maple Mono NF CN";
+    font-family: "Hack Nerd Font";
     font-size: 14px;
     font-weight: bold;
     margin: 8px;
@@ -140,7 +140,7 @@
     border-radius: 6px;
     color: @magenta;
     padding: 4px 12px;
-    font-family: "Maple Mono NF CN";
+    font-family: "Hack Nerd Font";
     font-size: 11px;
     transition: all 200ms ease;
 }
@@ -154,7 +154,7 @@
 .widget-dnd {
     margin: 4px 8px;
     color: @noti-fg;
-    font-family: "Maple Mono NF CN";
+    font-family: "Hack Nerd Font";
     font-size: 12px;
 }
 

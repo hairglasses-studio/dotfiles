@@ -5,7 +5,7 @@ Monaspace Argon|12
 Monaspace Xenon|12
 Monaspace Radon|12
 Monaspace Krypton|12
-Maple Mono NF CN|12
+Hack Nerd Font|12
 Iosevka Nerd Font Mono|12
 CommitMono Nerd Font Mono|12
 GeistMono Nerd Font Mono|12

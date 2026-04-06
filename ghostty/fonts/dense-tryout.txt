@@ -1,6 +1,6 @@
 # Dense terminal font tryout — family|size
 # Cycle with: font-playlist.sh next dense-tryout
-Maple Mono NF CN|12
+Hack Nerd Font|12
 Iosevka Nerd Font Mono|12
 CommitMono Nerd Font Mono|12
 GeistMono Nerd Font Mono|12
