@@ -18,6 +18,7 @@ linters:
     - ineffassign
     - gocritic
     - misspell
+    - gosec
 
   settings:
     errcheck:
@@ -46,6 +47,15 @@ linters:
         - unreachable
         - unusedresult
 
+    gosec:
+      excludes:
+        - G104         # Unhandled errors — already covered by errcheck
+        - G107         # HTTP request with variable URL — standard in MCP tools/clients
+        - G115         # Integer overflow on conversion — too noisy, most int conversions are safe
+        - G204         # Subprocess with variable args — required by shell-wrapping MCP tools
+        - G304         # File path from variable — required by config management tools
+        - G306         # Poor file permissions — default os.WriteFile perms are fine
+
     staticcheck:
       checks:
         - "all"
@@ -59,6 +69,7 @@ issues:
     - path: _test\.go
       linters:
         - errcheck
+        - gosec
 
   exclude-dirs:
     - vendor

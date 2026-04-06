@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.1"
+          cache: true
+
+      # mapitall depends on ../mapping via replace directive in go.mod.
+      # Until Task 1.5 removes the replace and pins to a tagged version,
+      # we checkout mapping side-by-side so the relative path resolves.
+      - name: Checkout mapping dependency
+        uses: actions/checkout@v4
+        with:
+          repository: hairglasses-studio/mapping
+          path: mapping
+
+      # Move mapping to the sibling path that go.mod replace expects
+      - name: Setup mapping at ../mapping
+        run: |
+          mv mapping ../mapping
+
+      - run: go mod download
+      - run: go vet ./...
+      - run: go test ./... -count=1 -race -timeout 10m
+      - run: go build ./cmd/mapitall
