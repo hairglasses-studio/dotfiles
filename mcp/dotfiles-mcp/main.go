@@ -24,6 +24,7 @@ import (
 	"github.com/hairglasses-studio/dotfiles-mcp/internal/tracing"
 	"github.com/hairglasses-studio/mcpkit/handler"
 	"github.com/hairglasses-studio/mcpkit/registry"
+	"github.com/hairglasses-studio/mcpkit/resilience"
 )
 
 // ---------------------------------------------------------------------------
@@ -2957,9 +2958,11 @@ func main() {
 	shutdownTracing := tracing.Init(ctx, dotfilesMCPVersion)
 	defer shutdownTracing(ctx)
 
+	cbRegistry := resilience.NewCircuitBreakerRegistry(nil)
 	mw := []registry.Middleware{
 		registry.AuditMiddleware(""),
 		registry.SafetyTierMiddleware(),
+		resilience.CircuitBreakerMiddleware(cbRegistry),
 		tracing.Middleware(),
 	}
 
