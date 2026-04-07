@@ -7,6 +7,8 @@
 
 Full-stack development environment for Manjaro Linux (Hyprland) and macOS (AeroSpace). Combines GPU-rendered shader pipelines, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
+![Desktop — Hyprland + eww sidebar + tiled terminals (Snazzy palette)](.github/assets/desktop.png)
+
 ### Technical Highlights
 
 - **GPU Shaders**: 131 GLSL shaders with runtime compilation, playlist rotation, and auto-benchmarking
