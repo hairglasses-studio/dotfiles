@@ -74,7 +74,7 @@ func (m *Module) Description() string {
 
 func (m *Module) Tools() []tools.ToolDefinition {
 	return []tools.ToolDefinition{
-		// Progressive discovery tools (webb pattern)
+		// Progressive discovery tools (cobb pattern)
 		{
 			Tool: mcp.NewTool("aftrs_tool_discover",
 				mcp.WithDescription("Browse tools with configurable detail level for token efficiency. Use 'names' for ~500 tokens, 'signatures' for ~800, 'descriptions' for ~2000, or 'full' for complete schemas."),

@@ -144,7 +144,7 @@ aftrs_streaming platform=ndi action=sources
 
 ## Architecture
 
-Gateway tools follow the "mega-tool" pattern from webb MCP server architecture. Each gateway:
+Gateway tools follow the "mega-tool" pattern from cobb MCP server architecture. Each gateway:
 
 1. **Routes by domain** - First parameter specifies the target system
 2. **Routes by action** - Second parameter specifies the operation

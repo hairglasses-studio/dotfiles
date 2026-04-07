@@ -1,19 +1,19 @@
 # AFTRS-MCP Architecture Roadmap
 
-> Research findings from analyzing ~/example-corp/webb - a mature MCP server with 1,254 tools
+> Research findings from analyzing ~/example-corp/cobb - a mature MCP server with 1,254 tools
 
 **Last Updated:** January 2026
 
 ## Executive Summary
 
-Webb is an enterprise-grade MCP server for SRE/DevOps with sophisticated features that hg-mcp can adopt. Key learnings organized by implementation priority.
+Cobb is an enterprise-grade MCP server for SRE/DevOps with sophisticated features that hg-mcp can adopt. Key learnings organized by implementation priority.
 
 ---
 
 ## Phase 1: Architecture Improvements (Foundation)
 
 ### 1.1 Enhanced Tool Registry (HIGH PRIORITY)
-**Webb Pattern:** Rich metadata beyond basic tool definitions
+**Cobb Pattern:** Rich metadata beyond basic tool definitions
 
 ```go
 type ToolDefinition struct {
@@ -41,7 +41,7 @@ type ToolDefinition struct {
 - File: `internal/mcp/tools/registry.go`
 
 ### 1.2 MCP 2025 Annotations (HIGH PRIORITY)
-**Webb Pattern:** Auto-apply annotations based on tool metadata
+**Cobb Pattern:** Auto-apply annotations based on tool metadata
 
 ```go
 func applyMCPAnnotations(td *ToolDefinition) {
@@ -59,7 +59,7 @@ func applyMCPAnnotations(td *ToolDefinition) {
 - File: `internal/mcp/tools/registry.go`
 
 ### 1.3 Request Context Pattern (MEDIUM PRIORITY)
-**Webb Pattern:** Per-request isolation for multi-user
+**Cobb Pattern:** Per-request isolation for multi-user
 
 ```go
 type RequestContext struct {
@@ -78,7 +78,7 @@ type RequestContext struct {
 - [ ] Add request ID generation
 
 ### 1.4 Hook System (MEDIUM PRIORITY)
-**Webb Pattern:** Pre/post execution hooks for audit, auth, tracking
+**Cobb Pattern:** Pre/post execution hooks for audit, auth, tracking
 
 ```go
 type HookManager struct {
@@ -97,7 +97,7 @@ type HookManager struct {
 ## Phase 2: Progressive Tool Discovery (Token Efficiency)
 
 ### 2.1 Discovery Tools (HIGH PRIORITY) ✅ COMPLETE
-**Webb Pattern:** 4-level progressive disclosure
+**Cobb Pattern:** 4-level progressive disclosure
 
 | Tool | Tokens | Returns |
 |------|--------|---------|
@@ -122,7 +122,7 @@ type HookManager struct {
 
 ### 2.2 Tool Catalog & Tree View ✅ COMPLETE
 
-**Webb Pattern:** Hierarchical browsing
+**Cobb Pattern:** Hierarchical browsing
 
 - [x] `aftrs_tool_catalog` - browse by category/subcategory
 - [x] `aftrs_tools_related` - find related tools
@@ -134,7 +134,7 @@ type HookManager struct {
 
 ### 3.1 Gateway Pattern (HIGH PRIORITY) ✅ COMPLETE
 
-**Webb Pattern:** Single entry point for domain operations
+**Cobb Pattern:** Single entry point for domain operations
 
 ```go
 // Instead of 15 separate AWS tools:
@@ -149,7 +149,7 @@ Tool: mcp.Tool{
 }
 ```
 
-**Webb has 20 gateway tools:**
+**Cobb has 20 gateway tools:**
 - `webb_aws` - AWS operations
 - `webb_slack` - Slack operations
 - `webb_k8s` - Kubernetes operations
@@ -167,9 +167,9 @@ Tool: mcp.Tool{
 
 ### 3.2 Consolidated Health Tools ✅ COMPLETE
 
-**Webb Pattern:** Multi-source aggregation
+**Cobb Pattern:** Multi-source aggregation
 
-| Webb Tool | Sources Combined |
+| Cobb Tool | Sources Combined |
 |-----------|------------------|
 | `webb_cluster_health_full` | K8s + queues + DB + alerts |
 | `webb_ticket_summary` | Pylon + Shortcut + Incident.io |
@@ -193,7 +193,7 @@ Tool: mcp.Tool{
 
 ### 4.1 Chain Executor (HIGH VALUE) ✅ COMPLETE
 
-**Webb Pattern:** Multi-step workflows with gates
+**Cobb Pattern:** Multi-step workflows with gates
 
 ```go
 type Chain struct {
@@ -234,7 +234,7 @@ type ChainStep struct {
 - File: `internal/mcp/tools/chains/module.go`
 
 ### 4.2 Event-Driven Triggers
-**Webb Pattern:** Chains triggered by events
+**Cobb Pattern:** Chains triggered by events
 
 ```go
 type ChainTrigger struct {
@@ -249,7 +249,7 @@ type ChainTrigger struct {
 ## Phase 5: Knowledge Graph & Vault
 
 ### 5.1 Knowledge Graph (MEDIUM PRIORITY)
-**Webb Pattern:** Entity relationships for context
+**Cobb Pattern:** Entity relationships for context
 
 ```go
 type KnowledgeGraph struct {
@@ -274,7 +274,7 @@ type Edge struct {
 - [ ] Link to Obsidian vault
 
 ### 5.2 Session Memory (MEDIUM PRIORITY)
-**Webb Pattern:** 4-component memory system
+**Cobb Pattern:** 4-component memory system
 
 1. **User memories** - #remember team knowledge
 2. **Session insights** - Auto-generated learnings
@@ -290,7 +290,7 @@ type Edge struct {
 ## Phase 6: Advanced Features
 
 ### 6.1 Self-Healing/Remediation
-**Webb Pattern:** Automated response to issues
+**Cobb Pattern:** Automated response to issues
 
 ```go
 type RemediationPlaybook struct {
@@ -309,7 +309,7 @@ type RemediationPlaybook struct {
 - [ ] `failover_stream` - Switch to backup
 
 ### 6.2 MCP Federation
-**Webb Pattern:** Connect to remote MCP servers
+**Cobb Pattern:** Connect to remote MCP servers
 
 ```go
 type FederatedTool struct {
@@ -325,7 +325,7 @@ type FederatedTool struct {
 - [ ] Integrate with external services
 
 ### 6.3 Research/Swarm System
-**Webb Pattern:** Autonomous research workers
+**Cobb Pattern:** Autonomous research workers
 
 - 15+ worker types running in parallel
 - Pattern discovery from usage
@@ -341,14 +341,14 @@ type FederatedTool struct {
 ## Phase 7: Observability Enhancements
 
 ### 7.1 OpenTelemetry (Already Have - Enhance)
-**Webb Pattern:** Comprehensive instrumentation
+**Cobb Pattern:** Comprehensive instrumentation
 
 - [ ] Add per-tool latency histograms
 - [ ] Track tool success/failure rates
 - [ ] Add token usage metrics
 
 ### 7.2 Feedback Loop
-**Webb Pattern:** Tool routing optimization
+**Cobb Pattern:** Tool routing optimization
 
 ```go
 type FeedbackMetrics struct {
@@ -380,7 +380,7 @@ type FeedbackMetrics struct {
 
 ## Tool Count Comparison
 
-| Metric | Webb | AFTRS Current | AFTRS Target |
+| Metric | Cobb | AFTRS Current | AFTRS Target |
 |--------|------|---------------|--------------|
 | Total Tools | 1,254 | 719 | 1,000+ |
 | Categories | 57 | 72 | 80+ |
@@ -391,13 +391,13 @@ type FeedbackMetrics struct {
 
 ## Key Files to Reference
 
-**Webb Architecture:**
-- `~/example-corp/webb/internal/mcp/tools/registry.go` (2047 lines)
-- `~/example-corp/webb/internal/mcp/context.go`
-- `~/example-corp/webb/internal/mcp/hooks.go`
-- `~/example-corp/webb/internal/chains/executor.go`
-- `~/example-corp/webb/internal/clients/knowledgegraph.go` (130KB)
-- `~/example-corp/webb/internal/clients/self_healing.go` (98KB)
+**Cobb Architecture:**
+- `~/example-corp/cobb/internal/mcp/tools/registry.go` (2047 lines)
+- `~/example-corp/cobb/internal/mcp/context.go`
+- `~/example-corp/cobb/internal/mcp/hooks.go`
+- `~/example-corp/cobb/internal/chains/executor.go`
+- `~/example-corp/cobb/internal/clients/knowledgegraph.go` (130KB)
+- `~/example-corp/cobb/internal/clients/self_healing.go` (98KB)
 
 **AFTRS Files to Modify:**
 - `internal/mcp/tools/registry.go` - Enhance ToolDefinition

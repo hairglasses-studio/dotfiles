@@ -12,7 +12,7 @@ This repository serves as the centralized MCP server for the AFTRS ecosystem, ag
 ## Phase 1: Foundation ✅ COMPLETE
 
 ### 1.1 Core Infrastructure
-- [x] Set up Go MCP server skeleton (based on webb patterns)
+- [x] Set up Go MCP server skeleton (based on cobb patterns)
 - [x] Implement modular tool registration system
 - [x] Create transport layer (stdio for local, SSE for remote)
 - [x] Add configuration management via environment variables
@@ -174,9 +174,9 @@ This repository serves as the centralized MCP server for the AFTRS ecosystem, ag
 
 ---
 
-## Webb Project Insights (Reference Implementation)
+## Cobb Project Insights (Reference Implementation)
 
-Analysis of ~/example-corp/webb reveals production-grade patterns for Go MCP servers:
+Analysis of ~/example-corp/cobb reveals production-grade patterns for Go MCP servers:
 
 ### Architecture Patterns to Adopt
 
@@ -468,7 +468,7 @@ session.Identify.Intents = discordgo.IntentsGuilds |
 
 ### Overview
 
-Implement a Go-based secrets manager for hg-mcp, inspired by webb's secretsoperator and `webb_whoami()` patterns.
+Implement a Go-based secrets manager for hg-mcp, inspired by cobb's secretsoperator and `webb_whoami()` patterns.
 
 ### Design Principles
 
@@ -621,12 +621,12 @@ externalSecrets:
 - 999+ tracks, 27 playlists, 21 queue items migrated
 - Local downloads migration in progress (28GB → S3)
 
-### 2025-12-29: Webb Analysis Complete
+### 2025-12-29: Cobb Analysis Complete
 
-- Analyzed ~/example-corp/webb for Go MCP patterns
+- Analyzed ~/example-corp/cobb for Go MCP patterns
 - Documented modular tool system, lazy loading, consolidated tools
 - Identified authentication, observability, caching patterns
-- Created implementation roadmap based on webb architecture
+- Created implementation roadmap based on cobb architecture
 
 ### 2025-12-30: AWS Infrastructure & Observability
 

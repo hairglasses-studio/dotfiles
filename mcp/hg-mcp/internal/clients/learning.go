@@ -122,8 +122,8 @@ type VenuePattern struct {
 func NewLearningClient() (*LearningClient, error) {
 	return &LearningClient{
 		vaultPath:    config.Get().AftrsVaultPath,
-		learningRate: 0.2, // From webb
-		minSamples:   3,   // From webb
+		learningRate: 0.2, // From cobb
+		minSamples:   3,   // From cobb
 		weightBounds: [2]float64{0.1, 5.0},
 		patterns:     []LearnedPattern{},
 		symptoms:     []SymptomRecord{},
