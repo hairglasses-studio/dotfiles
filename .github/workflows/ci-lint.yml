@@ -3,20 +3,38 @@ name: Lint
 on:
   push:
     branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'ghostty/shaders/bin/**'
+      - 'install.sh'
+      - '**/*.json'
+      - '**/*.toml'
+      - '.github/workflows/ci-lint.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'ghostty/shaders/bin/**'
+      - 'install.sh'
+      - '**/*.json'
+      - '**/*.toml'
+      - '.github/workflows/ci-lint.yml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   shellcheck:
     name: ShellCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@2.0.0
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
         with:
           scandir: scripts
           additional_files: >-
@@ -34,7 +52,7 @@ jobs:
     name: Config Syntax
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Validate JSON files
         run: |
           for f in clipse/*.json ghosttyfetch/config.json; do
