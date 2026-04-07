@@ -4,6 +4,7 @@
 [![Shaders](https://img.shields.io/badge/GLSL_Shaders-131-purple)](ghostty/shaders/)
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
+[![CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml)
 
 Full-stack development environment for Manjaro Linux (Hyprland) and macOS (AeroSpace). Combines GPU-rendered shader pipelines, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
