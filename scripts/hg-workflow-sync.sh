@@ -39,16 +39,25 @@ repo_is_selected() {
   return 1
 }
 
+workflow_source() {
+  local wf="$1"
+  if [[ -f "$ORG_GITHUB/workflow-templates/$wf" ]]; then
+    printf '%s\n' "$ORG_GITHUB/workflow-templates/$wf"
+  else
+    printf '%s\n' "$ORG_GITHUB/.github/workflows/$wf"
+  fi
+}
+
 # ── Canonical workflow sources ───────────────
 declare -A CANONICAL
 CANONICAL[ci.yml]="$DOTFILES/make/ci-go.yml"
-CANONICAL[claude-review.yml]="$ORG_GITHUB/workflow-templates/claude-review.yml"
-CANONICAL[claude-security.yml]="$ORG_GITHUB/workflow-templates/claude-security.yml"
-CANONICAL[codex-review.yml]="$ORG_GITHUB/workflow-templates/codex-review.yml"
-CANONICAL[codex-security.yml]="$ORG_GITHUB/workflow-templates/codex-security.yml"
-CANONICAL[codex-structured-audit.yml]="$ORG_GITHUB/workflow-templates/codex-structured-audit.yml"
+CANONICAL[claude-review.yml]="$(workflow_source claude-review.yml)"
+CANONICAL[claude-security.yml]="$(workflow_source claude-security.yml)"
+CANONICAL[codex-review.yml]="$(workflow_source codex-review.yml)"
+CANONICAL[codex-security.yml]="$(workflow_source codex-security.yml)"
+CANONICAL[codex-structured-audit.yml]="$(workflow_source codex-structured-audit.yml)"
 CANONICAL[codex-baseline-guard.yml]="$ORG_GITHUB/workflow-templates/codex-baseline-guard.yml"
-CANONICAL[ai-dispatch.yml]="$ORG_GITHUB/workflow-templates/ai-dispatch.yml"
+CANONICAL[ai-dispatch.yml]="$(workflow_source ai-dispatch.yml)"
 CANONICAL[dependabot-auto-merge.yml]="$STUDIO/mcpkit/.github/workflows/dependabot-auto-merge.yml"
 
 hg_info "Workflow sync — comparing against canonical sources"

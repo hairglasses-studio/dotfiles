@@ -12,6 +12,15 @@ STUDIO="$HOME/hairglasses-studio"
 DOTFILES="$STUDIO/dotfiles"
 ORG_GITHUB="$STUDIO/.github"
 
+workflow_source() {
+  local wf="$1"
+  if [[ -f "$ORG_GITHUB/workflow-templates/$wf" ]]; then
+    printf '%s\n' "$ORG_GITHUB/workflow-templates/$wf"
+  else
+    printf '%s\n' "$ORG_GITHUB/.github/workflows/$wf"
+  fi
+}
+
 REPO_PATH=""
 LANG="auto"
 DRY_RUN=false
@@ -164,7 +173,7 @@ fi
 $DRY_RUN || mkdir -p .github/workflows
 for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml codex-structured-audit.yml codex-baseline-guard.yml ai-dispatch.yml dependabot-auto-merge.yml; do
   if [[ ! -f ".github/workflows/$wf" ]]; then
-    src="$ORG_GITHUB/workflow-templates/$wf"
+    src="$(workflow_source "$wf")"
     [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
     if [[ -f "$src" ]]; then
       $DRY_RUN || command cp -f "$src" ".github/workflows/$wf"
@@ -181,6 +190,17 @@ if [[ ! -f .codex/config.toml ]]; then
     mkdir -p .codex
     command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/config.toml
     add_file ".codex/config.toml"
+  fi
+fi
+
+# ── Gemini review config ─────────────────────
+if [[ ! -f .gemini/config.yaml ]]; then
+  if $DRY_RUN; then
+    add_file ".gemini/config.yaml"
+  else
+    mkdir -p .gemini
+    command cp -f "$SCRIPT_DIR/../templates/gemini-config.standard.yaml" .gemini/config.yaml
+    add_file ".gemini/config.yaml"
   fi
 fi
 

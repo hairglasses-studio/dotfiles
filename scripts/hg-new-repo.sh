@@ -10,6 +10,15 @@ DOTFILES="$HOME/hairglasses-studio/dotfiles"
 ORG_GITHUB="$HOME/hairglasses-studio/.github"
 STUDIO="$HOME/hairglasses-studio"
 
+workflow_source() {
+  local wf="$1"
+  if [[ -f "$ORG_GITHUB/workflow-templates/$wf" ]]; then
+    printf '%s\n' "$ORG_GITHUB/workflow-templates/$wf"
+  else
+    printf '%s\n' "$ORG_GITHUB/.github/workflows/$wf"
+  fi
+}
+
 NAME="${1:-}"
 LANG="${2:-go}"
 
@@ -73,7 +82,7 @@ hg_ok "Created LICENSE, CONTRIBUTING.md (issue/PR templates inherited from org)"
 mkdir -p .github/workflows
 # Copy standard workflows from the org templates
 for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml codex-structured-audit.yml codex-baseline-guard.yml ai-dispatch.yml dependabot-auto-merge.yml; do
-  src="$ORG_GITHUB/workflow-templates/$wf"
+  src="$(workflow_source "$wf")"
   [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
   [[ -f "$src" ]] && command cp -f "$src" ".github/workflows/$wf"
 done
@@ -213,6 +222,11 @@ hg_ok "Generated CLAUDE.md, GEMINI.md, and .github/copilot-instructions.md"
 mkdir -p .codex
 command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/config.toml
 hg_ok "Created .codex/config.toml from shared standard"
+
+# ── Gemini review config ─────────────────────
+mkdir -p .gemini
+command cp -f "$SCRIPT_DIR/../templates/gemini-config.standard.yaml" .gemini/config.yaml
+hg_ok "Created .gemini/config.yaml from shared standard"
 
 # ── Canonical skill surface ──────────────────
 SKILL_NAME="${NAME//-/_}_ops"
