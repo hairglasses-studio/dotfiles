@@ -1,6 +1,6 @@
 # Configuration Templates
 
-Standard configuration files for aftrs-studio audiovisual projects.
+Standard configuration files for hairglasses-studio audiovisual projects.
 
 ## Files
 
@@ -14,7 +14,7 @@ Standard configuration files for aftrs-studio audiovisual projects.
 ### Copy to Your Project
 
 ```bash
-cp ~/aftrs-studio/luke-toolkit/configs/osc-defaults.yaml ./config/
+cp ~/hairglasses-studio/luke-toolkit/configs/osc-defaults.yaml ./config/
 ```
 
 ### Load in Python

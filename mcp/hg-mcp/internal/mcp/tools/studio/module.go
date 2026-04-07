@@ -91,7 +91,7 @@ func (m *Module) Tools() []tools.ToolDefinition {
 			CircuitBreakerGroup: "studio",
 		},
 		{
-			Tool: mcp.NewTool("aftrs_studio_health",
+			Tool: mcp.NewTool("hairglasses_studio_health",
 				mcp.WithDescription("Get comprehensive studio health score across all systems."),
 			),
 			Handler:             handleStudioHealth,
@@ -323,7 +323,7 @@ func handleHardwareStatus(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	return tools.TextResult(sb.String()), nil
 }
 
-// handleStudioHealth handles the aftrs_studio_health tool
+// handleStudioHealth handles the hairglasses_studio_health tool
 func handleStudioHealth(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	health, err := clients.GetStudioHealth(ctx)
 	if err != nil {

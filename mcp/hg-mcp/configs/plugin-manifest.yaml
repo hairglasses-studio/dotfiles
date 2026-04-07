@@ -7,66 +7,66 @@ plugins:
   - name: "td-audio-analyzer"
     description: "Real-time audio analysis component with FFT visualization"
     type: touchdesigner_tox
-    repo: "aftrs-studio/td-audio-analyzer"
+    repo: "hairglasses-studio/td-audio-analyzer"
     tags: ["audio", "visualization", "fft"]
 
   - name: "td-midi-mapper"
     description: "MIDI input mapping and visualization component"
     type: touchdesigner_tox
-    repo: "aftrs-studio/td-midi-mapper"
+    repo: "hairglasses-studio/td-midi-mapper"
     tags: ["midi", "control", "mapping"]
 
   - name: "td-ndi-manager"
     description: "NDI source discovery and management"
     type: touchdesigner_tox
-    repo: "aftrs-studio/td-ndi-manager"
+    repo: "hairglasses-studio/td-ndi-manager"
     tags: ["ndi", "video", "streaming"]
 
   - name: "td-osc-bridge"
     description: "OSC message router and bridge component"
     type: touchdesigner_tox
-    repo: "aftrs-studio/td-osc-bridge"
+    repo: "hairglasses-studio/td-osc-bridge"
     tags: ["osc", "network", "control"]
 
   - name: "td-timeline-controller"
     description: "Timeline and cue management system"
     type: touchdesigner_component
-    repo: "aftrs-studio/td-timeline-controller"
+    repo: "hairglasses-studio/td-timeline-controller"
     tags: ["timeline", "cue", "playback"]
 
   # Resolume Plugins
   - name: "resolume-audio-reactive"
     description: "Audio-reactive visual effects pack"
     type: resolume_effect
-    repo: "aftrs-studio/resolume-audio-reactive"
+    repo: "hairglasses-studio/resolume-audio-reactive"
     tags: ["audio", "reactive", "effects"]
 
   - name: "resolume-glitch-pack"
     description: "Glitch and distortion effects collection"
     type: resolume_effect
-    repo: "aftrs-studio/resolume-glitch-pack"
+    repo: "hairglasses-studio/resolume-glitch-pack"
     tags: ["glitch", "distortion", "effects"]
 
   - name: "resolume-ndi-tools"
     description: "NDI source and output tools"
     type: resolume_source
-    repo: "aftrs-studio/resolume-ndi-tools"
+    repo: "hairglasses-studio/resolume-ndi-tools"
     tags: ["ndi", "video", "source"]
 
   - name: "resolume-syphon-bridge"
     description: "Syphon input/output bridge"
     type: resolume_source
-    repo: "aftrs-studio/resolume-syphon-bridge"
+    repo: "hairglasses-studio/resolume-syphon-bridge"
     tags: ["syphon", "video", "bridge"]
 
   - name: "resolume-text-generator"
     description: "Dynamic text generation and animation"
     type: resolume_source
-    repo: "aftrs-studio/resolume-text-generator"
+    repo: "hairglasses-studio/resolume-text-generator"
     tags: ["text", "generator", "animation"]
 
 sources:
   github_orgs:
-    - "aftrs-studio"
+    - "hairglasses-studio"
   manifest_urls:
-    - "https://raw.githubusercontent.com/aftrs-studio/plugin-registry/main/manifest.yaml"
+    - "https://raw.githubusercontent.com/hairglasses-studio/plugin-registry/main/manifest.yaml"

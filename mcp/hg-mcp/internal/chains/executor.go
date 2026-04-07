@@ -49,7 +49,7 @@ func (e *Executor) loadBuiltinChains() {
 			Description: "Power on systems, check health, load project, test outputs",
 			Category:    "show",
 			Steps: []ChainStep{
-				{ID: "1", Name: "Check Studio Health", Type: StepTypeTool, Tool: "aftrs_studio_health", OnError: OnErrorStop},
+				{ID: "1", Name: "Check Studio Health", Type: StepTypeTool, Tool: "hairglasses_studio_health", OnError: OnErrorStop},
 				{ID: "2", Name: "Check AV Systems", Type: StepTypeTool, Tool: "aftrs_av", Inputs: map[string]interface{}{"software": "resolume", "action": "status"}, OnError: OnErrorContinue},
 				{ID: "3", Name: "Check Lighting", Type: StepTypeTool, Tool: "aftrs_lighting", Inputs: map[string]interface{}{"system": "grandma3", "action": "status"}, OnError: OnErrorContinue},
 				{ID: "4", Name: "Check Audio", Type: StepTypeTool, Tool: "aftrs_audio", Inputs: map[string]interface{}{"system": "ableton", "action": "status"}, OnError: OnErrorContinue},

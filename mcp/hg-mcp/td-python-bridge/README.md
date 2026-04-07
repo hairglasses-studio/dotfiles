@@ -30,13 +30,13 @@ The bridge translates HTTP REST requests into Python commands that execute insid
 
 **Option A: Using the startup script (recommended)**
 ```bash
-cd ~/aftrs-studio/hg-mcp/td-python-bridge
+cd ~/hairglasses-studio/hg-mcp/td-python-bridge
 ./start.sh
 ```
 
 **Option B: Manual start**
 ```bash
-cd ~/aftrs-studio/hg-mcp/td-python-bridge
+cd ~/hairglasses-studio/hg-mcp/td-python-bridge
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -413,7 +413,7 @@ python bridge.py
 
 **Unit tests:**
 ```bash
-cd ~/aftrs-studio/hg-mcp/td-python-bridge
+cd ~/hairglasses-studio/hg-mcp/td-python-bridge
 python -m pytest test_bridge.py -v
 ```
 
@@ -424,7 +424,7 @@ python -m pytest test_bridge.py -v
 3. Start bridge: `./start.sh`
 4. Run test script:
    ```bash
-   cd ~/aftrs-studio/hg-mcp
+   cd ~/hairglasses-studio/hg-mcp
    ./test/cli_test.sh
    ```
 
@@ -520,4 +520,4 @@ Part of the AFTRS-MCP project.
 
 ## Support
 
-Issues and questions: https://github.com/aftrs-studio/hg-mcp/issues
+Issues and questions: https://github.com/hairglasses-studio/hg-mcp/issues

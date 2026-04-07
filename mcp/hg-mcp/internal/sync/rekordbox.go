@@ -130,7 +130,7 @@ func (r *RekordboxImporter) buildPlaylistMappings() []PlaylistMapping {
 // runPythonSync runs the Python Rekordbox sync script with timeout and retry
 func (r *RekordboxImporter) runPythonSync(ctx context.Context, mappings []PlaylistMapping) (*PythonSyncOutput, error) {
 	// Find the Python script
-	scriptPath := filepath.Join(os.Getenv("HOME"), "aftrs-studio", "hg-mcp", "scripts", "rekordbox_sync.py")
+	scriptPath := filepath.Join(os.Getenv("HOME"), "hairglasses-studio", "hg-mcp", "scripts", "rekordbox_sync.py")
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 		return nil, WrapPermanent(fmt.Errorf("script not found: %s", scriptPath))
 	}

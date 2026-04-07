@@ -26,7 +26,7 @@ func (m *Module) Description() string {
 func (m *Module) Tools() []tools.ToolDefinition {
 	return []tools.ToolDefinition{
 		{
-			Tool: mcp.NewTool("aftrs_studio_health_full",
+			Tool: mcp.NewTool("hairglasses_studio_health_full",
 				mcp.WithDescription("Get comprehensive studio health: TouchDesigner + Resolume + DMX + NDI + UNRAID in one call. Saves ~60% tokens vs individual calls."),
 			),
 			Handler:             handleStudioHealthFull,
@@ -256,7 +256,7 @@ type HealthComponent struct {
 	Issues  []string
 }
 
-// handleStudioHealthFull handles the aftrs_studio_health_full tool
+// handleStudioHealthFull handles the hairglasses_studio_health_full tool
 func handleStudioHealthFull(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	var components []HealthComponent
 	totalScore := 0

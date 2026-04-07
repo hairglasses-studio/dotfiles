@@ -94,7 +94,7 @@ func (b *BeatportSyncer) syncPlaylist(ctx context.Context, username, playlistID 
 // runBeatportSync runs the beatport-sync command with timeout and retry
 func (b *BeatportSyncer) runBeatportSync(ctx context.Context) error {
 	// Find the beatport-sync binary
-	syncBin := filepath.Join(config.Get().Home, "aftrs-studio", "hg-mcp", "bin", "beatport-sync")
+	syncBin := filepath.Join(config.Get().Home, "hairglasses-studio", "hg-mcp", "bin", "beatport-sync")
 	if _, err := os.Stat(syncBin); os.IsNotExist(err) {
 		log.Printf("beatport-sync not found, skipping download step")
 		return nil

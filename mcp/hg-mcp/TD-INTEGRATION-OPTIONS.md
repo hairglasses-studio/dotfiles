@@ -392,7 +392,7 @@ TouchDesigner → Preferences → Extensions → Add Path:
 
 1. **Create Component Library** (Option 1)
    - Build `AFTRS-MCP-Bridge.tox`
-   - Store in `~/aftrs-studio/visual-projects/touchdesigner/components/`
+   - Store in `~/hairglasses-studio/visual-projects/touchdesigner/components/`
 
 2. **Use Python Bridge** (Option 3) for existing projects
    - No need to modify current 15 projects
@@ -408,7 +408,7 @@ TouchDesigner → Preferences → Extensions → Add Path:
 **Phase 1: Quick Win (Python Bridge)**
 ```bash
 # Create bridge server
-~/aftrs-studio/hg-mcp/td-python-bridge/
+~/hairglasses-studio/hg-mcp/td-python-bridge/
 ├── bridge.py          # Flask server
 ├── requirements.txt   # Python deps
 └── start.sh          # Startup script
@@ -417,7 +417,7 @@ TouchDesigner → Preferences → Extensions → Add Path:
 **Phase 2: Component Library**
 ```bash
 # Create reusable component
-~/aftrs-studio/visual-projects/touchdesigner/components/
+~/hairglasses-studio/visual-projects/touchdesigner/components/
 └── AFTRS-MCP-Bridge.tox
 ```
 

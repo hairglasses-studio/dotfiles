@@ -40,7 +40,7 @@ Personal toolkit for studio work - DJ/music, video processing, TouchDesigner, an
 ### Collaboration & A/V
 | # | Tutorial | Description |
 |---|----------|-------------|
-| 15 | [Collaborative Git Workflow](tutorials/15-collaborative-git-workflow.md) | Working together on aftrs-studio projects |
+| 15 | [Collaborative Git Workflow](tutorials/15-collaborative-git-workflow.md) | Working together on hairglasses-studio projects |
 | 16 | [OSC & MIDI Communication](tutorials/16-osc-midi-communication.md) | Connect TD, Resolume, Ableton |
 | 17 | [Real-time A/V Sync](tutorials/17-realtime-av-sync.md) | Sync visuals to audio |
 
@@ -111,7 +111,7 @@ luke-toolkit/
 
 ## 🤝 Collaboration
 
-Working on aftrs-studio projects together:
+Working on hairglasses-studio projects together:
 
 1. **Read [CONTRIBUTING.md](CONTRIBUTING.md)** - Guidelines and conventions
 2. **Use feature branches** - `luke/feature-name`
@@ -164,13 +164,13 @@ Or use the tutorials above to learn at your own pace.
 ### Week 5+: Audiovisual Projects
 - Complete tutorials 16-17 (OSC/MIDI, A/V Sync)
 - Build audio-reactive visuals
-- Collaborate on aftrs-studio projects
+- Collaborate on hairglasses-studio projects
 
 ---
 
 ## 🔗 Related Repositories
 
-Other aftrs-studio projects you'll work with:
+Other hairglasses-studio projects you'll work with:
 
 - **aftrs-mcp** - MCP tools for studio automation
 - **video-ai-toolkit** - AI video processing

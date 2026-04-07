@@ -100,7 +100,7 @@ func TestIsOrgModule(t *testing.T) {
 	}{
 		{"github.com/hairglasses-studio/mcpkit", true},
 		{"github.com/glasshairs/something", true},
-		{"github.com/aftrs-studio/hg-mcp", true},
+		{"github.com/hairglasses-studio/hg-mcp", true},
 		{"github.com/mark3labs/mcp-go", false},
 		{"golang.org/x/net", false},
 	}
@@ -208,7 +208,7 @@ func TestShortName(t *testing.T) {
 	}{
 		{"github.com/hairglasses-studio/mcpkit", "mcpkit"},
 		{"github.com/glasshairs/foo", "foo"},
-		{"github.com/aftrs-studio/hg-mcp", "hg-mcp"},
+		{"github.com/hairglasses-studio/hg-mcp", "hg-mcp"},
 		{"github.com/mark3labs/mcp-go", "mark3labs/mcp-go"},
 		{"golang.org/x/net", "x/net"},
 	}

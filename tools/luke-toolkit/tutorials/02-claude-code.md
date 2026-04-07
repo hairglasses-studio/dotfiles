@@ -6,7 +6,7 @@ Claude Code is an AI assistant that runs in your terminal. It can read files, wr
 
 ```bash
 # Open in any project folder
-cd ~/aftrs-studio/luke-toolkit
+cd ~/hairglasses-studio/luke-toolkit
 claude
 ```
 

@@ -1,4 +1,4 @@
-# aftrs-studio GitHub Organization Analysis
+# hairglasses-studio GitHub Organization Analysis
 
 *Research conducted: December 23, 2025*
 

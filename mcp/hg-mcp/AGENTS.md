@@ -76,7 +76,7 @@ package mymodule
 
 import (
     "context"
-    "github.com/aftrs-studio/hg-mcp/internal/mcp/tools"
+    "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools"
     "github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -124,7 +124,7 @@ func handleAction(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 
 3. Import the package in `cmd/hg-mcp/main.go`:
 ```go
-_ "github.com/aftrs-studio/hg-mcp/internal/mcp/tools/mymodule"
+_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/mymodule"
 ```
 
 ### Handler Helpers (`internal/mcp/tools/helpers.go`)

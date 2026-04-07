@@ -160,7 +160,7 @@ func NewRekordboxClient() (*RekordboxClient, error) {
 	// Find scripts path
 	scriptsPath := os.Getenv("CR8_SCRIPTS_PATH")
 	if scriptsPath == "" {
-		scriptsPath = filepath.Join(home, "Documents", "aftrs-studio", "cr8-cli", "scripts")
+		scriptsPath = filepath.Join(home, "Documents", "hairglasses-studio", "cr8-cli", "scripts")
 	}
 
 	return &RekordboxClient{
