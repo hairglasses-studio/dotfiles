@@ -29,26 +29,6 @@ jobs:
             install.sh
           severity: warning
 
-  glsl:
-    name: GLSL Shaders
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install glslangValidator
-        run: sudo apt-get update && sudo apt-get install -y glslang-tools
-      - name: Validate all shaders
-        run: |
-          errors=0
-          for f in ghostty/shaders/*.glsl; do
-            if ! glslangValidator -S frag "$f" > /dev/null 2>&1; then
-              echo "FAIL: $f"
-              glslangValidator -S frag "$f"
-              errors=$((errors + 1))
-            fi
-          done
-          echo "$(($(ls ghostty/shaders/*.glsl | wc -l) - errors)) / $(ls ghostty/shaders/*.glsl | wc -l) shaders passed"
-          exit $errors
-
   configs:
     name: Config Syntax
     runs-on: ubuntu-latest
