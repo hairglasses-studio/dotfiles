@@ -29,7 +29,6 @@ This sync covers:
 - generated agent compatibility docs
 - root .claude/settings.json
 - root .gemini/settings.json
-- optional Gemini extension scaffolds for hook-heavy repos
 - generated skill mirrors
 - generated Codex MCP blocks
 - manifest-managed workflows
@@ -253,21 +252,31 @@ verify_or_sync_workflows() {
 verify_or_sync_provider_settings() {
   local repo="$1"
   local repo_path="$2"
-  local claude_expected gemini_expected extension_expected extension_rel
+  local claude_expected
 
   claude_expected="$(hg_parity_render_claude_settings "$repo_path")"
   write_text_file "$repo" "$repo_path" ".claude/settings.json" "$claude_expected" "claude-settings"
 
-  gemini_expected="$(hg_parity_render_gemini_settings "$repo_path")"
-  write_text_file "$repo" "$repo_path" ".gemini/settings.json" "$gemini_expected" "gemini-settings"
-
-  if hg_parity_repo_requires_gemini_extension "$repo_path" "$repo"; then
-    extension_rel="$(hg_parity_gemini_extension_relpath "$repo")"
-    extension_expected="$(hg_parity_render_gemini_extension "$repo_path" "$repo")"
-    write_text_file "$repo" "$repo_path" "$extension_rel" "$extension_expected" "gemini-extension"
+  if "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" --check >/dev/null 2>&1; then
+    report_current "$repo" "gemini-settings"
   else
-    report_current "$repo" "gemini-extension (not required)"
+    case "$MODE" in
+      dry-run|check)
+        report_missing_or_drift "$repo" "gemini-settings"
+        ;;
+      write)
+        if "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" >/dev/null 2>&1; then
+          printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "gemini-settings" "$HG_RESET"
+          UPDATED=$((UPDATED + 1))
+        else
+          hg_warn "$repo: gemini-settings sync failed"
+          mark_failure
+        fi
+        ;;
+    esac
   fi
+
+  report_current "$repo" "gemini-extension (not managed)"
 }
 
 hg_info "Tri-provider parity sync — manifest-backed baseline repos"

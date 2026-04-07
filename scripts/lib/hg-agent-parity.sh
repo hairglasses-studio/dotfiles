@@ -12,7 +12,18 @@ hg_parity_require_tools() {
 }
 
 hg_parity_objectives_path() {
-  printf '%s\n' "${HG_PARITY_OBJECTIVES_PATH:-$HG_STUDIO_ROOT/docs/projects/codex-migration/parity-objectives.json}"
+  if [[ -n "${HG_PARITY_OBJECTIVES_PATH:-}" ]]; then
+    printf '%s\n' "$HG_PARITY_OBJECTIVES_PATH"
+    return 0
+  fi
+
+  local preferred="$HG_STUDIO_ROOT/docs/projects/agent-parity/parity-objectives.json"
+  local legacy="$HG_STUDIO_ROOT/docs/projects/codex-migration/parity-objectives.json"
+  if [[ -f "$preferred" ]]; then
+    printf '%s\n' "$preferred"
+  else
+    printf '%s\n' "$legacy"
+  fi
 }
 
 hg_parity_manifest_path() {
@@ -144,15 +155,51 @@ hg_parity_gemini_extension_relpath() {
   printf '.gemini/extensions/%s/gemini-extension.json\n' "$ext_name"
 }
 
+hg_parity_gemini_owner_path() {
+  local repo_path="$1"
+  printf '%s\n' "$repo_path/.gemini/.hg-gemini-settings-sync.json"
+}
+
+hg_parity_gemini_sync_metadata_json() {
+  local repo_path="$1"
+  local metadata
+  metadata="$(hg_parity_gemini_owner_path "$repo_path")"
+  if [[ ! -f "$metadata" ]]; then
+    printf '{}\n'
+    return 0
+  fi
+
+  jq -c 'if type == "object" then . else {} end' "$metadata"
+}
+
+hg_parity_gemini_translated_hook_rule_count() {
+  local repo_path="$1"
+  local metadata
+  metadata="$(hg_parity_gemini_owner_path "$repo_path")"
+  if [[ ! -f "$metadata" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  jq -r '.translated_hook_rules // 0' "$metadata"
+}
+
+hg_parity_gemini_unsupported_hook_rule_count() {
+  local repo_path="$1"
+  local metadata
+  metadata="$(hg_parity_gemini_owner_path "$repo_path")"
+  if [[ ! -f "$metadata" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  jq -r '.unsupported_claude_hook_rules // 0' "$metadata"
+}
+
 hg_parity_repo_requires_gemini_extension() {
   local repo_path="$1"
   local repo_name="$2"
-  local default_value=false
-  if hg_parity_repo_has_claude_hooks "$repo_path"; then
-    default_value=true
-  fi
-
-  [[ "$(hg_parity_repo_objective_bool "$repo_name" "gemini_extension_scaffold" "$default_value")" == "true" ]]
+  [[ "$(hg_parity_repo_objective_bool "$repo_name" "gemini_extension_scaffold" "false")" == "true" ]]
 }
 
 hg_parity_render_claude_settings() {
@@ -262,15 +309,21 @@ hg_parity_provider_mcp_bridge_ok() {
 hg_parity_provider_hook_bridge_ok() {
   local repo_path="$1"
   local repo_name="$2"
-  if ! hg_parity_repo_requires_gemini_extension "$repo_path" "$repo_name"; then
+  local unsupported translated
+  unsupported="$(hg_parity_gemini_unsupported_hook_rule_count "$repo_path")"
+  translated="$(hg_parity_gemini_translated_hook_rule_count "$repo_path")"
+
+  if ! hg_parity_repo_has_claude_hooks "$repo_path"; then
     printf '1\n'
     return 0
   fi
 
-  local extension_path
-  extension_path="$repo_path/$(hg_parity_gemini_extension_relpath "$repo_name")"
-  if [[ -f "$extension_path" ]] && \
-     jq -e '.contextFileName == "GEMINI.md"' "$extension_path" >/dev/null 2>&1; then
+  if [[ ! -f "$repo_path/.gemini/settings.json" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  if [[ "$unsupported" -eq 0 && "$translated" -gt 0 ]]; then
     printf '1\n'
   else
     printf '0\n'
@@ -286,8 +339,14 @@ hg_parity_provider_drift_count() {
   expected="$(hg_parity_render_claude_settings "$repo_path")"
   hg_parity_compare_expected_file "$expected" "$repo_path/.claude/settings.json" || count=$((count + 1))
 
-  expected="$(hg_parity_render_gemini_settings "$repo_path")"
-  hg_parity_compare_expected_file "$expected" "$repo_path/.gemini/settings.json" || count=$((count + 1))
+  if [[ -x "$HG_STUDIO_ROOT/dotfiles/scripts/hg-gemini-settings-sync.sh" ]]; then
+    if ! "$HG_STUDIO_ROOT/dotfiles/scripts/hg-gemini-settings-sync.sh" "$repo_path" --check >/dev/null 2>&1; then
+      count=$((count + 1))
+    fi
+  else
+    expected="$(hg_parity_render_gemini_settings "$repo_path")"
+    hg_parity_compare_expected_file "$expected" "$repo_path/.gemini/settings.json" || count=$((count + 1))
+  fi
 
   if hg_parity_repo_requires_gemini_extension "$repo_path" "$repo_name"; then
     expected="$(hg_parity_render_gemini_extension "$repo_path" "$repo_name")"

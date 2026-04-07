@@ -12,6 +12,7 @@ MCP_JSON_PATH=""
 CLAUDE_SETTINGS_PATH=""
 OWNER_PATH=""
 LEGACY_CONFIG_PATH=""
+ALLOW_DIRTY=false
 
 usage() {
   cat <<'EOF'
@@ -27,6 +28,7 @@ Options:
   --claude-settings <path>   Claude settings source (default: <repo>/.claude/settings.json)
   --owner <path>             Generator metadata path (default: <repo>/.gemini/.hg-gemini-settings-sync.json)
   --legacy-config <path>     Legacy Gemini YAML path (default: <repo>/.gemini/config.yaml)
+  --allow-dirty              Overwrite dirty generated Gemini settings during scaffolding/onboarding
   --dry-run                  Print a unified diff without writing
   --check                    Exit non-zero if generated output is stale
   -h, --help                 Show this help
@@ -64,6 +66,10 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || hg_die "--legacy-config requires a path"
       LEGACY_CONFIG_PATH="$2"
       shift 2
+      ;;
+    --allow-dirty)
+      ALLOW_DIRTY=true
+      shift
       ;;
     --dry-run)
       MODE="dry-run"
@@ -146,7 +152,7 @@ sync_rendered_file() {
   fi
 
   settings_changed=1
-  if [[ -e "$target" ]] && path_is_dirty "$target"; then
+  if [[ -e "$target" ]] && ! $ALLOW_DIRTY && path_is_dirty "$target"; then
     dirty_blockers=$((dirty_blockers + 1))
     case "$MODE" in
       write)
@@ -187,7 +193,7 @@ remove_legacy_config() {
   [[ -e "$LEGACY_CONFIG_PATH" ]] || return 0
 
   legacy_pending=1
-  if path_is_dirty "$LEGACY_CONFIG_PATH"; then
+  if ! $ALLOW_DIRTY && path_is_dirty "$LEGACY_CONFIG_PATH"; then
     dirty_blockers=$((dirty_blockers + 1))
     case "$MODE" in
       write)
@@ -255,11 +261,11 @@ render_hooks_json() {
   jq '
     (.hooks // {}) as $hooks
     | {
-        SessionStart: ($hooks.SessionStart // empty),
-        BeforeTool: ($hooks.PreToolUse // empty),
-        AfterTool: ($hooks.PostToolUse // empty),
-        Notification: ($hooks.Notification // empty),
-        BeforeAgent: ($hooks.UserPromptSubmit // empty)
+        SessionStart: ($hooks.SessionStart // []),
+        BeforeTool: ($hooks.PreToolUse // []),
+        AfterTool: ($hooks.PostToolUse // []),
+        Notification: ($hooks.Notification // []),
+        BeforeAgent: ($hooks.UserPromptSubmit // [])
       }
     | with_entries(select((.value | type == "array") and (.value | length > 0)))
   ' "$CLAUDE_SETTINGS_PATH"

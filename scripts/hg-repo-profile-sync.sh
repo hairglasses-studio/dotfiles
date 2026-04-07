@@ -202,6 +202,11 @@ sync_gemini_settings() {
   local repo_path="$2"
   local settings_rel=".gemini/settings.json"
   local legacy_rel=".gemini/config.yaml"
+  local sync_args=("$repo_path")
+
+  if $ALLOW_DIRTY; then
+    sync_args+=("--allow-dirty")
+  fi
 
   case "$MODE" in
     verify)
@@ -212,7 +217,7 @@ sync_gemini_settings() {
       ;;
     ensure-missing)
       if [[ ! -f "$repo_path/$settings_rel" ]]; then
-        "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" >/dev/null
+        "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "${sync_args[@]}" >/dev/null
         hg_ok "$repo: created Gemini settings"
       fi
       ;;
@@ -220,7 +225,7 @@ sync_gemini_settings() {
       if skip_dirty_group "$repo" "$repo_path" "Gemini settings" "$settings_rel" "$legacy_rel"; then
         return
       fi
-      "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" >/dev/null
+      "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "${sync_args[@]}" >/dev/null
       hg_ok "$repo: synced Gemini settings"
       ;;
   esac
