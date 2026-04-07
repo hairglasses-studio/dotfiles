@@ -16,6 +16,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --check) CHECK_ONLY=true ;;
         --print-link-specs) PRINT_LINK_SPECS=true ;;
+        *) printf 'Unknown option: %s\n' "$1" >&2; exit 2 ;;
     esac
     shift
 done

@@ -29,7 +29,10 @@ for _ in {1..40}; do
   done
 
   if [[ "$ready" == true ]]; then
-    hyprctl keyword source "$BIND_FILE" >/dev/null
+    if ! hyprctl keyword source "$BIND_FILE" >/dev/null; then
+      echo "hypr-sync-plugin-binds: failed to source bind file" >&2
+      exit 1
+    fi
     exit 0
   fi
 
