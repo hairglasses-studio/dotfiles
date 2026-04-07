@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -68,22 +69,39 @@ func runHyprctl(args ...string) (string, error) {
 	return string(out), nil
 }
 
+func appendHyprJSONStrings(dst []string, value any) []string {
+	switch v := value.(type) {
+	case string:
+		v = strings.TrimSpace(v)
+		if v != "" {
+			dst = append(dst, v)
+		}
+	case []any:
+		for _, item := range v {
+			dst = appendHyprJSONStrings(dst, item)
+		}
+	case map[string]any:
+		keys := make([]string, 0, len(v))
+		for key := range v {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			dst = appendHyprJSONStrings(dst, v[key])
+		}
+	}
+	return dst
+}
+
 func hyprConfigErrorMessages(raw string) []string {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		return nil
 	}
 
-	var parsed []string
+	var parsed any
 	if err := json.Unmarshal([]byte(raw), &parsed); err == nil {
-		var messages []string
-		for _, msg := range parsed {
-			msg = strings.TrimSpace(msg)
-			if msg != "" {
-				messages = append(messages, msg)
-			}
-		}
-		return messages
+		return appendHyprJSONStrings(nil, parsed)
 	}
 
 	if strings.Contains(strings.ToLower(raw), "no errors") {

@@ -18,6 +18,8 @@ func TestHyprConfigErrorMessages(t *testing.T) {
 		{name: "blank json array entry", raw: "[\"\"]", want: nil},
 		{name: "whitespace json array entry", raw: "[\"   \"]", want: nil},
 		{name: "json errors", raw: "[\"Invalid dispatcher foo\", \"bad rule\"]", want: []string{"Invalid dispatcher foo", "bad rule"}},
+		{name: "json object error", raw: "{\"error\":\"Invalid dispatcher foo\"}", want: []string{"Invalid dispatcher foo"}},
+		{name: "json object nested array", raw: "{\"errors\":[\"bad rule\", \"\"]}", want: []string{"bad rule"}},
 		{name: "plain no errors text", raw: "no errors", want: nil},
 		{name: "plain stderr", raw: "hyprctl unavailable", want: []string{"hyprctl unavailable"}},
 	}

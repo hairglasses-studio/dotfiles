@@ -59,9 +59,24 @@ hypr_configerror_lines() {
 # ── Section: Hyprland config ───────────────────────
 test_config() {
   echo "── Config Validation ──" >&2
-  local raw errs
-  raw="$(hyprctl -j configerrors 2>&1 || true)"
+  local raw errs stderr_raw stderr_file hypr_status
+  stderr_file="$(mktemp)"
+  hypr_status=0
+  if raw="$(hyprctl -j configerrors 2>"$stderr_file")"; then
+    hypr_status=0
+  else
+    hypr_status=$?
+  fi
+  stderr_raw="$(cat "$stderr_file")"
+  rm -f "$stderr_file"
+
   errs="$(hypr_configerror_lines "$raw")"
+  if [[ -z "$errs" && -z "${raw//[[:space:]]/}" && -n "${stderr_raw//[[:space:]]/}" ]]; then
+    errs="$(hypr_configerror_lines "$stderr_raw")"
+  fi
+  if [[ -z "$errs" && $hypr_status -ne 0 && -n "${stderr_raw//[[:space:]]/}" ]]; then
+    errs="$(printf '%s\n' "$stderr_raw" | sed '/^[[:space:]]*$/d')"
+  fi
   if [[ -z "$errs" ]]; then
     add_result config "hyprland_config" pass "zero errors"
   else

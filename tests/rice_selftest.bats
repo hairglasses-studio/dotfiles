@@ -102,6 +102,8 @@ teardown() {
 
 build_hypr_config_script() {
     local hypr_json="$1"
+    local hypr_stderr="${2:-}"
+    local hypr_status="${3:-0}"
     local script_path="${BATS_TEST_TMPDIR}/hypr-config-${RANDOM}.sh"
     local real_script="${SCRIPTS_DIR}/rice-selftest.sh"
 
@@ -117,9 +119,14 @@ build_hypr_config_script() {
         echo 'hyprctl() {'
         echo '  if [[ "${1:-}" == "-j" && "${2:-}" == "configerrors" ]]; then'
         echo "    cat <<'EOF'"
-        echo "$hypr_json"
+        printf '%s\n' "$hypr_json"
         echo 'EOF'
-        echo '    return 0'
+        if [[ -n "$hypr_stderr" ]]; then
+            echo "    cat <<'EOF' >&2"
+            printf '%s\n' "$hypr_stderr"
+            echo 'EOF'
+        fi
+        echo "    return ${hypr_status}"
         echo '  fi'
         echo '  printf "[]\n"'
         echo '}'
@@ -261,4 +268,25 @@ BASH
 
     assert_failure
     assert_output --partial "Invalid dispatcher foo"
+}
+
+@test "rice-selftest: config section ignores stderr when stdout JSON is clean" {
+    local script
+    script="$(build_hypr_config_script '[]' 'spurious stderr warning' 0)"
+
+    run bash "$script" --section config
+
+    assert_success
+    assert_output --partial "hyprland_config: zero errors"
+    refute_output --partial "spurious stderr warning"
+}
+
+@test "rice-selftest: config section falls back to stderr when hyprctl fails without stdout" {
+    local script
+    script="$(build_hypr_config_script '' 'hyprctl unavailable' 1)"
+
+    run bash "$script" --section config
+
+    assert_failure
+    assert_output --partial "hyprctl unavailable"
 }
