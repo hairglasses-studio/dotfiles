@@ -20,6 +20,7 @@ echo ""
 TOTAL=0
 HEALTHY=0
 WARN=0
+# shellcheck disable=SC2034
 FAIL=0
 
 printf "%s%-25s %-8s %-10s %-10s %-10s %-8s%s\n" "$HG_BOLD" "REPO" "LANG" "BUILD" "GO VER" "PIPELINE" "CI" "$HG_RESET"
