@@ -460,18 +460,22 @@ check_symlinks() {
     if [[ "$OS" == "Darwin" ]]; then
         log_info "Checking brew packages..."
         if command -v brew &>/dev/null; then
-            local missing=0
-            while IFS= read -r pkg; do
-                pkg="$(echo "$pkg" | sed 's/^brew "//;s/"$//')"
-                if ! brew list --formula "$pkg" &>/dev/null; then
-                    log_error "Missing brew package: $pkg"
-                    missing=$((missing + 1))
+            if [[ -f "$DOTFILES_DIR/Brewfile" ]]; then
+                local missing=0
+                while IFS= read -r pkg; do
+                    pkg="$(echo "$pkg" | sed 's/^brew "//;s/"$//')"
+                    if ! brew list --formula "$pkg" &>/dev/null; then
+                        log_error "Missing brew package: $pkg"
+                        missing=$((missing + 1))
+                    fi
+                done < <(grep '^brew ' "$DOTFILES_DIR/Brewfile")
+                if [[ $missing -eq 0 ]]; then
+                    log_success "All brew packages installed"
                 fi
-            done < <(grep '^brew ' "$DOTFILES_DIR/Brewfile")
-            if [[ $missing -eq 0 ]]; then
-                log_success "All brew packages installed"
+                errors=$((errors + missing))
+            else
+                log_info "Skipping brew package check (Brewfile not present)"
             fi
-            errors=$((errors + missing))
         else
             log_warn "Homebrew not installed"
             errors=$((errors + 1))
