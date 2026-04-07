@@ -6,6 +6,8 @@
 
 MCP server for desktop environment management -- Hyprland, Ghostty shaders, Bluetooth, MIDI, input devices, GitHub org lifecycle, fleet auditing, and open-source readiness scoring. 90 tools across 15 modules.
 
+Canonical development lives in [`hairglasses-studio/dotfiles`](https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp) under `dotfiles/mcp/dotfiles-mcp`. The standalone [`dotfiles-mcp`](https://github.com/hairglasses-studio/dotfiles-mcp) repo is a publish mirror kept in parity for installation and discovery.
+
 ## Install
 
 ```bash
