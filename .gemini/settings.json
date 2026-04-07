@@ -1,0 +1,22 @@
+{
+  "context": {
+    "fileName": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md"
+    ]
+  },
+  "mcp": {
+    "allowed": [
+      "dotfiles"
+    ]
+  },
+  "mcpServers": {
+    "dotfiles": {
+      "args": [
+        "/home/hg/hairglasses-studio/dotfiles/scripts/run-dotfiles-mcp.sh"
+      ],
+      "command": "bash"
+    }
+  }
+}

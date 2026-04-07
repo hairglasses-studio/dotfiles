@@ -280,7 +280,7 @@ verify_or_sync_codex_mcp() {
   case "$MODE" in
     dry-run|check)
       local output
-      if output="$("$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" --dry-run 2>&1)"; then
+      if output="$(bash "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" --dry-run 2>&1)"; then
         if [[ -n "$output" ]]; then
           report_missing_or_drift "$repo" "codex-mcp-block"
         else
@@ -292,7 +292,7 @@ verify_or_sync_codex_mcp() {
       fi
       ;;
     write)
-      if "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" >/dev/null 2>&1; then
+      if bash "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" >/dev/null 2>&1; then
         printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "codex-mcp-block" "$HG_RESET"
         UPDATED=$((UPDATED + 1))
       else
