@@ -191,9 +191,13 @@ verify_or_sync_skill_surface() {
       fi
       ;;
     write)
-      "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$repo_path" >/dev/null
-      printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "skill-surface" "$HG_RESET"
-      UPDATED=$((UPDATED + 1))
+      if "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$repo_path" >/dev/null 2>&1; then
+        printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "skill-surface" "$HG_RESET"
+        UPDATED=$((UPDATED + 1))
+      else
+        hg_warn "$repo: skill-surface sync failed"
+        mark_failure
+      fi
       ;;
   esac
 }
@@ -216,9 +220,13 @@ verify_or_sync_codex_mcp() {
       fi
       ;;
     write)
-      "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" >/dev/null
-      printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "codex-mcp-block" "$HG_RESET"
-      UPDATED=$((UPDATED + 1))
+      if "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" >/dev/null 2>&1; then
+        printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "codex-mcp-block" "$HG_RESET"
+        UPDATED=$((UPDATED + 1))
+      else
+        hg_warn "$repo: codex-mcp-block sync failed"
+        mark_failure
+      fi
       ;;
   esac
 }
@@ -234,9 +242,13 @@ verify_or_sync_workflows() {
   $INCLUDE_COMPATIBILITY && args+=("--include-compatibility")
 
   if [[ "$MODE" == "write" ]]; then
-    "$SCRIPT_DIR/hg-workflow-sync.sh" --ensure-missing "${args[@]}" >/dev/null
-    printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "workflows" "$HG_RESET"
-    UPDATED=$((UPDATED + 1))
+    if "$SCRIPT_DIR/hg-workflow-sync.sh" --ensure-missing "${args[@]}" >/dev/null 2>&1; then
+      printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "workflows" "$HG_RESET"
+      UPDATED=$((UPDATED + 1))
+    else
+      hg_warn "$repo: workflow sync failed"
+      mark_failure
+    fi
     return 0
   fi
 
@@ -252,31 +264,21 @@ verify_or_sync_workflows() {
 verify_or_sync_provider_settings() {
   local repo="$1"
   local repo_path="$2"
-  local claude_expected
+  local claude_expected gemini_expected extension_expected extension_rel
 
   claude_expected="$(hg_parity_render_claude_settings "$repo_path")"
   write_text_file "$repo" "$repo_path" ".claude/settings.json" "$claude_expected" "claude-settings"
 
-  if "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" --check >/dev/null 2>&1; then
-    report_current "$repo" "gemini-settings"
-  else
-    case "$MODE" in
-      dry-run|check)
-        report_missing_or_drift "$repo" "gemini-settings"
-        ;;
-      write)
-        if "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" >/dev/null 2>&1; then
-          printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "gemini-settings" "$HG_RESET"
-          UPDATED=$((UPDATED + 1))
-        else
-          hg_warn "$repo: gemini-settings sync failed"
-          mark_failure
-        fi
-        ;;
-    esac
-  fi
+  gemini_expected="$(hg_parity_render_gemini_settings "$repo_path")"
+  write_text_file "$repo" "$repo_path" ".gemini/settings.json" "$gemini_expected" "gemini-settings"
 
-  report_current "$repo" "gemini-extension (not managed)"
+  if hg_parity_repo_requires_gemini_extension "$repo_path" "$repo"; then
+    extension_rel="$(hg_parity_gemini_extension_relpath "$repo")"
+    extension_expected="$(hg_parity_render_gemini_extension "$repo_path" "$repo")"
+    write_text_file "$repo" "$repo_path" "$extension_rel" "$extension_expected" "gemini-extension"
+  else
+    report_current "$repo" "gemini-extension (not managed)"
+  fi
 }
 
 hg_info "Tri-provider parity sync — manifest-backed baseline repos"
