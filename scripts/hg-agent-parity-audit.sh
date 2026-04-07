@@ -19,6 +19,19 @@ wiki_docs_dir() {
   printf '%s\n' "$ROOT/docs/projects/agent-parity"
 }
 
+usage() {
+  cat <<'EOF'
+Usage: hg-agent-parity-audit.sh [--write-docs|--write-workspace-cache] [--write-wiki-docs] [--write-json]
+
+Options:
+  --write-docs            Deprecated alias for --write-workspace-cache
+  --write-workspace-cache Write generated cache files to docs/agent-parity/
+  --write-wiki-docs       Write canonical docs to docs/projects/agent-parity/
+  --write-json            Write JSON and CSV inventory outputs
+  -h, --help              Show this help
+EOF
+}
+
 for arg in "$@"; do
   case "$arg" in
     --write-docs|--write-workspace-cache)
@@ -30,6 +43,10 @@ for arg in "$@"; do
     --write-json)
       WRITE_JSON=1
       ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
     *)
       echo "Unknown argument: $arg" >&2
       exit 1
@@ -37,15 +54,7 @@ for arg in "$@"; do
   esac
 done
 
-if ! command -v rg >/dev/null 2>&1; then
-  echo "ripgrep (rg) is required" >&2
-  exit 1
-fi
-
-if ! command -v jq >/dev/null 2>&1; then
-  echo "jq is required" >&2
-  exit 1
-fi
+hg_require rg jq
 
 if [[ ! -f "$SCOPE_MANIFEST" ]]; then
   echo "Scope manifest missing: $SCOPE_MANIFEST" >&2
@@ -202,29 +211,26 @@ count_generated_skill_files() {
 
 count_generated_gemini_settings() {
   local repo="$1"
-  local count=0
-  local metadata
-  while IFS= read -r metadata; do
-    [[ -f "$metadata" ]] || continue
-    if jq -e '.generator == "dotfiles/scripts/hg-gemini-settings-sync.sh"' "$metadata" >/dev/null 2>&1; then
-      count=$((count + 1))
-    fi
-  done < <(find_repo "$repo" -path '*/.gemini/.hg-gemini-settings-sync.json' -type f -print 2>/dev/null | sort)
-  printf '%s' "$count"
+  hg_parity_generated_gemini_settings_count "$repo"
 }
 
 sum_gemini_settings_metadata_field() {
   local repo="$1"
   local field="$2"
-  local total=0
-  local metadata value
-  while IFS= read -r metadata; do
-    [[ -f "$metadata" ]] || continue
-    value="$(jq -r --arg field "$field" '.[$field] // 0' "$metadata" 2>/dev/null || printf '0')"
-    [[ "$value" =~ ^[0-9]+$ ]] || value=0
-    total=$((total + value))
-  done < <(find_repo "$repo" -path '*/.gemini/.hg-gemini-settings-sync.json' -type f -print 2>/dev/null | sort)
-  printf '%s' "$total"
+  case "$field" in
+    gemini_mcp_server_count)
+      hg_parity_gemini_mcp_server_count "$repo"
+      ;;
+    translated_hook_rules)
+      hg_parity_supported_source_hook_rule_count "$repo"
+      ;;
+    unsupported_claude_hook_rules)
+      hg_parity_unsupported_source_hook_rule_count "$repo"
+      ;;
+    *)
+      printf '0'
+      ;;
+  esac
 }
 
 count_root_mcp_servers() {

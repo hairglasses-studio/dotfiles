@@ -2,17 +2,33 @@
 # shellcheck shell=bash
 # hg-agent-parity.sh — Shared helpers for Claude/Codex/Gemini parity sync and audit.
 
-if [[ -z "${HG_STUDIO_ROOT:-}" ]]; then
-  HG_AGENT_PARITY_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HG_AGENT_PARITY_LIB_DIR="${HG_AGENT_PARITY_LIB_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+
+if ! command -v hg_require >/dev/null 2>&1; then
   source "$HG_AGENT_PARITY_LIB_DIR/hg-core.sh"
 fi
 
+HG_AGENT_PARITY_DOTFILES_ROOT="${HG_AGENT_PARITY_DOTFILES_ROOT:-${HG_DOTFILES:-$(cd "$HG_AGENT_PARITY_LIB_DIR/.." && pwd)}}"
+
 hg_parity_require_tools() {
-  hg_require jq
+  hg_require jq diff
 }
 
 hg_parity_objectives_path() {
-  printf '%s\n' "${HG_PARITY_OBJECTIVES_PATH:-$HG_STUDIO_ROOT/docs/projects/codex-migration/parity-objectives.json}"
+  if [[ -n "${HG_PARITY_OBJECTIVES_PATH:-}" ]]; then
+    printf '%s\n' "$HG_PARITY_OBJECTIVES_PATH"
+    return 0
+  fi
+
+  local canonical historical
+  canonical="$HG_STUDIO_ROOT/docs/projects/agent-parity/parity-objectives.json"
+  historical="$HG_STUDIO_ROOT/docs/projects/codex-migration/parity-objectives.json"
+
+  if [[ -f "$canonical" ]]; then
+    printf '%s\n' "$canonical"
+  else
+    printf '%s\n' "$historical"
+  fi
 }
 
 hg_parity_manifest_path() {
@@ -72,10 +88,42 @@ hg_parity_object_json() {
   jq -c 'if type == "object" then . else {} end' "$file"
 }
 
+hg_parity_active_mcp_servers_json() {
+  local repo_path="$1"
+  if [[ ! -f "$repo_path/.mcp.json" ]]; then
+    printf '{}\n'
+    return 0
+  fi
+
+  jq -cS '
+    (.mcpServers // {})
+    | if type != "object" then {} else . end
+    | with_entries(select(.key | startswith("_") | not))
+    | with_entries(
+        if (.value | type) == "object" then
+          .value |= with_entries(
+            select(
+              .key == "command"
+              or .key == "args"
+              or .key == "env"
+              or .key == "cwd"
+              or .key == "url"
+              or .key == "httpUrl"
+              or .key == "headers"
+              or .key == "timeout"
+            )
+          )
+        else
+          .
+        end
+      )
+  ' "$repo_path/.mcp.json"
+}
+
 hg_parity_repo_has_mcp_json() {
   local repo_path="$1"
   [[ -f "$repo_path/.mcp.json" ]] || return 1
-  jq -e '(.mcpServers // {}) | type == "object" and (length > 0)' "$repo_path/.mcp.json" >/dev/null 2>&1
+  jq -e 'length > 0' <<<"$(hg_parity_active_mcp_servers_json "$repo_path")" >/dev/null 2>&1
 }
 
 hg_parity_kebab_case_server_name() {
@@ -87,24 +135,13 @@ hg_parity_kebab_case_server_name() {
 
 hg_parity_claude_mcp_servers_json() {
   local repo_path="$1"
-  if ! hg_parity_repo_has_mcp_json "$repo_path"; then
-    printf '{}\n'
-    return 0
-  fi
-
-  jq -c '.mcpServers // {} | if type == "object" then . else {} end' "$repo_path/.mcp.json"
+  hg_parity_active_mcp_servers_json "$repo_path"
 }
 
 hg_parity_gemini_mcp_servers_json() {
   local repo_path="$1"
-  if ! hg_parity_repo_has_mcp_json "$repo_path"; then
-    printf '{}\n'
-    return 0
-  fi
-
   jq -c '
-    .mcpServers // {}
-    | if type != "object" then {} else . end
+    .
     | with_entries(
         .key |= (
           ascii_downcase
@@ -114,7 +151,7 @@ hg_parity_gemini_mcp_servers_json() {
           | gsub("-+"; "-")
         )
       )
-  ' "$repo_path/.mcp.json"
+  ' <<<"$(hg_parity_active_mcp_servers_json "$repo_path")"
 }
 
 hg_parity_repo_has_claude_hooks() {
@@ -147,6 +184,24 @@ hg_parity_gemini_extension_relpath() {
 hg_parity_gemini_owner_path() {
   local repo_path="$1"
   printf '%s\n' "$repo_path/.gemini/.hg-gemini-settings-sync.json"
+}
+
+hg_parity_gemini_sync_script() {
+  printf '%s\n' "$HG_AGENT_PARITY_DOTFILES_ROOT/scripts/hg-gemini-settings-sync.sh"
+}
+
+hg_parity_generated_gemini_settings_count() {
+  local repo_path="$1"
+  if hg_parity_gemini_settings_current "$repo_path"; then
+    printf '1\n'
+  else
+    printf '0\n'
+  fi
+}
+
+hg_parity_gemini_mcp_server_count() {
+  local repo_path="$1"
+  jq -r 'keys | length' <<<"$(hg_parity_gemini_mcp_servers_json "$repo_path")"
 }
 
 hg_parity_gemini_sync_metadata_json() {
@@ -185,6 +240,74 @@ hg_parity_gemini_unsupported_hook_rule_count() {
   jq -r '.unsupported_claude_hook_rules // 0' "$metadata"
 }
 
+hg_parity_source_hooks_json() {
+  local repo_path="$1"
+  local settings_path="$repo_path/.claude/settings.json"
+  if [[ ! -f "$settings_path" ]]; then
+    printf '{}\n'
+    return 0
+  fi
+
+  jq -c '
+    (.hooks // {}) as $hooks
+    | {
+        SessionStart: ($hooks.SessionStart // []),
+        BeforeTool: (($hooks.BeforeTool // []) + ($hooks.PreToolUse // [])),
+        AfterTool: (($hooks.AfterTool // []) + ($hooks.PostToolUse // [])),
+        Notification: ($hooks.Notification // []),
+        BeforeAgent: (($hooks.BeforeAgent // []) + ($hooks.UserPromptSubmit // []))
+      }
+    | with_entries(select((.value | type == "array") and (.value | length > 0)))
+  ' "$settings_path"
+}
+
+hg_parity_supported_source_hook_rule_count() {
+  local repo_path="$1"
+  local settings_path="$repo_path/.claude/settings.json"
+  if [[ ! -f "$settings_path" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  jq -r '
+    [
+      (.hooks.SessionStart // []),
+      (.hooks.BeforeTool // []),
+      (.hooks.PreToolUse // []),
+      (.hooks.AfterTool // []),
+      (.hooks.PostToolUse // []),
+      (.hooks.Notification // []),
+      (.hooks.BeforeAgent // []),
+      (.hooks.UserPromptSubmit // [])
+    ]
+    | flatten
+    | length
+  ' "$settings_path"
+}
+
+hg_parity_unsupported_source_hook_rule_count() {
+  local repo_path="$1"
+  local settings_path="$repo_path/.claude/settings.json"
+  if [[ ! -f "$settings_path" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  jq -r '
+    [
+      (.hooks.Stop // []),
+      (.hooks.PostToolUseFailure // []),
+      (.hooks.PostCompact // []),
+      (.hooks.PreCompact // []),
+      (.hooks.SubagentStart // []),
+      (.hooks.SubagentStop // []),
+      (.hooks.SessionEnd // [])
+    ]
+    | flatten
+    | length
+  ' "$settings_path"
+}
+
 hg_parity_repo_requires_gemini_extension() {
   local repo_path="$1"
   local repo_name="$2"
@@ -193,15 +316,23 @@ hg_parity_repo_requires_gemini_extension() {
 
 hg_parity_render_claude_settings() {
   local repo_path="$1"
-  local current_json generated_mcp
+  local current_json generated_mcp has_mcp_file
   current_json="$(hg_parity_object_json "$repo_path/.claude/settings.json")"
   generated_mcp="$(hg_parity_claude_mcp_servers_json "$repo_path")"
+  if [[ -f "$repo_path/.mcp.json" ]]; then
+    has_mcp_file=true
+  else
+    has_mcp_file=false
+  fi
 
   jq -S -n \
     --argjson current "$current_json" \
-    --argjson generated "$generated_mcp" '
+    --argjson generated "$generated_mcp" \
+    --argjson has_mcp "$has_mcp_file" '
       ($current | if type == "object" then . else {} end) as $cfg
-      | if ($generated | length) > 0 then
+      | if $has_mcp then
+          ($cfg + {mcpServers: $generated})
+        elif ($generated | length) > 0 then
           $cfg + {mcpServers: (($cfg.mcpServers // {}) + $generated)}
         else
           $cfg
@@ -211,26 +342,40 @@ hg_parity_render_claude_settings() {
 
 hg_parity_render_gemini_settings() {
   local repo_path="$1"
-  local current_json generated_mcp
-  current_json="$(hg_parity_object_json "$repo_path/.gemini/settings.json")"
+  local template_path generated_mcp normalized_hooks
+  template_path="$HG_AGENT_PARITY_DOTFILES_ROOT/templates/gemini-settings.standard.json"
   generated_mcp="$(hg_parity_gemini_mcp_servers_json "$repo_path")"
+  normalized_hooks="$(hg_parity_source_hooks_json "$repo_path")"
 
   jq -S -n \
-    --argjson current "$current_json" \
-    --argjson generated "$generated_mcp" '
-      ($current | if type == "object" then . else {} end) as $cfg
-      | ($cfg.context // {}) as $context
-      | (($context.fileName // []) + ["AGENTS.md", "GEMINI.md"] | unique) as $file_names
-      | ($cfg + {context: ($context + {fileName: $file_names})}) as $base
-      | if ($generated | length) > 0 then
-          $base + {
-            mcp: (($base.mcp // {}) + {
-              allowed: (((($base.mcp.allowed // []) + ($generated | keys)) | unique) | sort)
-            }),
-            mcpServers: (($base.mcpServers // {}) + $generated)
-          }
+    --slurpfile template "$template_path" \
+    --argjson generated "$generated_mcp" \
+    --argjson hooks "$normalized_hooks" '
+      ($template[0] | if type == "object" then . else {} end) as $base
+      | (
+          if (($base.context.fileName // null) | type) == "array" then
+            ($base.context.fileName | unique | sort) as $file_names
+            | ($base + {context: (($base.context // {}) + {fileName: $file_names})})
+          else
+            $base
+          end
+        ) as $normalized
+      | ($normalized + {mcpServers: $generated}) as $with_servers
+      | (
+          if ($generated | length) > 0 then
+            $with_servers + {
+              mcp: (($with_servers.mcp // {}) + {
+                allowed: (($generated | keys) | sort)
+              })
+            }
+          else
+            ($with_servers | del(.mcp))
+          end
+        )
+      | if ($hooks | length) > 0 then
+          . + {hooks: $hooks}
         else
-          $base
+          del(.hooks)
         end
     '
 }
@@ -254,6 +399,29 @@ hg_parity_render_gemini_extension() {
         contextFileName: "GEMINI.md"
       }
     '
+}
+
+hg_parity_gemini_settings_current() {
+  local repo_path="$1"
+  local sync_script
+  sync_script="$(hg_parity_gemini_sync_script)"
+
+  if [[ -f "$sync_script" ]]; then
+    bash "$sync_script" "$repo_path" --check >/dev/null 2>&1
+    return $?
+  fi
+
+  local expected
+  expected="$(hg_parity_render_gemini_settings "$repo_path")"
+  hg_parity_compare_expected_file "$expected" "$repo_path/.gemini/settings.json"
+}
+
+hg_parity_gemini_settings_sync() {
+  local repo_path="$1"
+  local sync_script
+  sync_script="$(hg_parity_gemini_sync_script)"
+  [[ -f "$sync_script" ]] || return 1
+  bash "$sync_script" "$repo_path" >/dev/null 2>&1
 }
 
 hg_parity_compare_expected_file() {
@@ -300,9 +468,10 @@ hg_parity_provider_mcp_bridge_ok() {
 hg_parity_provider_hook_bridge_ok() {
   local repo_path="$1"
   local repo_name="$2"
-  local unsupported translated
-  unsupported="$(hg_parity_gemini_unsupported_hook_rule_count "$repo_path")"
-  translated="$(hg_parity_gemini_translated_hook_rule_count "$repo_path")"
+  local unsupported translated source_hooks gemini_hooks
+  unsupported="$(hg_parity_unsupported_source_hook_rule_count "$repo_path")"
+  translated="$(hg_parity_supported_source_hook_rule_count "$repo_path")"
+  source_hooks="$(hg_parity_source_hooks_json "$repo_path")"
 
   if ! hg_parity_repo_has_claude_hooks "$repo_path"; then
     printf '1\n'
@@ -314,7 +483,23 @@ hg_parity_provider_hook_bridge_ok() {
     return 0
   fi
 
-  if [[ "$unsupported" -eq 0 && "$translated" -gt 0 ]]; then
+  gemini_hooks="$(jq -cS '(.hooks // {}) | if type == "object" then . else {} end' "$repo_path/.gemini/settings.json")"
+
+  if [[ "$unsupported" -ne 0 ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  if [[ "$translated" -eq 0 ]]; then
+    if [[ "$gemini_hooks" == "{}" ]]; then
+      printf '1\n'
+    else
+      printf '0\n'
+    fi
+    return 0
+  fi
+
+  if [[ "$source_hooks" == "$gemini_hooks" ]]; then
     printf '1\n'
   else
     printf '0\n'
@@ -323,26 +508,13 @@ hg_parity_provider_hook_bridge_ok() {
 
 hg_parity_provider_drift_count() {
   local repo_path="$1"
-  local repo_name="$2"
   local count=0
   local expected
 
   expected="$(hg_parity_render_claude_settings "$repo_path")"
   hg_parity_compare_expected_file "$expected" "$repo_path/.claude/settings.json" || count=$((count + 1))
 
-  if [[ -x "$HG_STUDIO_ROOT/dotfiles/scripts/hg-gemini-settings-sync.sh" ]]; then
-    if ! "$HG_STUDIO_ROOT/dotfiles/scripts/hg-gemini-settings-sync.sh" "$repo_path" --check >/dev/null 2>&1; then
-      count=$((count + 1))
-    fi
-  else
-    expected="$(hg_parity_render_gemini_settings "$repo_path")"
-    hg_parity_compare_expected_file "$expected" "$repo_path/.gemini/settings.json" || count=$((count + 1))
-  fi
-
-  if hg_parity_repo_requires_gemini_extension "$repo_path" "$repo_name"; then
-    expected="$(hg_parity_render_gemini_extension "$repo_path" "$repo_name")"
-    hg_parity_compare_expected_file "$expected" "$repo_path/$(hg_parity_gemini_extension_relpath "$repo_name")" || count=$((count + 1))
-  fi
+  hg_parity_gemini_settings_current "$repo_path" || count=$((count + 1))
 
   printf '%s\n' "$count"
 }

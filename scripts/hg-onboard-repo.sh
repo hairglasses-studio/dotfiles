@@ -9,6 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/hg-workspace.sh"
 
+hg_require jq
+
 STUDIO="$HG_STUDIO_ROOT"
 DOTFILES="$HG_DOTFILES"
 ORG_GITHUB="$STUDIO/.github"
@@ -30,7 +32,8 @@ for arg in "$@"; do
   case "$arg" in
     --language=*) LANG="${arg#*=}" ;;
     --dry-run)    DRY_RUN=true ;;
-    -*)           ;;
+    -h|--help)    hg_die "Usage: hg-onboard-repo.sh <repo_path> [--language auto|go|node|python|shell] [--dry-run]" ;;
+    -*)           hg_die "Unknown argument: $arg" ;;
     *)            REPO_PATH="$arg" ;;
   esac
 done
@@ -195,12 +198,12 @@ if [[ ! -f .codex/config.toml ]]; then
 fi
 
 # ── Gemini settings ──────────────────────────
-if [[ ! -f .gemini/settings.json ]]; then
+if [[ ! -f .claude/settings.json || ! -f .gemini/settings.json ]]; then
   if $DRY_RUN; then
-    add_file ".gemini/settings.json"
+    add_file ".claude/settings.json and .gemini/settings.json"
   else
-    "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$PWD" --allow-dirty >/dev/null
-    add_file ".gemini/settings.json"
+    "$SCRIPT_DIR/hg-provider-settings-sync.sh" "$PWD" --repo-name "$REPO_NAME" --allow-dirty >/dev/null
+    add_file ".claude/settings.json and .gemini/settings.json"
   fi
 fi
 
@@ -241,7 +244,7 @@ if { [[ -f CLAUDE.md ]] || [[ -f AGENTS.md ]]; } && { [[ ! -f CLAUDE.md ]] || [[
 fi
 
 # ── Pre-commit hooks ────────────────────────
-if [[ -d .git ]] && [[ ! -f .git/hooks/pre-commit ]]; then
+if [[ -e .git ]] && [[ ! -f .git/hooks/pre-commit ]]; then
   $DRY_RUN || "$SCRIPT_DIR/hg-install-hooks.sh" 2>/dev/null || true
   add_file "pre-commit hook"
 fi

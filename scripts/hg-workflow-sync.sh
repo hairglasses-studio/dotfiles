@@ -41,6 +41,8 @@ EOF
   esac
 done
 
+hg_require git diff
+
 repo_file_dirty() {
   local repo_path="$1"
   local target_rel="$2"
@@ -131,7 +133,7 @@ CURRENT=0
 while IFS= read -r name; do
   [[ -n "$name" ]] || continue
   repo_path="$(hg_workspace_repo_path "$name")"
-  [[ -d "$repo_path/.git" ]] || continue
+  [[ -e "$repo_path/.git" ]] || continue
 
   review_profile="$(hg_workspace_repo_field "$name" "review_profile" "none")"
   ci_profile="$(hg_workspace_repo_field "$name" "ci_profile" "none")"

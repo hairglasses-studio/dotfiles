@@ -15,6 +15,7 @@ FAILED=0
 CREATED=0
 UPDATED=0
 CURRENT=0
+SKIPPED=0
 
 usage() {
   cat <<'EOF'
@@ -54,6 +55,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 hg_parity_require_tools
+hg_require git diff
 
 repo_names() {
   local selected=()
@@ -100,6 +102,7 @@ write_text_file() {
   local target_rel="$3"
   local expected="$4"
   local label="$5"
+  local allow_dirty="${6:-false}"
 
   local target="$repo_path/$target_rel"
   if [[ -f "$target" ]] && diff -u <(printf '%s\n' "$expected") "$target" >/dev/null 2>&1; then
@@ -127,7 +130,7 @@ write_text_file() {
       ;;
   esac
 
-  if repo_file_dirty "$repo_path" "$target_rel"; then
+  if [[ "$allow_dirty" != "true" ]] && repo_file_dirty "$repo_path" "$target_rel"; then
     hg_warn "$repo: skipping dirty $label ($target_rel)"
     mark_failure
     return 0
@@ -264,31 +267,32 @@ verify_or_sync_workflows() {
 verify_or_sync_provider_settings() {
   local repo="$1"
   local repo_path="$2"
-  local claude_expected
+  local args=("$repo_path" "--repo-name" "$repo")
 
-  claude_expected="$(hg_parity_render_claude_settings "$repo_path")"
-  write_text_file "$repo" "$repo_path" ".claude/settings.json" "$claude_expected" "claude-settings"
+  case "$MODE" in
+    dry-run)
+      args+=("--dry-run")
+      ;;
+    check)
+      args+=("--check")
+      ;;
+    write)
+      ;;
+  esac
 
-  if "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" --check >/dev/null 2>&1; then
-    report_current "$repo" "gemini-settings"
+  if [[ "$MODE" == "write" ]] && "$SCRIPT_DIR/hg-provider-settings-sync.sh" "$repo_path" --repo-name "$repo" --check >/dev/null 2>&1; then
+    report_current "$repo" "provider-settings"
+  elif "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${args[@]}" >/dev/null 2>&1; then
+    if [[ "$MODE" == "write" ]]; then
+      printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "provider-settings" "$HG_RESET"
+      UPDATED=$((UPDATED + 1))
+    else
+      report_current "$repo" "provider-settings"
+    fi
   else
-    case "$MODE" in
-      dry-run|check)
-        report_missing_or_drift "$repo" "gemini-settings"
-        ;;
-      write)
-        if "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" >/dev/null 2>&1; then
-          printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "gemini-settings" "$HG_RESET"
-          UPDATED=$((UPDATED + 1))
-        else
-          hg_warn "$repo: gemini-settings sync failed"
-          mark_failure
-        fi
-        ;;
-    esac
+    hg_warn "$repo: provider settings sync failed"
+    mark_failure
   fi
-
-  report_current "$repo" "gemini-extension (not managed)"
 }
 
 hg_info "Tri-provider parity sync — manifest-backed baseline repos"
@@ -298,9 +302,9 @@ echo ""
 while IFS= read -r repo; do
   [[ -n "$repo" ]] || continue
   repo_path="$(hg_workspace_repo_path "$repo")"
-  [[ -d "$repo_path/.git" ]] || {
-    hg_warn "$repo: repo path missing"
-    mark_failure
+  [[ -e "$repo_path/.git" ]] || {
+    hg_warn "$repo: skipping missing local repo path"
+    SKIPPED=$((SKIPPED + 1))
     continue
   }
 
@@ -313,9 +317,9 @@ done < <(repo_names)
 
 echo ""
 if [[ "$MODE" == "write" ]]; then
-  hg_ok "Parity sync complete — ${CREATED} created, ${UPDATED} updated, ${CURRENT} current"
+  hg_ok "Parity sync complete — ${CREATED} created, ${UPDATED} updated, ${CURRENT} current, ${SKIPPED} skipped"
 else
-  hg_info "Parity audit complete — ${CURRENT} current"
+  hg_info "Parity audit complete — ${CURRENT} current, ${SKIPPED} skipped"
 fi
 
 exit "$FAILED"

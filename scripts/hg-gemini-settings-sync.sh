@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
+source "$SCRIPT_DIR/lib/hg-agent-parity.sh"
 
 MODE="write"
 REPO_PATH=""
@@ -13,6 +14,7 @@ CLAUDE_SETTINGS_PATH=""
 OWNER_PATH=""
 LEGACY_CONFIG_PATH=""
 ALLOW_DIRTY=false
+DEFAULT_OWNER_PATH=""
 
 usage() {
   cat <<'EOF'
@@ -26,7 +28,7 @@ Options:
   --template <path>          Template JSON (default: dotfiles/templates/gemini-settings.standard.json)
   --mcp-json <path>          MCP source JSON (default: <repo>/.mcp.json)
   --claude-settings <path>   Claude settings source (default: <repo>/.claude/settings.json)
-  --owner <path>             Generator metadata path (default: <repo>/.gemini/.hg-gemini-settings-sync.json)
+  --owner <path>             Optional generator metadata path
   --legacy-config <path>     Legacy Gemini YAML path (default: <repo>/.gemini/config.yaml)
   --allow-dirty              Overwrite dirty generated Gemini settings during scaffolding/onboarding
   --dry-run                  Print a unified diff without writing
@@ -100,14 +102,16 @@ done
 }
 
 hg_require jq mktemp diff
+hg_parity_require_tools
 
 REPO_PATH="$(cd "$REPO_PATH" && pwd)"
 SETTINGS_PATH="${SETTINGS_PATH:-$REPO_PATH/.gemini/settings.json}"
 TEMPLATE_PATH="${TEMPLATE_PATH:-$SCRIPT_DIR/../templates/gemini-settings.standard.json}"
 MCP_JSON_PATH="${MCP_JSON_PATH:-$REPO_PATH/.mcp.json}"
 CLAUDE_SETTINGS_PATH="${CLAUDE_SETTINGS_PATH:-$REPO_PATH/.claude/settings.json}"
-OWNER_PATH="${OWNER_PATH:-$REPO_PATH/.gemini/.hg-gemini-settings-sync.json}"
 LEGACY_CONFIG_PATH="${LEGACY_CONFIG_PATH:-$REPO_PATH/.gemini/config.yaml}"
+DEFAULT_OWNER_PATH="$REPO_PATH/.gemini/.hg-gemini-settings-sync.json"
+OWNER_PATH="${OWNER_PATH:-$DEFAULT_OWNER_PATH}"
 
 [[ -f "$TEMPLATE_PATH" ]] || hg_die "Missing Gemini settings template: $TEMPLATE_PATH"
 jq -e 'type == "object"' "$TEMPLATE_PATH" >/dev/null || hg_die "Invalid Gemini settings template: $TEMPLATE_PATH"
@@ -120,6 +124,7 @@ rendered_owner="$tmpdir/owner.json"
 settings_changed=0
 legacy_pending=0
 dirty_blockers=0
+owner_cleanup_pending=0
 
 repo_rel_path() {
   local abs="$1"
@@ -222,116 +227,48 @@ remove_legacy_config() {
   esac
 }
 
-render_mcp_json() {
-  if [[ ! -f "$MCP_JSON_PATH" ]]; then
-    printf '{}\n'
+remove_generated_owner_metadata() {
+  local metadata_path="$1"
+  [[ -n "$metadata_path" ]] || return 0
+  [[ -f "$metadata_path" ]] || return 0
+  if ! jq -e '.generator == "dotfiles/scripts/hg-gemini-settings-sync.sh"' "$metadata_path" >/dev/null 2>&1; then
     return 0
   fi
 
-  jq -e '.mcpServers and (.mcpServers | type == "object")' "$MCP_JSON_PATH" >/dev/null || hg_die "Invalid .mcp.json: $MCP_JSON_PATH"
-
-  jq '
-    (.mcpServers // {})
-    | with_entries(select(.key | startswith("_") | not))
-    | with_entries(
-        .value |= with_entries(
-          select(
-            .key == "command"
-            or .key == "args"
-            or .key == "env"
-            or .key == "cwd"
-            or .key == "url"
-            or .key == "httpUrl"
-            or .key == "headers"
-            or .key == "timeout"
-          )
-        )
-      )
-  ' "$MCP_JSON_PATH"
-}
-
-render_hooks_json() {
-  if [[ ! -f "$CLAUDE_SETTINGS_PATH" ]]; then
-    printf '{}\n'
-    return 0
+  owner_cleanup_pending=1
+  if ! $ALLOW_DIRTY && path_is_dirty "$metadata_path"; then
+    dirty_blockers=$((dirty_blockers + 1))
+    case "$MODE" in
+      write)
+        hg_warn "Skipping dirty Gemini settings metadata cleanup: $metadata_path"
+        ;;
+      dry-run)
+        hg_warn "Would remove dirty Gemini settings metadata: $metadata_path"
+        ;;
+      check)
+        hg_warn "Dirty Gemini settings metadata blocks sync: $metadata_path"
+        ;;
+    esac
+    return 1
   fi
 
-  jq -e 'type == "object"' "$CLAUDE_SETTINGS_PATH" >/dev/null || hg_die "Invalid Claude settings JSON: $CLAUDE_SETTINGS_PATH"
-
-  jq '
-    (.hooks // {}) as $hooks
-    | {
-        SessionStart: ($hooks.SessionStart // []),
-        BeforeTool: ($hooks.PreToolUse // []),
-        AfterTool: ($hooks.PostToolUse // []),
-        Notification: ($hooks.Notification // []),
-        BeforeAgent: ($hooks.UserPromptSubmit // [])
-      }
-    | with_entries(select((.value | type == "array") and (.value | length > 0)))
-  ' "$CLAUDE_SETTINGS_PATH"
+  case "$MODE" in
+    write)
+      rm -f "$metadata_path"
+      hg_ok "Removed Gemini settings metadata: $metadata_path"
+      ;;
+    dry-run)
+      hg_warn "Would remove Gemini settings metadata: $metadata_path"
+      ;;
+    check)
+      ;;
+  esac
 }
 
-count_translated_hook_rules() {
-  if [[ ! -f "$CLAUDE_SETTINGS_PATH" ]]; then
-    printf '0\n'
-    return 0
-  fi
-
-  jq '
-    [
-      (.hooks.SessionStart // []),
-      (.hooks.PreToolUse // []),
-      (.hooks.PostToolUse // []),
-      (.hooks.Notification // []),
-      (.hooks.UserPromptSubmit // [])
-    ]
-    | flatten
-    | length
-  ' "$CLAUDE_SETTINGS_PATH"
-}
-
-count_unsupported_hook_rules() {
-  if [[ ! -f "$CLAUDE_SETTINGS_PATH" ]]; then
-    printf '0\n'
-    return 0
-  fi
-
-  jq '
-    (.hooks // {})
-    | [
-        (.Stop // []),
-        (.PostToolUseFailure // []),
-        (.PostCompact // []),
-        (.PreCompact // []),
-        (.SubagentStart // []),
-        (.SubagentStop // []),
-        (.SessionEnd // [])
-      ]
-    | flatten
-    | length
-  ' "$CLAUDE_SETTINGS_PATH"
-}
-
-mcp_json="$tmpdir/mcp.json"
-hooks_json="$tmpdir/hooks.json"
-render_mcp_json >"$mcp_json"
-render_hooks_json >"$hooks_json"
-
-translated_hook_rules="$(count_translated_hook_rules)"
-unsupported_hook_rules="$(count_unsupported_hook_rules)"
-gemini_mcp_server_count="$(jq 'keys | length' "$mcp_json")"
-
-jq \
-  --slurpfile mcp "$mcp_json" \
-  --slurpfile hooks "$hooks_json" \
-  '
-    .mcpServers = ($mcp[0] // {})
-    | if (($hooks[0] // {}) | length) > 0 then
-        .hooks = $hooks[0]
-      else
-        del(.hooks)
-      end
-  ' "$TEMPLATE_PATH" | jq '.' >"$rendered_settings"
+printf '%s\n' "$(hg_parity_render_gemini_settings "$REPO_PATH")" | jq '.' >"$rendered_settings"
+translated_hook_rules="$(hg_parity_supported_source_hook_rule_count "$REPO_PATH")"
+unsupported_hook_rules="$(hg_parity_unsupported_source_hook_rule_count "$REPO_PATH")"
+gemini_mcp_server_count="$(hg_parity_gemini_mcp_server_count "$REPO_PATH")"
 
 jq -n \
   --arg generator "dotfiles/scripts/hg-gemini-settings-sync.sh" \
@@ -352,7 +289,12 @@ jq -n \
   }' | jq '.' >"$rendered_owner"
 
 sync_rendered_file "$SETTINGS_PATH" "$rendered_settings" "Synced Gemini settings" || true
-sync_rendered_file "$OWNER_PATH" "$rendered_owner" "Synced Gemini settings metadata" || true
+if [[ -n "${OWNER_PATH:-}" ]]; then
+  sync_rendered_file "$OWNER_PATH" "$rendered_owner" "Synced Gemini settings metadata" || true
+else
+  rm -f "$rendered_owner"
+  remove_generated_owner_metadata "$DEFAULT_OWNER_PATH" || true
+fi
 remove_legacy_config || true
 
 if [[ "$unsupported_hook_rules" -gt 0 && "$MODE" == "write" ]]; then
@@ -361,17 +303,17 @@ fi
 
 case "$MODE" in
   write)
-    if [[ "$settings_changed" -eq 0 && "$legacy_pending" -eq 0 ]]; then
+    if [[ "$settings_changed" -eq 0 && "$legacy_pending" -eq 0 && "$owner_cleanup_pending" -eq 0 ]]; then
       hg_ok "Gemini settings already up to date for $REPO_PATH"
     fi
     ;;
   dry-run)
-    if [[ "$settings_changed" -eq 0 && "$legacy_pending" -eq 0 ]]; then
+    if [[ "$settings_changed" -eq 0 && "$legacy_pending" -eq 0 && "$owner_cleanup_pending" -eq 0 ]]; then
       hg_ok "No Gemini settings changes needed for $REPO_PATH"
     fi
     ;;
   check)
-    if [[ "$settings_changed" -eq 0 && "$legacy_pending" -eq 0 && "$dirty_blockers" -eq 0 ]]; then
+    if [[ "$settings_changed" -eq 0 && "$legacy_pending" -eq 0 && "$owner_cleanup_pending" -eq 0 && "$dirty_blockers" -eq 0 ]]; then
       hg_ok "Gemini settings up to date for $REPO_PATH"
     else
       exit 1
