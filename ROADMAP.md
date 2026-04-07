@@ -4,7 +4,7 @@
 
 Cross-platform dotfiles (macOS + Manjaro Linux) with 60+ symlinked configs, 138 GLSL shaders with shuffled playlists, Snazzy-on-black palette applied to 15+ tools, compositor abstraction layer (Hyprland/AeroSpace), eww bar with custom widgets, and a full boot stack (rEFInd + Plymouth). Idempotent installer with backup/restore support.
 
-Shader collection is the largest curated Ghostty shader set publicly available. All configs MIT licensed.
+Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
 
 ## Planned
 

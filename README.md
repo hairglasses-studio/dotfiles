@@ -15,13 +15,13 @@ Full-stack development environment for Manjaro Linux (Hyprland) and macOS (AeroS
 
 ### Technical Highlights
 
-- **GPU Shaders**: 131 GLSL shaders with runtime compilation, playlist rotation, and auto-benchmarking
+- **GPU Shaders**: 131 GLSL shaders transpiled to CRTty/Hypr-DarkWindow for kitty, with playlist rotation and auto-benchmarking
 - **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, shader pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
 
-Hyprland + eww bar + swaync + wofi + Ghostty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
+Hyprland + eww bar + swaync + wofi + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
 
 ## Install
 
@@ -77,7 +77,7 @@ hyprpm reload -n
 | `swaync/` | Notification center — Snazzy themed, visibility filtering |
 | `wofi/` | App launcher and emoji picker |
 | `wlogout/` | Power menu overlay |
-| `ghostty/` | GPU terminal with 131 GLSL shaders, shuffled playlists, shader-cycle scripts |
+| `kitty/` | GPU terminal with 131 GLSL shaders (CRTty/DarkWindow), shuffled playlists, shader-cycle scripts |
 | `foot/` | Lightweight terminal (dropdown/fallback) |
 | `zsh/` | Oh My Zsh, Starship prompt, 650+ aliases |
 | `starship/` | Fill-based right alignment, git metrics, cloud context |
@@ -102,7 +102,7 @@ hyprpm reload -n
 dotfiles/
 ├── hyprland/       → ~/.config/hypr (WM + hypridle + hyprlock + pyprland)
 ├── eww/            → ~/.config/eww (bar + widgets)
-├── ghostty/        → ~/.config/ghostty (terminal + 131 shaders)
+├── kitty/          → ~/.config/kitty (terminal + 131 shaders)
 ├── swaync/         → ~/.config/swaync (notifications)
 ├── wofi/           → ~/.config/wofi (launcher)
 ├── wlogout/        → ~/.config/wlogout (power menu)
@@ -148,7 +148,7 @@ All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) 
 
 ## Troubleshooting
 
-**Shaders don't animate:** Check `custom-shader-animation = true` in ghostty config.
+**Shaders don't animate:** Check shader configuration in kitty config and verify CRTty/Hypr-DarkWindow transpilation.
 
 **Powerlevel10k prompt looks broken:** Ensure Maple Mono NF CN is installed (`pacman -S maplemono-nf-cn` on Arch, or `brew install --cask font-maple-mono-nf-cn` on macOS) and set as your terminal font.
 

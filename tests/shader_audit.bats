@@ -2,7 +2,7 @@
 # Tests for ghostty/shaders/bin/shader-audit.sh (pick-shaders / shader audition)
 # Tests: TOML metadata parsing, shader list building, category filtering,
 #        resume support, needs_animation detection, cost_color formatting
-# Skips: interactive read loop, actual Ghostty config swapping
+# Skips: interactive read loop, actual terminal config swapping
 
 load 'test_helper'
 

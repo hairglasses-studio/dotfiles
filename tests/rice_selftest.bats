@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # Tests for scripts/rice-selftest.sh — Rice self-test result aggregation
 # Tests: result aggregation, JSON output, section routing, arg parsing
-# Skips: hyprctl, pgrep, ghostty, fc-list, and other service checks
+# Skips: hyprctl, pgrep, kitty, fc-list, and other service checks
 
 load 'test_helper'
 
@@ -26,7 +26,7 @@ setup() {
         # Mock out all external command checks
         echo 'hyprctl() { echo ""; }'  # empty = no errors
         echo 'pgrep() { return 0; }'   # everything is running
-        echo 'ghostty() { echo "font-family = Hack Nerd Font"; }'
+        echo 'kitty() { echo "font_family Hack Nerd Font"; }'
         echo 'fc-list() { echo "Hack Nerd Font:style=Regular"; }'
         echo 'command() { return 0; }'  # all tools found
         echo "find() { echo ''; }"     # stub

@@ -7,33 +7,29 @@ Cross-platform development environment (macOS + Manjaro Linux) managed with syml
 ## Architecture
 
 ### Shader Pipeline
-Ghostty transpiles GLSL -> SPIRV -> Metal at runtime. No `#include` support — each `.glsl` must be self-contained.
+Source GLSL shaders live in `ghostty/shaders/` (legacy path, kept as the canonical source directory). Shaders are transpiled to CRTty (GLSL 330 core) and Hypr-DarkWindow formats for kitty. No `#include` support — each `.glsl` must be self-contained.
 
-- **`ghostty/shaders/`** — 138 GLSL shaders
+- **`ghostty/shaders/`** — 138 GLSL shaders (source directory)
 - **`ghostty/shaders/shaders.toml`** — Central manifest (single source of truth for shader metadata)
 - **`ghostty/shaders/lib/`** — Shared GLSL libraries (inlined by preprocessor)
 - **`ghostty/shaders/bin/`** — Management scripts:
   - `shader-meta.sh` — Query/validate the manifest
   - `shader-build.sh` — Preprocessor: inlines `// #include "lib/X.glsl"` with `BEGIN/END` markers (idempotent)
   - `shader-test.sh` — Compilation testing via glslangValidator
-  - `shader-cycle.sh` — Curated shader rotation + Tattoy mode switching
+  - `shader-cycle.sh` — Curated shader rotation
   - `shader-random.sh` — Random shader selection
   - `shader-benchmark.sh` — Performance profiling
   - `shader-playlist.sh` — Fisher-Yates shuffled playlist engine
-  - `shader-auto-rotate.sh` — Timed rotation via launchd
+  - `shader-auto-rotate.sh` — Timed rotation
 
 ### Config Symlinks
 ```
-~/.config/ghostty    -> dotfiles/ghostty
+~/.config/kitty      -> dotfiles/kitty
 ~/.config/aerospace  -> dotfiles/aerospace
-~/Library/Application Support/tattoy/tattoy.toml  (copied, not symlinked)
-~/Library/Application Support/tattoy/shaders      -> dotfiles/ghostty/shaders
 ```
 
 ### Visual Stack (layered, bottom to top)
-1. **Ghostty** — terminal with `custom-shader` (GPU-rendered at pixel resolution)
-2. **Tattoy** — terminal compositor with shader + animated cursor layers (text-resolution via half-blocks)
-3. **RetroVisor** — CRT overlay via ScreenCaptureKit + Metal (screen-level)
+1. **kitty** — terminal with CRTty/Hypr-DarkWindow shaders (GPU-rendered)
 
 ### Package Management
 - **macOS:** Homebrew via `Brewfile`
@@ -63,7 +59,7 @@ Live animated wallpapers via Shadertoy-compatible GLSL rendered by `shaderbg`:
 - **Kernel params:** `quiet splash loglevel=3 nvidia_drm.modeset=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1`
 
 ### MCP Server (unified dotfiles-mcp)
-- **`dotfiles-mcp`** — 82 tools across 8 modules: dotfiles config management (30), Hyprland desktop control (12), input devices/BT/controllers/MIDI (26), Ghostty shader pipeline (14). Single Go binary, stdio transport.
+- **`dotfiles-mcp`** — 82 tools across 8 modules: dotfiles config management (30), Hyprland desktop control (12), input devices/BT/controllers/MIDI (26), shader pipeline (14). Single Go binary, stdio transport.
 - **`systemd-mcp`** — systemd unit management
 - **`tmux-mcp`** — tmux session management
 - **`process-mcp`** — process management
@@ -75,19 +71,8 @@ Live animated wallpapers via Shadertoy-compatible GLSL rendered by `shaderbg`:
 
 ## Key Patterns
 
-### Ghostty Config Updates
-Ghostty auto-reloads via FSEvents. Scripts use atomic writes (`mktemp + mv`) to avoid partial reads:
-```bash
-tmp="$(mktemp "${CONFIG}.XXXXXX")"
-sed -e "s|^custom-shader = .*|custom-shader = $path|" "$CONFIG" > "$tmp"
-mv -f "$tmp" "$CONFIG"
-```
-
-### Tattoy Config Toggling
-Tattoo watches its config with 100ms debounce. Section-scoped sed to avoid hitting `[text_contrast].enabled`:
-```bash
-sed -e "/^\[shader\]/,/^\[/ s|^enabled = .*|enabled = true|"
-```
+### kitty Shader Rotation
+Shader rotation is managed by `kitty-shader-playlist.sh`. kitty reloads config on `SIGUSR1` or via `kitty @ set-colors` remote control.
 
 ### Hyprland Plugin Reset
 If plugins stop working (dispatchers return "Invalid dispatcher" in log), do a clean cycle:
@@ -113,7 +98,7 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 | `scripts/lib/compositor.sh` | `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_reload`, `compositor_subscribe` | Cross-compositor IPC (Hyprland/AeroSpace) |
 | `scripts/lib/config.sh` | `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service`, `config_reload_parallel` | Atomic config writes with `mktemp + mv`, parallel service reloads |
 | `scripts/lib/notify.sh` | `hg_notify_low`, `hg_notify_normal`, `hg_notify_critical` | Desktop notifications via notify-send |
-| `scripts/lib/ghostty-config.sh` | `ghostty_get_shader_path`, `ghostty_get_shader_name`, `ghostty_get_shader_animation` | Shared Ghostty config queries (eliminates inline grep/sed) |
+| `scripts/lib/kitty-config.sh` | `kitty_get_shader_path`, `kitty_get_shader_name`, `kitty_get_shader_animation` | Shared kitty config queries (eliminates inline grep/sed) |
 | `scripts/lib/agent-post-tool-audit.sh` | PostToolUse hook | Reloads services on config edits, validates hyprland/eww/systemd errors, checks metapac coverage, enforces Snazzy palette |
 | `scripts/lib/agent-pre-tool-validate.sh` | PreToolUse hook | Validates .yuck paren balance and .scss syntax before writes |
 | `scripts/lib/claude-post-tool-reload.sh` | Compatibility shim | Delegates to `agent-post-tool-reload.sh` for legacy Claude hook configs |
@@ -187,7 +172,6 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 ```
 shader-meta, shader-build, shader-test, shader-cycle, shader-bench
 peek (peekaboo screen capture)
-crt-on, crt-off, crt-toggle (RetroVisor)
 ccg (global Claude Code session browser — browse/resume sessions across all repos)
 ```
 
