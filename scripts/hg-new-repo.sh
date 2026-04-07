@@ -191,11 +191,11 @@ make pipeline-check
 
 ## Architecture
 
-TODO: Describe the project structure.
+Describe project structure here.
 
 ## Key Patterns
 
-TODO: Document conventions specific to this project.
+Document project conventions here.
 
 ## Explicit Skill Surface
 
