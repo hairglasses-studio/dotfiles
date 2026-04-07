@@ -7,6 +7,9 @@ set -euo pipefail
 LOG_DIR="$HOME/.local/share/hyprland-boot-logs"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 REPORT="$LOG_DIR/boot-$TIMESTAMP.log"
+LOG_MATCH='(\[ERR\]|\[WRN\]|(^|[^[:alnum:]_])(ERR|WRN|error|warn|failed|critical)([^[:alnum:]_]|$))'
+ERROR_MATCH='(\[ERR\]|(^|[^[:alnum:]_])(ERR|error|failed|critical)([^[:alnum:]_]|$))'
+WARN_MATCH='(\[WRN\]|(^|[^[:alnum:]_])(WRN|warn)([^[:alnum:]_]|$))'
 
 mkdir -p "$LOG_DIR"
 
@@ -15,7 +18,13 @@ sleep 5
 
 {
     echo "=== HYPRLAND BOOT LOG — $TIMESTAMP ==="
-    echo "Hyprland: $(hyprctl version -j 2>/dev/null | grep -o '"tag":"[^"]*"' | head -1 || echo 'unknown')"
+    if command -v jq >/dev/null 2>&1; then
+        HYPR_VERSION=$(hyprctl version -j 2>/dev/null | jq -r '.tag // .version // "unknown"' 2>/dev/null || echo "unknown")
+    else
+        HYPR_VERSION=$(hyprctl version -j 2>/dev/null | sed -n 's/.*"tag":[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+        HYPR_VERSION=${HYPR_VERSION:-unknown}
+    fi
+    echo "Hyprland: ${HYPR_VERSION}"
     echo ""
 
     # 1. Config errors (filter out empty arrays like [""])
@@ -31,13 +40,16 @@ sleep 5
 
     # 2. Hyprland instance log — errors/warnings (retry for race condition)
     echo "=== LOG ERRORS/WARNINGS ==="
-    HYPR_LOG="/tmp/hypr/${HYPRLAND_INSTANCE_SIGNATURE:-unknown}/hyprland.log"
+    HYPR_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr/${HYPRLAND_INSTANCE_SIGNATURE:-unknown}"
+    HYPR_LOG="${HYPR_RUNTIME_DIR}/hyprland.log"
+    LEGACY_HYPR_LOG="/tmp/hypr/${HYPRLAND_INSTANCE_SIGNATURE:-unknown}/hyprland.log"
     for _ in 1 2 3; do
         [ -f "$HYPR_LOG" ] && break
+        [ -f "$LEGACY_HYPR_LOG" ] && HYPR_LOG="$LEGACY_HYPR_LOG" && break
         sleep 2
     done
     if [ -f "$HYPR_LOG" ]; then
-        grep -iE "\[ERR\]|\[WRN\]|error|warn|fail|critical" "$HYPR_LOG" | head -100 || echo "No errors/warnings found"
+        grep -iE "$LOG_MATCH" "$HYPR_LOG" | head -100 || echo "No errors/warnings found"
     else
         echo "Log not found: $HYPR_LOG"
     fi
@@ -60,8 +72,8 @@ sleep 5
 } > "$REPORT" 2>&1
 
 # Desktop notification with summary (exclude section headers and metadata lines)
-ERROR_COUNT=$(grep -viE "^===|^Log not found|^hyprctl|^0 loaded" "$REPORT" 2>/dev/null | grep -ciE "\[ERR\]|error|fail|critical" 2>/dev/null || echo 0)
-WARN_COUNT=$(grep -viE "^===|^Log not found|^hyprctl|^0 loaded" "$REPORT" 2>/dev/null | grep -ciE "\[WRN\]|warn" 2>/dev/null || echo 0)
+ERROR_COUNT=$(grep -viE "^===|^Log not found|^hyprctl|^0 loaded" "$REPORT" 2>/dev/null | grep -ciE "$ERROR_MATCH" 2>/dev/null || echo 0)
+WARN_COUNT=$(grep -viE "^===|^Log not found|^hyprctl|^0 loaded" "$REPORT" 2>/dev/null | grep -ciE "$WARN_MATCH" 2>/dev/null || echo 0)
 if (( ERROR_COUNT > 0 )); then
   notify-send -u critical -a "Hyprland Boot" \
       "Boot log: ${ERROR_COUNT} errors" \

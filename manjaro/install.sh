@@ -315,6 +315,7 @@ install_systemd_services() {
         mkdir -p "$HOME/.config/systemd/user"
         for unit in "$DOTFILES/systemd/"*.{timer,service} ; do
             [[ -f "$unit" ]] || continue
+            [[ "$(basename "$unit")" == "makima.service" ]] && continue
             cp "$unit" "$HOME/.config/systemd/user/"
             info "  Installed $(basename "$unit")"
         done
@@ -326,7 +327,7 @@ install_systemd_services() {
             info "  shader-rotate timer enabled"
         fi
 
-        # Enable makima system service (provided by makima-bin package)
+        # Enable makima as a packaged system service, not a user unit.
         if is_enabled makima && [[ -f "/usr/lib/systemd/system/makima.service" ]]; then
             sudo systemctl enable makima.service
             info "  makima service enabled"

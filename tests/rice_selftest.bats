@@ -100,6 +100,37 @@ teardown() {
     [[ -d "${BATS_TEST_TMPDIR}" ]] && rm -rf "${BATS_TEST_TMPDIR}"
 }
 
+build_hypr_config_script() {
+    local hypr_json="$1"
+    local script_path="${BATS_TEST_TMPDIR}/hypr-config-${RANDOM}.sh"
+    local real_script="${SCRIPTS_DIR}/rice-selftest.sh"
+
+    {
+        echo '#!/usr/bin/env bash'
+        echo 'set -euo pipefail'
+        echo ""
+        echo 'hg_info() { true; }'
+        echo 'hg_ok() { true; }'
+        echo 'hg_error() { true; }'
+        echo ""
+        echo "SCRIPT_DIR=\"${SCRIPTS_DIR}\""
+        echo 'hyprctl() {'
+        echo '  if [[ "${1:-}" == "-j" && "${2:-}" == "configerrors" ]]; then'
+        echo "    cat <<'EOF'"
+        echo "$hypr_json"
+        echo 'EOF'
+        echo '    return 0'
+        echo '  fi'
+        echo '  printf "[]\n"'
+        echo '}'
+        echo 'jq() { command jq "$@"; }'
+        sed -n '/^JSON_MODE=/,$p' "$real_script"
+    } > "$script_path"
+
+    chmod +x "$script_path"
+    printf '%s\n' "$script_path"
+}
+
 # --- Argument parsing ---
 
 @test "rice-selftest: --json flag enables JSON output" {
@@ -210,4 +241,24 @@ BASH
 @test "rice-selftest: warn results show WARN marker" {
     run bash "$MINIMAL_SCRIPT" test
     assert_output --partial "[WARN] check_c"
+}
+
+@test "rice-selftest: config section treats blank JSON array entry as clean" {
+    local script
+    script="$(build_hypr_config_script '[""]')"
+
+    run bash "$script" --section config
+
+    assert_success
+    assert_output --partial "hyprland_config: zero errors"
+}
+
+@test "rice-selftest: config section reports JSON error entries" {
+    local script
+    script="$(build_hypr_config_script '["Invalid dispatcher foo"]')"
+
+    run bash "$script" --section config
+
+    assert_failure
+    assert_output --partial "Invalid dispatcher foo"
 }
