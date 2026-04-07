@@ -40,7 +40,7 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 3. Bootstraps lazy.nvim for Neovim
 4. Installs TPM (Tmux Plugin Manager)
 5. Symlinks all 60+ configs to their expected locations
-6. Enables systemd user services (shader-rotate, tmux)
+6. Enables repo-managed systemd user services and packaged system services where applicable
 7. Builds bat theme cache
 
 ### Post-install
@@ -92,7 +92,7 @@ hyprpm reload -n
 | `metapac/` | Declarative package management — 12 groups, paru backend |
 | `topgrade/` | System update orchestration |
 | `pypr/` | Hyprland scratchpads (terminal, volume, files) |
-| `systemd/` | 22 user services (shader-rotate, calendar sync, battery, rclone, stash) |
+| `systemd/` | Repo-managed user services; Makima remains a packaged system service |
 
 ### Directory layout
 
@@ -117,7 +117,7 @@ dotfiles/
 ├── pypr/           → ~/.config/pypr (scratchpads)
 ├── metapac/        → ~/.config/metapac (package groups)
 ├── topgrade/       → ~/.config/topgrade (system updates)
-├── systemd/        → ~/.config/systemd/user/ (22 services)
+├── systemd/        → ~/.config/systemd/user/ (repo-managed user services; Makima stays system-scoped)
 ├── zsh/            → ~/.zshrc + ~/.zshenv + ~/.p10k.zsh
 ├── git/            → ~/.gitconfig + ~/.config/delta + ~/.config/git/ignore
 ├── tmux/           → ~/.tmux.conf

@@ -68,6 +68,42 @@ func runHyprctl(args ...string) (string, error) {
 	return string(out), nil
 }
 
+func hyprConfigErrorMessages(raw string) []string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+
+	var parsed []string
+	if err := json.Unmarshal([]byte(raw), &parsed); err == nil {
+		var messages []string
+		for _, msg := range parsed {
+			msg = strings.TrimSpace(msg)
+			if msg != "" {
+				messages = append(messages, msg)
+			}
+		}
+		return messages
+	}
+
+	if strings.Contains(strings.ToLower(raw), "no errors") {
+		return nil
+	}
+
+	var messages []string
+	for _, line := range strings.Split(raw, "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			messages = append(messages, line)
+		}
+	}
+	return messages
+}
+
+func hyprConfigHealthy(raw string) bool {
+	return len(hyprConfigErrorMessages(raw)) == 0
+}
+
 // ---------- input/output types ----------
 
 type ScreenshotInput struct {
@@ -123,12 +159,12 @@ type monitorsResult struct {
 // ---------- hyprctl JSON types ----------
 
 type hyprClient struct {
-	Address string `json:"address"`
-	At      [2]int `json:"at"`
-	Size    [2]int `json:"size"`
-	Class   string `json:"class"`
-	Title   string `json:"title"`
-	Monitor int    `json:"monitor"`
+	Address   string `json:"address"`
+	At        [2]int `json:"at"`
+	Size      [2]int `json:"size"`
+	Class     string `json:"class"`
+	Title     string `json:"title"`
+	Monitor   int    `json:"monitor"`
 	Workspace struct {
 		ID int `json:"id"`
 	} `json:"workspace"`
@@ -535,13 +571,16 @@ func (m *HyprlandModule) Tools() []registry.ToolDefinition {
 					return "", err
 				}
 
-				errorsOut, err := runHyprctl("configerrors")
-				if err != nil {
-					// configerrors returns exit 1 when there are errors — that's expected
-					errorsOut = err.Error()
+				errorsOut, configErr := runHyprctl("-j", "configerrors")
+				configSummary := "none"
+				messages := hyprConfigErrorMessages(errorsOut)
+				if len(messages) > 0 {
+					configSummary = strings.Join(messages, "; ")
+				} else if configErr != nil && strings.TrimSpace(errorsOut) == "" {
+					configSummary = strings.TrimSpace(configErr.Error())
 				}
 
-				result := fmt.Sprintf("reload: %s\nconfigerrors: %s", strings.TrimSpace(reloadOut), strings.TrimSpace(errorsOut))
+				result := fmt.Sprintf("reload: %s\nconfigerrors: %s", strings.TrimSpace(reloadOut), configSummary)
 				return result, nil
 			},
 		),
@@ -1223,7 +1262,6 @@ func handleHyprScreenshotWindow(_ context.Context, req registry.CallToolRequest)
 }
 
 // ---------- main ----------
-
 
 func init() {
 	sig := hyprInstanceSig()

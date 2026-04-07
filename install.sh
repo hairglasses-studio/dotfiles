@@ -152,6 +152,7 @@ print_linux_systemd_link_specs() {
     local src
     for src in "$DOTFILES_DIR"/systemd/*; do
         [[ -f "$src" ]] || continue
+        [[ "$(basename "$src")" == "makima.service" ]] && continue
         printf '%s|%s\n' "$src" "$HOME/.config/systemd/user/$(basename "$src")"
     done
 }

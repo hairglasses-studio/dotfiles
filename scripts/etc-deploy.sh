@@ -21,4 +21,11 @@ for f in "$DOTFILES/etc/modprobe.d/"*.conf; do
     echo "  Deployed $(basename "$f")"
 done
 
+# Bluetooth
+if [[ -f "$DOTFILES/etc/bluetooth/main.conf" ]]; then
+    sudo install -d /etc/bluetooth
+    sudo install -m644 "$DOTFILES/etc/bluetooth/main.conf" /etc/bluetooth/main.conf
+    echo "  Deployed bluetooth/main.conf"
+fi
+
 echo "/etc/ configs deployed."

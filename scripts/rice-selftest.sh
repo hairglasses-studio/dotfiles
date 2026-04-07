@@ -37,11 +37,31 @@ add_result() {
   fi
 }
 
+hypr_configerror_lines() {
+  local raw="$1"
+
+  if [[ -z "${raw//[[:space:]]/}" ]]; then
+    return 0
+  fi
+
+  if printf '%s' "$raw" | jq -e 'type == "array"' >/dev/null 2>&1; then
+    printf '%s' "$raw" | jq -r '.[]? | strings | select((gsub("\\s+"; "")) | length > 0)'
+    return 0
+  fi
+
+  if grep -qi "no errors" <<<"$raw"; then
+    return 0
+  fi
+
+  printf '%s\n' "$raw" | sed '/^[[:space:]]*$/d'
+}
+
 # ── Section: Hyprland config ───────────────────────
 test_config() {
   echo "── Config Validation ──" >&2
-  local errs
-  errs="$(hyprctl configerrors 2>&1)"
+  local raw errs
+  raw="$(hyprctl -j configerrors 2>&1 || true)"
+  errs="$(hypr_configerror_lines "$raw")"
   if [[ -z "$errs" ]]; then
     add_result config "hyprland_config" pass "zero errors"
   else

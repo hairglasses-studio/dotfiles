@@ -16,10 +16,10 @@ for arg in "$@"; do
   esac
 done
 
-CLAUDE_COMMANDS="$HOME/.claude/commands"
-CLAUDE_SKILLS="$HOME/.claude/skills"
-AGENTS_SKILLS="$HOME/.agents/skills"
-CODEX_SKILLS="$HOME/.codex/skills"
+CLAUDE_COMMANDS="${HG_CLAUDE_COMMANDS_DIR:-$HOME/.claude/commands}"
+CLAUDE_SKILLS="${HG_CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
+AGENTS_SKILLS="${HG_AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
+CODEX_SKILLS="${HG_CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
 
 [[ -d "$CLAUDE_COMMANDS" ]] || hg_die "Claude commands directory not found: $CLAUDE_COMMANDS"
 

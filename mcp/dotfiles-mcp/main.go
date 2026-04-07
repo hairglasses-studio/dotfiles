@@ -2555,12 +2555,11 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					var healthy bool
 					switch svc {
 					case "hyprland":
-						checkCmd := exec.Command("hyprctl", "configerrors")
+						checkCmd := hyprctlCmd("-j", "configerrors")
 						var checkOut bytes.Buffer
 						checkCmd.Stdout = &checkOut
 						if checkCmd.Run() == nil {
-							output := strings.TrimSpace(checkOut.String())
-							healthy = output == "" || strings.Contains(output, "no errors")
+							healthy = hyprConfigHealthy(checkOut.String())
 						}
 					case "eww":
 						checkCmd := exec.Command("eww", "ping")
