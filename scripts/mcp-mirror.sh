@@ -46,6 +46,7 @@ done
 mirror_excludes=(
   --exclude '.git/'
   --exclude '.github/'
+  --exclude '.claude/'
   --exclude '.well-known/'
   --exclude '.codex/'
   --exclude '.gemini/'
