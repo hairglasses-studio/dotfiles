@@ -142,7 +142,7 @@ path_is_dirty() {
   local rel
   rel="$(repo_rel_path "$path")"
 
-  [[ -d "$REPO_PATH/.git" ]] || return 1
+  [[ -e "$REPO_PATH/.git" ]] || return 1
   [[ -n "$(git -C "$REPO_PATH" status --porcelain --untracked-files=all -- "$rel" 2>/dev/null)" ]]
 }
 
@@ -305,6 +305,8 @@ case "$MODE" in
   write)
     if [[ "$settings_changed" -eq 0 && "$legacy_pending" -eq 0 && "$owner_cleanup_pending" -eq 0 ]]; then
       hg_ok "Gemini settings already up to date for $REPO_PATH"
+    elif [[ "$dirty_blockers" -gt 0 ]]; then
+      exit 1
     fi
     ;;
   dry-run)

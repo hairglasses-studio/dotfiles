@@ -22,7 +22,7 @@ Usage: hg-provider-settings-sync.sh <repo_path> [options]
 Sync:
 - root .claude/settings.json
 - root .gemini/settings.json
-- Gemini extension scaffolds are reported but not managed in this pass
+- Gemini extension scaffolds when repo objectives require them
 
 Options:
   --repo-name <name>  Repo name override used for manifest-backed objectives
@@ -153,6 +153,23 @@ write_text_file() {
   fi
 }
 
+check_required_extension() {
+  local target_rel="$1"
+  local expected="$2"
+
+  local target="$REPO_PATH/$target_rel"
+  if [[ -f "$target" ]] && diff -u <(printf '%s\n' "$expected") "$target" >/dev/null 2>&1; then
+    report_current "gemini-extension"
+    return 0
+  fi
+
+  if [[ ! -f "$target" ]]; then
+    report_missing_or_drift "gemini-extension (required)"
+  else
+    report_missing_or_drift "gemini-extension (drift)"
+  fi
+}
+
 sync_provider_settings() {
   local claude_expected
   claude_expected="$(hg_parity_render_claude_settings "$REPO_PATH")"
@@ -176,10 +193,14 @@ sync_provider_settings() {
     write)
       if hg_parity_gemini_settings_current "$REPO_PATH"; then
         report_current "gemini-settings"
-      elif ! $ALLOW_DIRTY && { repo_file_dirty "$REPO_PATH" ".gemini/settings.json" || repo_file_dirty "$REPO_PATH" ".gemini/config.yaml"; }; then
+      elif ! $ALLOW_DIRTY && {
+        repo_file_dirty "$REPO_PATH" ".gemini/settings.json" \
+        || repo_file_dirty "$REPO_PATH" ".gemini/config.yaml" \
+        || repo_file_dirty "$REPO_PATH" ".gemini/.hg-gemini-settings-sync.json";
+      }; then
         hg_warn "$REPO_NAME: skipping dirty gemini-settings (.gemini/settings.json, .gemini/config.yaml)"
         mark_failure
-      elif hg_parity_gemini_settings_sync "$REPO_PATH"; then
+      elif hg_parity_gemini_settings_sync "$REPO_PATH" "$ALLOW_DIRTY"; then
         printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$REPO_NAME" "gemini-settings" "$HG_RESET"
         UPDATED=$((UPDATED + 1))
       else
@@ -189,7 +210,18 @@ sync_provider_settings() {
       ;;
   esac
 
-  report_current "gemini-extension (not managed)"
+  if hg_parity_repo_requires_gemini_extension "$REPO_PATH" "$REPO_NAME"; then
+    local extension_rel extension_expected
+    extension_rel="$(hg_parity_gemini_extension_relpath "$REPO_NAME")"
+    extension_expected="$(hg_parity_render_gemini_extension "$REPO_PATH" "$REPO_NAME")"
+    if [[ "$MODE" == "check" ]]; then
+      check_required_extension "$extension_rel" "$extension_expected"
+    else
+      write_text_file "$extension_rel" "$extension_expected" "gemini-extension"
+    fi
+  else
+    report_current "gemini-extension (not managed)"
+  fi
 }
 
 sync_provider_settings

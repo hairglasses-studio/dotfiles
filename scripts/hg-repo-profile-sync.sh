@@ -88,6 +88,44 @@ repo_file_dirty() {
   [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=all -- "$target_rel" 2>/dev/null)" ]]
 }
 
+strip_codex_generated_mcp_block() {
+  local input="$1"
+  local output="$2"
+
+  awk '
+    BEGIN {
+      skipping = 0
+    }
+    /^# BEGIN GENERATED MCP SERVERS: codex-mcp-sync$/ {
+      skipping = 1
+      next
+    }
+    /^# END GENERATED MCP SERVERS: codex-mcp-sync$/ {
+      skipping = 0
+      next
+    }
+    skipping == 0 {
+      print
+    }
+  ' "$input" | awk '
+    BEGIN {
+      blank = 0
+    }
+    /^$/ {
+      if (blank) {
+        next
+      }
+      blank = 1
+      print
+      next
+    }
+    {
+      blank = 0
+      print
+    }
+  ' >"$output"
+}
+
 mark_failure() {
   FAILED=1
 }
@@ -157,6 +195,8 @@ sync_standard_file() {
   local label="$5"
 
   local target="$repo_path/$target_rel"
+  local compare_target="$target"
+  local normalized_target=""
   if [[ ! -f "$source_file" ]]; then
     hg_die "$repo: missing source template for $label: $source_file"
   fi
@@ -176,24 +216,35 @@ sync_standard_file() {
     return
   fi
 
-  if cmp -s "$source_file" "$target"; then
+  if [[ "$target_rel" == ".codex/config.toml" ]]; then
+    normalized_target="$(mktemp)"
+    strip_codex_generated_mcp_block "$target" "$normalized_target"
+    compare_target="$normalized_target"
+  fi
+
+  if cmp -s "$source_file" "$compare_target"; then
+    [[ -n "$normalized_target" ]] && rm -f "$normalized_target"
     return
   fi
 
   case "$MODE" in
     verify)
+      [[ -n "$normalized_target" ]] && rm -f "$normalized_target"
       hg_warn "$repo: drift in $label ($target_rel)"
       mark_failure
       ;;
     ensure-missing)
+      [[ -n "$normalized_target" ]] && rm -f "$normalized_target"
       ;;
     sync)
       if ! $ALLOW_DIRTY && repo_file_dirty "$repo_path" "$target_rel"; then
+        [[ -n "$normalized_target" ]] && rm -f "$normalized_target"
         hg_warn "$repo: skipping dirty $label ($target_rel)"
         mark_failure
         return
       fi
       cp -f "$source_file" "$target"
+      [[ -n "$normalized_target" ]] && rm -f "$normalized_target"
       hg_ok "$repo: synced $label"
       ;;
   esac
@@ -213,14 +264,14 @@ sync_provider_settings() {
 
   case "$MODE" in
     verify)
-      if ! "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" --check >/dev/null; then
+      if ! bash "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" --check >/dev/null; then
         hg_warn "$repo: provider settings out of sync"
         mark_failure
       fi
       ;;
     ensure-missing)
       if [[ ! -f "$repo_path/$claude_rel" || ! -f "$repo_path/$settings_rel" ]]; then
-        "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" >/dev/null
+        bash "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" >/dev/null
         hg_ok "$repo: created provider settings"
       fi
       ;;
@@ -228,7 +279,7 @@ sync_provider_settings() {
       if skip_dirty_group "$repo" "$repo_path" "provider settings" "$claude_rel" "$settings_rel" "$legacy_rel"; then
         return
       fi
-      "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" >/dev/null
+      bash "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" >/dev/null
       hg_ok "$repo: synced provider settings"
       ;;
   esac
@@ -401,7 +452,7 @@ sync_codex_mcp_block() {
   case "$MODE" in
     verify)
       local diff_output
-      diff_output="$("$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" --dry-run 2>/dev/null || true)"
+      diff_output="$(bash "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" --dry-run 2>/dev/null || true)"
       if [[ -n "$diff_output" ]]; then
         hg_warn "$repo: generated Codex MCP block is out of sync"
         mark_failure
@@ -411,7 +462,7 @@ sync_codex_mcp_block() {
       if skip_dirty_group "$repo" "$repo_path" "generated Codex MCP block" ".codex/config.toml"; then
         return
       fi
-      "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" >/dev/null
+      bash "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" >/dev/null
       hg_ok "$repo: synced generated Codex MCP block"
       ;;
   esac

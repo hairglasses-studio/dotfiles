@@ -202,7 +202,7 @@ if [[ ! -f .claude/settings.json || ! -f .gemini/settings.json ]]; then
   if $DRY_RUN; then
     add_file ".claude/settings.json and .gemini/settings.json"
   else
-    "$SCRIPT_DIR/hg-provider-settings-sync.sh" "$PWD" --repo-name "$REPO_NAME" --allow-dirty >/dev/null
+    bash "$SCRIPT_DIR/hg-provider-settings-sync.sh" "$PWD" --repo-name "$REPO_NAME" --allow-dirty >/dev/null
     add_file ".claude/settings.json and .gemini/settings.json"
   fi
 fi
@@ -212,7 +212,7 @@ if [[ -f .mcp.json && -f .codex/mcp-profile-policy.json ]]; then
   if $DRY_RUN; then
     add_file ".codex/config.toml MCP block sync"
   else
-    "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$PWD" >/dev/null
+    bash "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$PWD" >/dev/null
     add_file ".codex/config.toml MCP block sync"
   fi
 elif [[ -f .mcp.json && ! -f .codex/mcp-profile-policy.json ]]; then
