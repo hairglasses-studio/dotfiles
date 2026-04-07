@@ -1,0 +1,87 @@
+# ── Dotfiles Feature Flags ────────────────────────
+# Toggle components on/off. Run: ./manjaro/install.sh
+# Profiles: ./manjaro/install.sh --profile minimal|dev|full|cyberpunk
+
+[meta]
+profile = "cyberpunk"
+
+# ── Core (shell, editor, git) ────────────────────
+[core]
+zsh = true
+git = true
+ssh = true
+starship = true
+tmux = true
+nvim = true
+
+# ── Terminal emulators & tools ───────────────────
+[terminal]
+ghostty = true
+foot = true
+bat = true
+fastfetch = true
+macchina = true
+ghosttyfetch = true
+
+# ── Desktop (Linux — Hyprland primary, Sway fallback) ─
+[desktop.linux]
+hyprland = true
+sway = true
+eww = true
+waybar = true
+mako = true
+wofi = true
+wlogout = true
+
+# ── Desktop (macOS) ──────────────────────────────
+[desktop.macos]
+aerospace = true
+sketchybar = true
+borders = true
+retrovisor = true
+tattoy = true
+
+# ── TUI theming ──────────────────────────────────
+[theming]
+gtk = true
+btop = true
+cava = true
+yazi = true
+lazygit = true
+k9s = true
+glow = true
+gh = true
+
+# ── Visual effects ───────────────────────────────
+[visual]
+ghostty-shaders = true
+wallpaper-shaders = true
+refind = false          # Manual deploy (needs sudo for EFI)
+plymouth = false        # Manual deploy (needs mkinitcpio rebuild)
+
+# ── Keyboard firmware ────────────────────────────
+[keyboard]
+keychron-v1-ultra = false   # Manual flash via Keychron Launcher
+drop-ctrl = false           # Manual flash via VIA
+
+# ── MCP servers (separate repos, binaries) ───────
+[mcp]
+hyprland-mcp = true
+dotfiles-mcp = true
+shader-mcp = true
+sway-mcp = true
+
+# ── Profiles ─────────────────────────────────────
+# Use: ./manjaro/install.sh --profile <name>
+
+[profiles.minimal]
+enable = ["zsh", "git", "ssh", "starship", "nvim"]
+
+[profiles.dev]
+enable = ["zsh", "git", "ssh", "starship", "nvim", "tmux", "lazygit", "gh", "bat", "fastfetch", "ghostty"]
+
+[profiles.full]
+enable = ["*"]
+
+[profiles.cyberpunk]
+enable = ["*"]
