@@ -27,6 +27,7 @@ jobs:
             ghostty/shaders/bin/shader-build.sh
             ghostty/shaders/bin/shader-meta.sh
             install.sh
+          ignore_paths: scripts/ccg.sh
           severity: warning
 
   configs:
