@@ -27,6 +27,7 @@ hg_require() {
 }
 
 # ── Paths ──────────────────────────────────────
-HG_DOTFILES="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}"
+HG_STUDIO_ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
+HG_DOTFILES="${DOTFILES_DIR:-$HG_STUDIO_ROOT/dotfiles}"
 HG_STATE_DIR="$HOME/.local/state/hg"
 mkdir -p "$HG_STATE_DIR" 2>/dev/null || true

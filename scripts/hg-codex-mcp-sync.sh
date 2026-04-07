@@ -199,7 +199,7 @@ render_block() {
       emit_array_line "args" "${args[@]}"
     fi
 
-    if [[ -n "$cwd" ]]; then
+    if [[ -n "$cwd" && "$cwd" != "." && "$cwd" != "./" ]]; then
       emit_scalar_line "cwd" "$cwd"
     fi
 
