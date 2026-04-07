@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # hg-workflow-sync.sh — Sync shared workflow files across managed repos.
-# Usage: hg-workflow-sync.sh [--dry-run] [--commit] [--push] [--ensure-missing] [--repos=a,b,c] [--include-compatibility] [--include-deprecated]
+# Usage: hg-workflow-sync.sh [--dry-run] [--commit] [--push] [--ensure-missing] [--allow-dirty] [--repos=a,b,c] [--include-compatibility] [--include-deprecated]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -14,6 +14,7 @@ DRY_RUN=false
 COMMIT=false
 PUSH=false
 ENSURE_MISSING=false
+ALLOW_DIRTY=false
 INCLUDE_COMPATIBILITY=false
 INCLUDE_DEPRECATED=false
 REPO_FILTER=""
@@ -24,11 +25,27 @@ for arg in "$@"; do
     --commit)  COMMIT=true ;;
     --push)    PUSH=true; COMMIT=true ;;
     --ensure-missing) ENSURE_MISSING=true ;;
+    --allow-dirty) ALLOW_DIRTY=true ;;
     --include-compatibility) INCLUDE_COMPATIBILITY=true ;;
     --include-deprecated) INCLUDE_DEPRECATED=true ;;
     --repos=*) REPO_FILTER="${arg#--repos=}" ;;
+    -h|--help)
+      cat <<'EOF'
+Usage: hg-workflow-sync.sh [--dry-run] [--commit] [--push] [--ensure-missing] [--allow-dirty] [--repos=a,b,c] [--include-compatibility] [--include-deprecated]
+EOF
+      exit 0
+      ;;
+    *)
+      hg_die "Unknown argument: $arg"
+      ;;
   esac
 done
+
+repo_file_dirty() {
+  local repo_path="$1"
+  local target_rel="$2"
+  [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=all -- "$target_rel" 2>/dev/null)" ]]
+}
 
 workflow_source() {
   local wf="$1"
@@ -127,7 +144,8 @@ while IFS= read -r name; do
     source_file="$(source_for_workflow "$wf" "$ci_profile")"
     [[ -f "$source_file" ]] || continue
 
-    target="$repo_path/.github/workflows/$wf"
+    target_rel=".github/workflows/$wf"
+    target="$repo_path/$target_rel"
     if [[ ! -f "$target" ]]; then
       if ! $ENSURE_MISSING; then
         continue
@@ -146,6 +164,11 @@ while IFS= read -r name; do
     fi
 
     if ! diff -q "$source_file" "$target" &>/dev/null; then
+      if ! $ALLOW_DIRTY && repo_file_dirty "$repo_path" "$target_rel"; then
+        hg_warn "$name: skipping dirty workflow $wf"
+        continue
+      fi
+
       if $DRY_RUN; then
         printf "%s%-25s %s (would update)%s\n" "$HG_YELLOW" "$name" "$wf" "$HG_RESET"
       else

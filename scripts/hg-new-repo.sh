@@ -5,10 +5,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
+source "$SCRIPT_DIR/lib/hg-workspace.sh"
 
-DOTFILES="$HOME/hairglasses-studio/dotfiles"
-ORG_GITHUB="$HOME/hairglasses-studio/.github"
-STUDIO="$HOME/hairglasses-studio"
+DOTFILES="$HG_DOTFILES"
+ORG_GITHUB="$HG_STUDIO_ROOT/.github"
+STUDIO="$HG_STUDIO_ROOT"
 
 workflow_source() {
   local wf="$1"
@@ -223,10 +224,14 @@ mkdir -p .codex
 command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/config.toml
 hg_ok "Created .codex/config.toml from shared standard"
 
-# ── Gemini review config ─────────────────────
+# ── Gemini settings baseline ─────────────────
 mkdir -p .gemini
-command cp -f "$SCRIPT_DIR/../templates/gemini-config.standard.yaml" .gemini/config.yaml
-hg_ok "Created .gemini/config.yaml from shared standard"
+command cp -f "$SCRIPT_DIR/../templates/gemini-settings.standard.json" .gemini/settings.json
+hg_ok "Created .gemini/settings.json from shared standard"
+
+# ── Gemini project settings ──────────────────
+command cp -f "$SCRIPT_DIR/../templates/gemini-settings.standard.json" .gemini/settings.json
+hg_ok "Created .gemini/settings.json from shared standard"
 
 # ── Canonical skill surface ──────────────────
 SKILL_NAME="${NAME//-/_}_ops"
@@ -271,6 +276,13 @@ Read files under \`.agents/skills/$SKILL_NAME/references/\` if this repo later g
 EOF
 "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$REPO_DIR" >/dev/null
 hg_ok "Created canonical .agents/skills surface"
+
+if hg_workspace_repo_exists "$NAME"; then
+  "$SCRIPT_DIR/hg-repo-profile-sync.sh" sync --allow-dirty --repos="$NAME" >/dev/null
+  hg_ok "Applied manifest profile sync"
+else
+  hg_warn "$NAME: not yet declared in workspace/manifest.json; using scaffold defaults"
+fi
 
 # ── Pre-commit hooks ─────────────────────────
 "$SCRIPT_DIR/hg-install-hooks.sh"

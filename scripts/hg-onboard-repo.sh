@@ -7,11 +7,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
+source "$SCRIPT_DIR/lib/hg-workspace.sh"
 
-STUDIO="$HOME/hairglasses-studio"
-DOTFILES="$STUDIO/dotfiles"
+STUDIO="$HG_STUDIO_ROOT"
+DOTFILES="$HG_DOTFILES"
 ORG_GITHUB="$STUDIO/.github"
-WORKSPACE_MANIFEST="$STUDIO/workspace/manifest.json"
 
 workflow_source() {
   local wf="$1"
@@ -38,8 +38,6 @@ done
 if [[ -z "$REPO_PATH" ]]; then
   hg_die "Usage: hg-onboard-repo.sh <repo_path> [--language auto|go|node|python|shell] [--dry-run]"
 fi
-
-hg_require jq
 
 cd "$REPO_PATH"
 REPO_NAME="$(basename "$PWD")"
@@ -196,14 +194,24 @@ if [[ ! -f .codex/config.toml ]]; then
   fi
 fi
 
-# ── Gemini review config ─────────────────────
-if [[ ! -f .gemini/config.yaml ]]; then
+# ── Gemini settings ──────────────────────────
+if [[ ! -f .gemini/settings.json ]]; then
   if $DRY_RUN; then
-    add_file ".gemini/config.yaml"
+    add_file ".gemini/settings.json"
+  else
+    "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$PWD" >/dev/null
+    add_file ".gemini/settings.json"
+  fi
+fi
+
+# ── Gemini project settings ──────────────────
+if [[ ! -f .gemini/settings.json ]]; then
+  if $DRY_RUN; then
+    add_file ".gemini/settings.json"
   else
     mkdir -p .gemini
-    command cp -f "$SCRIPT_DIR/../templates/gemini-config.standard.yaml" .gemini/config.yaml
-    add_file ".gemini/config.yaml"
+    command cp -f "$SCRIPT_DIR/../templates/gemini-settings.standard.json" .gemini/settings.json
+    add_file ".gemini/settings.json"
   fi
 fi
 
@@ -250,12 +258,22 @@ if [[ -d .git ]] && [[ ! -f .git/hooks/pre-commit ]]; then
 fi
 
 # ── Managed workspace-global refresh ────────
-if [[ -f "$WORKSPACE_MANIFEST" ]] && jq -e --arg repo "$REPO_NAME" '.repos[] | select(.name == $repo and .baseline_target == true)' "$WORKSPACE_MANIFEST" >/dev/null 2>&1; then
+if hg_workspace_repo_exists "$REPO_NAME" && hg_workspace_repo_bool "$REPO_NAME" "baseline_target"; then
   if $DRY_RUN; then
     hg_warn "Would refresh managed workspace-global sync"
   else
     "$SCRIPT_DIR/hg-workspace-global-sync.sh" --root "$STUDIO" >/dev/null
     hg_ok "Refreshed managed workspace-global sync"
+  fi
+fi
+
+if hg_workspace_repo_exists "$REPO_NAME"; then
+  if $DRY_RUN; then
+    "$SCRIPT_DIR/hg-repo-profile-sync.sh" verify --repos="$REPO_NAME" >/dev/null || true
+    hg_warn "Verified manifest profile sync for $REPO_NAME"
+  else
+    "$SCRIPT_DIR/hg-repo-profile-sync.sh" sync --allow-dirty --repos="$REPO_NAME" >/dev/null
+    hg_ok "Applied manifest profile sync"
   fi
 fi
 

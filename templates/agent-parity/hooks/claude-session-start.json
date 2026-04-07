@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Load AGENTS.md and repo-local compatibility docs before substantial work.'"
+          }
+        ]
+      }
+    ]
+  }
+}
