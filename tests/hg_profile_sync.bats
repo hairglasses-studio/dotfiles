@@ -174,6 +174,43 @@ write_parity_objectives() {
     refute_output --partial "gemini-extension (not managed)"
 }
 
+@test "hg-codex-mcp-sync: repo-relative launcher commands are preserved" {
+    write_manifest "demo"
+    init_repo "demo"
+    mkdir -p "${TEST_ROOT}/demo/.codex" "${TEST_ROOT}/demo/scripts/mcp"
+
+    cat > "${TEST_ROOT}/demo/.mcp.json" <<'EOF'
+{
+  "mcpServers": {
+    "demo": {
+      "command": "./scripts/mcp/demo-mcp.sh",
+      "args": ["alpha", "beta"]
+    }
+  }
+}
+EOF
+
+    cat > "${TEST_ROOT}/demo/.codex/config.toml" <<'EOF'
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+EOF
+
+    cat > "${TEST_ROOT}/demo/scripts/mcp/demo-mcp.sh" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+    chmod +x "${TEST_ROOT}/demo/scripts/mcp/demo-mcp.sh"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-codex-mcp-sync.sh" "${TEST_ROOT}/demo"
+    assert_success
+
+    run grep -F 'command = "./scripts/mcp/demo-mcp.sh"' "${TEST_ROOT}/demo/.codex/config.toml"
+    assert_success
+
+    run grep -F 'args = ["alpha", "beta"]' "${TEST_ROOT}/demo/.codex/config.toml"
+    assert_success
+}
+
 @test "hg-repo-profile-sync: sync skips dirty generated agent docs until allow-dirty is set" {
     write_manifest "demo"
     init_repo "demo"
