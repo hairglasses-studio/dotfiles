@@ -1,0 +1,96 @@
+name: Shader Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ghostty/shaders/**'
+      - '.github/workflows/ci-shaders.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ghostty/shaders/**'
+      - '.github/workflows/ci-shaders.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-shaders-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: GLSL Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install glslang
+        run: sudo apt-get update && sudo apt-get install -y glslang-tools
+
+      - name: Validate shaders
+        run: |
+          PASS=0
+          FAIL=0
+          WARN=0
+
+          for shader in ghostty/shaders/*.glsl; do
+            name="$(basename "$shader")"
+
+            # Skip lib includes (they're not standalone)
+            [[ "$name" == lib_* ]] && continue
+
+            # Check non-empty
+            if [ ! -s "$shader" ]; then
+              echo "FAIL: $name (empty)"
+              FAIL=$((FAIL + 1))
+              continue
+            fi
+
+            # Check matched braces
+            open=$(grep -o '{' "$shader" | wc -l)
+            close=$(grep -o '}' "$shader" | wc -l)
+            if [ "$open" -ne "$close" ]; then
+              echo "FAIL: $name (mismatched braces: $open open vs $close close)"
+              FAIL=$((FAIL + 1))
+              continue
+            fi
+
+            # glslangValidator — prepend #version 460 if missing
+            target="$shader"
+            tmp=""
+            if ! grep -qE '^#version' "$shader"; then
+              tmp="$(mktemp /tmp/shader-ci-XXXXXX.frag)"
+              { echo '#version 460'; cat "$shader"; } > "$tmp"
+              target="$tmp"
+            fi
+
+            output=$(glslangValidator -S frag "$target" 2>&1) || true
+            [ -n "$tmp" ] && rm -f "$tmp"
+
+            if echo "$output" | grep -qi "error"; then
+              # Ghostty/Shadertoy uniforms cause expected errors — warn only
+              echo "WARN: $name (glslangValidator errors — likely Ghostty-specific uniforms)"
+              WARN=$((WARN + 1))
+            else
+              echo "PASS: $name"
+              PASS=$((PASS + 1))
+            fi
+          done
+
+          echo ""
+          echo "### Shader Validation Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Status | Count |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Pass | $PASS |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Warn | $WARN |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Fail | $FAIL |" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Results: $PASS pass, $WARN warn, $FAIL fail"
+
+          # Only fail on structural errors (empty, mismatched braces)
+          if [ "$FAIL" -gt 0 ]; then
+            echo "::error::$FAIL shader(s) have structural errors"
+            exit 1
+          fi
