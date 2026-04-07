@@ -1,0 +1,14 @@
+# Base Codex defaults for new machines.
+# install.sh copies this to ~/.codex/config.toml if the live file is missing.
+# The live file is intentionally not symlinked because Codex mutates it with
+# local trust state, plugin settings, and other runtime preferences.
+
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+plan_mode_reasoning_effort = "xhigh"
+service_tier = "flex"
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
+[features]
+fast_mode = false
