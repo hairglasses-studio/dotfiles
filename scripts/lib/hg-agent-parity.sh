@@ -140,7 +140,7 @@ hg_parity_claude_mcp_servers_json() {
 
 hg_parity_gemini_mcp_servers_json() {
   local repo_path="$1"
-  jq -c '
+  jq -cS '
     .
     | with_entries(
         .key |= (
@@ -248,7 +248,7 @@ hg_parity_source_hooks_json() {
     return 0
   fi
 
-  jq -c '
+  jq -cS '
     (.hooks // {}) as $hooks
     | {
         SessionStart: ($hooks.SessionStart // []),
@@ -403,14 +403,6 @@ hg_parity_render_gemini_extension() {
 
 hg_parity_gemini_settings_current() {
   local repo_path="$1"
-  local sync_script
-  sync_script="$(hg_parity_gemini_sync_script)"
-
-  if [[ -f "$sync_script" ]]; then
-    bash "$sync_script" "$repo_path" --check >/dev/null 2>&1
-    return $?
-  fi
-
   local expected
   expected="$(hg_parity_render_gemini_settings "$repo_path")"
   hg_parity_compare_expected_file "$expected" "$repo_path/.gemini/settings.json"
@@ -418,10 +410,17 @@ hg_parity_gemini_settings_current() {
 
 hg_parity_gemini_settings_sync() {
   local repo_path="$1"
+  local allow_dirty="${2:-false}"
   local sync_script
   sync_script="$(hg_parity_gemini_sync_script)"
   [[ -f "$sync_script" ]] || return 1
-  bash "$sync_script" "$repo_path" >/dev/null 2>&1
+
+  local args=("$repo_path")
+  if [[ "$allow_dirty" == "true" ]]; then
+    args+=("--allow-dirty")
+  fi
+
+  bash "$sync_script" "${args[@]}" >/dev/null 2>&1
 }
 
 hg_parity_compare_expected_file() {

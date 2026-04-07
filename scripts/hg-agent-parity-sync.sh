@@ -55,6 +55,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 hg_parity_require_tools
+hg_require flock
+
+acquire_write_lock() {
+  [[ "$MODE" == "write" ]] || return 0
+
+  local lock_path="$HG_STATE_DIR/agent-parity-sync.lock"
+  mkdir -p "$(dirname "$lock_path")"
+  exec 9>"$lock_path"
+  if ! flock -n 9; then
+    hg_die "Another agent parity sync is already running"
+  fi
+}
+
+acquire_write_lock
 hg_require git diff
 
 repo_names() {
@@ -151,6 +165,57 @@ write_text_file() {
   fi
 }
 
+write_file_from_path() {
+  local repo="$1"
+  local repo_path="$2"
+  local source_path="$3"
+  local target_rel="$4"
+  local label="$5"
+  local allow_dirty="${6:-false}"
+
+  local target="$repo_path/$target_rel"
+  if [[ -f "$target" ]] && cmp -s "$source_path" "$target"; then
+    report_current "$repo" "$label"
+    return 0
+  fi
+
+  case "$MODE" in
+    dry-run)
+      if [[ -f "$target" ]]; then
+        printf "%s%-20s %s (would update)%s\n" "$HG_YELLOW" "$repo" "$label" "$HG_RESET"
+      else
+        printf "%s%-20s %s (would create)%s\n" "$HG_YELLOW" "$repo" "$label" "$HG_RESET"
+      fi
+      mark_failure
+      return 0
+      ;;
+    check)
+      if [[ -f "$target" ]]; then
+        report_missing_or_drift "$repo" "$label (drift)"
+      else
+        report_missing_or_drift "$repo" "$label (missing)"
+      fi
+      return 0
+      ;;
+  esac
+
+  if [[ "$allow_dirty" != "true" ]] && repo_file_dirty "$repo_path" "$target_rel"; then
+    hg_warn "$repo: skipping dirty $label ($target_rel)"
+    mark_failure
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$target")"
+  cp -f "$source_path" "$target"
+  if git -C "$repo_path" ls-files --error-unmatch "$target_rel" >/dev/null 2>&1; then
+    printf "%s%-20s %s (updated)%s\n" "$HG_GREEN" "$repo" "$label" "$HG_RESET"
+    UPDATED=$((UPDATED + 1))
+  else
+    printf "%s%-20s %s (created)%s\n" "$HG_GREEN" "$repo" "$label" "$HG_RESET"
+    CREATED=$((CREATED + 1))
+  fi
+}
+
 verify_or_sync_agent_docs() {
   local repo="$1"
   local repo_path="$2"
@@ -173,7 +238,7 @@ verify_or_sync_agent_docs() {
   for rel in AGENTS.md CLAUDE.md GEMINI.md .github/copilot-instructions.md; do
     local label="agent-doc:${rel}"
     if [[ -f "$tmpdir/$rel" ]]; then
-      write_text_file "$repo" "$repo_path" "$rel" "$(cat "$tmpdir/$rel")" "$label"
+      write_file_from_path "$repo" "$repo_path" "$tmpdir/$rel" "$rel" "$label"
     fi
   done
 
@@ -215,15 +280,19 @@ verify_or_sync_codex_mcp() {
   case "$MODE" in
     dry-run|check)
       local output
-      output="$("$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" --dry-run 2>/dev/null || true)"
-      if [[ -n "$output" ]]; then
-        report_missing_or_drift "$repo" "codex-mcp-block"
+      if output="$(bash "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" --dry-run 2>&1)"; then
+        if [[ -n "$output" ]]; then
+          report_missing_or_drift "$repo" "codex-mcp-block"
+        else
+          report_current "$repo" "codex-mcp-block"
+        fi
       else
-        report_current "$repo" "codex-mcp-block"
+        hg_warn "$repo: codex-mcp-block validation failed"
+        report_missing_or_drift "$repo" "codex-mcp-block (invalid)"
       fi
       ;;
     write)
-      if "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" >/dev/null 2>&1; then
+      if bash "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$repo_path" >/dev/null 2>&1; then
         printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "codex-mcp-block" "$HG_RESET"
         UPDATED=$((UPDATED + 1))
       else
@@ -280,9 +349,9 @@ verify_or_sync_provider_settings() {
       ;;
   esac
 
-  if [[ "$MODE" == "write" ]] && "$SCRIPT_DIR/hg-provider-settings-sync.sh" "$repo_path" --repo-name "$repo" --check >/dev/null 2>&1; then
+  if [[ "$MODE" == "write" ]] && bash "$SCRIPT_DIR/hg-provider-settings-sync.sh" "$repo_path" --repo-name "$repo" --check >/dev/null 2>&1; then
     report_current "$repo" "provider-settings"
-  elif "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${args[@]}" >/dev/null 2>&1; then
+  elif bash "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${args[@]}" >/dev/null 2>&1; then
     if [[ "$MODE" == "write" ]]; then
       printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "provider-settings" "$HG_RESET"
       UPDATED=$((UPDATED + 1))

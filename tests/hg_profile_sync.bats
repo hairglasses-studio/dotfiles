@@ -67,6 +67,14 @@ make test
 EOF
 }
 
+write_parity_objectives() {
+    local relpath="$1"
+    local json="$2"
+
+    mkdir -p "$(dirname "${TEST_ROOT}/docs/${relpath}")"
+    printf '%s\n' "${json}" > "${TEST_ROOT}/docs/${relpath}"
+}
+
 @test "hg-repo-profile-sync: sync creates Gemini project settings baseline" {
     write_manifest "demo"
     init_repo "demo"
@@ -80,6 +88,90 @@ EOF
 
     run grep -F 'AGENTS.md' "${TEST_ROOT}/demo/.gemini/settings.json"
     assert_success
+}
+
+@test "hg-agent-parity library: canonical objectives override historical fallback" {
+    write_parity_objectives "projects/agent-parity/parity-objectives.json" '{
+  "version": 1,
+  "defaults": {"gemini_extension_scaffold": false},
+  "scope_defaults": {},
+  "repo_overrides": {"demo": {"gemini_extension_scaffold": false}}
+}'
+    write_parity_objectives "projects/codex-migration/parity-objectives.json" '{
+  "version": 1,
+  "defaults": {"gemini_extension_scaffold": false},
+  "scope_defaults": {},
+  "repo_overrides": {"demo": {"gemini_extension_scaffold": true}}
+}'
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash -lc '
+        source "'"${SCRIPTS_REAL}/lib/hg-core.sh"'"
+        source "'"${SCRIPTS_REAL}/lib/hg-agent-parity.sh"'"
+        hg_parity_repo_objective_bool demo gemini_extension_scaffold false
+    '
+    assert_success
+    assert_output "false"
+}
+
+@test "hg-agent-parity library: historical objectives remain a fallback when canonical path is absent" {
+    write_parity_objectives "projects/codex-migration/parity-objectives.json" '{
+  "version": 1,
+  "defaults": {"gemini_extension_scaffold": false},
+  "scope_defaults": {},
+  "repo_overrides": {"demo": {"gemini_extension_scaffold": true}}
+}'
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash -lc '
+        source "'"${SCRIPTS_REAL}/lib/hg-core.sh"'"
+        source "'"${SCRIPTS_REAL}/lib/hg-agent-parity.sh"'"
+        hg_parity_repo_objective_bool demo gemini_extension_scaffold false
+    '
+    assert_success
+    assert_output "true"
+}
+
+@test "hg-provider-settings-sync: sync skips dirty generated Gemini settings until allow-dirty is set" {
+    write_manifest "demo"
+    init_repo "demo"
+    write_agents "demo"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync --repos=demo
+    assert_success
+
+    git -C "${TEST_ROOT}/demo" add -A
+    git -C "${TEST_ROOT}/demo" commit -q -m "seed generated provider settings"
+
+    printf '\nmanual drift\n' >> "${TEST_ROOT}/demo/.gemini/settings.json"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-provider-settings-sync.sh" "${TEST_ROOT}/demo" --repo-name demo
+    assert_failure
+    assert_output --partial "skipping dirty gemini-settings"
+
+    run grep -F "manual drift" "${TEST_ROOT}/demo/.gemini/settings.json"
+    assert_success
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-provider-settings-sync.sh" "${TEST_ROOT}/demo" --repo-name demo --allow-dirty
+    assert_success
+
+    run grep -F "manual drift" "${TEST_ROOT}/demo/.gemini/settings.json"
+    assert_failure
+}
+
+@test "hg-provider-settings-sync: required Gemini extensions are reported as required" {
+    write_manifest "demo"
+    init_repo "demo"
+    write_agents "demo"
+    write_parity_objectives "projects/agent-parity/parity-objectives.json" '{
+  "version": 1,
+  "defaults": {"gemini_extension_scaffold": false},
+  "scope_defaults": {},
+  "repo_overrides": {"demo": {"gemini_extension_scaffold": true}}
+}'
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-provider-settings-sync.sh" "${TEST_ROOT}/demo" --repo-name demo --check
+    assert_failure
+    assert_output --partial "gemini-extension (required)"
+    refute_output --partial "gemini-extension (not managed)"
 }
 
 @test "hg-repo-profile-sync: sync skips dirty generated agent docs until allow-dirty is set" {
@@ -143,6 +235,49 @@ EOF
     assert_failure
     run grep -F "name: claude-review" "${TEST_ROOT}/demo/.github/workflows/claude-review.yml"
     assert_success
+}
+
+@test "provider parity checks agree on drifted Gemini settings" {
+    write_manifest "demo"
+    init_repo "demo"
+    write_agents "demo"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync --repos=demo
+    assert_success
+
+    git -C "${TEST_ROOT}/demo" add -A
+    git -C "${TEST_ROOT}/demo" commit -q -m "seed profile"
+
+    python - <<'PY' "${TEST_ROOT}/demo/.gemini/settings.json"
+import json
+import sys
+
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data.setdefault("hooks", {})["SessionEnd"] = [{"hooks": [{"type": "command", "command": "echo drift"}]}]
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+PY
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" verify --repos=demo
+    assert_failure
+    assert_output --partial "provider settings out of sync"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-agent-parity-sync.sh" --check --repos=demo
+    assert_failure
+    assert_output --partial "provider settings sync failed"
+}
+
+@test "parity audit entrypoints provide help output" {
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-agent-parity-audit.sh" --help
+    assert_success
+    assert_output --partial "Usage: hg-agent-parity-audit.sh"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-codex-audit.sh" --help
+    assert_success
+    assert_output --partial "Usage: hg-agent-parity-audit.sh"
 }
 
 @test "sync-standalone-mcp-repos: check works through bash wrapper when mcp-mirror helper is non-executable" {
