@@ -9,6 +9,7 @@ ROOT="${1:-$HOME/hairglasses-studio}"
 [[ -d "$ROOT" ]] || hg_die "Root directory not found: $ROOT"
 
 SYNC_SCRIPT="$SCRIPT_DIR/hg-skill-surface-sync.sh"
+WORKSPACE_SYNC_SCRIPT="$SCRIPT_DIR/hg-workspace-global-sync.sh"
 
 pass=0
 warn=0
@@ -20,18 +21,24 @@ for repo in "$ROOT"/*/; do
   name="$(basename "$repo")"
 
   has_surface=0
+  surface_json_compatible=0
   has_legacy=0
   has_mcp_json=0
   has_mcp_policy=0
 
   [[ -f "$repo/.agents/skills/surface.yaml" ]] && has_surface=1
+  if [[ "$has_surface" -eq 1 ]] && jq -e '.version == 1 and (.skills | type == "array")' "$repo/.agents/skills/surface.yaml" >/dev/null 2>&1; then
+    surface_json_compatible=1
+  fi
   [[ -d "$repo/.claude/commands" ]] && has_legacy=1
   [[ -f "$repo/.mcp.json" ]] && has_mcp_json=1
   [[ -f "$repo/.codex/mcp-profile-policy.json" ]] && has_mcp_policy=1
 
   # Check surface sync consistency
   if [[ "$has_surface" -eq 1 && -x "$SYNC_SCRIPT" ]]; then
-    if "$SYNC_SCRIPT" "$repo" --check >/dev/null 2>&1; then
+    if [[ "$surface_json_compatible" -eq 0 ]]; then
+      hg_info "$name: YAML-only skill manifest skipped for repo-local mirror check"
+    elif "$SYNC_SCRIPT" "$repo" --check >/dev/null 2>&1; then
       pass=$((pass + 1))
     else
       hg_warn "$name: skill surface out of sync (run hg-skill-surface-sync.sh)"
@@ -61,14 +68,24 @@ done
 
 # Check global user skill parity
 claude_count=$(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l)
+claude_skill_count=$(find "$HOME/.claude/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
 agents_count=$(find "$HOME/.agents/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
+codex_count=$(find "$HOME/.codex/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l)
 
-if [[ "$claude_count" -gt 0 ]]; then
-  hg_info "Global user skills: $claude_count Claude / $agents_count Codex-compatible"
+if [[ "$claude_count" -gt 0 || "$claude_skill_count" -gt 0 ]]; then
+  hg_info "Global user skills: $claude_count commands / $claude_skill_count Claude skills / $agents_count Agents / $codex_count Codex"
 fi
 
-# Check global skill sync
-if [[ -x "$SCRIPT_DIR/hg-global-skill-sync.sh" ]]; then
+# Check managed workspace-global sync first; it also verifies downstream Agents/Codex sync
+if [[ -x "$WORKSPACE_SYNC_SCRIPT" ]]; then
+  if "$WORKSPACE_SYNC_SCRIPT" --root "$ROOT" --check >/dev/null 2>&1; then
+    pass=$((pass + 1))
+    hg_ok "Workspace global sync: up to date"
+  else
+    hg_warn "Workspace global sync: out of date (run hg-workspace-global-sync.sh)"
+    warn=$((warn + 1))
+  fi
+elif [[ -x "$SCRIPT_DIR/hg-global-skill-sync.sh" ]]; then
   if "$SCRIPT_DIR/hg-global-skill-sync.sh" --check >/dev/null 2>&1; then
     pass=$((pass + 1))
     hg_ok "Global skill sync: up to date"

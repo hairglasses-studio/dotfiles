@@ -18,11 +18,15 @@ CLAUDE_COMMANDS_DIR="${HG_CLAUDE_COMMANDS_DIR:-$HOME/.claude/commands}"
 AGENTS_SKILLS_DIR="${HG_AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
 CODEX_SKILLS_DIR="${HG_CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
 CODEX_CONFIG_PATH="${HG_CODEX_CONFIG_PATH:-$HOME/.codex/config.toml}"
+GEMINI_HOME_DOC_PATH="${HG_GEMINI_HOME_DOC_PATH:-$HOME/.gemini/GEMINI.md}"
+GEMINI_PROJECTS_PATH="${HG_GEMINI_PROJECTS_PATH:-$HOME/.gemini/projects.json}"
 
 START_MARKER="# BEGIN GENERATED MCP SERVERS: hg-workspace-global-sync"
 END_MARKER="# END GENERATED MCP SERVERS: hg-workspace-global-sync"
 LEGACY_START_MARKER="# BEGIN GENERATED MCP SERVERS: hg-global-mcp-sync"
 LEGACY_END_MARKER="# END GENERATED MCP SERVERS: hg-global-mcp-sync"
+GEMINI_START_MARKER="<!-- BEGIN GENERATED WORKSPACE GLOBAL: hg-workspace-global-sync -->"
+GEMINI_END_MARKER="<!-- END GENERATED WORKSPACE GLOBAL: hg-workspace-global-sync -->"
 SKILL_OWNER_FILE=".hg-workspace-global-sync.json"
 CLAUDE_PREFIX="studio_"
 
@@ -45,6 +49,8 @@ Options:
   --agents-skills-dir <path>  Global Agents skills dir (default: ~/.agents/skills)
   --codex-skills-dir <path>   Global Codex skills dir (default: ~/.codex/skills)
   --codex-config <path>       Codex config TOML (default: ~/.codex/config.toml)
+  --gemini-home-doc <path>    Gemini home GEMINI.md (default: ~/.gemini/GEMINI.md)
+  --gemini-projects <path>    Gemini projects.json (default: ~/.gemini/projects.json)
   --skills-only               Sync managed global skills only
   --tools-only                Sync managed Claude/Codex MCP overlays only
   --dry-run                   Report changes without writing
@@ -105,6 +111,16 @@ while [[ $# -gt 0 ]]; do
       CODEX_CONFIG_PATH="$2"
       shift 2
       ;;
+    --gemini-home-doc)
+      [[ $# -ge 2 ]] || hg_die "--gemini-home-doc requires a path"
+      GEMINI_HOME_DOC_PATH="$2"
+      shift 2
+      ;;
+    --gemini-projects)
+      [[ $# -ge 2 ]] || hg_die "--gemini-projects requires a path"
+      GEMINI_PROJECTS_PATH="$2"
+      shift 2
+      ;;
     --skills-only)
       RUN_SKILLS=true
       RUN_TOOLS=false
@@ -160,6 +176,7 @@ esac
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
+: >"$tmpdir/gemini-skill-catalog.tsv"
 
 overall_pending=0
 skill_pending=0
@@ -199,6 +216,44 @@ sanitize_name() {
   printf '%s' "$raw" \
     | tr '[:upper:]' '[:lower:]' \
     | sed -E 's/[^a-z0-9]+/_/g; s/^_+//; s/_+$//; s/_{2,}/_/g'
+}
+
+extract_frontmatter_scalar() {
+  local file="$1"
+  local key="$2"
+
+  awk -v key="$key" '
+    BEGIN { in_frontmatter = 0 }
+    NR == 1 && $0 == "---" { in_frontmatter = 1; next }
+    in_frontmatter && $0 == "---" { exit }
+    in_frontmatter && $0 ~ ("^" key ":[[:space:]]*") {
+      sub("^" key ":[[:space:]]*", "", $0)
+      gsub(/^["'\''"]|["'\''"]$/, "", $0)
+      print
+      exit
+    }
+  ' "$file"
+}
+
+manifest_supports_jq() {
+  local file="$1"
+  jq -e '.version == 1 and (.skills | type == "array")' "$file" >/dev/null 2>&1
+}
+
+manifest_skill_names() {
+  local file="$1"
+  if manifest_supports_jq "$file"; then
+    jq -r '.skills[].name' "$file"
+  else
+    sed -n 's/^  - name:[[:space:]]*//p' "$file"
+  fi
+}
+
+manifest_alias_pairs() {
+  local file="$1"
+  if manifest_supports_jq "$file"; then
+    jq -r '.skills[] as $skill | $skill.claude_aliases[]? | [if type == "object" then .name else . end, $skill.name] | @tsv' "$file"
+  fi
 }
 
 skill_dir_is_owned() {
@@ -511,13 +566,30 @@ sync_managed_workspace_skills() {
     [[ -d "$repo_path" ]] || hg_die "Managed repo missing from workspace: $repo_path"
     [[ -f "$surface_path" ]] || continue
 
-    repos_with_skill_surfaces=$((repos_with_skill_surfaces + 1))
-    if ! "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$repo_path" "${MODE_ARGS[@]}"; then
-      overall_pending=1
-      skill_pending=1
+    local json_surface=0
+    local skill_names=()
+    if manifest_supports_jq "$surface_path"; then
+      json_surface=1
     fi
 
-    while IFS= read -r canonical_name; do
+    mapfile -t skill_names < <(manifest_skill_names "$surface_path")
+    if [[ "${#skill_names[@]}" -eq 0 ]]; then
+      hg_warn "Skipping invalid managed skill manifest: $surface_path"
+      continue
+    fi
+
+    repos_with_skill_surfaces=$((repos_with_skill_surfaces + 1))
+    if [[ "$json_surface" -eq 1 ]]; then
+      if ! "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$repo_path" "${MODE_ARGS[@]}"; then
+        overall_pending=1
+        skill_pending=1
+      fi
+    else
+      hg_warn "Managed skill manifest is YAML-only; repo-local Claude mirror sync still requires JSON: $surface_path"
+    fi
+
+    local canonical_name
+    for canonical_name in "${skill_names[@]}"; do
       [[ -n "$canonical_name" ]] || continue
       if [[ -n "${managed_canonical_owners[$canonical_name]:-}" ]]; then
         hg_die "Duplicate managed canonical skill name: $canonical_name"
@@ -525,13 +597,13 @@ sync_managed_workspace_skills() {
       managed_canonical_owners["$canonical_name"]="$repo_name"
       printf 'canonical\t%s\t%s\t%s\t%s\n' "$canonical_name" "$repo_name" "$repo_path" "$canonical_name" >>"$skill_entries_file"
       global_canonical_count=$((global_canonical_count + 1))
-    done < <(jq -r '.skills[].name' "$surface_path")
+    done
 
     while IFS=$'\t' read -r alias_name canonical_name; do
       [[ -n "$alias_name" ]] || continue
       alias_counts["$alias_name"]=$(( ${alias_counts[$alias_name]:-0} + 1 ))
       printf '%s\t%s\t%s\t%s\n' "$alias_name" "$repo_name" "$repo_path" "$canonical_name" >>"$alias_entries_file"
-    done < <(jq -r '.skills[] as $skill | .claude_aliases[]? | [if type == "object" then .name else . end, $skill.name] | @tsv' "$surface_path")
+    done < <(manifest_alias_pairs "$surface_path")
   done < <(
     jq -r '
       .repos[]
@@ -569,8 +641,12 @@ sync_managed_workspace_skills() {
   while IFS=$'\t' read -r kind global_name repo_name repo_path canonical_name; do
     [[ -n "$global_name" ]] || continue
 
-    local source_skill canonical_refs staged_dir target_dir
-    source_skill="$repo_path/.claude/skills/$global_name/SKILL.md"
+    local source_skill canonical_refs staged_dir target_dir description
+    if [[ "$kind" == "canonical" ]]; then
+      source_skill="$repo_path/.agents/skills/$canonical_name/SKILL.md"
+    else
+      source_skill="$repo_path/.claude/skills/$global_name/SKILL.md"
+    fi
     canonical_refs="$repo_path/.agents/skills/$canonical_name/references"
     staged_dir="$tmpdir/workspace-skill-$global_name"
     target_dir="$CLAUDE_SKILLS_DIR/$global_name"
@@ -582,17 +658,20 @@ sync_managed_workspace_skills() {
       skill_pending=1
       case "$MODE" in
         write)
-          hg_die "Missing generated repo Claude skill mirror: $source_skill"
+          hg_die "Missing managed workspace skill source: $source_skill"
           ;;
         dry-run)
-          hg_warn "Would need generated repo Claude skill mirror before global sync: $source_skill"
+          hg_warn "Would need managed workspace skill source before global sync: $source_skill"
           ;;
         check)
-          hg_warn "Missing generated repo Claude skill mirror: $source_skill"
+          hg_warn "Missing managed workspace skill source: $source_skill"
           ;;
       esac
       continue
     fi
+
+    description="$(extract_frontmatter_scalar "$source_skill" "description")"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$global_name" "${description:-Compatibility mirror for $canonical_name.}" "$kind" "$repo_name" "$canonical_name" >>"$tmpdir/gemini-skill-catalog.tsv"
 
     rm -rf "$staged_dir"
     mkdir -p "$staged_dir"
@@ -841,6 +920,79 @@ sync_managed_workspace_tools() {
   sync_rendered_file "$CODEX_CONFIG_PATH" "$codex_output_file" "Synced workspace Codex MCP block"
 }
 
+sync_gemini_home_context() {
+  local gemini_block_file gemini_output_file gemini_base_file gemini_projects_base gemini_projects_output
+  gemini_block_file="$tmpdir/gemini-managed-block.md"
+  gemini_output_file="$tmpdir/gemini-home-output.md"
+  gemini_base_file="$tmpdir/gemini-home-base.md"
+  gemini_projects_base="$tmpdir/gemini-projects-base.json"
+  gemini_projects_output="$tmpdir/gemini-projects-output.json"
+
+  {
+    printf '%s\n' "$GEMINI_START_MARKER"
+    printf '## Managed Workspace Global Context\n\n'
+    printf -- '- Managed workspace root: `%s`\n' "$WORKSPACE_ROOT"
+    printf -- '- Canonical inventory: `%s`\n' "$MANIFEST_PATH"
+    printf -- '- Use repo-local `GEMINI.md`, `AGENTS.md`, and `CLAUDE.md` first for repo-specific instructions.\n'
+    printf -- '- Shared research repo: `%s/docs`\n' "$WORKSPACE_ROOT"
+    printf -- '- Shared root `.mcp.json` remains intentionally small: `systemd`, `tmux`, `process`.\n'
+    printf '\n'
+
+    if [[ -s "$tmpdir/gemini-skill-catalog.tsv" ]]; then
+      printf '### Managed Global Workflow Catalog\n\n'
+      while IFS=$'\t' read -r skill_name description kind repo_name canonical_name; do
+        [[ -n "$skill_name" ]] || continue
+        printf -- '- `%s`: %s' "$skill_name" "$description"
+        if [[ "$kind" == "alias" ]]; then
+          printf ' (alias for `%s` from `%s`)' "$canonical_name" "$repo_name"
+        fi
+        printf '\n'
+      done < <(sort -t $'\t' -k1,1 "$tmpdir/gemini-skill-catalog.tsv")
+      printf '\n'
+    fi
+
+    printf '### Managed Global MCP Overlays\n\n'
+    printf -- '- Claude workspace overlay: `%s` managed entries under project `%s` in `%s`.\n' "$claude_tool_count" "$CLAUDE_PROJECT_KEY" "$CLAUDE_JSON_PATH"
+    printf -- '- Codex workspace overlay: `%s` managed entries in `%s`.\n' "$codex_tool_count" "$CODEX_CONFIG_PATH"
+    printf -- '- Gemini CLI home memory is managed here, but no separate Gemini home MCP config surface was detected on this machine.\n'
+    printf '\n%s\n' "$GEMINI_END_MARKER"
+  } >"$gemini_block_file"
+
+  if [[ -f "$GEMINI_HOME_DOC_PATH" ]]; then
+    cp "$GEMINI_HOME_DOC_PATH" "$gemini_base_file"
+    if grep -Fqx "$GEMINI_START_MARKER" "$gemini_base_file"; then
+      replace_marked_region "$gemini_base_file" "$gemini_block_file" "$GEMINI_START_MARKER" "$GEMINI_END_MARKER" >"$gemini_output_file"
+    else
+      {
+        cat "$gemini_base_file"
+        if [[ -s "$gemini_base_file" ]]; then
+          printf '\n\n'
+        fi
+        cat "$gemini_block_file"
+      } >"$gemini_output_file"
+    fi
+  else
+    cp "$gemini_block_file" "$gemini_output_file"
+  fi
+  sync_rendered_file "$GEMINI_HOME_DOC_PATH" "$gemini_output_file" "Synced Gemini home memory"
+
+  if [[ -f "$GEMINI_PROJECTS_PATH" ]]; then
+    cp "$GEMINI_PROJECTS_PATH" "$gemini_projects_base"
+  else
+    printf '{ "projects": {} }\n' >"$gemini_projects_base"
+  fi
+
+  jq \
+    --arg workspace "$WORKSPACE_ROOT" \
+    --arg workspace_name "$(basename "$WORKSPACE_ROOT")" \
+    --arg docs_path "$WORKSPACE_ROOT/docs" \
+    '.projects = (.projects // {})
+     | .projects[$workspace] = (.projects[$workspace] // $workspace_name)
+     | .projects[$docs_path] = (.projects[$docs_path] // "docs")' \
+    "$gemini_projects_base" >"$gemini_projects_output"
+  sync_rendered_file "$GEMINI_PROJECTS_PATH" "$gemini_projects_output" "Synced Gemini project registry"
+}
+
 if $RUN_SKILLS; then
   sync_managed_workspace_skills
 else
@@ -852,7 +1004,12 @@ if $RUN_TOOLS; then
 fi
 
 if $RUN_SKILLS; then
+  sync_gemini_home_context
+fi
+
+if $RUN_SKILLS; then
   hg_info "Managed workspace global skills: ${global_canonical_count} canonical + ${global_alias_count} aliases (${global_alias_conflict_names} conflicts skipped across ${repos_with_skill_surfaces} skill surfaces)"
+  hg_info "Managed Gemini CLI home context: memory at $GEMINI_HOME_DOC_PATH and project registry at $GEMINI_PROJECTS_PATH"
 fi
 
 if $RUN_TOOLS; then

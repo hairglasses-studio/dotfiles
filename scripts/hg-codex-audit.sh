@@ -723,6 +723,15 @@ for repo in "${repos[@]}"; do
   inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${agents_md} | ${agents_override} | ${claude_md} | ${gemini_md} | ${copilot_instructions} | ${codex_config} | ${codex_full_profiles} | ${skill_surface_manifest} | ${canonical_skills} | ${generated_claude_skills} | ${generated_plugin_skills} | ${mcp_json} | ${repo_mcp_servers} | ${mcp_discovery_contract} | ${mcp_resource_contract} | ${mcp_prompt_contract} | ${mcp_server_health} | ${full_mcp_contract} | ${mcp_policy} | ${generated_mcp_configs} | ${codex_unmanaged_mcp_servers} | ${example_only_mcp_json} | ${codex_mcp_servers} | ${codex_curated_mcp_servers} | ${codex_raw_mcp_servers} | ${legacy_model_tokens} | ${mcp_without_policy} | ${mcp_without_curated_codex} | ${codex_agents} | ${codex_plugin} | ${codex_workflows} | ${codex_hooks} |"$'\n'
 done
 
+global_claude_commands=$(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+global_claude_skills=$(find "$HOME/.claude/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+global_agents_skills=$(find "$HOME/.agents/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+global_codex_skills=$(find "$HOME/.codex/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+workspace_global_sync_ok=false
+if [[ -x "$ROOT/dotfiles/scripts/hg-workspace-global-sync.sh" ]] && "$ROOT/dotfiles/scripts/hg-workspace-global-sync.sh" --root "$ROOT" --check >/dev/null 2>&1; then
+  workspace_global_sync_ok=true
+fi
+
 cat <<EOF
 Codex audit root: $ROOT
 Repos scanned: ${scanned_repos}
@@ -783,8 +792,11 @@ active MCP repos missing full contract: $total_active_mcp_repos_missing_full_con
 repos with legacy .claude/commands: $total_repos_with_legacy_claude_commands
 total legacy .claude/commands files: $total_legacy_claude_command_count
 repos with unported legacy commands (no surface.yaml): $total_repos_with_unported_legacy_commands
-global user skills in ~/.claude/commands: $(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
-global user skills in ~/.agents/skills: $(find "$HOME/.agents/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+global user skills in ~/.claude/commands: $global_claude_commands
+global user skills in ~/.claude/skills: $global_claude_skills
+global user skills in ~/.agents/skills: $global_agents_skills
+global user skills in ~/.codex/skills: $global_codex_skills
+workspace global sync up to date: $workspace_global_sync_ok
 EOF
 
 inventory_json="{
@@ -850,8 +862,11 @@ inventory_json="{
     \"repos_with_legacy_claude_commands\": ${total_repos_with_legacy_claude_commands},
     \"total_legacy_claude_command_count\": ${total_legacy_claude_command_count},
     \"repos_with_unported_legacy_commands\": ${total_repos_with_unported_legacy_commands},
-    \"global_claude_commands\": $(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' '),
-    \"global_agents_skills\": $(find "$HOME/.agents/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+    \"global_claude_commands\": ${global_claude_commands},
+    \"global_claude_skills\": ${global_claude_skills},
+    \"global_agents_skills\": ${global_agents_skills},
+    \"global_codex_skills\": ${global_codex_skills},
+    \"workspace_global_sync_up_to_date\": ${workspace_global_sync_ok}
   },
   \"repos\": [
 ${inventory_json_rows}
@@ -932,7 +947,8 @@ Summary from the latest audit:
 - Active MCP repos missing the full contract: ${total_active_mcp_repos_missing_full_contract}
 - Repos with legacy \`.claude/commands\`: ${total_repos_with_legacy_claude_commands} (${total_legacy_claude_command_count} files)
 - Repos with unported legacy commands (no surface.yaml): ${total_repos_with_unported_legacy_commands}
-- Global user skills: $(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' ') Claude / $(find "$HOME/.agents/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ') Codex-compatible
+- Global user skills: ${global_claude_commands} commands / ${global_claude_skills} Claude skills / ${global_agents_skills} Agents / ${global_codex_skills} Codex
+- Workspace global sync up to date: ${workspace_global_sync_ok}
 
 ${inventory_md}
 EOF
@@ -1006,6 +1022,8 @@ Summary from the latest audit:
 - Active repos missing expected Codex plugins: ${total_active_missing_codex_plugins}
 - Active repos missing expected \`codex_hooks = true\`: ${total_active_missing_codex_hooks}
 - Active MCP repos missing the full contract: ${total_active_mcp_repos_missing_full_contract}
+- Global user skills: ${global_claude_commands} commands / ${global_claude_skills} Claude skills / ${global_agents_skills} Agents / ${global_codex_skills} Codex
+- Workspace global sync up to date: ${workspace_global_sync_ok}
 
 ${inventory_md}
 EOF

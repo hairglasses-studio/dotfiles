@@ -11,6 +11,7 @@ source "$SCRIPT_DIR/lib/hg-core.sh"
 STUDIO="$HOME/hairglasses-studio"
 DOTFILES="$STUDIO/dotfiles"
 ORG_GITHUB="$STUDIO/.github"
+WORKSPACE_MANIFEST="$STUDIO/workspace/manifest.json"
 
 workflow_source() {
   local wf="$1"
@@ -37,6 +38,8 @@ done
 if [[ -z "$REPO_PATH" ]]; then
   hg_die "Usage: hg-onboard-repo.sh <repo_path> [--language auto|go|node|python|shell] [--dry-run]"
 fi
+
+hg_require jq
 
 cd "$REPO_PATH"
 REPO_NAME="$(basename "$PWD")"
@@ -218,7 +221,9 @@ fi
 
 # ── Explicit skill surface sync ──────────────
 if [[ -f .agents/skills/surface.yaml ]]; then
-  if $DRY_RUN; then
+  if ! jq -e '.version == 1 and (.skills | type == "array")' .agents/skills/surface.yaml >/dev/null 2>&1; then
+    hg_warn "$REPO_NAME: found YAML-only .agents/skills/surface.yaml; skipping repo-local Claude mirror sync"
+  elif $DRY_RUN; then
     add_file "canonical skill surface sync"
   else
     "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$PWD" >/dev/null
@@ -242,6 +247,16 @@ fi
 if [[ -d .git ]] && [[ ! -f .git/hooks/pre-commit ]]; then
   $DRY_RUN || "$SCRIPT_DIR/hg-install-hooks.sh" 2>/dev/null || true
   add_file "pre-commit hook"
+fi
+
+# ── Managed workspace-global refresh ────────
+if [[ -f "$WORKSPACE_MANIFEST" ]] && jq -e --arg repo "$REPO_NAME" '.repos[] | select(.name == $repo and .baseline_target == true)' "$WORKSPACE_MANIFEST" >/dev/null 2>&1; then
+  if $DRY_RUN; then
+    hg_warn "Would refresh managed workspace-global sync"
+  else
+    "$SCRIPT_DIR/hg-workspace-global-sync.sh" --root "$STUDIO" >/dev/null
+    hg_ok "Refreshed managed workspace-global sync"
+  fi
 fi
 
 # ── Summary ──────────────────────────────────
