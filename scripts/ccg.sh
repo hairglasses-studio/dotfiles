@@ -1,5 +1,4 @@
 #!/usr/bin/env zsh
-# shellcheck shell=bash disable=SC1071
 # ccg — Global Claude Code Session Browser
 # Browse, filter, preview, and resume any Claude Code session across all repos.
 # Usage: source this file via the ccg() shell function in aliases.zsh.
