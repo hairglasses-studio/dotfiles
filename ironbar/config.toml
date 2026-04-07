@@ -42,11 +42,20 @@ format_popup = "%A %B %d, %Y\n%H:%M:%S"
 [[end]]
 type = "custom"
 class = "bar-fleet"
-bar = [
-  { type = "label", class = "rg-seg", label = "{{30000:jq -r '\"\\(.fleet.running // 0)/\\(.fleet.total // 0) 󰑮\"' /tmp/rg-status.json 2>/dev/null || echo ''}}" },
-  { type = "label", class = "rg-seg", label = "{{30000:jq -r '\"\\(.loops.total_runs // 0) loops\"' /tmp/rg-status.json 2>/dev/null || echo ''}}" },
-  { type = "label", class = "rg-seg rg-cost", label = "{{30000:jq -r '\"$\\(.cost.total_spend_usd // 0)\"' /tmp/rg-status.json 2>/dev/null || echo ''}}" },
-]
+[[end.bar]]
+type = "label"
+class = "rg-seg"
+label = "{{30000:jq -r '\"\\(.fleet.running // 0)/\\(.fleet.total // 0) 󰑮\"' /tmp/rg-status.json 2>/dev/null || echo ''}}"
+
+[[end.bar]]
+type = "label"
+class = "rg-seg"
+label = "{{30000:jq -r '\"\\(.loops.total_runs // 0) loops\"' /tmp/rg-status.json 2>/dev/null || echo ''}}"
+
+[[end.bar]]
+type = "label"
+class = "rg-seg rg-cost"
+label = "{{30000:jq -r '\"$\\(.cost.total_spend_usd // 0)\"' /tmp/rg-status.json 2>/dev/null || echo ''}}"
 
 # Shader indicator
 [[end]]
