@@ -7,6 +7,7 @@ on:
       - 'scripts/**'
       - 'ghostty/shaders/bin/**'
       - 'install.sh'
+      - 'docker/**'
       - '**/*.json'
       - '**/*.toml'
       - '.github/workflows/ci-lint.yml'
@@ -16,6 +17,7 @@ on:
       - 'scripts/**'
       - 'ghostty/shaders/bin/**'
       - 'install.sh'
+      - 'docker/**'
       - '**/*.json'
       - '**/*.toml'
       - '.github/workflows/ci-lint.yml'
@@ -77,3 +79,37 @@ jobs:
                   errors += 1
           sys.exit(errors)
           "
+
+  dockerfiles:
+    name: Dockerfile Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Lint Dockerfiles
+        run: |
+          for f in docker/Dockerfile.*; do
+            echo "Linting $f..."
+            docker run --rm -i hadolint/hadolint < "$f" || true
+          done
+
+  symlinks:
+    name: Symlink Targets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Validate install.sh syntax
+        run: bash -n install.sh
+      - name: Check symlink targets exist
+        run: |
+          FAIL=0
+          # Extract source paths from link_file calls in install.sh
+          grep 'link_file.*\$DOTFILES_DIR/' install.sh \
+            | sed 's/.*\$DOTFILES_DIR\///' \
+            | sed 's/".*//' \
+            | while read -r path; do
+                if [ ! -e "$path" ]; then
+                  echo "::error::Symlink target missing: $path"
+                  FAIL=1
+                fi
+              done
+          exit "${FAIL:-0}"
