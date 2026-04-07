@@ -51,7 +51,8 @@ id_ed25519*
 
 # AI tool configs (local-only)
 .codex/
-.gemini/
+.gemini/*
+!.gemini/config.yaml
 .agents/
 !.agents/skills/
 .claude/skills/
