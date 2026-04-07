@@ -21,7 +21,7 @@ sleep 5
     if command -v jq >/dev/null 2>&1; then
         HYPR_VERSION=$(hyprctl version -j 2>/dev/null | jq -r '.tag // .version // "unknown"' 2>/dev/null || echo "unknown")
     else
-        HYPR_VERSION=$(hyprctl version -j 2>/dev/null | sed -n 's/.*"tag":[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+        HYPR_VERSION=$(hyprctl version -j 2>/dev/null | sed -n 's/.*"tag":[[:space:]]*"\([^"]*\)".*/\1/p' | head -1 || echo "unknown")
         HYPR_VERSION=${HYPR_VERSION:-unknown}
     fi
     echo "Hyprland: ${HYPR_VERSION}"
