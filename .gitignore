@@ -53,6 +53,8 @@ id_ed25519*
 .codex/
 .gemini/
 .agents/
+!.agents/skills/
 .claude/skills/
+!.claude/skills/*/SKILL.md
 .ralph/ab_tests/
 .ralph/benchmarks/

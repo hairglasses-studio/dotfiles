@@ -60,7 +60,19 @@ extract_description() {
 # placeholder with a note. The natural language instructions remain identical.
 transform_body() {
   local file="$1"
-  sed 's/\$ARGUMENTS/[user-provided arguments]/g' "$file"
+  sed \
+    -e 's/\$ARGUMENTS/[user-provided arguments]/g' \
+    -e 's|`/reconnect`|reconnect all MCP servers|g' \
+    -e 's|`/commit`|`git commit`|g' \
+    -e 's|`/loop \([^`]*\)`|set up a recurring loop (\1)|g' \
+    -e 's|`/pipeline \([^`]*\)`|re-run the pipeline (\1)|g' \
+    -e 's| /commit| git commit|g' \
+    -e 's| /pipeline | the pipeline |g' \
+    -e 's|inside `/loop`|in recurring mode|g' \
+    -e 's|`/loop`|a recurring loop|g' \
+    -e 's| /loop | a recurring loop |g' \
+    -e 's|Run `/reconnect`|Reconnect all MCP servers|g' \
+    "$file"
 }
 
 tmpdir="$(mktemp -d)"
