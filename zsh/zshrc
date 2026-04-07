@@ -28,7 +28,6 @@ _cached_eval() {
 
 # ── PATH ────────────────────────────────────────
 export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.cargo/bin:$PATH"
-[[ "$OSTYPE" == "darwin"* ]] && export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
 # ── Oh My Zsh ──────────────────────────────────
 export ZSH="$HOME/.oh-my-zsh"
@@ -92,7 +91,6 @@ alias ralph="bash $HOME/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
 # ── Dotfiles aliases + options ──────────────────
 # (ls/ll/la/lt/cat defined in aliases.zsh — not duplicated here)
 [[ -f "$DOTFILES_DIR/zsh/aliases.zsh" ]] && source "$DOTFILES_DIR/zsh/aliases.zsh"
-[[ "$OSTYPE" == "darwin"* ]] && [[ -f "$DOTFILES_DIR/zsh/aliases.darwin.zsh" ]] && source "$DOTFILES_DIR/zsh/aliases.darwin.zsh"
 [[ "$OSTYPE" == "linux"* ]]  && [[ -f "$DOTFILES_DIR/zsh/aliases.linux.zsh" ]]  && source "$DOTFILES_DIR/zsh/aliases.linux.zsh"
 [[ -f "$DOTFILES_DIR/zsh/zshopt" ]] && source "$DOTFILES_DIR/zsh/zshopt"
 

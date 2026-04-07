@@ -9,7 +9,7 @@
 [![Lint](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml)
 [![Scorecard](https://api.securityscorecards.dev/projects/github.com/hairglasses-studio/dotfiles/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hairglasses-studio/dotfiles)
 
-Full-stack development environment for Manjaro Linux (Hyprland) and macOS (AeroSpace). Combines GPU-rendered shader pipelines, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
+Full-stack development environment for Manjaro Linux. Combines GPU-rendered shader pipelines, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
 ![Desktop — Hyprland + eww sidebar + tiled terminals (Snazzy palette)](.github/assets/desktop.png)
 
@@ -42,8 +42,6 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 5. Symlinks all 60+ configs to their expected locations
 6. Enables systemd user services (shader-rotate, tmux)
 7. Builds bat theme cache
-
-On macOS: installs Homebrew + Brewfile instead of metapac.
 
 ### Post-install
 
@@ -127,7 +125,7 @@ dotfiles/
 ├── scripts/        → 40+ utility scripts (not symlinked)
 ├── Pacfile         → fallback package list
 ├── install.sh      → symlink installer
-└── Brewfile        → macOS Homebrew packages
+└── Pacfile         → fallback package list for bootstrap installs
 ```
 
 ## MCP Servers
@@ -150,7 +148,7 @@ All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) 
 
 **Shaders don't animate:** Check shader configuration in kitty config and verify CRTty/Hypr-DarkWindow transpilation.
 
-**Powerlevel10k prompt looks broken:** Ensure Maple Mono NF CN is installed (`pacman -S maplemono-nf-cn` on Arch, or `brew install --cask font-maple-mono-nf-cn` on macOS) and set as your terminal font.
+**Powerlevel10k prompt looks broken:** Ensure Maple Mono NF CN is installed (`sudo pacman -S maplemono-nf-cn`) and set as your terminal font.
 
 **Symlinks point to wrong place:** Run `bash install.sh --check` to validate.
 
@@ -164,7 +162,7 @@ sleep 2 && hyprpm reload -n
 
 ## Font
 
-[Maple Mono NF CN](https://github.com/subframe7536/maple-font) — the standard monospace font across all configs. Install via `pacman -S maplemono-nf-cn` (Arch) or `brew install --cask font-maple-mono-nf-cn` (macOS).
+[Maple Mono NF CN](https://github.com/subframe7536/maple-font) — the standard monospace font across all configs. Install via `sudo pacman -S maplemono-nf-cn`.
 
 ## License
 

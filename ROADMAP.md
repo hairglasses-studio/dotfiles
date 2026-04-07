@@ -2,15 +2,15 @@
 
 ## Current State
 
-Cross-platform dotfiles (macOS + Manjaro Linux) with 60+ symlinked configs, 138 GLSL shaders with shuffled playlists, Snazzy-on-black palette applied to 15+ tools, compositor abstraction layer (Hyprland/AeroSpace), eww bar with custom widgets, and a full boot stack (rEFInd + Plymouth). Idempotent installer with backup/restore support.
+Manjaro Linux dotfiles with 60+ symlinked configs, 138 GLSL shaders with shuffled playlists, Snazzy-on-black palette applied to 15+ tools, Hyprland-first compositor automation, eww bar widgets, and a full boot stack (rEFInd + Plymouth). Idempotent installer with backup/restore support.
 
 Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
 
 ## Planned
 
-### Phase 1 — Linux Parity & Installer
-- Linux installer path (`install-linux.sh`) — currently macOS-focused
-- Package list for pacman/yay equivalent to Brewfile
+### Phase 1 — Linux Installer Hardening
+- Keep `install.sh` Linux-only and catch non-Manjaro drift early
+- Tighten package validation for pacman/yay/metapac
 - Hyprland-specific installer steps (eww, mako, wofi, wlogout setup)
 - Automated symlink validation in CI
 

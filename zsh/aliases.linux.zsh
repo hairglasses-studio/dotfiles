@@ -3,7 +3,7 @@
 # Sourced only on Linux via zshrc OSTYPE guard.
 
 # ── Clipboard / opener polyfills ─────────────
-# Let macOS-written scripts use pbcopy/pbpaste seamlessly
+# Keep familiar clipboard aliases available on Linux
 alias pbcopy='wl-copy'
 alias pbpaste='wl-paste'
 alias open='xdg-open'

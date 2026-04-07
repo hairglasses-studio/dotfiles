@@ -66,6 +66,106 @@ link_file() {
     log_success "Linked: $dst -> $src"
 }
 
+source_exists() {
+    local src="$1"
+    [[ -e "$src" || -L "$src" ]]
+}
+
+link_if_present() {
+    local src="$1" dst="$2"
+    if source_exists "$src"; then
+        link_file "$src" "$dst"
+    else
+        log_warn "Skipping missing source: $src"
+    fi
+}
+
+print_common_link_specs() {
+    cat <<EOF
+$DOTFILES_DIR/zsh/zshrc|$HOME/.zshrc
+$DOTFILES_DIR/zsh/p10k.zsh|$HOME/.p10k.zsh
+$DOTFILES_DIR/zsh/zshenv|$HOME/.zshenv
+$DOTFILES_DIR/zsh/profile|$HOME/.profile
+$DOTFILES_DIR/git/gitconfig|$HOME/.gitconfig
+$DOTFILES_DIR/ssh/config|$HOME/.ssh/config
+$DOTFILES_DIR/starship/starship.toml|$HOME/.config/starship.toml
+$DOTFILES_DIR/ghostty|$HOME/.config/ghostty
+$DOTFILES_DIR/kitty|$HOME/.config/kitty
+$DOTFILES_DIR/nvim|$HOME/.config/nvim
+$DOTFILES_DIR/bat|$HOME/.config/bat
+$DOTFILES_DIR/fastfetch|$HOME/.config/fastfetch
+$DOTFILES_DIR/git/delta|$HOME/.config/delta
+$DOTFILES_DIR/git/ignore|$HOME/.config/git/ignore
+$DOTFILES_DIR/gh|$HOME/.config/gh
+$DOTFILES_DIR/k9s|$HOME/.config/k9s
+$DOTFILES_DIR/lazygit|$HOME/.config/lazygit
+$DOTFILES_DIR/btop|$HOME/.config/btop
+$DOTFILES_DIR/yazi|$HOME/.config/yazi
+$DOTFILES_DIR/cava|$HOME/.config/cava
+$DOTFILES_DIR/clipse/config.json|$HOME/.config/clipse/config.json
+$DOTFILES_DIR/clipse/custom_theme.json|$HOME/.config/clipse/custom_theme.json
+$DOTFILES_DIR/glow|$HOME/.config/glow
+$DOTFILES_DIR/tmux/tmux.conf|$HOME/.tmux.conf
+EOF
+}
+
+print_darwin_link_specs() {
+    cat <<EOF
+$DOTFILES_DIR/aerospace/aerospace.toml|$HOME/.aerospace.toml
+$DOTFILES_DIR/sketchybar|$HOME/.config/sketchybar
+$DOTFILES_DIR/borders|$HOME/.config/borders
+$DOTFILES_DIR/tattoy/tattoy.toml|$HOME/Library/Application Support/tattoy/tattoy.toml
+$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist|$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist
+$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist|$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist
+EOF
+}
+
+print_linux_link_specs() {
+    cat <<EOF
+$DOTFILES_DIR/swaync/config.json|$HOME/.config/swaync/config.json
+$DOTFILES_DIR/swaync/style.css|$HOME/.config/swaync/style.css
+$DOTFILES_DIR/wofi/config|$HOME/.config/wofi/config
+$DOTFILES_DIR/wofi/style.css|$HOME/.config/wofi/style.css
+$DOTFILES_DIR/ironbar|$HOME/.config/ironbar
+$DOTFILES_DIR/hyprland|$HOME/.config/hypr
+$DOTFILES_DIR/pypr/config.toml|$HOME/.config/pypr/config.toml
+$DOTFILES_DIR/eww|$HOME/.config/eww
+$DOTFILES_DIR/helix/config.toml|$HOME/.config/helix/config.toml
+$DOTFILES_DIR/makima|$HOME/.config/makima
+$DOTFILES_DIR/solaar/config.yaml|$HOME/.config/solaar/config.yaml
+$DOTFILES_DIR/solaar/rules.yaml|$HOME/.config/solaar/rules.yaml
+$DOTFILES_DIR/environment.d/ralphglasses.conf|$HOME/.config/environment.d/ralphglasses.conf
+$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf|$HOME/.config/fontconfig/conf.d/51-monospace.conf
+$DOTFILES_DIR/metapac|$HOME/.config/metapac
+$DOTFILES_DIR/paru/paru.conf|$HOME/.config/paru/paru.conf
+$DOTFILES_DIR/topgrade/topgrade.toml|$HOME/.config/topgrade.toml
+$DOTFILES_DIR/wlogout/layout|$HOME/.config/wlogout/layout
+$DOTFILES_DIR/wlogout/style.css|$HOME/.config/wlogout/style.css
+$DOTFILES_DIR/gtk/settings.ini|$HOME/.config/gtk-3.0/settings.ini
+$DOTFILES_DIR/gtk-4.0/settings.ini|$HOME/.config/gtk-4.0/settings.ini
+$DOTFILES_DIR/xdg-desktop-portal/portals.conf|$HOME/.config/xdg-desktop-portal/portals.conf
+$DOTFILES_DIR/tattoy/tattoy.toml|${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml
+EOF
+}
+
+print_linux_systemd_link_specs() {
+    local src
+    for src in "$DOTFILES_DIR"/systemd/*; do
+        [[ -f "$src" ]] || continue
+        printf '%s|%s\n' "$src" "$HOME/.config/systemd/user/$(basename "$src")"
+    done
+}
+
+print_link_specs() {
+    print_common_link_specs
+    if [[ "$OS" == "Darwin" ]]; then
+        print_darwin_link_specs
+    elif [[ "$OS" == "Linux" ]]; then
+        print_linux_link_specs
+        print_linux_systemd_link_specs
+    fi
+}
+
 # ── Homebrew ────────────────────────────────────
 install_homebrew() {
     if ! command -v brew &>/dev/null; then
@@ -286,94 +386,21 @@ install_tpm() {
 # ── Create symlinks ────────────────────────────
 create_symlinks() {
     log_info "Creating symlinks..."
-
-    # Individual files
-    link_file "$DOTFILES_DIR/zsh/zshrc"              "$HOME/.zshrc"
-    link_file "$DOTFILES_DIR/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
-    link_file "$DOTFILES_DIR/zsh/zshenv"             "$HOME/.zshenv"
-    link_file "$DOTFILES_DIR/zsh/profile"            "$HOME/.profile"
-    link_file "$DOTFILES_DIR/git/gitconfig"          "$HOME/.gitconfig"
-    link_file "$DOTFILES_DIR/ssh/config"             "$HOME/.ssh/config"
-    link_file "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
-
-    # Directory symlinks
-    link_file "$DOTFILES_DIR/kitty"      "$HOME/.config/kitty"
-    link_file "$DOTFILES_DIR/nvim"       "$HOME/.config/nvim"
-    link_file "$DOTFILES_DIR/bat"        "$HOME/.config/bat"
-    link_file "$DOTFILES_DIR/fastfetch"  "$HOME/.config/fastfetch"
-    link_file "$DOTFILES_DIR/git/delta"  "$HOME/.config/delta"
-    link_file "$DOTFILES_DIR/git/ignore" "$HOME/.config/git/ignore"
-    link_file "$DOTFILES_DIR/gh"         "$HOME/.config/gh"
-    link_file "$DOTFILES_DIR/k9s"        "$HOME/.config/k9s"
-    link_file "$DOTFILES_DIR/lazygit"   "$HOME/.config/lazygit"
-
-    # Desktop rice (platform-specific)
-    if [[ "$OS" == "Darwin" ]]; then
-        link_file "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
-        link_file "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
-        link_file "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
-    elif [[ "$OS" == "Linux" ]]; then
-        link_file "$DOTFILES_DIR/swaync/config.json" "$HOME/.config/swaync/config.json"
-        link_file "$DOTFILES_DIR/swaync/style.css" "$HOME/.config/swaync/style.css"
-        link_file "$DOTFILES_DIR/wofi/config" "$HOME/.config/wofi/config"
-        link_file "$DOTFILES_DIR/wofi/style.css" "$HOME/.config/wofi/style.css"
-        link_file "$DOTFILES_DIR/ironbar" "$HOME/.config/ironbar"
-        link_file "$DOTFILES_DIR/hyprland" "$HOME/.config/hypr"
-        link_file "$DOTFILES_DIR/pypr/config.toml" "$HOME/.config/pypr/config.toml"
-        link_file "$DOTFILES_DIR/eww" "$HOME/.config/eww"
-        link_file "$DOTFILES_DIR/helix/config.toml" "$HOME/.config/helix/config.toml"
-        link_file "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
-        link_file "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
-        link_file "$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf" "$HOME/.config/fontconfig/conf.d/51-monospace.conf"
-        link_file "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
-        link_file "$DOTFILES_DIR/paru/paru.conf" "$HOME/.config/paru/paru.conf"
-        link_file "$DOTFILES_DIR/topgrade/topgrade.toml" "$HOME/.config/topgrade.toml"
-        link_file "$DOTFILES_DIR/wlogout/layout" "$HOME/.config/wlogout/layout"
-        link_file "$DOTFILES_DIR/wlogout/style.css" "$HOME/.config/wlogout/style.css"
-        link_file "$DOTFILES_DIR/gtk/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
-        link_file "$DOTFILES_DIR/gtk-4.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini"
-        link_file "$DOTFILES_DIR/xdg-desktop-portal/portals.conf" "$HOME/.config/xdg-desktop-portal/portals.conf"
+    if [[ "$OS" == "Linux" ]]; then
+        mkdir -p "$HOME/.config/systemd/user"
     fi
-    link_file "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
-    link_file "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
-    link_file "$DOTFILES_DIR/cava"        "$HOME/.config/cava"
-    link_file "$DOTFILES_DIR/clipse/config.json" "$HOME/.config/clipse/config.json"
-    link_file "$DOTFILES_DIR/clipse/custom_theme.json" "$HOME/.config/clipse/custom_theme.json"
-    link_file "$DOTFILES_DIR/glow"        "$HOME/.config/glow"
 
-    # Individual file symlinks (non-XDG)
-    link_file "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
-
-    # Tattoy (terminal shader compositor)
-    if [[ "$OS" == "Darwin" ]]; then
-        link_file "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
-    else
-        link_file "$DOTFILES_DIR/tattoy/tattoy.toml" "${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
-    fi
+    local src dst
+    while IFS='|' read -r src dst; do
+        [[ -n "$src" ]] || continue
+        link_if_present "$src" "$dst"
+    done < <(print_link_specs)
 
     # Platform-specific service management
     if [[ "$OS" == "Darwin" ]]; then
-        # RetroVisor auto-launch
-        link_file "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
-            "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
-
-        # Shader auto-rotation (disabled by default — enable with: shader-auto start)
-        link_file "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
-            "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
+        :
     elif [[ "$OS" == "Linux" ]]; then
         log_info "Installing systemd user services..."
-        mkdir -p "$HOME/.config/systemd/user"
-        link_file "$DOTFILES_DIR/systemd/shader-rotate.timer" "$HOME/.config/systemd/user/shader-rotate.timer"
-        link_file "$DOTFILES_DIR/systemd/shader-rotate.service" "$HOME/.config/systemd/user/shader-rotate.service"
-        link_file "$DOTFILES_DIR/systemd/tmux.service" "$HOME/.config/systemd/user/tmux.service"
-        link_file "$DOTFILES_DIR/systemd/eww-calendar-sync.service" "$HOME/.config/systemd/user/eww-calendar-sync.service"
-        link_file "$DOTFILES_DIR/systemd/eww-calendar-sync.timer" "$HOME/.config/systemd/user/eww-calendar-sync.timer"
-        link_file "$DOTFILES_DIR/systemd/mx-battery-notify.service" "$HOME/.config/systemd/user/mx-battery-notify.service"
-        link_file "$DOTFILES_DIR/systemd/mx-battery-notify.timer" "$HOME/.config/systemd/user/mx-battery-notify.timer"
-        link_file "$DOTFILES_DIR/systemd/rg-status-bar.service" "$HOME/.config/systemd/user/rg-status-bar.service"
-        link_file "$DOTFILES_DIR/systemd/rg-status-bar.timer" "$HOME/.config/systemd/user/rg-status-bar.timer"
-        link_file "$DOTFILES_DIR/systemd/rg-marathon@.service" "$HOME/.config/systemd/user/rg-marathon@.service"
-        link_file "$DOTFILES_DIR/systemd/makima.service" "$HOME/.config/systemd/user/makima.service"
         systemctl --user daemon-reload
 
         # Validate cross-repo symlinks (warn if sibling repos are missing)
@@ -408,83 +435,26 @@ check_symlinks() {
         fi
     }
 
-    log_info "Checking symlinks..."
-    check_link "$DOTFILES_DIR/zsh/zshrc"              "$HOME/.zshrc"
-    check_link "$DOTFILES_DIR/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
-    check_link "$DOTFILES_DIR/zsh/zshenv"             "$HOME/.zshenv"
-    check_link "$DOTFILES_DIR/zsh/profile"            "$HOME/.profile"
-    check_link "$DOTFILES_DIR/git/gitconfig"          "$HOME/.gitconfig"
-    check_link "$DOTFILES_DIR/ssh/config"             "$HOME/.ssh/config"
-    check_link "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
-    check_link "$DOTFILES_DIR/kitty"      "$HOME/.config/kitty"
-    check_link "$DOTFILES_DIR/nvim"       "$HOME/.config/nvim"
-    check_link "$DOTFILES_DIR/bat"        "$HOME/.config/bat"
-    check_link "$DOTFILES_DIR/fastfetch"  "$HOME/.config/fastfetch"
-    check_link "$DOTFILES_DIR/git/delta"  "$HOME/.config/delta"
-    check_link "$DOTFILES_DIR/git/ignore" "$HOME/.config/git/ignore"
-    check_link "$DOTFILES_DIR/gh"         "$HOME/.config/gh"
-    check_link "$DOTFILES_DIR/k9s"        "$HOME/.config/k9s"
-    check_link "$DOTFILES_DIR/lazygit"    "$HOME/.config/lazygit"
-    if [[ "$OS" == "Darwin" ]]; then
-        check_link "$DOTFILES_DIR/aerospace/aerospace.toml" "$HOME/.aerospace.toml"
-        check_link "$DOTFILES_DIR/sketchybar"  "$HOME/.config/sketchybar"
-        check_link "$DOTFILES_DIR/borders"     "$HOME/.config/borders"
-    elif [[ "$OS" == "Linux" ]]; then
-        check_link "$DOTFILES_DIR/swaync/config.json" "$HOME/.config/swaync/config.json"
-        check_link "$DOTFILES_DIR/swaync/style.css" "$HOME/.config/swaync/style.css"
-        check_link "$DOTFILES_DIR/wofi/config" "$HOME/.config/wofi/config"
-        check_link "$DOTFILES_DIR/wofi/style.css" "$HOME/.config/wofi/style.css"
-        check_link "$DOTFILES_DIR/ironbar" "$HOME/.config/ironbar"
-        check_link "$DOTFILES_DIR/hyprland" "$HOME/.config/hypr"
-        check_link "$DOTFILES_DIR/pypr/config.toml" "$HOME/.config/pypr/config.toml"
-        check_link "$DOTFILES_DIR/eww" "$HOME/.config/eww"
-        check_link "$DOTFILES_DIR/helix/config.toml" "$HOME/.config/helix/config.toml"
-        check_link "$DOTFILES_DIR/solaar/config.yaml" "$HOME/.config/solaar/config.yaml"
-        check_link "$DOTFILES_DIR/environment.d/ralphglasses.conf" "$HOME/.config/environment.d/ralphglasses.conf"
-        check_link "$DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf" "$HOME/.config/fontconfig/conf.d/51-monospace.conf"
-        check_link "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
-        check_link "$DOTFILES_DIR/paru/paru.conf" "$HOME/.config/paru/paru.conf"
-        check_link "$DOTFILES_DIR/topgrade/topgrade.toml" "$HOME/.config/topgrade.toml"
-        check_link "$DOTFILES_DIR/wlogout/layout" "$HOME/.config/wlogout/layout"
-        check_link "$DOTFILES_DIR/wlogout/style.css" "$HOME/.config/wlogout/style.css"
-        check_link "$DOTFILES_DIR/gtk/settings.ini" "$HOME/.config/gtk-3.0/settings.ini"
-        check_link "$DOTFILES_DIR/xdg-desktop-portal/portals.conf" "$HOME/.config/xdg-desktop-portal/portals.conf"
-    fi
-    check_link "$DOTFILES_DIR/btop"        "$HOME/.config/btop"
-    check_link "$DOTFILES_DIR/yazi"        "$HOME/.config/yazi"
-    check_link "$DOTFILES_DIR/cava"        "$HOME/.config/cava"
-    check_link "$DOTFILES_DIR/glow"        "$HOME/.config/glow"
-    check_link "$DOTFILES_DIR/clipse/config.json" "$HOME/.config/clipse/config.json"
-    check_link "$DOTFILES_DIR/clipse/custom_theme.json" "$HOME/.config/clipse/custom_theme.json"
-    check_link "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
-    if [[ "$OS" == "Darwin" ]]; then
-        check_link "$DOTFILES_DIR/tattoy/tattoy.toml" "$HOME/Library/Application Support/tattoy/tattoy.toml"
-        check_link "$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist" \
-            "$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist"
-        check_link "$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist" \
-            "$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist"
-    else
-        # tattoy.toml is intentionally a copy (app writes to it at runtime)
-        if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml" ]]; then
-            log_success "OK (copy): ${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
+    check_link_if_present() {
+        local src="$1" dst="$2"
+        if source_exists "$src"; then
+            check_link "$src" "$dst"
+        elif [[ -e "$dst" || -L "$dst" ]]; then
+            log_warn "Source missing in repo, destination left as-is: $dst"
         else
-            log_error "Missing: ${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml"
-            errors=$((errors + 1))
+            log_info "Skipping missing source: $src"
         fi
+    }
 
+    log_info "Checking symlinks..."
+    local src dst
+    while IFS='|' read -r src dst; do
+        [[ -n "$src" ]] || continue
+        check_link_if_present "$src" "$dst"
+    done < <(print_link_specs)
+
+    if [[ "$OS" == "Linux" ]]; then
         log_info "Checking systemd user services..."
-        local svc_dir="$HOME/.config/systemd/user"
-        check_link "$DOTFILES_DIR/systemd/shader-rotate.timer" "$svc_dir/shader-rotate.timer"
-        check_link "$DOTFILES_DIR/systemd/shader-rotate.service" "$svc_dir/shader-rotate.service"
-        check_link "$DOTFILES_DIR/systemd/tmux.service" "$svc_dir/tmux.service"
-        check_link "$DOTFILES_DIR/systemd/eww-calendar-sync.service" "$svc_dir/eww-calendar-sync.service"
-        check_link "$DOTFILES_DIR/systemd/eww-calendar-sync.timer" "$svc_dir/eww-calendar-sync.timer"
-        check_link "$DOTFILES_DIR/systemd/mx-battery-notify.service" "$svc_dir/mx-battery-notify.service"
-        check_link "$DOTFILES_DIR/systemd/mx-battery-notify.timer" "$svc_dir/mx-battery-notify.timer"
-        check_link "$DOTFILES_DIR/systemd/rg-status-bar.service" "$svc_dir/rg-status-bar.service"
-        check_link "$DOTFILES_DIR/systemd/rg-status-bar.timer" "$svc_dir/rg-status-bar.timer"
-        check_link "$DOTFILES_DIR/systemd/rg-marathon@.service" "$svc_dir/rg-marathon@.service"
-        check_link "$DOTFILES_DIR/systemd/makima.service" "$svc_dir/makima.service"
     fi
 
     if [[ "$OS" == "Darwin" ]]; then

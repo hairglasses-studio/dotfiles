@@ -2,7 +2,7 @@
 
 This repo uses [AGENTS.md](AGENTS.md) as the canonical instruction file.
 
-Cross-platform development environment (macOS + Manjaro Linux) managed with symlinks. Config files live here and are symlinked into `~/.config/` and `~/Library/Application Support/` by `install.sh`.
+Manjaro Linux development environment managed with symlinks. Config files live here and are symlinked into `~/.config/` and related Linux user paths by `install.sh`.
 
 ## Architecture
 
@@ -25,22 +25,20 @@ Source GLSL shaders live in `ghostty/shaders/` (legacy path, kept as the canonic
 ### Config Symlinks
 ```
 ~/.config/kitty      -> dotfiles/kitty
-~/.config/aerospace  -> dotfiles/aerospace
+~/.config/hypr       -> dotfiles/hyprland
 ```
 
 ### Visual Stack (layered, bottom to top)
 1. **kitty** — terminal with CRTty/Hypr-DarkWindow shaders (GPU-rendered)
 
 ### Package Management
-- **macOS:** Homebrew via `Brewfile`
 - **Linux:** metapac (declarative, paru backend) with 12 groups in `metapac/groups/`. Run `metapac sync` to install all packages, or edit group TOMLs to add/remove. Falls back to `Pacfile` if metapac is not installed.
 
 ### Window Management
-- **macOS:** AeroSpace tiling + SketchyBar + JankyBorders
 - **Linux:** Hyprland + eww bar + swaync notifications + wofi launcher + wlogout
 
 ### Shared Libraries
-- **`scripts/lib/compositor.sh`** — Compositor detection & IPC abstraction. Functions: `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_output`, `compositor_subscribe`, `compositor_reload`, `compositor_workspace`. Detects Hyprland/AeroSpace via env vars.
+- **`scripts/lib/compositor.sh`** — Compositor detection & IPC abstraction. Functions: `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_output`, `compositor_subscribe`, `compositor_reload`, `compositor_workspace`. Detects Hyprland and compatible wlroots setups.
 - **`scripts/lib/config.sh`** — Atomic config operations. Functions: `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service`. All scripts that modify configs should source this.
 
 ### Claude Code Integration
@@ -85,9 +83,6 @@ hyprpm reload -n
 ```
 Do NOT run partial `hyprpm enable/disable` during a session — it corrupts the dispatcher registry. The `exec-once = hyprpm reload -n` in hyprland.conf handles boot-time loading.
 
-### AeroSpace Float Rules
-No "ignore app" mode exists. Use `[[on-window-detected]]` with `layout floating`. Apps with no bundle ID (like glslViewer) must be matched by `if.app-name-regex-substring`.
-
 ## Shared Libraries
 
 All standalone scripts should `set -euo pipefail` and source the appropriate libraries.
@@ -95,7 +90,7 @@ All standalone scripts should `set -euo pipefail` and source the appropriate lib
 | Library | Functions | Purpose |
 |---------|-----------|---------|
 | `scripts/lib/hg-core.sh` | `hg_info`, `hg_ok`, `hg_error`, `hg_die`, `hg_require`, Snazzy colors | CLI framework for hg-* scripts |
-| `scripts/lib/compositor.sh` | `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_reload`, `compositor_subscribe` | Cross-compositor IPC (Hyprland/AeroSpace) |
+| `scripts/lib/compositor.sh` | `compositor_type`, `compositor_msg`, `compositor_query`, `compositor_reload`, `compositor_subscribe` | Linux compositor IPC (Hyprland and compatible wlroots setups) |
 | `scripts/lib/config.sh` | `config_atomic_write`, `config_sed_replace`, `config_backup`, `config_reload_service`, `config_reload_parallel` | Atomic config writes with `mktemp + mv`, parallel service reloads |
 | `scripts/lib/notify.sh` | `hg_notify_low`, `hg_notify_normal`, `hg_notify_critical` | Desktop notifications via notify-send |
 | `scripts/lib/kitty-config.sh` | `kitty_get_shader_path`, `kitty_get_shader_name`, `kitty_get_shader_animation` | Shared kitty config queries (eliminates inline grep/sed) |
