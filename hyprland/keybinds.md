@@ -7,6 +7,7 @@
 | `Super+Enter` | New terminal |
 | `Super+D` | App launcher |
 | `Super+`` | Keybind reference |
+| `Super+X` | Dropdown terminal |
 | `Super+P` | Toggle powermenu |
 | `Super+Ctrl+F` | Toggle fleet sidebar |
 
@@ -114,9 +115,11 @@
 
 | Key | Action |
 |-----|--------|
-| `Super+Shift+Print` | Screenshot full |
-| `Super+Shift+S` | Screenshot region |
-| `Super+Ctrl+S` | Screenshot crop |
+| `Super+S` | Screenshot full → clipboard |
+| `Super+Shift+S` | Screenshot region → clipboard |
+| `Super+Ctrl+S` | Screenshot crop → save + clipboard |
+| `Super+Alt+S` | Screenshot delay 3s |
+| `Super+Alt+R` | Toggle screen recording |
 
 ##  Clipboard & Color
 
@@ -161,7 +164,8 @@
 |-----|--------|
 | `Super+C` | Color picker |
 | `Super+Print` | Screenshot annotate |
-| `Super+Shift+Print` | Screenshot full |
+| `Super+Shift+Print` | Screenshot full → save |
+| `Super+Ctrl+Print` | Screenshot OCR → clipboard |
 | `Super+Ctrl+D` | Toggle screen shader |
 | `Super+E` | Emoji picker |
 
