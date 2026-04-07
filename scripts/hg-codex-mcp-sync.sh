@@ -258,13 +258,14 @@ render_block() {
                 args: ($profile.override.args // $server.args // []),
                 cwd: ($profile.override.cwd // $server.cwd // ""),
                 env: (($server.env // {}) + ($profile.override.env // {})),
-                enabled_tools: ($profile.enabled_tools // [])
+                enabled_tools: ($profile.enabled_tools // []),
+                tool_overrides: ($profile.tool_overrides // {})
               }
             end
         '
     )" || hg_die "Failed to resolve profile from source data"
 
-    local name comment command cwd args_json env_json tools_json
+    local name comment command cwd args_json env_json tools_json tool_overrides_json
     name="$(jq -r '.name' <<<"$resolved")"
     comment="$(jq -r '.comment' <<<"$resolved")"
     command="$(jq -r '.command' <<<"$resolved")"
@@ -272,6 +273,7 @@ render_block() {
     args_json="$(jq -c '.args' <<<"$resolved")"
     env_json="$(jq -c '.env' <<<"$resolved")"
     tools_json="$(jq -c '.enabled_tools' <<<"$resolved")"
+    tool_overrides_json="$(jq -c '.tool_overrides' <<<"$resolved")"
 
     [[ -n "$command" && "$command" != "null" ]] || hg_die "Profile $name resolved to an empty command"
     validate_portable_launch "profile $name" "$command" "$args_json" "$cwd"
@@ -305,6 +307,19 @@ render_block() {
     fi
 
     emit_env_block "$name" "$env_json"
+
+    if [[ "$(jq -r 'type' <<<"$tool_overrides_json")" != "object" ]]; then
+      hg_die "Profile $name tool_overrides must be a JSON object"
+    fi
+
+    while IFS= read -r tool_name; do
+      [[ -n "$tool_name" ]] || continue
+      local approval_mode
+      approval_mode="$(jq -r --arg tool "$tool_name" '.[$tool].approval_mode // empty' <<<"$tool_overrides_json")"
+      [[ -n "$approval_mode" ]] || continue
+      printf '\n[mcp_servers.%s.tools.%s]\n' "$name" "$tool_name"
+      emit_scalar_line "approval_mode" "$approval_mode"
+    done < <(jq -r 'keys[]' <<<"$tool_overrides_json")
   done < <(profiles_json)
 
   printf '\n%s\n' "$END_MARKER"
