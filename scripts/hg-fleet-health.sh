@@ -23,7 +23,7 @@ printf "%s%-30s %-14s %-12s %-8s%s\n" "$HG_BOLD" "REPO" "LAST COMMIT" "CI" "TEST
 printf "%s%s%s\n" "$HG_DIM" "$(printf '─%.0s' {1..70})" "$HG_RESET"
 
 for d in "$STUDIO"/*/; do
-  [[ -d "$d/.git" ]] || continue
+  [[ -e "$d/.git" ]] || continue
   name=$(basename "$d")
   [[ "$name" == "dotfiles" ]] && continue
 

@@ -19,7 +19,7 @@ fail=0
 
 # Check repo-level skill surfaces
 for repo in "$ROOT"/*/; do
-  [[ -d "$repo/.git" ]] || continue
+  [[ -e "$repo/.git" ]] || continue
   name="$(basename "$repo")"
 
   has_surface=0

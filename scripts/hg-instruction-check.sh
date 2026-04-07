@@ -13,7 +13,7 @@ warn=0
 fail=0
 
 for repo in "$ROOT"/*/; do
-  [[ -d "$repo/.git" ]] || continue
+  [[ -e "$repo/.git" ]] || continue
   name="$(basename "$repo")"
 
   has_agents=0
