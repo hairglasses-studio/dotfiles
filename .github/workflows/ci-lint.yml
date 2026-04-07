@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Validate JSON files
         run: |
-          for f in clipse/*.json ghosttyfetch/config.json; do
+          for f in clipse/*.json; do
             if [ -f "$f" ]; then
               python3 -m json.tool "$f" > /dev/null || { echo "FAIL: $f"; exit 1; }
               echo "OK: $f"

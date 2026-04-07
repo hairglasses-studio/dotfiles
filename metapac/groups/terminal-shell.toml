@@ -2,9 +2,7 @@
 [arch]
 packages = [
     # Terminals
-    { name = "ghostty", hooks = { after_sync = ["systemctl", "--user", "enable", "shader-rotate.timer"] } },
-    { name = "ghostty-shell-integration" },
-    { name = "ghostty-terminfo" },
+    { name = "kitty", hooks = { after_sync = ["systemctl", "--user", "enable", "shader-rotate.timer"] } },
     { name = "foot" },
 
     # Shell

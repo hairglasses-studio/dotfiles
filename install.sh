@@ -267,24 +267,9 @@ install_retrovisor() {
     fi
 }
 
-# ── Tattoy shader symlink ────────────────────
+# ── Tattoy shader symlink (Ghostty-only, skipped for kitty) ──
 setup_tattoy_shaders() {
-    local tattoy_shaders
-    if [[ "$OS" == "Darwin" ]]; then
-        tattoy_shaders="$HOME/Library/Application Support/tattoy/shaders"
-    else
-        tattoy_shaders="${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/shaders"
-    fi
-    local ghostty_shaders="$DOTFILES_DIR/ghostty/shaders"
-    if [[ -L "$tattoy_shaders" ]] && [[ "$(readlink "$tattoy_shaders")" == "$ghostty_shaders" ]]; then
-        log_success "Tattoy shaders already linked"
-    elif [[ -d "$tattoy_shaders" ]]; then
-        log_warn "Tattoy shaders dir exists, skipping symlink"
-    else
-        mkdir -p "$(dirname "$tattoy_shaders")"
-        ln -sf "$ghostty_shaders" "$tattoy_shaders"
-        log_success "Linked Tattoy shaders to Ghostty shader collection"
-    fi
+    log_info "Tattoy shaders skipped (kitty uses CRTty/DarkWindow pipeline)"
 }
 
 # ── Tmux Plugin Manager ──────────────────────
@@ -312,7 +297,7 @@ create_symlinks() {
     link_file "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
 
     # Directory symlinks
-    link_file "$DOTFILES_DIR/ghostty"    "$HOME/.config/ghostty"
+    link_file "$DOTFILES_DIR/kitty"      "$HOME/.config/kitty"
     link_file "$DOTFILES_DIR/nvim"       "$HOME/.config/nvim"
     link_file "$DOTFILES_DIR/bat"        "$HOME/.config/bat"
     link_file "$DOTFILES_DIR/fastfetch"  "$HOME/.config/fastfetch"
@@ -431,7 +416,7 @@ check_symlinks() {
     check_link "$DOTFILES_DIR/git/gitconfig"          "$HOME/.gitconfig"
     check_link "$DOTFILES_DIR/ssh/config"             "$HOME/.ssh/config"
     check_link "$DOTFILES_DIR/starship/starship.toml" "$HOME/.config/starship.toml"
-    check_link "$DOTFILES_DIR/ghostty"    "$HOME/.config/ghostty"
+    check_link "$DOTFILES_DIR/kitty"      "$HOME/.config/kitty"
     check_link "$DOTFILES_DIR/nvim"       "$HOME/.config/nvim"
     check_link "$DOTFILES_DIR/bat"        "$HOME/.config/bat"
     check_link "$DOTFILES_DIR/fastfetch"  "$HOME/.config/fastfetch"
