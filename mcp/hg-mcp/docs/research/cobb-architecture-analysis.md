@@ -1,7 +1,7 @@
-# Webb Architecture Analysis
+# Cobb Architecture Analysis
 
 *Research conducted: December 23, 2025*
-*Source: ~/example-corp/webb (Platform Operations CLI)*
+*Source: ~/example-corp/cobb (Platform Operations CLI)*
 
 ## Overview
 
@@ -29,12 +29,12 @@
 
 ## Entry Points
 
-### CLI Binary (`cmd/webb/main.go`)
+### CLI Binary (`cmd/cobb/main.go`)
 - 30+ command groups organized hierarchically
 - Categories: setup, login, k8s, slack, alerts, investigations, migrations, incidents
 - Local CLI for interactive development and testing
 
-### MCP Server (`cmd/webb-mcp/main.go`)
+### MCP Server (`cmd/cobb-mcp/main.go`)
 - Exposes 600+ tools to Claude via Model Context Protocol
 - **Stdio mode:** Local Claude Code integration
 - **SSE mode:** HTTP-based for AWS ECS with `/health`, `/metrics`, `/sse`, `/message` endpoints
@@ -288,7 +288,7 @@ type LLMProvider interface {
 | File | Lines | Purpose |
 |------|-------|---------|
 | `internal/mcp/tools/registry.go` | ~800 | Core registry pattern |
-| `cmd/webb-mcp/main.go` | ~200 | MCP server entry |
+| `cmd/cobb-mcp/main.go` | ~200 | MCP server entry |
 | `internal/clients/knowledgegraph.go` | ~600 | Knowledge graph |
 | `internal/clients/perpetual_learner.go` | ~300 | Learning system |
 | `internal/mcp/tools/consolidated/module.go` | ~400 | Consolidation pattern |
@@ -336,18 +336,18 @@ type HealthScore struct {
 
 ### Local Development (Stdio)
 ```bash
-./webb-mcp  # Stdio mode, direct Claude Code integration
+./cobb-mcp  # Stdio mode, direct Claude Code integration
 ```
 
 ### Remote Access (SSE)
 ```bash
-MCP_MODE=sse PORT=8080 ./webb-mcp
+MCP_MODE=sse PORT=8080 ./cobb-mcp
 # Endpoints: /sse, /message, /health, /metrics
 ```
 
 ### Docker Build (for ECS)
 ```bash
-docker buildx build --platform linux/amd64 -t webb-mcp:latest -f Dockerfile . --load
+docker buildx build --platform linux/amd64 -t cobb-mcp:latest -f Dockerfile . --load
 ```
 
 ---

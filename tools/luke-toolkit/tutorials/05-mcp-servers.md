@@ -129,7 +129,7 @@ Restart Claude Code to load the new server.
 | Discord | Messaging, notifications |
 | Vault | Documentation, session logs |
 
-### webb (Knowledge Graph)
+### cobb (Knowledge Graph)
 
 | Category | Tools |
 |----------|-------|
