@@ -10,10 +10,15 @@ OS="$(uname -s)"
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 BACKUP_CREATED=false
 CHECK_ONLY=false
+PRINT_LINK_SPECS=false
 
-if [[ "${1:-}" == "--check" ]]; then
-    CHECK_ONLY=true
-fi
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --check) CHECK_ONLY=true ;;
+        --print-link-specs) PRINT_LINK_SPECS=true ;;
+    esac
+    shift
+done
 
 # ── Logging ─────────────────────────────────────
 _has_tte() { command -v tte &>/dev/null && [[ -t 1 ]]; }
@@ -531,6 +536,11 @@ check_symlinks() {
 
 # ── Main ────────────────────────────────────────
 main() {
+    if $PRINT_LINK_SPECS; then
+        print_link_specs
+        return 0
+    fi
+
     echo ""
     if _has_tte; then
         echo "DOTFILES INSTALLER" | tte synthgrid \
