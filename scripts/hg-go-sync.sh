@@ -25,6 +25,11 @@ for arg in "$@"; do
   esac
 done
 
+repo_go_files_dirty() {
+  local repo_path="$1"
+  [[ -n "$(git -C "$repo_path" status --porcelain --untracked-files=all -- go.mod go.sum 2>/dev/null)" ]]
+}
+
 repo_names() {
   local selected=()
   hg_workspace_parse_repo_filter "$REPO_FILTER" selected
@@ -62,6 +67,11 @@ while IFS= read -r name; do
   if $DRY_RUN; then
     printf "%s%-25s %s → %s (would update)%s\n" "$HG_YELLOW" "$name" "$current" "$TARGET_VERSION" "$HG_RESET"
     CHANGED=$((CHANGED + 1))
+    continue
+  fi
+
+  if repo_go_files_dirty "$repo_path"; then
+    hg_warn "$name: skipping dirty go.mod/go.sum"
     continue
   fi
 
