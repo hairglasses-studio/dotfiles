@@ -15,7 +15,7 @@ PIPELINE_HAS_GO  ?= $(shell test -f go.mod && echo yes || echo no)
 PIPELINE_HAS_NODE ?= $(shell test -f package.json && echo yes || echo no)
 PIPELINE_HAS_PY  ?= $(shell test -f pyproject.toml && echo yes || echo no)
 
-.PHONY: pipeline-build pipeline-test pipeline-vet pipeline-lint pipeline-check pipeline-info pipeline-detect install-hooks
+.PHONY: pipeline-build pipeline-test pipeline-vet pipeline-lint pipeline-check pipeline-info pipeline-detect install-hooks claude-lint
 
 pipeline-build:
 	$(PIPELINE_GO) build ./...
@@ -43,3 +43,21 @@ pipeline-info:
 
 install-hooks:
 	@$(HOME)/hairglasses-studio/dotfiles/scripts/hg-install-hooks.sh
+
+claude-lint:
+	@if [ -f CLAUDE.md ]; then \
+		lines=$$(wc -l < CLAUDE.md); \
+		chars=$$(wc -c < CLAUDE.md); \
+		approx_tokens=$$((chars / 4)); \
+		if [ "$$lines" -gt 200 ]; then \
+			echo "WARNING: CLAUDE.md is $$lines lines (recommended: <200). Consider splitting into CLAUDE.md + CLAUDE-DETAIL.md"; \
+		fi; \
+		if [ "$$approx_tokens" -gt 5000 ]; then \
+			echo "WARNING: CLAUDE.md is ~$$approx_tokens tokens (recommended: <5000). Large files waste context budget."; \
+		fi; \
+		if [ "$$lines" -le 200 ] && [ "$$approx_tokens" -le 5000 ]; then \
+			echo "OK: CLAUDE.md is $$lines lines (~$$approx_tokens tokens)"; \
+		fi; \
+	else \
+		echo "SKIP: No CLAUDE.md found"; \
+	fi
