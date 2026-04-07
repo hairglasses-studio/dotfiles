@@ -20,6 +20,7 @@ CODEX_SKILLS_DIR="${HG_CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
 CODEX_CONFIG_PATH="${HG_CODEX_CONFIG_PATH:-$HOME/.codex/config.toml}"
 GEMINI_HOME_DOC_PATH="${HG_GEMINI_HOME_DOC_PATH:-$HOME/.gemini/GEMINI.md}"
 GEMINI_PROJECTS_PATH="${HG_GEMINI_PROJECTS_PATH:-$HOME/.gemini/projects.json}"
+GEMINI_SETTINGS_PATH="${HG_GEMINI_SETTINGS_PATH:-$HOME/.gemini/settings.json}"
 
 START_MARKER="# BEGIN GENERATED MCP SERVERS: hg-workspace-global-sync"
 END_MARKER="# END GENERATED MCP SERVERS: hg-workspace-global-sync"
@@ -51,6 +52,7 @@ Options:
   --codex-config <path>       Codex config TOML (default: ~/.codex/config.toml)
   --gemini-home-doc <path>    Gemini home GEMINI.md (default: ~/.gemini/GEMINI.md)
   --gemini-projects <path>    Gemini projects.json (default: ~/.gemini/projects.json)
+  --gemini-settings <path>    Gemini settings JSON (default: ~/.gemini/settings.json)
   --skills-only               Sync managed global skills only
   --tools-only                Sync managed Claude/Codex MCP overlays only
   --dry-run                   Report changes without writing
@@ -119,6 +121,11 @@ while [[ $# -gt 0 ]]; do
     --gemini-projects)
       [[ $# -ge 2 ]] || hg_die "--gemini-projects requires a path"
       GEMINI_PROJECTS_PATH="$2"
+      shift 2
+      ;;
+    --gemini-settings)
+      [[ $# -ge 2 ]] || hg_die "--gemini-settings requires a path"
+      GEMINI_SETTINGS_PATH="$2"
       shift 2
       ;;
     --skills-only)
@@ -193,6 +200,7 @@ claude_raw_count=0
 claude_tool_count=0
 codex_profile_count=0
 codex_tool_count=0
+gemini_tool_count=0
 
 declare -A desired_claude_skill_dirs=()
 declare -A managed_canonical_owners=()
@@ -200,6 +208,7 @@ declare -A alias_counts=()
 declare -A alias_conflicts_reported=()
 declare -A claude_key_seen=()
 declare -A codex_name_seen=()
+declare -A gemini_name_seen=()
 declare -A raw_source_seen=()
 
 resolve_repo_path() {
@@ -216,6 +225,13 @@ sanitize_name() {
   printf '%s' "$raw" \
     | tr '[:upper:]' '[:lower:]' \
     | sed -E 's/[^a-z0-9]+/_/g; s/^_+//; s/_+$//; s/_{2,}/_/g'
+}
+
+sanitize_kebab_name() {
+  local raw="$1"
+  printf '%s' "$raw" \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-{2,}/-/g'
 }
 
 extract_frontmatter_scalar() {
@@ -549,6 +565,39 @@ append_codex_entry() {
   codex_tool_count=$((codex_tool_count + 1))
 }
 
+append_gemini_entry() {
+  local stem="$1"
+  local value_json="$2"
+  local generated_name="studio-$(sanitize_kebab_name "$stem")"
+
+  [[ -n "$generated_name" ]] || hg_die "Failed to generate Gemini MCP name for $stem"
+  if [[ -n "${gemini_name_seen[$generated_name]:-}" ]]; then
+    hg_die "Duplicate generated Gemini MCP name: $generated_name"
+  fi
+  gemini_name_seen["$generated_name"]=1
+
+  jq -cn \
+    --arg name "$generated_name" \
+    --argjson value "$value_json" \
+    '{
+      name: $name,
+      value: (
+        {
+          command: ($value.command // empty),
+          args: ($value.args // []),
+          cwd: ($value.cwd // empty),
+          env: ($value.env // {})
+        }
+        + (if ($value.url // null) != null then {url: $value.url} else {} end)
+        + (if ($value.httpUrl // null) != null then {httpUrl: $value.httpUrl} else {} end)
+        + (if ($value.headers // null) != null then {headers: $value.headers} else {} end)
+        + (if ($value.timeout // null) != null then {timeout: $value.timeout} else {} end)
+      )
+    }' >>"$tmpdir/gemini-mcp.ndjson"
+
+  gemini_tool_count=$((gemini_tool_count + 1))
+}
+
 sync_managed_workspace_skills() {
   local skill_entries_file="$tmpdir/skill-entries.tsv"
   local alias_entries_file="$tmpdir/alias-entries.tsv"
@@ -716,6 +765,7 @@ sync_managed_workspace_skills() {
 sync_managed_workspace_tools() {
   : >"$tmpdir/claude-mcp.ndjson"
   : >"$tmpdir/codex-mcp.ndjson"
+  : >"$tmpdir/gemini-mcp.ndjson"
 
   local foundational_name foundation_server
   for foundational_name in systemd tmux process; do
@@ -723,6 +773,7 @@ sync_managed_workspace_tools() {
     [[ "$foundation_server" != "null" ]] || hg_die "Shared root .mcp.json missing foundational server: $foundational_name"
 
     append_claude_entry "$foundational_name" "$foundation_server"
+    append_gemini_entry "$foundational_name" "$foundation_server"
     append_codex_entry \
       "$foundational_name" \
       "shared root .mcp.json:$foundational_name" \
@@ -769,6 +820,7 @@ sync_managed_workspace_tools() {
       if [[ -z "${raw_source_seen[$raw_id]:-}" ]]; then
         raw_source_seen["$raw_id"]=1
         append_claude_entry "${repo_name}_${source_name}" "$raw_server"
+        append_gemini_entry "${repo_name}_${source_name}" "$raw_server"
         claude_raw_count=$((claude_raw_count + 1))
       fi
 
@@ -839,6 +891,32 @@ sync_managed_workspace_tools() {
         )
     ' "$claude_base_json" >"$claude_output_json"
   sync_rendered_file "$CLAUDE_JSON_PATH" "$claude_output_json" "Synced workspace Claude MCP overlay"
+
+  local gemini_generated_json gemini_output_json gemini_base_json
+  gemini_generated_json="$tmpdir/gemini-generated.json"
+  gemini_output_json="$tmpdir/gemini-output.json"
+  gemini_base_json="$tmpdir/gemini-base.json"
+
+  if [[ -s "$tmpdir/gemini-mcp.ndjson" ]]; then
+    jq -sc 'sort_by(.name) | (map({(.name): .value}) | add) // {}' "$tmpdir/gemini-mcp.ndjson" >"$gemini_generated_json"
+  else
+    printf '{}\n' >"$gemini_generated_json"
+  fi
+
+  if [[ -f "$GEMINI_SETTINGS_PATH" ]]; then
+    cp "$GEMINI_SETTINGS_PATH" "$gemini_base_json"
+  else
+    printf '{}\n' >"$gemini_base_json"
+  fi
+
+  jq \
+    --slurpfile generated "$gemini_generated_json" '
+      .mcpServers = (
+        ((.mcpServers // {}) | with_entries(select(.key | startswith("studio-") | not)))
+        + $generated[0]
+      )
+    ' "$gemini_base_json" >"$gemini_output_json"
+  sync_rendered_file "$GEMINI_SETTINGS_PATH" "$gemini_output_json" "Synced workspace Gemini MCP overlay"
 
   local codex_block_file codex_output_file codex_base_file has_new has_legacy
   codex_block_file="$tmpdir/codex-generated-block.toml"
@@ -954,7 +1032,8 @@ sync_gemini_home_context() {
     printf '### Managed Global MCP Overlays\n\n'
     printf -- '- Claude workspace overlay: `%s` managed entries under project `%s` in `%s`.\n' "$claude_tool_count" "$CLAUDE_PROJECT_KEY" "$CLAUDE_JSON_PATH"
     printf -- '- Codex workspace overlay: `%s` managed entries in `%s`.\n' "$codex_tool_count" "$CODEX_CONFIG_PATH"
-    printf -- '- Gemini CLI home memory is managed here, but no separate Gemini home MCP config surface was detected on this machine.\n'
+    printf -- '- Gemini CLI home overlay: `%s` managed entries in `%s`.\n' "$gemini_tool_count" "$GEMINI_SETTINGS_PATH"
+    printf -- '- Portable managed skills are discovered from `%s`.\n' "$AGENTS_SKILLS_DIR"
     printf '\n%s\n' "$GEMINI_END_MARKER"
   } >"$gemini_block_file"
 
@@ -1013,7 +1092,7 @@ if $RUN_SKILLS; then
 fi
 
 if $RUN_TOOLS; then
-  hg_info "Managed workspace global tools: Claude ${claude_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw) / Codex ${codex_tool_count} (${claude_foundational_count} shared + ${codex_profile_count} curated)"
+  hg_info "Managed workspace global tools: Claude ${claude_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw) / Codex ${codex_tool_count} (${claude_foundational_count} shared + ${codex_profile_count} curated) / Gemini ${gemini_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw)"
 fi
 
 case "$MODE" in

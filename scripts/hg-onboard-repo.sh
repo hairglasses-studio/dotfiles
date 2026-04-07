@@ -199,18 +199,7 @@ if [[ ! -f .gemini/settings.json ]]; then
   if $DRY_RUN; then
     add_file ".gemini/settings.json"
   else
-    "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$PWD" >/dev/null
-    add_file ".gemini/settings.json"
-  fi
-fi
-
-# ── Gemini project settings ──────────────────
-if [[ ! -f .gemini/settings.json ]]; then
-  if $DRY_RUN; then
-    add_file ".gemini/settings.json"
-  else
-    mkdir -p .gemini
-    command cp -f "$SCRIPT_DIR/../templates/gemini-settings.standard.json" .gemini/settings.json
+    "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$PWD" --allow-dirty >/dev/null
     add_file ".gemini/settings.json"
   fi
 fi
