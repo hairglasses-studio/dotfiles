@@ -111,8 +111,8 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 h1:HWRh5R2+9EifMyIHV7ZV+MIZqgz+PMpZ14Jynv3O2Zs=
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0/go.mod h1:JfhWUomR1baixubs02l85lZYYOm7LV6om4ceouMv45c=
-github.com/hairglasses-studio/mcpkit v0.4.1 h1:gBH6mxKxmMf/pAfenUFRpz/tBNmLBGos+3Ugca882B8=
-github.com/hairglasses-studio/mcpkit v0.4.1/go.mod h1:HmLyg7xKc1/Hdfu6yF06+A/TvqSgg38aAWGKWXCtfjc=
+github.com/hairglasses-studio/mcpkit v0.5.1 h1:+b+fMcbhuzPfRGcpfWgu7C08IpLcDidrliKl18TCfcg=
+github.com/hairglasses-studio/mcpkit v0.5.1/go.mod h1:dJEkQAC6cISrp+OUemMrQi/3FplIJOUnj2gJr+c87GA=
 github.com/hypebeast/go-osc v0.0.0-20220308234300-cec5a8a1e5f5 h1:fqwINudmUrvGCuw+e3tedZ2UJ0hklSw6t8UPomctKyQ=
 github.com/hypebeast/go-osc v0.0.0-20220308234300-cec5a8a1e5f5/go.mod h1:lqMjoCs0y0GoRRujSPZRBaGb4c5ER6TfkFKSClxkMbY=
 github.com/inconshreveable/log15 v0.0.0-20180818164646-67afb5ed74ec h1:CGkYB1Q7DSsH/ku+to+foV4agt2F2miquaLUgF6L178=
