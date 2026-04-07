@@ -281,13 +281,15 @@ hg_parity_provider_mcp_bridge_ok() {
 
   if jq -e \
       --argjson required "$expected_claude" '
-        ($required | keys) as $keys
-        | $keys | all(. as $k | (.mcpServers[$k] != null))
+        . as $cfg
+        | ($required | keys) as $keys
+        | $keys | all(. as $k | ($cfg.mcpServers[$k] != null))
       ' "$repo_path/.claude/settings.json" >/dev/null 2>&1 && \
      jq -e \
       --argjson required "$expected_gemini" '
-        ($required | keys) as $keys
-        | $keys | all(. as $k | (.mcpServers[$k] != null))
+        . as $cfg
+        | ($required | keys) as $keys
+        | $keys | all(. as $k | ($cfg.mcpServers[$k] != null))
       ' "$repo_path/.gemini/settings.json" >/dev/null 2>&1; then
     printf '1\n'
   else
