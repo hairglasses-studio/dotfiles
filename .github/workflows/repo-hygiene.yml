@@ -16,4 +16,4 @@ jobs:
       - name: Run hygiene checks
         run: |
           curl -sL https://raw.githubusercontent.com/hairglasses-studio/.github/main/scripts/check-repo-hygiene.sh -o check-repo-hygiene.sh
-          bash check-repo-hygiene.sh --require-roadmap --require-makefile --no-require-codeowners --max-root-docs 14 --allow-extra-docs "INFRASTRUCTURE.md,MCP-ROADMAP.md,codebase-intelligence-prompt.md"
+          bash check-repo-hygiene.sh --require-roadmap --require-makefile --no-require-codeowners --max-root-docs 14 --allow-extra-docs "INFRASTRUCTURE.md,MCP-ROADMAP.md,codebase-intelligence-prompt.md,links-scraping-prompt.md"
