@@ -30,7 +30,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aftrs-studio/hg-mcp/internal/mcp/tools"
+	"github.com/hairglasses-studio/hg-mcp/internal/mcp/tools"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -103,4 +103,4 @@ GOEOF
 
 echo "Created ${DIR}/module.go and ${DIR}/module_test.go"
 echo "Don't forget to add the import to cmd/hg-mcp/main.go:"
-echo "  _ \"github.com/aftrs-studio/hg-mcp/internal/mcp/tools/${PKG}\""
+echo "  _ \"github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/${PKG}\""

@@ -13,7 +13,7 @@
 - [`aftrs_pre_stream_check`](#aftrs-pre-stream-check)
 - [`aftrs_show_preflight`](#aftrs-show-preflight)
 - [`aftrs_stream_dashboard`](#aftrs-stream-dashboard)
-- [`aftrs_studio_health_full`](#aftrs-studio-health-full)
+- [`hairglasses_studio_health_full`](#hairglasses-studio-health-full)
 
 ---
 
@@ -129,7 +129,7 @@ Streaming dashboard: OBS + NDI + capture devices in one view. Saves ~55% tokens 
 
 ---
 
-## aftrs_studio_health_full
+## hairglasses_studio_health_full
 
 Get comprehensive studio health: TouchDesigner + Resolume + DMX + NDI + UNRAID in one call. Saves ~60% tokens vs individual calls.
 

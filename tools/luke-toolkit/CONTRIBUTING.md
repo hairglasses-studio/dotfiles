@@ -1,4 +1,4 @@
-# Contributing to aftrs-studio Projects
+# Contributing to hairglasses-studio Projects
 
 Guidelines for collaborating on audiovisual code projects.
 
@@ -6,7 +6,7 @@ Guidelines for collaborating on audiovisual code projects.
 
 ## Getting Started
 
-1. **Clone the repo** to `~/aftrs-studio/`
+1. **Clone the repo** to `~/hairglasses-studio/`
 2. **Create a branch** for your work
 3. **Make small, focused commits**
 4. **Open a pull request** for review

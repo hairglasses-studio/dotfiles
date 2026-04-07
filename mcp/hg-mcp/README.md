@@ -61,10 +61,10 @@ go version
 
 ```bash
 # Navigate to your projects folder
-cd ~/aftrs-studio
+cd ~/hairglasses-studio
 
 # Clone this repo (if not already done)
-git clone https://github.com/aftrs-studio/hg-mcp.git
+git clone https://github.com/hairglasses-studio/hg-mcp.git
 
 # Enter the project folder
 cd hg-mcp

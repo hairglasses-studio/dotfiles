@@ -165,13 +165,13 @@ Uses: aftrs_discord_history
 **Quick Health Check:**
 ```
 Ask Claude: "Run a studio health check"
-Uses: aftrs_studio_health
+Uses: hairglasses_studio_health
 ```
 
 **Comprehensive Health Check:**
 ```
 Ask Claude: "Run a full comprehensive studio health check"
-Uses: aftrs_studio_health_full
+Uses: hairglasses_studio_health_full
 ```
 
 **Morning Checklist:**
@@ -353,9 +353,9 @@ aftrs-rebuild
 
 **Check Permissions:**
 ```bash
-chmod +x ~/aftrs-studio/hg-mcp/hg-mcp
-chmod +x ~/aftrs-studio/hg-mcp/aftrs
-chmod +x ~/aftrs-studio/hg-mcp/aftrs-bot
+chmod +x ~/hairglasses-studio/hg-mcp/hg-mcp
+chmod +x ~/hairglasses-studio/hg-mcp/aftrs
+chmod +x ~/hairglasses-studio/hg-mcp/aftrs-bot
 ```
 
 ### Discord Bot Not Connecting
@@ -420,14 +420,14 @@ env | grep AFTRS
 
 | File | Location | Purpose |
 |------|----------|---------|
-| MCP Server | `~/aftrs-studio/hg-mcp/hg-mcp` | Main MCP server binary |
-| CLI Tool | `~/aftrs-studio/hg-mcp/aftrs` | Command-line tool |
-| Discord Bot | `~/aftrs-studio/hg-mcp/aftrs-bot` | Standalone Discord bot |
-| Config File | `~/aftrs-studio/hg-mcp/configs/aftrs.yaml` | Server configuration |
+| MCP Server | `~/hairglasses-studio/hg-mcp/hg-mcp` | Main MCP server binary |
+| CLI Tool | `~/hairglasses-studio/hg-mcp/aftrs` | Command-line tool |
+| Discord Bot | `~/hairglasses-studio/hg-mcp/aftrs-bot` | Standalone Discord bot |
+| Config File | `~/hairglasses-studio/hg-mcp/configs/aftrs.yaml` | Server configuration |
 | Claude MCP | `~/.config/claude/mcp_settings.json` | Claude Code integration |
 | Environment | `~/.zshrc` | Environment variables |
 | Vault | `~/aftrs-vault/` | Obsidian vault for logging |
-| Logs | `~/aftrs-studio/hg-mcp/logs/` | Server logs |
+| Logs | `~/hairglasses-studio/hg-mcp/logs/` | Server logs |
 
 ## Available Tool Modules (730+ tools across 78 modules)
 
@@ -502,9 +502,9 @@ env | grep AFTRS
 
 ## Getting Help
 
-- **Documentation**: `~/aftrs-studio/hg-mcp/README.md`
-- **Architecture**: `~/aftrs-studio/hg-mcp/docs/ARCHITECTURE.md`
-- **Tool Examples**: `~/aftrs-studio/hg-mcp/internal/mcp/tools/`
+- **Documentation**: `~/hairglasses-studio/hg-mcp/README.md`
+- **Architecture**: `~/hairglasses-studio/hg-mcp/docs/ARCHITECTURE.md`
+- **Tool Examples**: `~/hairglasses-studio/hg-mcp/internal/mcp/tools/`
 - **Ask Claude**: Claude can help troubleshoot and explain tools
 
 ## Next Steps

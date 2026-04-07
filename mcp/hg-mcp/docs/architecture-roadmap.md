@@ -177,7 +177,7 @@ Tool: mcp.Tool{
 
 **AFTRS Consolidated Tools:** ✅ COMPLETE (8 tools)
 
-- [x] `aftrs_studio_health_full` - All systems status (TD + Resolume + DMX + NDI + UNRAID)
+- [x] `hairglasses_studio_health_full` - All systems status (TD + Resolume + DMX + NDI + UNRAID)
 - [x] `aftrs_show_preflight` - Pre-show checklist
 - [x] `aftrs_morning_check` - Daily status
 - [x] `aftrs_stream_dashboard` - Streaming overview

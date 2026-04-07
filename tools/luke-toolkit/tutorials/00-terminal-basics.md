@@ -61,7 +61,7 @@ ls -la                  # List ALL files with details
 cd Documents            # Go into Documents folder
 cd ..                   # Go up one folder
 cd ~                    # Go to home folder
-cd ~/aftrs-studio       # Go to specific folder
+cd ~/hairglasses-studio       # Go to specific folder
 ```
 
 ### Working with Files
@@ -328,8 +328,8 @@ alias h="history"
 alias reload="source ~/.zshrc"
 
 # Folders
-alias aftrs="cd ~/aftrs-studio"
-alias toolkit="cd ~/aftrs-studio/luke-toolkit"
+alias aftrs="cd ~/hairglasses-studio"
+alias toolkit="cd ~/hairglasses-studio/luke-toolkit"
 ```
 
 Save and exit (`Ctrl + X`, then `Y`, then Enter), then reload:

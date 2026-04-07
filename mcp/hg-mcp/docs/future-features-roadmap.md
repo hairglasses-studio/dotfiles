@@ -39,7 +39,7 @@
 - ✅ Priority 11.2: Bandcamp Integration (8 tools) - search, artist, album, download, tags, tag_releases
 
 ### Ecosystem Analysis Complete
-Reviewed all aftrs-studio repos and old-repos for integration opportunities:
+Reviewed all hairglasses-studio repos and old-repos for integration opportunities:
 - **video-ai-toolkit**: 30+ AI video processing commands
 - **sam3-video-segmenter**: Specialized SAM3 object extraction
 - **luke-toolkit**: DJ/music automation patterns
@@ -842,7 +842,7 @@ AFTRS_FEDERATION_CR8=stdio:cr8-mcp
 | Tool | Combines | Token Savings |
 |------|----------|---------------|
 | `aftrs_ecosystem_health` | UNRAID + OPNsense + Archives + System | ~70% |
-| `aftrs_studio_status` | Resolume + TouchDesigner + OBS + Audio | ~60% |
+| `hairglasses_studio_status` | Resolume + TouchDesigner + OBS + Audio | ~60% |
 | `aftrs_network_overview` | OPNsense + Tailscale + Router | ~65% |
 | `aftrs_storage_dashboard` | UNRAID + Archives + Cloud quotas | ~70% |
 | `aftrs_creative_status` | DJ library + VJ clips + Projects | ~60% |

@@ -9,7 +9,7 @@ This guide will help you test the AFTRS MCP tools with your local TouchDesigner 
 
 1. **Open TouchDesigner**
    - Launch: `/Applications/TouchDesigner.app`
-   - Open one of your projects from `~/aftrs-studio/visual-projects/touchdesigner/projects/`
+   - Open one of your projects from `~/hairglasses-studio/visual-projects/touchdesigner/projects/`
    - Recommended test project: `Watercolor_Splats.toe` or `spaceloop.toe`
 
 2. **Enable Python Server**
@@ -21,7 +21,7 @@ This guide will help you test the AFTRS MCP tools with your local TouchDesigner 
 
 3. **Start Python Bridge**
    - Open a new terminal window
-   - Run: `cd ~/aftrs-studio/hg-mcp/td-python-bridge && ./start.sh`
+   - Run: `cd ~/hairglasses-studio/hg-mcp/td-python-bridge && ./start.sh`
    - Bridge will start on port 9980 and connect to TD Python Server on port 8090
    - Keep both TouchDesigner and the bridge running
 
@@ -34,7 +34,7 @@ This guide will help you test the AFTRS MCP tools with your local TouchDesigner 
 
 1. **Open Resolume Arena**
    - Launch: `/Applications/Resolume Arena`
-   - Open one of your compositions from `~/aftrs-studio/visual-projects/resolume/compositions/`
+   - Open one of your compositions from `~/hairglasses-studio/visual-projects/resolume/compositions/`
    - Recommended test composition: `LUKE_2.21.avc` or `Example.avc`
 
 2. **Enable OSC Output**
@@ -337,7 +337,7 @@ When testing is complete, note:
 
 Create a new file with results:
 ```bash
-touch ~/aftrs-studio/hg-mcp/TEST-RESULTS.md
+touch ~/hairglasses-studio/hg-mcp/TEST-RESULTS.md
 ```
 
 ## Next Steps After Successful Testing
@@ -359,8 +359,8 @@ Once both TouchDesigner and Resolume tools are working:
 | MCP Server | stdio | ~/.config/claude/mcp_settings.json |
 
 **Test Projects:**
-- TD: `~/aftrs-studio/visual-projects/touchdesigner/projects/`
-- Resolume: `~/aftrs-studio/visual-projects/resolume/compositions/`
+- TD: `~/hairglasses-studio/visual-projects/touchdesigner/projects/`
+- Resolume: `~/hairglasses-studio/visual-projects/resolume/compositions/`
 
 **Logs:**
 ```bash

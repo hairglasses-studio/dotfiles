@@ -186,7 +186,7 @@ func (c *RouterClient) getRoutes() []ToolRoute {
 
 		// Studio Health
 		{
-			Tool:        "aftrs_studio_health_full",
+			Tool:        "hairglasses_studio_health_full",
 			Patterns:    []string{"studio health", "health check", "system status", "everything ok"},
 			Keywords:    []string{"health", "status", "check", "systems", "studio"},
 			Description: "Get comprehensive studio health: TD + Resolume + DMX + NDI + UNRAID",

@@ -135,7 +135,7 @@ package obs
 import (
     "context"
 
-    "github.com/aftrs-studio/hg-mcp/internal/mcp/tools"
+    "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools"
     mcp "github.com/mark3labs/mcp-go"
 )
 
@@ -186,7 +186,7 @@ Add this import to `internal/mcp/tools/tools.go`:
 
 ```go
 import (
-    _ "github.com/aftrs-studio/hg-mcp/internal/mcp/tools/obs"
+    _ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/obs"
 )
 ```
 
@@ -382,7 +382,7 @@ Examples:
 ### "undefined: tools" error
 You forgot to import the tools package:
 ```go
-import "github.com/aftrs-studio/hg-mcp/internal/mcp/tools"
+import "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools"
 ```
 
 ### "module not registered"
@@ -395,7 +395,7 @@ func init() {
 
 And import it in `tools.go`:
 ```go
-import _ "github.com/aftrs-studio/hg-mcp/internal/mcp/tools/yourmodule"
+import _ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/yourmodule"
 ```
 
 ### Tool not showing up

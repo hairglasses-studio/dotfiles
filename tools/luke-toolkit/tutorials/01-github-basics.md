@@ -113,13 +113,13 @@ Hi username! You've successfully authenticated...
 ### Create Project Folder
 
 ```bash
-mkdir -p ~/aftrs-studio && cd ~/aftrs-studio
+mkdir -p ~/hairglasses-studio && cd ~/hairglasses-studio
 ```
 
 ### Clone the Repository
 
 ```bash
-git clone git@github.com:aftrs-studio/luke-toolkit.git
+git clone git@github.com:hairglasses-studio/luke-toolkit.git
 ```
 
 ### Enter the Folder
@@ -193,7 +193,7 @@ git push
 ### Daily Workflow
 
 ```bash
-cd ~/aftrs-studio/luke-toolkit    # Go to repo
+cd ~/hairglasses-studio/luke-toolkit    # Go to repo
 git pull                           # Get latest changes
 # ... make your edits ...
 git status                         # See what changed
@@ -231,7 +231,7 @@ git push -u origin my-feature      # Push branch to GitHub
 
 | What you want | Command |
 |---------------|---------|
-| Go to repo | `cd ~/aftrs-studio/luke-toolkit` |
+| Go to repo | `cd ~/hairglasses-studio/luke-toolkit` |
 | Get latest | `git pull` |
 | Check status | `git status` |
 | Save changes | `git add . && git commit -m "message"` |
@@ -256,7 +256,7 @@ Check the URL is correct:
 git remote -v
 ```
 
-Should show `git@github.com:aftrs-studio/luke-toolkit.git`
+Should show `git@github.com:hairglasses-studio/luke-toolkit.git`
 
 ### "Please tell me who you are"
 

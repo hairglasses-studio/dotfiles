@@ -79,7 +79,7 @@ graph:
   # Enable knowledge graph learning
   enabled: true
   # Storage path for graph data
-  storage_path: "~/aftrs-studio/hg-mcp/data/knowledge-graph"
+  storage_path: "~/hairglasses-studio/hg-mcp/data/knowledge-graph"
   # Auto-learn from interactions
   auto_learn: true
 
@@ -90,12 +90,12 @@ learning:
   # Confidence threshold for suggestions (0.0-1.0)
   confidence_threshold: 0.7
   # Storage path for learned patterns
-  storage_path: "~/aftrs-studio/hg-mcp/data/patterns"
+  storage_path: "~/hairglasses-studio/hg-mcp/data/patterns"
 
 # Workflow Settings
 workflows:
   # Path to workflow definitions
-  definitions_path: "~/aftrs-studio/hg-mcp/workflows"
+  definitions_path: "~/hairglasses-studio/hg-mcp/workflows"
   # Auto-load workflows on startup
   auto_load: true
 
@@ -111,7 +111,7 @@ streaming:
 # Plugin Management
 plugins:
   # Plugin manifest path
-  manifest_path: "~/aftrs-studio/hg-mcp/configs/plugin-manifest.yaml"
+  manifest_path: "~/hairglasses-studio/hg-mcp/configs/plugin-manifest.yaml"
   # Auto-discover plugins
   auto_discover: true
   # Plugin search paths
@@ -137,11 +137,11 @@ general:
   # Log level: debug, info, warn, error
   log_level: "info"
   # Log file path
-  log_file: "~/aftrs-studio/hg-mcp/logs/hg-mcp.log"
+  log_file: "~/hairglasses-studio/hg-mcp/logs/hg-mcp.log"
   # Enable metrics collection
   metrics_enabled: true
   # Metrics storage path
-  metrics_path: "~/aftrs-studio/hg-mcp/data/metrics"
+  metrics_path: "~/hairglasses-studio/hg-mcp/data/metrics"
 
 # MCP Server Settings
 server:

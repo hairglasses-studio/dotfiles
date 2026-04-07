@@ -357,7 +357,7 @@ func (m *Module) Tools() []tools.ToolDefinition {
 // pythonScript runs the rekordbox Python script with given arguments
 func pythonScript(ctx context.Context, action string, args map[string]interface{}) (map[string]interface{}, error) {
 	// Find the script
-	scriptPath := filepath.Join(config.Get().Home, "aftrs-studio", "hg-mcp", "scripts", "rekordbox_query.py")
+	scriptPath := filepath.Join(config.Get().Home, "hairglasses-studio", "hg-mcp", "scripts", "rekordbox_query.py")
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 		// Try relative path
 		scriptPath = "scripts/rekordbox_query.py"

@@ -385,9 +385,9 @@ resource "aws_iam_role" "github_actions_terraform" {
           }
           StringLike = {
             "token.actions.githubusercontent.com:sub" = [
-              "repo:aftrs-studio/hg-mcp:ref:refs/heads/main",
-              "repo:aftrs-studio/hg-mcp:environment:production",
-              "repo:aftrs-studio/hg-mcp:environment:staging"
+              "repo:hairglasses-studio/hg-mcp:ref:refs/heads/main",
+              "repo:hairglasses-studio/hg-mcp:environment:production",
+              "repo:hairglasses-studio/hg-mcp:environment:staging"
             ]
           }
         }
@@ -705,8 +705,8 @@ module "github_oidc" {
   version = "~> 1.7"
 
   github_repositories = [
-    "aftrs-studio/hg-mcp:ref:refs/heads/main",
-    "aftrs-studio/hg-mcp:environment:production"
+    "hairglasses-studio/hg-mcp:ref:refs/heads/main",
+    "hairglasses-studio/hg-mcp:environment:production"
   ]
 
   attach_admin_policy = false
@@ -2255,7 +2255,7 @@ provider "aws" {
       Owner           = "platform-team"
       CostCenter      = var.cost_center
       ManagedBy       = "terraform"
-      Repository      = "aftrs-studio/hg-mcp"
+      Repository      = "hairglasses-studio/hg-mcp"
       DataClassification = "internal"
     }
   }

@@ -8,7 +8,7 @@
 
 - [`aftrs_hardware_status`](#aftrs-hardware-status)
 - [`aftrs_network_scan`](#aftrs-network-scan)
-- [`aftrs_studio_health`](#aftrs-studio-health)
+- [`hairglasses_studio_health`](#hairglasses-studio-health)
 - [`aftrs_unraid_docker`](#aftrs-unraid-docker)
 - [`aftrs_unraid_vms`](#aftrs-unraid-vms)
 
@@ -56,7 +56,7 @@ Scan the studio network for devices.
 
 ---
 
-## aftrs_studio_health
+## hairglasses_studio_health
 
 Get comprehensive studio health score across all systems.
 

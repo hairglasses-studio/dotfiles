@@ -248,7 +248,7 @@ func (c *WorkflowsClient) registerBuiltinWorkflows() {
 			{ID: "test_lighting", Name: "Test Lighting", Tool: "aftrs_lighting_status", Timeout: 30, DependsOn: []string{"test_network"}},
 			{ID: "test_ndi", Name: "Test NDI", Tool: "aftrs_ndi_sources", Timeout: 30, DependsOn: []string{"test_td", "test_resolume"}},
 			{ID: "test_unraid", Name: "Test UNRAID", Tool: "aftrs_unraid_status", Timeout: 30},
-			{ID: "health_check", Name: "Full Health Check", Tool: "aftrs_studio_health_full", Timeout: 60, DependsOn: []string{"test_ndi", "test_lighting", "test_unraid"}},
+			{ID: "health_check", Name: "Full Health Check", Tool: "hairglasses_studio_health_full", Timeout: 60, DependsOn: []string{"test_ndi", "test_lighting", "test_unraid"}},
 		},
 	}
 

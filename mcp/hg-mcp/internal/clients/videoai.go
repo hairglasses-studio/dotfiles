@@ -59,7 +59,7 @@ func NewVideoAIClient() (*VideoAIClient, error) {
 			"vidtool",
 			"/usr/local/bin/vidtool",
 			filepath.Join(os.Getenv("HOME"), ".local/bin/vidtool"),
-			filepath.Join(os.Getenv("HOME"), "aftrs-studio/video-ai-toolkit/vidtool"),
+			filepath.Join(os.Getenv("HOME"), "hairglasses-studio/video-ai-toolkit/vidtool"),
 		}
 		for _, p := range paths {
 			if _, err := exec.LookPath(p); err == nil {

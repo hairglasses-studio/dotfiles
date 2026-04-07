@@ -19,7 +19,7 @@ After launching TouchDesigner (spaceloop.toe project) and analyzing the AFTRS-MC
 
 ### Key Code Analysis
 
-From `~/aftrs-studio/hg-mcp/internal/clients/touchdesigner.go`:
+From `~/hairglasses-studio/hg-mcp/internal/clients/touchdesigner.go`:
 
 ```go
 port := os.Getenv("TD_PORT")

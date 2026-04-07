@@ -1,6 +1,6 @@
 # Collaborative Git Workflow
 
-How to work together on code projects in the aftrs-studio organization.
+How to work together on code projects in the hairglasses-studio organization.
 
 ---
 
@@ -28,8 +28,8 @@ feature-b           ●───●─────●
 ### Clone the Repository
 
 ```bash
-cd ~/aftrs-studio
-git clone git@github.com:aftrs-studio/project-name.git
+cd ~/hairglasses-studio
+git clone git@github.com:hairglasses-studio/project-name.git
 cd project-name
 ```
 
@@ -368,7 +368,7 @@ git push                                          # Push updated branch
 
 ---
 
-## aftrs-studio Conventions
+## hairglasses-studio Conventions
 
 ### Branch Naming
 

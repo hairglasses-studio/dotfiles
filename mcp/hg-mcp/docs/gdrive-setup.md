@@ -5,7 +5,7 @@ Quick setup guide for using hg-mcp Google Drive tools on a new machine.
 ## Prerequisites
 
 ```bash
-git clone git@github.com:aftrs-studio/hg-mcp.git
+git clone git@github.com:hairglasses-studio/hg-mcp.git
 cd hg-mcp
 go build ./...
 ```

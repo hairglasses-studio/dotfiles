@@ -15,7 +15,7 @@ import (
 var orgPatterns = []string{
 	"github.com/hairglasses-studio/",
 	"github.com/glasshairs/",
-	"github.com/aftrs-studio/",
+	"github.com/hairglasses-studio/",
 }
 
 // Edge represents a dependency edge between two Go modules.
