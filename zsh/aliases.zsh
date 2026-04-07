@@ -1,13 +1,12 @@
 #!/usr/bin/env zsh
-# Cross-platform aliases optimized for LLM agents
-# Compatible with both macOS and Linux
+# Linux-first aliases optimized for LLM agents
 
 # Helper function to check if command exists
 function cmd_exists() {
     command -v "$1" > /dev/null 2>&1
 }
 
-# Cross-platform ls configuration
+# ls configuration
 if cmd_exists eza; then
     alias ls='eza --color=always --group-directories-first --icons'
     alias ll='eza -l --color=always --group-directories-first --icons'
@@ -24,16 +23,9 @@ elif cmd_exists lsd; then
     alias la='lsd -la --color=always --group-dirs first'
     alias lt='lsd --tree --color=always --group-dirs first'
 else
-    # Fallback to standard ls with cross-platform options
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        alias ls='ls -G'
-        alias ll='ls -lG'
-        alias la='ls -laG'
-    else
-        alias ls='ls --color=auto --group-directories-first'
-        alias ll='ls -l --color=auto --group-directories-first'
-        alias la='ls -la --color=auto --group-directories-first'
-    fi
+    alias ls='ls --color=auto --group-directories-first'
+    alias ll='ls -l --color=auto --group-directories-first'
+    alias la='ls -la --color=auto --group-directories-first'
     alias lt='ls -ltrh'
 fi
 
@@ -46,7 +38,6 @@ alias ~='cd ~'
 alias -- -='cd -'
 
 # Platform-specific aliases loaded separately:
-#   aliases.darwin.zsh — macOS (AeroSpace, SketchyBar, brew, etc.)
 #   aliases.linux.zsh  — Linux (wl-copy, hyprctl, pacman/yay, etc.)
 
 # File operations (cross-platform)
