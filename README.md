@@ -5,6 +5,9 @@
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 [![CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml)
+[![Go CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-go-mcp.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-go-mcp.yml)
+[![Lint](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml)
+[![Scorecard](https://api.securityscorecards.dev/projects/github.com/hairglasses-studio/dotfiles/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hairglasses-studio/dotfiles)
 
 Full-stack development environment for Manjaro Linux (Hyprland) and macOS (AeroSpace). Combines GPU-rendered shader pipelines, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 

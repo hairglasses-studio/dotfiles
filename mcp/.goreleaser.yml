@@ -1,0 +1,62 @@
+version: 2
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: dotfiles-mcp
+    main: ./dotfiles-mcp
+    binary: dotfiles-mcp
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+  - id: process-mcp
+    main: ./process-mcp
+    binary: process-mcp
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+  - id: systemd-mcp
+    main: ./systemd-mcp
+    binary: systemd-mcp
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+  - id: tmux-mcp
+    main: ./tmux-mcp
+    binary: tmux-mcp
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"

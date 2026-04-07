@@ -1,0 +1,108 @@
+name: Go MCP CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mcp/**'
+      - 'make/golangci.yml'
+      - '.github/workflows/ci-go-mcp.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mcp/**'
+      - 'make/golangci.yml'
+      - '.github/workflows/ci-go-mcp.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-go-mcp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: mcp/go.work
+      - uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
+        with:
+          working-directory: mcp
+          args: --config ../make/golangci.yml
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: mcp/go.work
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race -count=1 -coverprofile=coverage.out ./...
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ -f coverage.out ]; then
+            echo "### Coverage Report" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            go tool cover -func=coverage.out | tail -20 >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        if: always()
+        with:
+          name: coverage-go-mcp
+          path: mcp/coverage.out
+          retention-days: 30
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
+        if: always()
+        with:
+          files: mcp/coverage.out
+          flags: go-mcp
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: mcp/go.work
+
+      - name: Build
+        run: go build ./...
+
+      - name: Check go.mod tidy
+        run: |
+          for dir in dotfiles-mcp hg-mcp mapitall mapping process-mcp systemd-mcp tmux-mcp; do
+            echo "Checking $dir..."
+            (cd "$dir" && go mod tidy)
+          done
+          if ! git diff --exit-code -- '*/go.mod' '*/go.sum'; then
+            echo "::error::go.mod or go.sum is not tidy. Run 'go mod tidy' in the affected module(s)."
+            exit 1
+          fi
