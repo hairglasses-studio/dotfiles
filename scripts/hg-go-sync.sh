@@ -15,6 +15,8 @@ INCLUDE_COMPATIBILITY=false
 INCLUDE_DEPRECATED=false
 REPO_FILTER=""
 
+hg_require git
+
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=true ;;
@@ -22,6 +24,15 @@ for arg in "$@"; do
     --include-compatibility) INCLUDE_COMPATIBILITY=true ;;
     --include-deprecated) INCLUDE_DEPRECATED=true ;;
     --repos=*) REPO_FILTER="${arg#--repos=}" ;;
+    -h|--help)
+      cat <<'EOF'
+Usage: hg-go-sync.sh [--dry-run] [--tidy] [--repos=a,b,c] [--include-compatibility] [--include-deprecated]
+EOF
+      exit 0
+      ;;
+    *)
+      hg_die "Unknown argument: $arg"
+      ;;
   esac
 done
 

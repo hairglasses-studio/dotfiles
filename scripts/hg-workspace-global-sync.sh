@@ -261,7 +261,7 @@ manifest_skill_names() {
   if manifest_supports_jq "$file"; then
     jq -r '.skills[].name' "$file"
   else
-    sed -n 's/^  - name:[[:space:]]*//p' "$file"
+    sed -n 's/^[[:space:]]*- name:[[:space:]]*//p' "$file"
   fi
 }
 
@@ -582,12 +582,10 @@ append_gemini_entry() {
     '{
       name: $name,
       value: (
-        {
-          command: ($value.command // empty),
-          args: ($value.args // []),
-          cwd: ($value.cwd // empty),
-          env: ($value.env // {})
-        }
+        (if ($value | has("command")) then {command: $value.command} else {} end)
+        + (if ($value | has("args")) then {args: ($value.args // [])} else {} end)
+        + (if ($value | has("cwd")) then {cwd: ($value.cwd // "")} else {} end)
+        + (if ($value | has("env")) then {env: ($value.env // {})} else {} end)
         + (if ($value.url // null) != null then {url: $value.url} else {} end)
         + (if ($value.httpUrl // null) != null then {httpUrl: $value.httpUrl} else {} end)
         + (if ($value.headers // null) != null then {headers: $value.headers} else {} end)
@@ -612,7 +610,10 @@ sync_managed_workspace_skills() {
     repo_path="$(resolve_repo_path "$repo_rel_path")"
     surface_path="$repo_path/.agents/skills/surface.yaml"
 
-    [[ -d "$repo_path" ]] || hg_die "Managed repo missing from workspace: $repo_path"
+    if [[ ! -d "$repo_path" ]]; then
+      hg_warn "Skipping managed repo missing from workspace: $repo_path"
+      continue
+    fi
     [[ -f "$surface_path" ]] || continue
 
     local json_surface=0
@@ -792,6 +793,11 @@ sync_managed_workspace_tools() {
     repo_path="$(resolve_repo_path "$repo_rel_path")"
     mcp_json="$repo_path/.mcp.json"
     policy_path="$repo_path/.codex/mcp-profile-policy.json"
+
+    if [[ ! -d "$repo_path" ]]; then
+      hg_warn "Skipping managed repo missing from workspace: $repo_path"
+      continue
+    fi
 
     [[ -f "$mcp_json" ]] || continue
     [[ -f "$policy_path" ]] || continue

@@ -5,6 +5,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 
+hg_require jq find
+
 ROOT="${1:-$HOME/hairglasses-studio}"
 [[ -d "$ROOT" ]] || hg_die "Root directory not found: $ROOT"
 

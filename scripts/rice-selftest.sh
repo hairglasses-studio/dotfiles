@@ -11,6 +11,7 @@ source "$SCRIPT_DIR/lib/kitty-config.sh" 2>/dev/null || true
 
 JSON_MODE=false
 SECTION="all"
+JQ_AVAILABLE=true
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --json) JSON_MODE=true; shift ;;
@@ -18,6 +19,10 @@ while [[ $# -gt 0 ]]; do
     *) SECTION="$1"; shift ;;
   esac
 done
+
+if ! command -v jq >/dev/null 2>&1; then
+  JQ_AVAILABLE=false
+fi
 
 errors=0
 warnings=0
@@ -44,7 +49,7 @@ hypr_configerror_lines() {
     return 0
   fi
 
-  if printf '%s' "$raw" | jq -e 'type == "array"' >/dev/null 2>&1; then
+  if $JQ_AVAILABLE && printf '%s' "$raw" | jq -e 'type == "array"' >/dev/null 2>&1; then
     printf '%s' "$raw" | jq -r '.[]? | strings | select((gsub("\\s+"; "")) | length > 0)'
     return 0
   fi
@@ -59,6 +64,10 @@ hypr_configerror_lines() {
 # ── Section: Hyprland config ───────────────────────
 test_config() {
   echo "── Config Validation ──" >&2
+  if ! $JQ_AVAILABLE; then
+    add_result config "jq_dependency" fail "jq not found"
+    return
+  fi
   local raw errs stderr_raw stderr_file hypr_status
   stderr_file="$(mktemp)"
   hypr_status=0
@@ -87,6 +96,10 @@ test_config() {
 # ── Section: Keybinds ─────────────────────────────────
 test_keybinds() {
   echo "── Keybind Validation ──" >&2
+  if ! $JQ_AVAILABLE; then
+    add_result keybinds "jq_dependency" fail "jq not found"
+    return
+  fi
   local binds
   binds="$(hyprctl binds -j 2>/dev/null)"
 

@@ -62,6 +62,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+hg_require git jq
+
 repo_names() {
   local selected=()
   hg_workspace_parse_repo_filter "$REPO_FILTER" selected
@@ -197,12 +199,13 @@ sync_standard_file() {
   esac
 }
 
-sync_gemini_settings() {
+sync_provider_settings() {
   local repo="$1"
   local repo_path="$2"
+  local claude_rel=".claude/settings.json"
   local settings_rel=".gemini/settings.json"
   local legacy_rel=".gemini/config.yaml"
-  local sync_args=("$repo_path")
+  local sync_args=("$repo_path" "--repo-name" "$repo")
 
   if $ALLOW_DIRTY; then
     sync_args+=("--allow-dirty")
@@ -210,23 +213,23 @@ sync_gemini_settings() {
 
   case "$MODE" in
     verify)
-      if ! "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$repo_path" --check >/dev/null; then
-        hg_warn "$repo: Gemini settings out of sync"
+      if ! "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" --check >/dev/null; then
+        hg_warn "$repo: provider settings out of sync"
         mark_failure
       fi
       ;;
     ensure-missing)
-      if [[ ! -f "$repo_path/$settings_rel" ]]; then
-        "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "${sync_args[@]}" >/dev/null
-        hg_ok "$repo: created Gemini settings"
+      if [[ ! -f "$repo_path/$claude_rel" || ! -f "$repo_path/$settings_rel" ]]; then
+        "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" >/dev/null
+        hg_ok "$repo: created provider settings"
       fi
       ;;
     sync)
-      if skip_dirty_group "$repo" "$repo_path" "Gemini settings" "$settings_rel" "$legacy_rel"; then
+      if skip_dirty_group "$repo" "$repo_path" "provider settings" "$claude_rel" "$settings_rel" "$legacy_rel"; then
         return
       fi
-      "$SCRIPT_DIR/hg-gemini-settings-sync.sh" "${sync_args[@]}" >/dev/null
-      hg_ok "$repo: synced Gemini settings"
+      "$SCRIPT_DIR/hg-provider-settings-sync.sh" "${sync_args[@]}" >/dev/null
+      hg_ok "$repo: synced provider settings"
       ;;
   esac
 }
@@ -441,7 +444,7 @@ run_workflow_sync() {
 while IFS= read -r repo; do
   [[ -n "$repo" ]] || continue
   repo_path="$(hg_workspace_repo_path "$repo")"
-  [[ -d "$repo_path/.git" ]] || {
+  [[ -e "$repo_path/.git" ]] || {
     hg_warn "$repo: repo path missing"
     mark_failure
     continue
@@ -456,7 +459,7 @@ while IFS= read -r repo; do
     ".codex/config.toml" \
     "Codex config"
 
-  sync_gemini_settings "$repo" "$repo_path"
+  sync_provider_settings "$repo" "$repo_path"
 
   sync_agent_docs "$repo" "$repo_path"
   sync_provider_role_surface "$repo" "$repo_path"

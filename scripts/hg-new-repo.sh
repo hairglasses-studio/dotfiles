@@ -225,8 +225,8 @@ command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/confi
 hg_ok "Created .codex/config.toml from shared standard"
 
 # ── Gemini settings baseline ─────────────────
-"$SCRIPT_DIR/hg-gemini-settings-sync.sh" "$REPO_DIR" --allow-dirty >/dev/null
-hg_ok "Created .gemini/settings.json from shared standard"
+"$SCRIPT_DIR/hg-provider-settings-sync.sh" "$REPO_DIR" --repo-name "$NAME" --allow-dirty >/dev/null
+hg_ok "Created .claude/settings.json and .gemini/settings.json from shared standard"
 
 # ── Canonical skill surface ──────────────────
 SKILL_NAME="${NAME//-/_}_ops"
