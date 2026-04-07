@@ -1,0 +1,84 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "[Feature] "
+labels: ["type/feature", "status/triage"]
+assignees: ["hairglasses"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea? We'd love to hear it!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What feature are you proposing? Give a concise overview.
+      placeholder: "Add support for X so that Y becomes possible."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: What problem does this feature solve? Why is the current behavior insufficient?
+      placeholder: "I frequently need to X, but currently I have to Y which is cumbersome because..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this to work? Include examples, commands, or config snippets.
+      placeholder: |
+        ```bash
+        # Example of the desired behavior
+        ./install.sh --module hyprland
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches did you consider? Why are they less suitable?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which area of dotfiles does this affect?
+      options:
+        - Hyprland / Sway (window manager)
+        - eww (status bar / widgets)
+        - Ghostty (terminal / shaders)
+        - Shell (zsh / starship)
+        - Scripts (shell utilities)
+        - MCP servers
+        - Installation / setup
+        - Documentation
+        - CI/CD / tooling
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Links, screenshots, related issues, or prior art?
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues for duplicates
+          required: true
+        - label: I am willing to submit a PR for this feature
+          required: false
