@@ -12,18 +12,7 @@ hg_parity_require_tools() {
 }
 
 hg_parity_objectives_path() {
-  if [[ -n "${HG_PARITY_OBJECTIVES_PATH:-}" ]]; then
-    printf '%s\n' "$HG_PARITY_OBJECTIVES_PATH"
-    return 0
-  fi
-
-  local preferred="$HG_STUDIO_ROOT/docs/projects/agent-parity/parity-objectives.json"
-  local legacy="$HG_STUDIO_ROOT/docs/projects/codex-migration/parity-objectives.json"
-  if [[ -f "$preferred" ]]; then
-    printf '%s\n' "$preferred"
-  else
-    printf '%s\n' "$legacy"
-  fi
+  printf '%s\n' "${HG_PARITY_OBJECTIVES_PATH:-$HG_STUDIO_ROOT/docs/projects/codex-migration/parity-objectives.json}"
 }
 
 hg_parity_manifest_path() {

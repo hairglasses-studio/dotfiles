@@ -351,8 +351,8 @@ jq -n \
     gemini_mcp_server_count: $gemini_mcp_server_count
   }' | jq '.' >"$rendered_owner"
 
-sync_rendered_file "$SETTINGS_PATH" "$rendered_settings" "Synced Gemini settings"
-sync_rendered_file "$OWNER_PATH" "$rendered_owner" "Synced Gemini settings metadata"
+sync_rendered_file "$SETTINGS_PATH" "$rendered_settings" "Synced Gemini settings" || true
+sync_rendered_file "$OWNER_PATH" "$rendered_owner" "Synced Gemini settings metadata" || true
 remove_legacy_config || true
 
 if [[ "$unsupported_hook_rules" -gt 0 && "$MODE" == "write" ]]; then

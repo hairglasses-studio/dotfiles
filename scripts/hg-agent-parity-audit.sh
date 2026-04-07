@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
 export HG_STUDIO_ROOT="$ROOT"
-SCOPE_MANIFEST="$ROOT/docs/projects/codex-migration/repo-scope.json"
+SCOPE_MANIFEST="${HG_PARITY_SCOPE_MANIFEST:-$ROOT/docs/projects/agent-parity/repo-scope.json}"
 WRITE_WORKSPACE_CACHE=0
 WRITE_WIKI_DOCS=0
 WRITE_JSON=0
@@ -12,11 +12,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-agent-parity.sh"
 
 workspace_cache_dir() {
-  printf '%s\n' "$ROOT/docs/codex-migration"
+  printf '%s\n' "$ROOT/docs/agent-parity"
 }
 
 wiki_docs_dir() {
-  printf '%s\n' "$ROOT/docs/projects/codex-migration"
+  printf '%s\n' "$ROOT/docs/projects/agent-parity"
 }
 
 for arg in "$@"; do
@@ -90,7 +90,7 @@ build_repo_rg_args() {
 inventory_csv=""
 inventory_json_rows=""
 json_separator=""
-inventory_md=$'| Repo | `claude mcp` | `.claude/settings.json` refs | `claude_desktop_config.json` | `AGENTS.md` | `AGENTS.override.md` | `CLAUDE.md` | `GEMINI.md` | `copilot-instructions.md` | `.codex/config.toml` | full profiles | `.agents/skills/surface.yaml` | canonical `.agents/skills/*` | generated `.claude/skills/*` | generated plugin skills | `.mcp.json` | repo MCP servers | MCP discovery contract | MCP resources | MCP prompts | MCP server health | full MCP contract | MCP policy files | generated MCP configs | unmanaged MCP blocks | example-only `.mcp.json` | Codex MCP servers | curated Codex MCP servers | raw Codex MCP servers | legacy `gpt-5.4-xhigh` | `.mcp.json` without policy | `.mcp.json` without curated Codex | `.codex/agents/*.toml` | `.codex-plugin` | Codex workflows | `codex_hooks = true` | root `.claude/settings.json` | root `.gemini/settings.json` | Gemini extensions | provider MCP bridge | provider hook bridge | provider drift |\n|------|--------------:|-----------------------------:|-----------------------------:|-----------:|--------------------:|-----------:|-----------:|--------------------------:|---------------------:|--------------:|-------------------------------:|----------------------------:|----------------------------:|------------------------:|-----------:|-----------------:|-----------------------:|----------------:|--------------:|--------------------:|--------------------:|-----------------:|----------------------:|---------------------:|----------------------:|------------------:|--------------------------:|---------------------:|------------------------:|--------------------------:|-------------------------------:|-------------------------:|----------------:|----------------:|----------------------:|------------------------------:|------------------------------:|------------------:|--------------------:|---------------------:|---------------:|\n'
+inventory_md=$'| Repo | `claude mcp` | `.claude/settings.json` refs | `claude_desktop_config.json` | `AGENTS.md` | `AGENTS.override.md` | `CLAUDE.md` | `GEMINI.md` | `copilot-instructions.md` | `.codex/config.toml` | full profiles | `.agents/skills/surface.yaml` | canonical `.agents/skills/*` | generated `.claude/skills/*` | generated plugin skills | `.mcp.json` | repo MCP servers | MCP discovery contract | MCP resources | MCP prompts | MCP server health | full MCP contract | MCP policy files | generated MCP configs | unmanaged MCP blocks | example-only `.mcp.json` | Codex MCP servers | curated Codex MCP servers | raw Codex MCP servers | legacy `gpt-5.4-xhigh` | `.mcp.json` without policy | `.mcp.json` without curated Codex | `.codex/agents/*.toml` | `.codex-plugin` | Codex workflows | `codex_hooks = true` | root `.claude/settings.json` | root `.gemini/settings.json` | legacy `.gemini/config.yaml` | generated `.gemini/settings.json` | Gemini MCP servers | Gemini translated hooks | Claude-only hook gaps | Gemini extensions | provider MCP bridge | provider hook bridge | provider drift |\n|------|--------------:|-----------------------------:|-----------------------------:|-----------:|--------------------:|-----------:|-----------:|--------------------------:|---------------------:|--------------:|-------------------------------:|----------------------------:|----------------------------:|------------------------:|-----------:|-----------------:|-----------------------:|----------------:|--------------:|--------------------:|--------------------:|-----------------:|----------------------:|---------------------:|----------------------:|------------------:|--------------------------:|---------------------:|------------------------:|--------------------------:|-------------------------------:|-------------------------:|----------------:|----------------:|----------------------:|------------------------------:|------------------------------:|-------------------------------:|---------------------------------:|-------------------:|------------------------:|----------------------:|------------------:|--------------------:|---------------------:|---------------:|\n'
 
 count_matches() {
   local repo="$1"
@@ -198,6 +198,33 @@ count_generated_skill_files() {
     fi
   done < <(find_repo "$repo" -path "$path_pattern" -type f -print 2>/dev/null | sort)
   printf '%s' "$count"
+}
+
+count_generated_gemini_settings() {
+  local repo="$1"
+  local count=0
+  local metadata
+  while IFS= read -r metadata; do
+    [[ -f "$metadata" ]] || continue
+    if jq -e '.generator == "dotfiles/scripts/hg-gemini-settings-sync.sh"' "$metadata" >/dev/null 2>&1; then
+      count=$((count + 1))
+    fi
+  done < <(find_repo "$repo" -path '*/.gemini/.hg-gemini-settings-sync.json' -type f -print 2>/dev/null | sort)
+  printf '%s' "$count"
+}
+
+sum_gemini_settings_metadata_field() {
+  local repo="$1"
+  local field="$2"
+  local total=0
+  local metadata value
+  while IFS= read -r metadata; do
+    [[ -f "$metadata" ]] || continue
+    value="$(jq -r --arg field "$field" '.[$field] // 0' "$metadata" 2>/dev/null || printf '0')"
+    [[ "$value" =~ ^[0-9]+$ ]] || value=0
+    total=$((total + value))
+  done < <(find_repo "$repo" -path '*/.gemini/.hg-gemini-settings-sync.json' -type f -print 2>/dev/null | sort)
+  printf '%s' "$total"
 }
 
 count_root_mcp_servers() {
@@ -466,6 +493,11 @@ total_claude_desktop=0
 total_missing_agents=0
 total_missing_root_claude_settings=0
 total_missing_root_gemini_settings=0
+total_legacy_gemini_config_files=0
+total_generated_gemini_settings=0
+total_gemini_mcp_servers=0
+total_gemini_translated_hook_rules=0
+total_claude_only_hook_gaps=0
 total_missing_codex=0
 total_missing_plugins=0
 total_missing_copilot=0
@@ -592,6 +624,11 @@ for repo in "${repos[@]}"; do
   [[ -f "$repo/.claude/settings.json" ]] && root_claude_settings=1
   root_gemini_settings=0
   [[ -f "$repo/.gemini/settings.json" ]] && root_gemini_settings=1
+  legacy_gemini_config=$(count_files "$repo" '*/.gemini/config.yaml')
+  generated_gemini_settings=$(count_generated_gemini_settings "$repo")
+  gemini_mcp_servers=$(sum_gemini_settings_metadata_field "$repo" "gemini_mcp_server_count")
+  gemini_translated_hook_rules=$(sum_gemini_settings_metadata_field "$repo" "translated_hook_rules")
+  claude_only_hook_gaps=$(sum_gemini_settings_metadata_field "$repo" "unsupported_claude_hook_rules")
   gemini_extensions=$(count_files "$repo" '*/.gemini/extensions/*/gemini-extension.json')
   provider_mcp_bridge=$(hg_parity_provider_mcp_bridge_ok "$repo")
   provider_hook_bridge=$(hg_parity_provider_hook_bridge_ok "$repo" "$name")
@@ -624,6 +661,11 @@ for repo in "${repos[@]}"; do
   total_claude_desktop=$((total_claude_desktop + claude_desktop))
   total_mcp_json=$((total_mcp_json + mcp_json))
   total_repo_mcp_servers=$((total_repo_mcp_servers + repo_mcp_servers))
+  total_legacy_gemini_config_files=$((total_legacy_gemini_config_files + legacy_gemini_config))
+  total_generated_gemini_settings=$((total_generated_gemini_settings + generated_gemini_settings))
+  total_gemini_mcp_servers=$((total_gemini_mcp_servers + gemini_mcp_servers))
+  total_gemini_translated_hook_rules=$((total_gemini_translated_hook_rules + gemini_translated_hook_rules))
+  total_claude_only_hook_gaps=$((total_claude_only_hook_gaps + claude_only_hook_gaps))
   total_codex_mcp_servers=$((total_codex_mcp_servers + codex_mcp_servers))
   total_curated_codex_mcp_servers=$((total_curated_codex_mcp_servers + codex_curated_mcp_servers))
   total_raw_codex_mcp_servers=$((total_raw_codex_mcp_servers + codex_raw_mcp_servers))
@@ -701,7 +743,7 @@ for repo in "${repos[@]}"; do
     total_excluded_repos=$((total_excluded_repos + 1))
   fi
 
-  inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${agents_md},${agents_override},${claude_md},${gemini_md},${copilot_instructions},${codex_config},${codex_full_profiles},${skill_surface_manifest},${canonical_skills},${generated_claude_skills},${generated_plugin_skills},${mcp_json},${repo_mcp_servers},${mcp_discovery_contract},${mcp_resource_contract},${mcp_prompt_contract},${mcp_server_health},${full_mcp_contract},${mcp_policy},${generated_mcp_configs},${codex_unmanaged_mcp_servers},${example_only_mcp_json},${codex_mcp_servers},${codex_curated_mcp_servers},${codex_raw_mcp_servers},${legacy_model_tokens},${mcp_without_policy},${mcp_without_curated_codex},${codex_agents},${codex_plugin},${codex_workflows},${codex_hooks},${root_claude_settings},${root_gemini_settings},${gemini_extensions},${provider_mcp_bridge},${provider_hook_bridge},${provider_drift},${scope},${active_scope},${expected_codex_baseline},${expected_full_profiles},${expected_codex_agents},${expected_codex_workflows},${expected_codex_plugin},${expected_mcp_contract},${expected_codex_hooks}"$'\n'
+  inventory_csv+="${name},${claude_mcp},${claude_settings},${claude_desktop},${agents_md},${agents_override},${claude_md},${gemini_md},${copilot_instructions},${codex_config},${codex_full_profiles},${skill_surface_manifest},${canonical_skills},${generated_claude_skills},${generated_plugin_skills},${mcp_json},${repo_mcp_servers},${mcp_discovery_contract},${mcp_resource_contract},${mcp_prompt_contract},${mcp_server_health},${full_mcp_contract},${mcp_policy},${generated_mcp_configs},${codex_unmanaged_mcp_servers},${example_only_mcp_json},${codex_mcp_servers},${codex_curated_mcp_servers},${codex_raw_mcp_servers},${legacy_model_tokens},${mcp_without_policy},${mcp_without_curated_codex},${codex_agents},${codex_plugin},${codex_workflows},${codex_hooks},${root_claude_settings},${root_gemini_settings},${legacy_gemini_config},${generated_gemini_settings},${gemini_mcp_servers},${gemini_translated_hook_rules},${claude_only_hook_gaps},${gemini_extensions},${provider_mcp_bridge},${provider_hook_bridge},${provider_drift},${scope},${active_scope},${expected_codex_baseline},${expected_full_profiles},${expected_codex_agents},${expected_codex_workflows},${expected_codex_plugin},${expected_mcp_contract},${expected_codex_hooks}"$'\n'
   inventory_json_rows+="${json_separator}"$'    {\n'
   inventory_json_rows+="      \"repo\": \"${name}\","$'\n'
   inventory_json_rows+="      \"claude_mcp_mentions\": ${claude_mcp},"$'\n'
@@ -741,6 +783,11 @@ for repo in "${repos[@]}"; do
   inventory_json_rows+="      \"codex_hooks_enabled_count\": ${codex_hooks},"$'\n'
   inventory_json_rows+="      \"root_claude_settings\": ${root_claude_settings},"$'\n'
   inventory_json_rows+="      \"root_gemini_settings\": ${root_gemini_settings},"$'\n'
+  inventory_json_rows+="      \"legacy_gemini_config_count\": ${legacy_gemini_config},"$'\n'
+  inventory_json_rows+="      \"generated_gemini_settings_count\": ${generated_gemini_settings},"$'\n'
+  inventory_json_rows+="      \"gemini_mcp_server_count\": ${gemini_mcp_servers},"$'\n'
+  inventory_json_rows+="      \"gemini_translated_hook_rule_count\": ${gemini_translated_hook_rules},"$'\n'
+  inventory_json_rows+="      \"claude_only_hook_gap_count\": ${claude_only_hook_gaps},"$'\n'
   inventory_json_rows+="      \"gemini_extension_count\": ${gemini_extensions},"$'\n'
   inventory_json_rows+="      \"provider_mcp_bridge\": ${provider_mcp_bridge},"$'\n'
   inventory_json_rows+="      \"provider_hook_bridge\": ${provider_hook_bridge},"$'\n'
@@ -758,7 +805,7 @@ for repo in "${repos[@]}"; do
   inventory_json_rows+="      \"legacy_commands_unported\": ${legacy_commands_unported}"$'\n'
   inventory_json_rows+=$'    }\n'
   json_separator=$',\n'
-  inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${agents_md} | ${agents_override} | ${claude_md} | ${gemini_md} | ${copilot_instructions} | ${codex_config} | ${codex_full_profiles} | ${skill_surface_manifest} | ${canonical_skills} | ${generated_claude_skills} | ${generated_plugin_skills} | ${mcp_json} | ${repo_mcp_servers} | ${mcp_discovery_contract} | ${mcp_resource_contract} | ${mcp_prompt_contract} | ${mcp_server_health} | ${full_mcp_contract} | ${mcp_policy} | ${generated_mcp_configs} | ${codex_unmanaged_mcp_servers} | ${example_only_mcp_json} | ${codex_mcp_servers} | ${codex_curated_mcp_servers} | ${codex_raw_mcp_servers} | ${legacy_model_tokens} | ${mcp_without_policy} | ${mcp_without_curated_codex} | ${codex_agents} | ${codex_plugin} | ${codex_workflows} | ${codex_hooks} | ${root_claude_settings} | ${root_gemini_settings} | ${gemini_extensions} | ${provider_mcp_bridge} | ${provider_hook_bridge} | ${provider_drift} |"$'\n'
+  inventory_md+="| ${name} | ${claude_mcp} | ${claude_settings} | ${claude_desktop} | ${agents_md} | ${agents_override} | ${claude_md} | ${gemini_md} | ${copilot_instructions} | ${codex_config} | ${codex_full_profiles} | ${skill_surface_manifest} | ${canonical_skills} | ${generated_claude_skills} | ${generated_plugin_skills} | ${mcp_json} | ${repo_mcp_servers} | ${mcp_discovery_contract} | ${mcp_resource_contract} | ${mcp_prompt_contract} | ${mcp_server_health} | ${full_mcp_contract} | ${mcp_policy} | ${generated_mcp_configs} | ${codex_unmanaged_mcp_servers} | ${example_only_mcp_json} | ${codex_mcp_servers} | ${codex_curated_mcp_servers} | ${codex_raw_mcp_servers} | ${legacy_model_tokens} | ${mcp_without_policy} | ${mcp_without_curated_codex} | ${codex_agents} | ${codex_plugin} | ${codex_workflows} | ${codex_hooks} | ${root_claude_settings} | ${root_gemini_settings} | ${legacy_gemini_config} | ${generated_gemini_settings} | ${gemini_mcp_servers} | ${gemini_translated_hook_rules} | ${claude_only_hook_gaps} | ${gemini_extensions} | ${provider_mcp_bridge} | ${provider_hook_bridge} | ${provider_drift} |"$'\n'
 done
 
 global_claude_commands=$(find "$HOME/.claude/commands" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
@@ -771,7 +818,7 @@ if [[ -x "$ROOT/dotfiles/scripts/hg-workspace-global-sync.sh" ]] && "$ROOT/dotfi
 fi
 
 cat <<EOF
-Codex audit root: $ROOT
+Agent parity audit root: $ROOT
 Repos scanned: ${scanned_repos}
 claude mcp matches: $total_claude_mcp
 .claude/settings.json matches: $total_claude_settings
@@ -779,6 +826,11 @@ claude_desktop_config.json matches: $total_claude_desktop
 repos missing AGENTS.md: $total_missing_agents
 repos missing root .claude/settings.json: $total_missing_root_claude_settings
 repos missing root .gemini/settings.json: $total_missing_root_gemini_settings
+legacy .gemini/config.yaml files: $total_legacy_gemini_config_files
+generated .gemini/settings.json files: $total_generated_gemini_settings
+Gemini MCP server entries: $total_gemini_mcp_servers
+Gemini translated hook rules: $total_gemini_translated_hook_rules
+Claude-only hook gaps: $total_claude_only_hook_gaps
 repos missing GEMINI.md: $total_missing_gemini
 repos missing .github/copilot-instructions.md: $total_missing_copilot
 repos missing .codex/config.toml: $total_missing_codex
@@ -858,6 +910,11 @@ inventory_json="{
     \"repos_missing_agents_md\": ${total_missing_agents},
     \"repos_missing_root_claude_settings\": ${total_missing_root_claude_settings},
     \"repos_missing_root_gemini_settings\": ${total_missing_root_gemini_settings},
+    \"legacy_gemini_config_files\": ${total_legacy_gemini_config_files},
+    \"generated_gemini_settings_files\": ${total_generated_gemini_settings},
+    \"gemini_mcp_server_entries\": ${total_gemini_mcp_servers},
+    \"gemini_translated_hook_rules\": ${total_gemini_translated_hook_rules},
+    \"claude_only_hook_gaps\": ${total_claude_only_hook_gaps},
     \"repos_missing_gemini_md\": ${total_missing_gemini},
     \"repos_missing_copilot_instructions\": ${total_missing_copilot},
     \"repos_missing_codex_config\": ${total_missing_codex},
@@ -937,14 +994,14 @@ write_workspace_cache() {
   mkdir -p "$docs_dir"
 
   cat >"$docs_dir/repo-inventory.csv" <<EOF
-repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count,root_claude_settings,root_gemini_settings,gemini_extension_count,provider_mcp_bridge,provider_hook_bridge,provider_drift_count,scope,active_scope,expected_codex_baseline,expected_full_profile_pack,expected_codex_agents,expected_codex_workflows,expected_codex_plugin,expected_mcp_contract,expected_codex_hooks
+repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count,root_claude_settings,root_gemini_settings,legacy_gemini_config_count,generated_gemini_settings_count,gemini_mcp_server_count,gemini_translated_hook_rule_count,claude_only_hook_gap_count,gemini_extension_count,provider_mcp_bridge,provider_hook_bridge,provider_drift_count,scope,active_scope,expected_codex_baseline,expected_full_profile_pack,expected_codex_agents,expected_codex_workflows,expected_codex_plugin,expected_mcp_contract,expected_codex_hooks
 ${inventory_csv%$'\n'}
 EOF
 
   cat >"$docs_dir/repo-inventory.md" <<EOF
 # Repo Inventory
 
-Generated by \`dotfiles/scripts/hg-codex-audit.sh --write-workspace-cache\` on $(date +%Y-%m-%d).
+Generated by \`dotfiles/scripts/hg-agent-parity-audit.sh --write-workspace-cache\` on $(date +%Y-%m-%d).
 
 Summary from the latest audit:
 
@@ -955,6 +1012,11 @@ Summary from the latest audit:
 - Repos missing \`AGENTS.md\`: ${total_missing_agents}
 - Repos missing root \`.claude/settings.json\`: ${total_missing_root_claude_settings}
 - Repos missing root \`.gemini/settings.json\`: ${total_missing_root_gemini_settings}
+- Legacy \`.gemini/config.yaml\` files: ${total_legacy_gemini_config_files}
+- Generated \`.gemini/settings.json\` files: ${total_generated_gemini_settings}
+- Gemini MCP server entries: ${total_gemini_mcp_servers}
+- Gemini translated hook rules: ${total_gemini_translated_hook_rules}
+- Claude-only hook gaps: ${total_claude_only_hook_gaps}
 - Repos missing \`GEMINI.md\`: ${total_missing_gemini}
 - Repos missing \`.github/copilot-instructions.md\`: ${total_missing_copilot}
 - Repos missing \`.codex/config.toml\`: ${total_missing_codex}
@@ -1028,14 +1090,14 @@ write_wiki_docs() {
   mkdir -p "$docs_dir"
 
   cat >"$docs_dir/repo-inventory.csv" <<EOF
-repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count,root_claude_settings,root_gemini_settings,gemini_extension_count,provider_mcp_bridge,provider_hook_bridge,provider_drift_count,scope,active_scope,expected_codex_baseline,expected_full_profile_pack,expected_codex_agents,expected_codex_workflows,expected_codex_plugin,expected_mcp_contract,expected_codex_hooks
+repo,claude_mcp_mentions,claude_settings_mentions,claude_desktop_config_mentions,agents_md_count,agents_override_md_count,claude_md_count,gemini_md_count,copilot_instructions_count,codex_config_count,codex_full_profile_pack_count,skill_surface_manifest_count,canonical_skill_count,generated_claude_skill_count,generated_plugin_skill_count,mcp_json_count,repo_mcp_server_count,mcp_discovery_contract,mcp_resource_contract,mcp_prompt_contract,mcp_server_health_contract,full_mcp_contract,mcp_policy_count,generated_codex_mcp_config_count,unmanaged_codex_mcp_server_count,example_only_mcp_json,codex_mcp_server_count,codex_curated_mcp_server_count,codex_raw_mcp_server_count,legacy_codex_model_token_count,mcp_without_policy,mcp_without_curated_codex,codex_agent_count,codex_plugin_count,codex_workflow_count,codex_hooks_enabled_count,root_claude_settings,root_gemini_settings,legacy_gemini_config_count,generated_gemini_settings_count,gemini_mcp_server_count,gemini_translated_hook_rule_count,claude_only_hook_gap_count,gemini_extension_count,provider_mcp_bridge,provider_hook_bridge,provider_drift_count,scope,active_scope,expected_codex_baseline,expected_full_profile_pack,expected_codex_agents,expected_codex_workflows,expected_codex_plugin,expected_mcp_contract,expected_codex_hooks
 ${inventory_csv%$'\n'}
 EOF
 
   cat >"$docs_dir/repo-inventory.md" <<EOF
 # Repo Inventory
 
-Generated by \`dotfiles/scripts/hg-codex-audit.sh --write-wiki-docs\` on $(date +%Y-%m-%d).
+Generated by \`dotfiles/scripts/hg-agent-parity-audit.sh --write-wiki-docs\` on $(date +%Y-%m-%d).
 
 Summary from the latest audit:
 
@@ -1046,6 +1108,11 @@ Summary from the latest audit:
 - Repos missing \`AGENTS.md\`: ${total_missing_agents}
 - Repos missing root \`.claude/settings.json\`: ${total_missing_root_claude_settings}
 - Repos missing root \`.gemini/settings.json\`: ${total_missing_root_gemini_settings}
+- Legacy \`.gemini/config.yaml\` files: ${total_legacy_gemini_config_files}
+- Generated \`.gemini/settings.json\` files: ${total_generated_gemini_settings}
+- Gemini MCP server entries: ${total_gemini_mcp_servers}
+- Gemini translated hook rules: ${total_gemini_translated_hook_rules}
+- Claude-only hook gaps: ${total_claude_only_hook_gaps}
 - Repos missing \`GEMINI.md\`: ${total_missing_gemini}
 - Repos missing \`.github/copilot-instructions.md\`: ${total_missing_copilot}
 - Repos missing \`.codex/config.toml\`: ${total_missing_codex}
