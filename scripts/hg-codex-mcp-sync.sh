@@ -164,8 +164,8 @@ validate_portable_launch() {
     hg_die "$label uses cwd=$cwd; managed MCP launchers must not depend on repo-relative working directories"
   fi
 
-  if [[ "$command" == "./"* || "$command" == "../"* ]]; then
-    hg_die "$label uses repo-relative command $command; use an absolute launcher path or a shell wrapper"
+  if [[ "$command" == "../"* ]]; then
+    hg_die "$label uses repo-relative command $command that escapes the repo"
   fi
 
   local first_arg=""
@@ -182,7 +182,9 @@ validate_portable_launch() {
   case "$command" in
     bash|sh|zsh|*/bash|*/sh|*/zsh)
       if [[ "$first_arg" == "./"* || "$first_arg" == "../"* ]]; then
-        hg_die "$label uses a repo-relative shell script path ($first_arg); use a portable launcher path instead"
+        if [[ "$first_arg" == "../"* ]]; then
+          hg_die "$label uses a repo-relative shell script path ($first_arg) that escapes the repo"
+        fi
       fi
       local shell_arg
       while IFS= read -r shell_arg; do
