@@ -24,7 +24,7 @@ vendor_id = "303a"
 product_id = "8123"
 
 [settings]
-grab_device = false
+grab_device = "false"
 
 # ═══════════════════════════════════════════════════════════════
 # Layer 1 — Navigation Mode (default)
