@@ -3,10 +3,8 @@ paths:
   - "mcp/**"
 ---
 
-All MCP servers use mcpkit framework:
-- ToolModule interface: `Name()`, `Description()`, `Tools() []ToolDefinition`
-- Registration: `init()` → `tools.GetRegistry().RegisterModule(&Module{})`
-- Handler contract: always return `(*mcp.CallToolResult, nil)` — use `handler.CodedErrorResult()` for errors
-- Integration tests: `mcptest.NewServer()` from mcpkit
-- Each server is a separate Go module under `mcp/` with its own `go.mod`
-- Workspace managed via `mcp/go.work`
+Shared MCP workspace conventions:
+- Prefer module-local `cmd/` entrypoints and `internal/` implementation packages over cross-module coupling.
+- Keep modules compatible with the `mcp/go.work` workspace and preserve their local `go.mod` boundaries.
+- Shared helper code belongs in `mcp/internal/` or mcpkit, not in ad hoc copies across modules.
+- Use discovery-first tool surfaces for large modules and keep read/write actions clearly separated.
