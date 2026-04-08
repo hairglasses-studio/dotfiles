@@ -447,7 +447,7 @@ has_mcp_resource_contract() {
 
   build_repo_rg_args "$repo"
 
-  if rg -n -q 'NewResourceRegistry\(|RegisterResources\(|AddResource\(|AddResourceTemplate\(|@mcp\.resource\(|\.(resource|addResource)\(|RESOURCE_DEFINITIONS|resources/list|_handle_resources_list|_handle_resources_read' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
+  if rg -n -q 'NewResourceRegistry\(|RegisterResources\(|AddResource\(|AddResourceTemplate\(|registerResource\(|@mcp\.resource\(|\.(resource|addResource)\(|RESOURCE_DEFINITIONS|resources/list|_handle_resources_list|_handle_resources_read' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
     printf '1'
   else
     printf '0'
@@ -464,7 +464,7 @@ has_mcp_prompt_contract() {
 
   build_repo_rg_args "$repo"
 
-  if rg -n -q 'NewPromptRegistry\(|RegisterPrompts\(|AddPrompt\(|AddPrompts\(|@mcp\.prompt\(|\.(prompt|addPrompt)\(|PROMPT_DEFINITIONS|prompts/list|prompts/get|_handle_prompts_list|_handle_prompts_get' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
+  if rg -n -q 'NewPromptRegistry\(|RegisterPrompts\(|AddPrompt\(|AddPrompts\(|registerPrompt\(|@mcp\.prompt\(|\.(prompt|addPrompt)\(|PROMPT_DEFINITIONS|prompts/list|prompts/get|_handle_prompts_list|_handle_prompts_get' "$repo" "${REPO_RG_ARGS[@]}" --glob '*.{go,py,ts,js,mjs}' 2>/dev/null; then
     printf '1'
   else
     printf '0'
