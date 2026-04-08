@@ -135,7 +135,7 @@ type PluginClient struct {
 
 // NewPluginClient creates a new plugin client
 func NewPluginClient() (*PluginClient, error) {
-	cfg := config.Get()
+	cfg := config.GetOrLoad()
 	homeDir := cfg.Home
 	if homeDir == "" {
 		homeDir = "."

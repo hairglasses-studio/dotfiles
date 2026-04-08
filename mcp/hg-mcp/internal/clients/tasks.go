@@ -67,7 +67,7 @@ func NewTasksClient() (*TasksClient, error) {
 
 	var opts []option.ClientOption
 
-	cfg := config.Get()
+	cfg := config.GetOrLoad()
 	if cfg.GoogleApplicationCredentials != "" {
 		opts = append(opts, option.WithCredentialsFile(cfg.GoogleApplicationCredentials))
 	} else if cfg.GoogleAPIKey != "" {

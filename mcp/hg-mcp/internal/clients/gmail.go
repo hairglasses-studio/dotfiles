@@ -103,7 +103,7 @@ func NewGmailClient() (*GmailClient, error) {
 	var credFile string
 
 	// Priority: GMAIL_APPLICATION_CREDENTIALS > ~/.config/gcloud/gmail_credentials.json > GOOGLE_APPLICATION_CREDENTIALS
-	cfg := config.Get()
+	cfg := config.GetOrLoad()
 	if credFile = os.Getenv("GMAIL_APPLICATION_CREDENTIALS"); credFile != "" {
 		// Use Gmail-specific credentials
 	} else if homeDir := cfg.Home; homeDir != "" {

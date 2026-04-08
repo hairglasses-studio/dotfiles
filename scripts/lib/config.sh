@@ -43,7 +43,11 @@ config_reload_service() {
     hyprland|hypr) compositor_reload;      rc=$? ;;
     hyprshell)     systemctl --user restart dotfiles-hyprshell.service; rc=$? ;;
     hypr-dock|hyprdock) systemctl --user restart dotfiles-hypr-dock.service; rc=$? ;;
-    hyprdynamicmonitors|monitors) systemctl --user restart dotfiles-hyprdynamicmonitors.service; rc=$? ;;
+    hyprdynamicmonitors|monitors)
+      hypr_ensure_runtime_state
+      systemctl --user restart dotfiles-hyprdynamicmonitors.service
+      rc=$?
+      ;;
     hyprland-autoname-workspaces|autoname) systemctl --user restart dotfiles-hyprland-autoname-workspaces.service; rc=$? ;;
     ironbar)       ironbar reload 2>/dev/null; rc=$? ;;
     swaync)        swaync-client --reload-config; rc=$? ;;

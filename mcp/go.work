@@ -4,8 +4,9 @@ use (
 	./dotfiles-mcp
 	./hg-mcp
 	./mapitall
-	./mapping
 	./process-mcp
 	./systemd-mcp
 	./tmux-mcp
 )
+
+replace github.com/hairglasses-studio/mapping => ./mapping

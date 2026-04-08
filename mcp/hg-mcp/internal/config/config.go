@@ -80,6 +80,15 @@ func Get() *Config {
 	return global
 }
 
+// GetOrLoad returns the global config singleton, loading it from the current
+// environment if needed.
+func GetOrLoad() *Config {
+	if cfg := Get(); cfg != nil {
+		return cfg
+	}
+	return Load()
+}
+
 // Load reads all environment variables and populates the global config.
 // Call once at the start of main(). Safe to call multiple times (last write wins).
 func Load() *Config {

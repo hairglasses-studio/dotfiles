@@ -94,7 +94,7 @@ func NewGDriveClient() (*GDriveClient, error) {
 	// 3. ADC fallback (gcloud auth application-default login)
 	var opts []option.ClientOption
 
-	cfg := config.Get()
+	cfg := config.GetOrLoad()
 	if cfg.GoogleApplicationCredentials != "" {
 		opts = append(opts, option.WithCredentialsFile(cfg.GoogleApplicationCredentials))
 	} else if cfg.GoogleAPIKey != "" {

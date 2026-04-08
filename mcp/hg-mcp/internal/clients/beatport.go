@@ -139,7 +139,7 @@ type BeatportTokenResponse struct {
 
 // NewBeatportClient creates a new Beatport client
 func NewBeatportClient() (*BeatportClient, error) {
-	cfg := config.Get()
+	cfg := config.GetOrLoad()
 	username := cfg.BeatportUsername
 	password := cfg.BeatportPassword
 

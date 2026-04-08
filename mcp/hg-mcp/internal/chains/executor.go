@@ -1050,7 +1050,7 @@ var (
 // GetExecutor returns the global chain executor
 func GetExecutor() *Executor {
 	globalExecutorOnce.Do(func() {
-		globalExecutor = NewExecutor(config.Get().AftrsDataDir, tools.GetRegistry())
+		globalExecutor = NewExecutor(config.GetOrLoad().AftrsDataDir, tools.GetRegistry())
 	})
 	return globalExecutor
 }

@@ -121,7 +121,7 @@ type VenuePattern struct {
 // NewLearningClient creates a new learning client
 func NewLearningClient() (*LearningClient, error) {
 	return &LearningClient{
-		vaultPath:    config.Get().AftrsVaultPath,
+		vaultPath:    config.GetOrLoad().AftrsVaultPath,
 		learningRate: 0.2, // From cobb
 		minSamples:   3,   // From cobb
 		weightBounds: [2]float64{0.1, 5.0},
