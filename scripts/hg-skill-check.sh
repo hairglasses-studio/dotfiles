@@ -50,6 +50,11 @@ repo_issue_severity() {
   esac
 }
 
+repo_has_dirty_tracked_changes() {
+  local repo="$1"
+  git -C "$repo" status --short --untracked-files=no 2>/dev/null | grep -q .
+}
+
 # Check repo-level skill surfaces
 for repo in "$ROOT"/*/; do
   [[ -e "$repo/.git" ]] || continue
@@ -90,7 +95,11 @@ for repo in "$ROOT"/*/; do
     elif "$SYNC_SCRIPT" "$repo" --check >/dev/null 2>&1; then
       pass=$((pass + 1))
     else
-      report_issue "$issue_severity" "$name: skill surface out of sync (run hg-skill-surface-sync.sh)"
+      mismatch_severity="$issue_severity"
+      if repo_has_dirty_tracked_changes "$repo"; then
+        mismatch_severity="warn"
+      fi
+      report_issue "$mismatch_severity" "$name: skill surface out of sync (run hg-skill-surface-sync.sh)"
     fi
   fi
 
@@ -123,13 +132,22 @@ if [[ "$claude_count" -gt 0 || "$claude_skill_count" -gt 0 ]]; then
   hg_info "Global user skills: $claude_count commands / $claude_skill_count Claude skills / $agents_count Agents / $codex_count Codex"
 fi
 
-# Check managed workspace-global sync first; it also verifies downstream Agents/Codex sync
+# Check managed workspace-global source contracts first; that verifies
+# downstream repo-local skill and MCP metadata without depending on personal
+# home-directory overlays.
 if [[ -x "$WORKSPACE_SYNC_SCRIPT" ]]; then
+  if "$WORKSPACE_SYNC_SCRIPT" --root "$ROOT" --source-check >/dev/null 2>&1; then
+    pass=$((pass + 1))
+    hg_ok "Workspace global source contract: up to date"
+  else
+    hg_warn "Workspace global source contract: out of date"
+    warn=$((warn + 1))
+  fi
   if "$WORKSPACE_SYNC_SCRIPT" --root "$ROOT" --check >/dev/null 2>&1; then
     pass=$((pass + 1))
-    hg_ok "Workspace global sync: up to date"
+    hg_ok "Workspace global home overlays: up to date"
   else
-    hg_warn "Workspace global sync: out of date (run hg-workspace-global-sync.sh)"
+    hg_warn "Workspace global home overlays: out of date (run hg-workspace-global-sync.sh)"
     warn=$((warn + 1))
   fi
 elif [[ -x "$SCRIPT_DIR/hg-global-skill-sync.sh" ]]; then
