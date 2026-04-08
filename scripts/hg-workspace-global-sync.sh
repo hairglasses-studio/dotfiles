@@ -7,6 +7,7 @@ source "$SCRIPT_DIR/lib/hg-core.sh"
 MODE="write"
 RUN_SKILLS=true
 RUN_TOOLS=true
+CHECK_GLOBAL_TARGETS=true
 
 WORKSPACE_ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
 MANIFEST_PATH="${HG_WORKSPACE_MANIFEST:-}"
@@ -57,6 +58,9 @@ Options:
   --tools-only                Sync managed Claude/Codex MCP overlays only
   --dry-run                   Report changes without writing
   --check                     Exit non-zero if managed global state is stale
+  --source-check              Validate repo-controlled manifests, skills, and
+                              MCP policy sources without comparing user-home
+                              overlays under ~/.claude, ~/.codex, or ~/.gemini
   -h, --help                  Show this help
 EOF
 }
@@ -146,6 +150,11 @@ while [[ $# -gt 0 ]]; do
       MODE="check"
       shift
       ;;
+    --source-check)
+      MODE="check"
+      CHECK_GLOBAL_TARGETS=false
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -166,7 +175,7 @@ CLAUDE_PROJECT_KEY="${CLAUDE_PROJECT_KEY:-$WORKSPACE_ROOT}"
 [[ -d "$WORKSPACE_ROOT" ]] || hg_die "Workspace root not found: $WORKSPACE_ROOT"
 [[ -f "$MANIFEST_PATH" ]] || hg_die "Workspace manifest not found: $MANIFEST_PATH"
 
-if $RUN_SKILLS; then
+if $RUN_SKILLS && $CHECK_GLOBAL_TARGETS; then
   [[ -d "$CLAUDE_COMMANDS_DIR" ]] || hg_die "Claude commands directory not found: $CLAUDE_COMMANDS_DIR"
 fi
 
@@ -218,6 +227,11 @@ resolve_repo_path() {
   else
     printf '%s/%s\n' "$WORKSPACE_ROOT" "$raw_path"
   fi
+}
+
+repo_has_dirty_tracked_changes() {
+  local repo_path="$1"
+  git -C "$repo_path" status --short --untracked-files=no 2>/dev/null | grep -q .
 }
 
 sanitize_name() {
@@ -288,6 +302,10 @@ sync_skill_dir() {
   local staged_dir="$1"
   local target_dir="$2"
 
+  if ! $CHECK_GLOBAL_TARGETS; then
+    return 0
+  fi
+
   if [[ -d "$target_dir" ]] && diff -qr "$staged_dir" "$target_dir" >/dev/null 2>&1; then
     return 0
   fi
@@ -329,6 +347,10 @@ sync_skill_dir() {
 }
 
 purge_stale_owned_skill_dirs() {
+  if ! $CHECK_GLOBAL_TARGETS; then
+    return 0
+  fi
+
   [[ -d "$CLAUDE_SKILLS_DIR" ]] || return 0
 
   while IFS= read -r dir; do
@@ -358,6 +380,11 @@ sync_rendered_file() {
   local current_path="$1"
   local rendered_path="$2"
   local label="$3"
+
+  if ! $CHECK_GLOBAL_TARGETS; then
+    rm -f "$rendered_path"
+    return 0
+  fi
 
   if [[ -f "$current_path" ]] && cmp -s "$current_path" "$rendered_path"; then
     rm -f "$rendered_path"
@@ -682,8 +709,12 @@ sync_managed_workspace_skills() {
     repos_with_skill_surfaces=$((repos_with_skill_surfaces + 1))
     if [[ "$json_surface" -eq 1 ]]; then
       if ! "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$repo_path" "${MODE_ARGS[@]}"; then
-        overall_pending=1
-        skill_pending=1
+        if repo_has_dirty_tracked_changes "$repo_path"; then
+          hg_warn "Managed repo has dirty tracked changes; skipping source-contract failure for skill sync drift: $repo_name"
+        else
+          overall_pending=1
+          skill_pending=1
+        fi
       fi
     else
       hg_warn "Managed skill manifest is YAML-only; repo-local Claude mirror sync still requires JSON: $surface_path"
@@ -804,13 +835,15 @@ sync_managed_workspace_skills() {
 
   purge_stale_owned_skill_dirs
 
-  if ! HG_CLAUDE_COMMANDS_DIR="$CLAUDE_COMMANDS_DIR" \
-       HG_CLAUDE_SKILLS_DIR="$CLAUDE_SKILLS_DIR" \
-       HG_AGENTS_SKILLS_DIR="$AGENTS_SKILLS_DIR" \
-       HG_CODEX_SKILLS_DIR="$CODEX_SKILLS_DIR" \
-       "$SCRIPT_DIR/hg-global-skill-sync.sh" "${MODE_ARGS[@]}"; then
-    overall_pending=1
-    skill_pending=1
+  if $CHECK_GLOBAL_TARGETS; then
+    if ! HG_CLAUDE_COMMANDS_DIR="$CLAUDE_COMMANDS_DIR" \
+         HG_CLAUDE_SKILLS_DIR="$CLAUDE_SKILLS_DIR" \
+         HG_AGENTS_SKILLS_DIR="$AGENTS_SKILLS_DIR" \
+         HG_CODEX_SKILLS_DIR="$CODEX_SKILLS_DIR" \
+         "$SCRIPT_DIR/hg-global-skill-sync.sh" "${MODE_ARGS[@]}"; then
+      overall_pending=1
+      skill_pending=1
+    fi
   fi
 }
 
@@ -1145,13 +1178,17 @@ if $RUN_SKILLS; then
   sync_gemini_home_context
 fi
 
-if $RUN_SKILLS; then
+if $RUN_SKILLS && $CHECK_GLOBAL_TARGETS; then
   hg_info "Managed workspace global skills: ${global_canonical_count} canonical + ${global_alias_count} aliases (${global_alias_conflict_names} conflicts skipped across ${repos_with_skill_surfaces} skill surfaces)"
   hg_info "Managed Gemini CLI home context: memory at $GEMINI_HOME_DOC_PATH and project registry at $GEMINI_PROJECTS_PATH"
+elif $RUN_SKILLS; then
+  hg_info "Managed workspace global source contract validated for ${global_canonical_count} canonical skills across ${repos_with_skill_surfaces} skill surfaces"
 fi
 
-if $RUN_TOOLS; then
+if $RUN_TOOLS && $CHECK_GLOBAL_TARGETS; then
   hg_info "Managed workspace global tools: Claude ${claude_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw) / Codex ${codex_tool_count} (${claude_foundational_count} shared + ${codex_profile_count} curated) / Gemini ${gemini_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw)"
+elif $RUN_TOOLS; then
+  hg_info "Managed workspace global tool sources validated: ${claude_raw_count} repo-local raw MCP sources + ${codex_profile_count} curated Codex profiles"
 fi
 
 case "$MODE" in
