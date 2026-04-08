@@ -81,6 +81,8 @@ type dotfilesToolStatsOutput struct {
 	DeferredTools   int            `json:"deferred_tools"`
 	ResourceCount   int            `json:"resource_count"`
 	PromptCount     int            `json:"prompt_count"`
+	WorkflowCount   int            `json:"workflow_count"`
+	SkillCount      int            `json:"skill_count"`
 	ByCategory      map[string]int `json:"by_category"`
 	ByRuntimeGroup  map[string]int `json:"by_runtime_group"`
 	WriteToolsCount int            `json:"write_tools_count"`
@@ -90,17 +92,20 @@ type dotfilesToolStatsOutput struct {
 type dotfilesServerHealthInput struct{}
 
 type dotfilesServerHealthOutput struct {
-	Name           string   `json:"name"`
-	Version        string   `json:"version"`
-	Status         string   `json:"status"`
-	Profile        string   `json:"profile"`
-	RuntimeOS      string   `json:"runtime_os"`
-	TotalTools     int      `json:"total_tools"`
-	ModuleCount    int      `json:"module_count"`
-	DeferredTools  int      `json:"deferred_tools"`
-	ResourceCount  int      `json:"resource_count"`
-	PromptCount    int      `json:"prompt_count"`
-	DiscoveryTools []string `json:"discovery_tools"`
+	Name            string   `json:"name"`
+	Version         string   `json:"version"`
+	Status          string   `json:"status"`
+	Profile         string   `json:"profile"`
+	RuntimeOS       string   `json:"runtime_os"`
+	TotalTools      int      `json:"total_tools"`
+	ModuleCount     int      `json:"module_count"`
+	DeferredTools   int      `json:"deferred_tools"`
+	ResourceCount   int      `json:"resource_count"`
+	PromptCount     int      `json:"prompt_count"`
+	WorkflowCount   int      `json:"workflow_count"`
+	SkillCount      int      `json:"skill_count"`
+	PrioritySummary any      `json:"priority_summary,omitempty"`
+	DiscoveryTools  []string `json:"discovery_tools"`
 }
 
 type DotfilesDiscoveryModule struct {
@@ -238,6 +243,8 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 				DeferredTools:   len(m.reg.ListDeferredTools()),
 				ResourceCount:   resourceCount,
 				PromptCount:     promptCount,
+				WorkflowCount:   len(dotfilesWorkflowCatalog()),
+				SkillCount:      len(dotfilesSkillCatalog()),
 				ByCategory:      toolStats.ByCategory,
 				ByRuntimeGroup:  toolStats.ByRuntimeGroup,
 				WriteToolsCount: toolStats.WriteToolsCount,
@@ -281,17 +288,20 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 			}
 
 			return dotfilesServerHealthOutput{
-				Name:           "dotfiles-mcp",
-				Version:        m.version,
-				Status:         status,
-				Profile:        dotfilesProfile(),
-				RuntimeOS:      runtime.GOOS,
-				TotalTools:     toolStats.TotalTools,
-				ModuleCount:    toolStats.ModuleCount,
-				DeferredTools:  len(m.reg.ListDeferredTools()),
-				ResourceCount:  resourceCount,
-				PromptCount:    promptCount,
-				DiscoveryTools: discoveryTools,
+				Name:            "dotfiles-mcp",
+				Version:         m.version,
+				Status:          status,
+				Profile:         dotfilesProfile(),
+				RuntimeOS:       runtime.GOOS,
+				TotalTools:      toolStats.TotalTools,
+				ModuleCount:     toolStats.ModuleCount,
+				DeferredTools:   len(m.reg.ListDeferredTools()),
+				ResourceCount:   resourceCount,
+				PromptCount:     promptCount,
+				WorkflowCount:   len(dotfilesWorkflowCatalog()),
+				SkillCount:      len(dotfilesSkillCatalog()),
+				PrioritySummary: buildDotfilesPrioritySummary(),
+				DiscoveryTools:  discoveryTools,
 			}, nil
 		},
 	)
