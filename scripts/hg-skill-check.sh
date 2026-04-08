@@ -145,9 +145,9 @@ if [[ -x "$WORKSPACE_SYNC_SCRIPT" ]]; then
   fi
   if "$WORKSPACE_SYNC_SCRIPT" --root "$ROOT" --check >/dev/null 2>&1; then
     pass=$((pass + 1))
-    hg_ok "Workspace global home overlays: up to date"
+    hg_ok "Workspace global managed home overlays: in sync or unclaimed"
   else
-    hg_warn "Workspace global home overlays: out of date (run hg-workspace-global-sync.sh)"
+    hg_warn "Workspace global managed home overlays: stale (run hg-workspace-global-sync.sh)"
     warn=$((warn + 1))
   fi
 elif [[ -x "$SCRIPT_DIR/hg-global-skill-sync.sh" ]]; then
