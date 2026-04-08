@@ -409,6 +409,56 @@ emit_array_line() {
   printf ']\n'
 }
 
+expand_home_tokens() {
+  local value="$1"
+  value="${value//\$\{HOME\}/$HOME}"
+  value="${value//\$HOME/$HOME}"
+  printf '%s\n' "$value"
+}
+
+normalize_codex_env_json() {
+  local env_json="$1"
+  jq -c --arg home "$HOME" '
+    with_entries(
+      .value |= if type == "string"
+        then gsub("\\$\\{HOME\\}"; $home) | gsub("\\$HOME"; $home)
+        else .
+        end
+    )
+  ' <<<"$env_json"
+}
+
+normalize_codex_cwd() {
+  local base_dir="$1"
+  local cwd="$2"
+
+  cwd="$(expand_home_tokens "$cwd")"
+  if [[ -z "$cwd" ]]; then
+    printf '\n'
+    return 0
+  fi
+
+  if [[ "$cwd" == "." ]]; then
+    [[ -n "$base_dir" ]] || hg_die "Codex MCP cwd '.' requires a repo root"
+    cwd="$base_dir"
+  elif [[ "$cwd" != /* ]]; then
+    [[ -n "$base_dir" ]] || hg_die "Codex MCP relative cwd '$cwd' requires a repo root"
+    cwd="$base_dir/$cwd"
+  fi
+
+  [[ -d "$cwd" ]] || hg_die "Codex MCP cwd does not exist: $cwd"
+
+  (
+    cd "$cwd" >/dev/null 2>&1 || exit 1
+    pwd
+  ) || hg_die "Failed to canonicalize Codex MCP cwd: $cwd"
+}
+
+profile_exports_global_codex() {
+  local profile_json="$1"
+  jq -e '(.global_codex // false) == true' <<<"$profile_json" >/dev/null
+}
+
 emit_env_block() {
   local server_name="$1"
   local env_json="$2"
@@ -421,6 +471,7 @@ emit_env_block() {
   for key in "${env_keys[@]}"; do
     local value
     value="$(jq -r --arg key "$key" '.[$key]' <<<"$env_json")"
+    value="$(expand_home_tokens "$value")"
     emit_scalar_line "$key" "$value"
   done
 }
@@ -849,16 +900,18 @@ sync_managed_workspace_tools() {
           '
       )" || hg_die "Failed to resolve managed MCP profile: $repo_name:$profile_name"
 
-      append_codex_entry \
-        "$profile_name" \
-        "$repo_name/.codex/mcp-profile-policy.json:$profile_name ($mode <- $source_name)" \
-        "$(jq -r '.command' <<<"$resolved")" \
-        "$(jq -c '.args' <<<"$resolved")" \
-        "$(jq -r '.cwd' <<<"$resolved")" \
-        "$(jq -c '.env' <<<"$resolved")" \
-        "$(jq -c '.enabled_tools' <<<"$resolved")"
+      if profile_exports_global_codex "$profile_json"; then
+        append_codex_entry \
+          "$profile_name" \
+          "$repo_name/.codex/mcp-profile-policy.json:$profile_name ($mode <- $source_name)" \
+          "$(jq -r '.command' <<<"$resolved")" \
+          "$(jq -c '.args' <<<"$resolved")" \
+          "$(normalize_codex_cwd "$repo_path" "$(jq -r '.cwd' <<<"$resolved")")" \
+          "$(normalize_codex_env_json "$(jq -c '.env' <<<"$resolved")")" \
+          "$(jq -c '.enabled_tools' <<<"$resolved")"
 
-      codex_profile_count=$((codex_profile_count + 1))
+        codex_profile_count=$((codex_profile_count + 1))
+      fi
     done < <(jq -c '.profiles[] | select(.mode == "review" or .mode == "research")' "$policy_path")
   done < <(
     jq -r '
@@ -941,7 +994,7 @@ sync_managed_workspace_tools() {
         entry_name="$(jq -r '.name' <<<"$entry")"
         entry_comment="$(jq -r '.comment // ""' <<<"$entry")"
         entry_command="$(jq -r '.command' <<<"$entry")"
-        entry_cwd="$(jq -r '.cwd // ""' <<<"$entry")"
+        entry_cwd="$(expand_home_tokens "$(jq -r '.cwd // ""' <<<"$entry")")"
         entry_args_json="$(jq -c '.args // []' <<<"$entry")"
         entry_env_json="$(jq -c '.env // {}' <<<"$entry")"
         entry_tools_json="$(jq -c '.enabled_tools // []' <<<"$entry")"
