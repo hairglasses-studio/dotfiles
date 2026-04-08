@@ -32,7 +32,7 @@ concurrency:
 jobs:
   shellcheck:
     name: ShellCheck
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, archglasses, optimized]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Run ShellCheck
@@ -52,7 +52,7 @@ jobs:
 
   configs:
     name: Config Syntax
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, archglasses, optimized]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Validate JSON files
@@ -82,7 +82,7 @@ jobs:
 
   dockerfiles:
     name: Dockerfile Lint
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, archglasses, optimized]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Lint Dockerfiles
@@ -94,7 +94,7 @@ jobs:
 
   symlinks:
     name: Symlink Targets
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, archglasses, optimized]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Validate install.sh syntax

@@ -112,7 +112,7 @@ type SessionSummary struct {
 
 // NewVaultClient creates a new vault client
 func NewVaultClient() (*VaultClient, error) {
-	vaultPath := config.Get().AftrsVaultPath
+	vaultPath := config.GetOrLoad().AftrsVaultPath
 
 	return &VaultClient{
 		vaultPath: vaultPath,

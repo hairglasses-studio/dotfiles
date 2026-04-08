@@ -42,8 +42,8 @@ import (
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/consolidated"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/cr8"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/dante"
-	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/data_migration"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/dashboard"
+	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/data_migration"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/dep_graph"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/diagram"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/discogs"
@@ -70,8 +70,8 @@ import (
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/learning"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ledfx"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/lighting"
-	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/loader"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/linuxshowplayer"
+	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/loader"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/mapmap"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/maxforlive"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/memory"
@@ -85,8 +85,8 @@ import (
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/obs"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ola"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ollama"
-	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/opnsense"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/opc"
+	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/opnsense"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ossia"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/pages"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/paramsync"
@@ -157,8 +157,8 @@ func main() {
 
 	// Configure structured logging with OTel correlation
 	slogcfg.Init(slogcfg.Config{
-		ServiceName: "hg-mcp",
-		Format:      cfg.LogFormat,
+		ServiceName:  "hg-mcp",
+		JSON:         cfg.LogFormat == "json",
 		ExtraHandler: slogcfg.WithTracing,
 	})
 

@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hairglasses-studio/hg-mcp/internal/config"
 	"github.com/google/uuid"
+	"github.com/hairglasses-studio/hg-mcp/internal/config"
 )
 
 // ResearchSwarmClient manages pattern discovery and improvement suggestions
@@ -133,7 +133,7 @@ func GetResearchSwarmClient() *ResearchSwarmClient {
 
 // NewResearchSwarmClient creates a new research swarm client
 func NewResearchSwarmClient() (*ResearchSwarmClient, error) {
-	vaultPath := config.Get().AftrsVaultPath
+	vaultPath := config.GetOrLoad().AftrsVaultPath
 
 	client := &ResearchSwarmClient{
 		vaultPath:    vaultPath,

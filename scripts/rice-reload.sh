@@ -6,13 +6,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
+source "$SCRIPT_DIR/lib/compositor.sh"
 source "$SCRIPT_DIR/lib/notify.sh"
 
 reloaded=""
 failed=""
 
 # Hyprland config
-if hyprctl reload 2>/dev/null; then
+if compositor_reload 2>/dev/null; then
   reloaded="${reloaded} hyprland"
 else
   failed="${failed} hyprland"

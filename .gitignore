@@ -27,6 +27,7 @@ Thumbs.db
 # Claude Code artifacts
 .claude-audit-report.md
 .claude/worktrees/
+.claude/settings.local.json
 
 # Runtime/generated files (tracked apps)
 clipse/clipboard_history.json
@@ -64,3 +65,6 @@ id_ed25519*
 !.claude/skills/*/SKILL.md
 .ralph/ab_tests/
 .ralph/benchmarks/
+
+# Local Go workspace metadata
+mcp/go.work.sum

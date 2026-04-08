@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: [self-hosted, archglasses]
+    runs-on: [self-hosted, archglasses, optimized]
     steps:
       - uses: actions/checkout@v4
         with:

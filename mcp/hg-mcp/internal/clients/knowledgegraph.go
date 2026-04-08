@@ -86,7 +86,7 @@ type ResolutionPath struct {
 // NewKnowledgeGraphClient creates a new knowledge graph client
 func NewKnowledgeGraphClient() (*KnowledgeGraphClient, error) {
 	return &KnowledgeGraphClient{
-		vaultPath: config.Get().AftrsVaultPath,
+		vaultPath: config.GetOrLoad().AftrsVaultPath,
 		nodes:     make(map[string]*GraphNode),
 		edges:     []GraphEdge{},
 	}, nil
