@@ -4,7 +4,8 @@
       "args": [
         "/home/hg/hairglasses-studio/dotfiles/scripts/run-dotfiles-mcp.sh"
       ],
-      "command": "bash"
+      "command": "bash",
+      "cwd": "."
     }
   }
 }
