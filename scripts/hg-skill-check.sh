@@ -4,6 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
+source "$SCRIPT_DIR/lib/hg-workspace.sh"
 
 hg_require jq find
 
@@ -17,6 +18,38 @@ pass=0
 warn=0
 fail=0
 
+report_issue() {
+  local severity="$1"
+  local message="$2"
+  case "$severity" in
+    fail)
+      hg_warn "$message"
+      fail=$((fail + 1))
+      ;;
+    warn)
+      hg_warn "$message"
+      warn=$((warn + 1))
+      ;;
+    *)
+      hg_die "Unknown severity: $severity"
+      ;;
+  esac
+}
+
+repo_issue_severity() {
+  local repo="$1"
+  local scope
+  scope="$(hg_workspace_repo_field "$repo" "scope" "")"
+  case "$scope" in
+    active_operator|active_first_party)
+      printf 'fail\n'
+      ;;
+    *)
+      printf 'warn\n'
+      ;;
+  esac
+}
+
 # Check repo-level skill surfaces
 for repo in "$ROOT"/*/; do
   [[ -e "$repo/.git" ]] || continue
@@ -25,26 +58,39 @@ for repo in "$ROOT"/*/; do
   has_surface=0
   surface_json_compatible=0
   has_legacy=0
+  has_generated_claude_skills=0
+  has_generated_plugin_skills=0
   has_mcp_json=0
   has_mcp_policy=0
+  issue_severity="warn"
 
   [[ -f "$repo/.agents/skills/surface.yaml" ]] && has_surface=1
   if [[ "$has_surface" -eq 1 ]] && jq -e '.version == 1 and (.skills | type == "array")' "$repo/.agents/skills/surface.yaml" >/dev/null 2>&1; then
     surface_json_compatible=1
   fi
   [[ -d "$repo/.claude/commands" ]] && has_legacy=1
+  [[ -d "$repo/.claude/skills" ]] && has_generated_claude_skills=1
+  if find "$repo/plugins" -path '*/skills/*/SKILL.md' -print -quit 2>/dev/null | grep -q .; then
+    has_generated_plugin_skills=1
+  fi
   [[ -f "$repo/.mcp.json" ]] && has_mcp_json=1
   [[ -f "$repo/.codex/mcp-profile-policy.json" ]] && has_mcp_policy=1
+  if hg_workspace_repo_exists "$name"; then
+    issue_severity="$(repo_issue_severity "$name")"
+  fi
+
+  if [[ "$has_surface" -eq 0 && ( "$has_generated_claude_skills" -eq 1 || "$has_generated_plugin_skills" -eq 1 ) ]]; then
+    report_issue "$issue_severity" "$name: managed generated skills exist without canonical .agents/skills/surface.yaml"
+  fi
 
   # Check surface sync consistency
   if [[ "$has_surface" -eq 1 && -x "$SYNC_SCRIPT" ]]; then
     if [[ "$surface_json_compatible" -eq 0 ]]; then
-      hg_info "$name: YAML-only skill manifest skipped for repo-local mirror check"
+      report_issue "$issue_severity" "$name: non-portable or YAML-only skill manifest blocks managed mirror sync"
     elif "$SYNC_SCRIPT" "$repo" --check >/dev/null 2>&1; then
       pass=$((pass + 1))
     else
-      hg_warn "$name: skill surface out of sync (run hg-skill-surface-sync.sh)"
-      warn=$((warn + 1))
+      report_issue "$issue_severity" "$name: skill surface out of sync (run hg-skill-surface-sync.sh)"
     fi
   fi
 
@@ -52,8 +98,7 @@ for repo in "$ROOT"/*/; do
   if [[ "$has_surface" -eq 1 && "$has_legacy" -eq 1 ]]; then
     legacy_count=$(find "$repo/.claude/commands" -name '*.md' 2>/dev/null | wc -l)
     if [[ "$legacy_count" -gt 0 ]]; then
-      hg_warn "$name: has $legacy_count orphan .claude/commands/ alongside surface.yaml"
-      warn=$((warn + 1))
+      report_issue "$issue_severity" "$name: has $legacy_count orphan .claude/commands/ alongside surface.yaml"
     fi
   fi
 
