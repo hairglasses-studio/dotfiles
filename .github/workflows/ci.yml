@@ -1,0 +1,23 @@
+name: Repo Hygiene
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    uses: hairglasses-studio/.github/.github/workflows/repo-hygiene.yml@main
+    with:
+      require-roadmap: true
+      require-makefile: true
+      max-root-docs: 14
+      allow-extra-docs: "INFRASTRUCTURE.md,MCP-ROADMAP.md,codebase-intelligence-prompt.md"
