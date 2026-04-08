@@ -1,3 +1,6 @@
+// Shader attribution: chuhlomin
+// (CRT) — Enhanced CRT with barrel distortion and vignette
+
 // Original shader collected from: https://www.shadertoy.com/view/WsVSzV
 // Licensed under Shadertoy's default since the original creator didn't provide any license. (CC BY NC SA 3.0)
 // Slight modifications were made to give a green-ish effect.

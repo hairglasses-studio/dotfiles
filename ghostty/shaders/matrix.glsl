@@ -1,3 +1,6 @@
+// Shader attribution: erniee
+// (Background) — Matrix digital rain
+
 float text(vec2 fragCoord)
 {
     vec2 uv = mod(fragCoord.xy, 16.)*.0625;

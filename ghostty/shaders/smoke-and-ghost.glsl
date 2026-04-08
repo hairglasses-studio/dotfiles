@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Background) — Smoke and ghost particle effect
+
 // Settings for detection
 #define TARGET_COLOR vec3(0.0, 0.0, 0.0)      // RGB target pixels to transform
 #define REPLACE_COLOR vec3(0.0, 0.0, 0.0)    // Color to replace target pixels

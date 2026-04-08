@@ -1,3 +1,6 @@
+// Shader attribution: JRMeyer
+// (Watercolor) — Variegated multi-color wash
+
 // Variegated Watercolor Wash Background
 // Two colors blending into each other top to bottom, with subtle organic variation.
 // Like loading two pigments on a wet brush and pulling a single stroke.

@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Post-FX) — Color negative/inversion filter
+
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {

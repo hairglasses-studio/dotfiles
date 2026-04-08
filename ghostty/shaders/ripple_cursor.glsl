@@ -1,3 +1,6 @@
+// Shader attribution: sahaj-b
+// (Cursor) — Ripple wave from cursor position
+
 // CONFIGURATION
 const float DURATION = 0.15;               // How long the ripple animates (seconds)
 const float MAX_RADIUS = 0.05;             // Max radius in normalized coords (0.5 = 1/4 screen height)

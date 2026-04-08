@@ -1,3 +1,6 @@
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Horizontal scan bar effect
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalize pixel coordinates

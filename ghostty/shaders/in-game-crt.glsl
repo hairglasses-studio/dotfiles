@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (CRT) — In-game style CRT monitor effect
+
 // In-game CRT shader
 // Author: sarphiv
 // License: CC BY-NC-SA 4.0

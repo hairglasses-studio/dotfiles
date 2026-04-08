@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Water ripple/wave effect
+
 
 #define TAU 6.28318530718
 #define MAX_ITER 6

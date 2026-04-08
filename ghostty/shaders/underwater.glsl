@@ -1,3 +1,6 @@
+// Shader attribution: alex-sherwin
+// (Background) — Underwater caustics and light rays
+
 // adapted by Alex Sherwin for Ghostty from https://www.shadertoy.com/view/lljGDt
 
 #define BLACK_BLEND_THRESHOLD .4

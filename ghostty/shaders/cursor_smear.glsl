@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Smear trail cursor
+
 // Cursor trail shader that creates a hexagonal trailing effect
 //
 // The effect works by:

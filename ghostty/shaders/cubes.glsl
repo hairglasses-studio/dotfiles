@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Animated 3D cube grid
+
 // credits: https://github.com/rymdlego
 
 const float speed = 0.2;

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Animated color gradient background
+
 // credits: https://github.com/unkn0wncode
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {

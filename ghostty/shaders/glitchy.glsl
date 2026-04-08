@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — Digital glitch/corruption effect
+
 // modified version of https://www.shadertoy.com/view/wld3WN
 // amount of seconds for which the glitch loop occurs
 #define DURATION 10.

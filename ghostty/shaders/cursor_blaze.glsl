@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Cursor) — Fire trail behind cursor
+
 // Based on https://gist.github.com/chardskarth/95874c54e29da6b5a36ab7b50ae2d088
 float ease(float x) {
     return pow(1.0 - x, 10.0);

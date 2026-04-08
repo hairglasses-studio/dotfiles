@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — Dithering effect on terminal output
+
 // Simple "dithering" effect
 // (c) moni-dz (https://github.com/moni-dz)
 // CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)

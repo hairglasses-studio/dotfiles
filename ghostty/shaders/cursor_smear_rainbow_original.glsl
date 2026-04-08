@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Original rainbow smear cursor (pre-edit)
+
 
 float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)
 {

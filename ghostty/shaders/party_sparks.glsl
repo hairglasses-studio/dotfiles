@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Colorful party sparks
+
 // Original shader by yakovgal on Shadertoy:
 // https://www.shadertoy.com/user/yakovgal
 

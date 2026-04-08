@@ -1,3 +1,6 @@
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Old film grain and scratches
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Normalize coordinates
     vec2 uv = fragCoord.xy / iResolution.xy;

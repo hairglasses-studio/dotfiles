@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Manga-style slash effect
+
 // By Komsit37 (https://github.com/komsit37)
 
 float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)

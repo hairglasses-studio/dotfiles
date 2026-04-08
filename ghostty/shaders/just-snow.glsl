@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Falling snow particle effect
+
 // Copyright (c) 2013 Andrew Baldwin (twitter: baldand, www: http://thndl.com)
 // License = Attribution-NonCommercial-ShareAlike (http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US)
 

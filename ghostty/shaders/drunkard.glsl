@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — Wobbly/distorted screen effect
+
 // Drunken stupor effect using fractal Brownian motion and Perlin noise
 // (c) moni-dz (https://github.com/moni-dz) 
 // CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
