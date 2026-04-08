@@ -314,6 +314,19 @@ func TestServerHealth_WithSurfaceRegistries(t *testing.T) {
 	if out.PromptCount == 0 {
 		t.Fatal("expected non-zero prompt count")
 	}
+	if out.WorkflowCount != 7 {
+		t.Fatalf("expected 7 workflows, got %d", out.WorkflowCount)
+	}
+	if out.SkillCount != 3 {
+		t.Fatalf("expected 3 skills, got %d", out.SkillCount)
+	}
+	prioritySummary, ok := out.PrioritySummary.(map[string]any)
+	if !ok {
+		t.Fatalf("expected priority summary map, got %T", out.PrioritySummary)
+	}
+	if got, ok := prioritySummary["missing_front_door_count"].(float64); !ok || int(got) != 0 {
+		t.Fatalf("expected zero missing front doors in priority summary, got %#v", prioritySummary["missing_front_door_count"])
+	}
 	if len(out.DiscoveryTools) != 5 {
 		t.Fatalf("expected 5 discovery tools, got %d", len(out.DiscoveryTools))
 	}

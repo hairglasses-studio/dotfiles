@@ -34,8 +34,16 @@ By default, `dotfiles-mcp` marks its non-discovery tools as `defer_loading` and 
 - `dotfiles_tool_schema`
 - `dotfiles_tool_catalog`
 - `dotfiles_tool_stats`
+- `dotfiles_server_health`
 
 Use `DOTFILES_MCP_PROFILE=full` if you explicitly want the full catalog treated as eager.
+
+The server also exposes read-first workflow resources and prompt entrypoints for the common operator loops:
+
+- Workflow catalog: `dotfiles://catalog/workflows`
+- Skill catalog: `dotfiles://catalog/skills`
+- Workflow priorities: `dotfiles://catalog/priorities`
+- Prompt workflows: fleet audit, config repair, desktop triage, workstation diagnosis, repo validation, repo onboarding, and session recovery
 
 ## Quick Start
 
@@ -47,6 +55,9 @@ claude mcp call dotfiles dotfiles_tool_search '{"query": "bluetooth"}'
 
 # Get full tool catalog
 claude mcp call dotfiles dotfiles_tool_catalog '{}'
+
+# Read the canonical workflow catalog
+claude mcp read dotfiles dotfiles://catalog/workflows
 
 # Check desktop rice health
 claude mcp call dotfiles dotfiles_rice_check '{}'
