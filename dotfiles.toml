@@ -25,10 +25,10 @@ ghosttyfetch = true
 kitty_smart_scroll = true
 kitty_save_session = true
 
-# ── Desktop (Linux — Hyprland primary, Sway fallback) ─
+# ── Desktop (Linux — Hyprland) ─
 [desktop.linux]
 hyprland = true
-sway = true
+sway = false
 eww = true
 waybar = true
 mako = true
@@ -77,7 +77,7 @@ drop-ctrl = false           # Manual flash via VIA
 hyprland-mcp = true
 dotfiles-mcp = true
 shader-mcp = true
-sway-mcp = true
+sway-mcp = false
 
 # ── Profiles ─────────────────────────────────────
 # Use: ./manjaro/install.sh --profile <name>

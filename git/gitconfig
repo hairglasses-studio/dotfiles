@@ -71,3 +71,18 @@
     process = git-lfs filter-process
 [url "git@github.com:"]
     insteadOf = https://github.com/
+[safe]
+	directory = /home/hg/actions-runner/03/_work/aftrs-terraform/aftrs-terraform
+	directory = /home/hg/actions-runner/03/_work/aftrs-terraform/aftrs-terraform
+	directory = /home/hg/actions-runner/16/_work/allthelinks/allthelinks
+	directory = /home/hg/actions-runner/02/_work/archlet/archlet
+	directory = /home/hg/actions-runner/16/_work/allthelinks/allthelinks
+	directory = /home/hg/actions-runner/02/_work/archlet/archlet
+	directory = /home/hg/actions-runner/01/_work/caper-bush/caper-bush
+	directory = /home/hg/actions-runner/01/_work/caper-bush/caper-bush
+	directory = /home/hg/actions-runner/06/_work/dj-archive/dj-archive
+	directory = /home/hg/actions-runner/16/_work/dj-archive/dj-archive
+	directory = /home/hg/actions-runner/06/_work/dj-archive/dj-archive
+	directory = /home/hg/actions-runner/12/_work/dj-archive/dj-archive
+	directory = /home/hg/actions-runner/12/_work/dj-archive/dj-archive
+	directory = /home/hg/actions-runner/16/_work/dj-archive/dj-archive
