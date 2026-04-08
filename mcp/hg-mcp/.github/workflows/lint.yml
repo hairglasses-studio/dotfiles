@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, archglasses]
     steps:
       - uses: actions/checkout@v6
 

@@ -11,7 +11,7 @@ config_description() {
 
 config_commands() {
   cat <<'CMDS'
-reload	Reload a component (hyprland|swaync|eww|tmux)
+reload	Reload a component (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|eww|tmux)
 backup	Backup a config file before modification
 check	Validate symlinks and feature flags
 list	Show managed components and paths
@@ -20,10 +20,10 @@ CMDS
 
 _config_cmd_reload() {
   local component="${1:-}"
-  [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> (hyprland|swaync|eww|tmux)"
+  [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|eww|tmux)"
   case "$component" in
-    hyprland|hypr|swaync|eww|ironbar|tmux) ;;
-    *) hg_die "Unknown component: $component (hyprland|swaync|eww|ironbar|tmux)" ;;
+    hyprland|hypr|hyprshell|hypr-dock|hyprdock|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname|swaync|eww|ironbar|tmux) ;;
+    *) hg_die "Unknown component: $component (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|eww|tmux)" ;;
   esac
   config_reload_service "$component"
   hg_ok "Reloaded $component"
@@ -44,6 +44,10 @@ _config_cmd_check() {
   local -a _checks=(
     "$HOME/.config/kitty:$HG_DOTFILES/kitty:kitty"
     "$HOME/.config/hypr:$HG_DOTFILES/hyprland:hyprland"
+    "$HOME/.config/hyprshell:$HG_DOTFILES/hyprshell:hyprshell"
+    "$HOME/.config/hypr-dock:$HG_DOTFILES/hypr-dock:hypr-dock"
+    "$HOME/.config/hyprdynamicmonitors:$HG_DOTFILES/hyprdynamicmonitors:hyprdynamicmonitors"
+    "$HOME/.config/hyprland-autoname-workspaces:$HG_DOTFILES/hyprland-autoname-workspaces:autoname"
     "$HOME/.config/eww:$HG_DOTFILES/eww:eww"
     "$HOME/.config/swaync:$HG_DOTFILES/swaync:swaync"
   )
@@ -88,6 +92,10 @@ _config_cmd_list() {
   local -a _components=(
     "kitty:$HG_DOTFILES/kitty:SIGUSR1 reload"
     "hyprland:$HG_DOTFILES/hyprland:hyprctl reload"
+    "hyprshell:$HG_DOTFILES/hyprshell:systemctl --user restart dotfiles-hyprshell.service"
+    "hypr-dock:$HG_DOTFILES/hypr-dock:systemctl --user restart dotfiles-hypr-dock.service"
+    "hyprdynamic:$HG_DOTFILES/hyprdynamicmonitors:systemctl --user restart dotfiles-hyprdynamicmonitors.service"
+    "autoname:$HG_DOTFILES/hyprland-autoname-workspaces:systemctl --user restart dotfiles-hyprland-autoname-workspaces.service"
     "eww:$HG_DOTFILES/eww:eww reload"
     "swaync:$HG_DOTFILES/swaync:swaync-client --reload-config"
     "tmux:$HG_DOTFILES/tmux:tmux source-file"

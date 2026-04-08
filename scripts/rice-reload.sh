@@ -18,11 +18,13 @@ else
   failed="${failed} hyprland"
 fi
 
-# Ironbar (config + CSS)
-if ironbar reload 2>/dev/null; then
-  reloaded="${reloaded} ironbar"
+# Eww (config + widgets)
+if eww reload 2>/dev/null; then
+  eww open bar >/dev/null 2>&1 || true
+  eww open bar-secondary >/dev/null 2>&1 || true
+  reloaded="${reloaded} eww"
 else
-  failed="${failed} ironbar"
+  failed="${failed} eww"
 fi
 
 # Kitty (SIGUSR1)
@@ -47,6 +49,20 @@ if swaync-client -rs 2>/dev/null; then
 else
   failed="${failed} swaync"
 fi
+
+# Hyprland companion services
+for unit in \
+  dotfiles-hyprshell.service \
+  dotfiles-hypr-dock.service \
+  dotfiles-hyprdynamicmonitors.service \
+  dotfiles-hyprland-autoname-workspaces.service
+do
+  if systemctl --user restart "$unit" 2>/dev/null; then
+    reloaded="${reloaded} ${unit%.service}"
+  else
+    failed="${failed} ${unit%.service}"
+  fi
+done
 
 # Shader — rebuild transpiled shaders if build script exists
 if [[ -x "$SCRIPT_DIR/../kitty/shaders/bin/shader-build.sh" ]]; then

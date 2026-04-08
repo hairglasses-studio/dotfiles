@@ -1,0 +1,14 @@
+[Unit]
+Description=dotfiles workspace autonamer for Hyprland
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env hyprland-autoname-workspaces
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=graphical-session.target

@@ -238,19 +238,17 @@ Use `ListToolsByRuntimeGroup(group)` or `GetRuntimeGroupStats()` for programmati
 - Copy `.env.example` to `.env` and fill in credentials
 - Key vars: `MCP_MODE`, `PORT`, `INVENTORY_SPREADSHEET_ID`, `DISCORD_BOT_TOKEN`, `NANOLEAF_HOST`, `HUE_BRIDGE_IP`
 - See `.env.example` for the full list (~100 vars across all integrations)
+- **Go 1.25+** required
 
 ## Known DRY Opportunities
 
 These are real duplication patterns found across the codebase. They are documented here for future cleanup sessions:
 
-1. **368 manual `json.MarshalIndent` calls** — Many modules do `json.MarshalIndent(data, "", "  ")` + `TextResult(string(bytes))` instead of using `tools.JSONResult(data)` which does exactly this. Mechanical fix across ~42 files.
+1. **~486 repeated parameter validation blocks** — Pattern: `param := tools.GetStringParam(req, "x"); if param == "" { return tools.CodedErrorResult(...) }`. Could be a `RequireStringParam(req, "name") (string, *CallToolResult)` helper.
 
-2. **~486 repeated parameter validation blocks** — Pattern: `param := tools.GetStringParam(req, "x"); if param == "" { return tools.CodedErrorResult(...) }`. Could be a `RequireStringParam(req, "name") (string, *CallToolResult)` helper.
+2. **208 scattered `os.Getenv` calls** in client constructors — Could be a `config.GetRequired("VAR")` helper.
 
-3. **208 scattered `os.Getenv` calls** in client constructors — Could be a `config.GetRequired("VAR")` helper.
-
-4. **Identical test boilerplate** across ~91 modules — `TestModuleInfo` function is copy-pasted. Could be a shared test helper.
-
+3. **Identical test boilerplate** across ~91 modules — `TestModuleInfo` function is copy-pasted. Could be a shared test helper.
 ## References
 
 - **MCP Protocol**: [spec](https://spec.modelcontextprotocol.io/), [Go SDK](https://github.com/mark3labs/mcp-go)

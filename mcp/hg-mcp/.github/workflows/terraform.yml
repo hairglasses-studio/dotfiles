@@ -26,7 +26,7 @@ env:
 jobs:
   terraform-plan:
     name: Terraform Plan
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, archglasses]
     if: github.event_name == 'pull_request'
     outputs:
       plan-exit-code: ${{ steps.plan.outputs.exitcode }}
@@ -148,7 +148,7 @@ jobs:
 
   terraform-apply:
     name: Terraform Apply
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, archglasses]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
 

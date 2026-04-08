@@ -41,6 +41,11 @@ config_reload_service() {
   local component="$1" rc=0
   case "$component" in
     hyprland|hypr) compositor_reload;      rc=$? ;;
+    hyprshell)     systemctl --user restart dotfiles-hyprshell.service; rc=$? ;;
+    hypr-dock|hyprdock) systemctl --user restart dotfiles-hypr-dock.service; rc=$? ;;
+    hyprdynamicmonitors|monitors) systemctl --user restart dotfiles-hyprdynamicmonitors.service; rc=$? ;;
+    hyprland-autoname-workspaces|autoname) systemctl --user restart dotfiles-hyprland-autoname-workspaces.service; rc=$? ;;
+    ironbar)       ironbar reload 2>/dev/null; rc=$? ;;
     swaync)        swaync-client --reload-config; rc=$? ;;
     eww)           eww reload 2>/dev/null; rc=$? ;;
     tmux)          tmux source-file ~/.tmux.conf 2>/dev/null; rc=$? ;;

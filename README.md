@@ -21,7 +21,7 @@ Full-stack development environment for Manjaro Linux. Combines GPU-rendered shad
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
 
-Hyprland + eww bar + swaync + wofi + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
+Hyprland + eww + hyprshell + hypr-dock + swaync + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
 
 ## Install
 
@@ -70,10 +70,14 @@ hyprpm reload -n
 
 | Config | Description |
 |--------|-------------|
-| `hyprland/` | Tiling WM — 113 keybinds, 8 custom bezier animations, 9 plugins, master layout |
-| `eww/` | Dual status bar (primary + secondary monitor), calendar, sidebar, powermenu |
+| `hyprland/` | Tiling WM — 113 keybinds, custom animations, plugin-based layout, wallpaper mode orchestration |
+| `eww/` | Status bar widgets, calendar, sidebar, powermenu, dashboard |
+| `hyprshell/` | Launcher, overview, and app switcher for `Super+D` / `Alt+Tab` |
+| `hypr-dock/` | Bottom dock with pinned apps, indicators, and window previews |
+| `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |
+| `hyprland-autoname-workspaces/` | Workspace naming and icon rules for cleaner shell surfaces |
 | `swaync/` | Notification center — Snazzy themed, visibility filtering |
-| `wofi/` | App launcher and emoji picker |
+| `wofi/` | Fallback launcher and emoji picker |
 | `wlogout/` | Power menu overlay |
 | `kitty/` | GPU terminal with 131 GLSL shaders (CRTty/DarkWindow), shuffled playlists, shader-cycle scripts |
 | `foot/` | Lightweight terminal (dropdown/fallback) |
@@ -99,10 +103,14 @@ hyprpm reload -n
 ```
 dotfiles/
 ├── hyprland/       → ~/.config/hypr (WM + hypridle + hyprlock + pyprland)
+├── hyprshell/      → ~/.config/hyprshell (launcher + overview)
+├── hypr-dock/      → ~/.config/hypr-dock (dock + theme)
+├── hyprdynamicmonitors/ → ~/.config/hyprdynamicmonitors (dynamic monitor profiles)
+├── hyprland-autoname-workspaces/ → ~/.config/hyprland-autoname-workspaces
 ├── eww/            → ~/.config/eww (bar + widgets)
 ├── kitty/          → ~/.config/kitty (terminal + 131 shaders)
 ├── swaync/         → ~/.config/swaync (notifications)
-├── wofi/           → ~/.config/wofi (launcher)
+├── wofi/           → ~/.config/wofi (fallback launcher)
 ├── wlogout/        → ~/.config/wlogout (power menu)
 ├── foot/           → ~/.config/foot (fallback terminal)
 ├── nvim/           → ~/.config/nvim (editor)

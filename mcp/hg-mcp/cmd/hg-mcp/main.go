@@ -21,6 +21,7 @@ import (
 	"github.com/hairglasses-studio/hg-mcp/internal/mcp/tools"
 	"github.com/hairglasses-studio/hg-mcp/internal/observability"
 	"github.com/hairglasses-studio/hg-mcp/internal/web"
+	"github.com/hairglasses-studio/mcpkit/slogcfg"
 
 	// Import modules to trigger registration via init()
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ableton"
@@ -64,6 +65,7 @@ import (
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/hue"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/hwmonitor"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/inventory"
+	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/jobb"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/juno"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/learning"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ledfx"
@@ -153,12 +155,12 @@ func main() {
 	// Load centralized config from environment (must happen before any config.Get() call)
 	cfg := config.Load()
 
-	// Configure structured logging
-	if cfg.LogFormat == "json" {
-		slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
-	} else {
-		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, nil)))
-	}
+	// Configure structured logging with OTel correlation
+	slogcfg.Init(slogcfg.Config{
+		ServiceName: "hg-mcp",
+		Format:      cfg.LogFormat,
+		ExtraHandler: slogcfg.WithTracing,
+	})
 
 	// Handle --generate-docs: output consolidated tool reference and exit
 	for _, arg := range os.Args[1:] {

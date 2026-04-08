@@ -1,0 +1,15 @@
+[Unit]
+Description=dotfiles hyprdynamicmonitors hotplug manager
+Documentation=https://fiffeek.github.io/hyprdynamicmonitors/
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env hyprdynamicmonitors --config %h/.config/hyprdynamicmonitors/config.toml run
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

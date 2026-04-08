@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'mcp-servers'
+    static_configs:
+      - targets:
+          - 'host.docker.internal:9091' # ralphglasses
+          - 'host.docker.internal:9092' # geminikit
+          - 'host.docker.internal:9093' # hg-mcp
+          - 'host.docker.internal:9094' # art-mcp
+          - 'host.docker.internal:9095' # systemd-mcp
+          - 'host.docker.internal:9096' # tmux-mcp
+          - 'host.docker.internal:9097' # process-mcp
+    metrics_path: /metrics

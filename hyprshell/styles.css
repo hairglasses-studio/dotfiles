@@ -1,0 +1,70 @@
+:root {
+  --bg-color: rgba(26, 27, 38, 0.92);
+  --border-color: rgba(87, 199, 255, 0.62);
+  --border-color-hover: rgba(255, 106, 193, 0.72);
+  --text-color: rgba(239, 240, 235, 1);
+  --muted-color: rgba(104, 104, 104, 1);
+  --border-radius: 18px;
+}
+
+* {
+  font-family: "Monaspace Neon", "Maple Mono NF CN", monospace;
+  font-size: 14px;
+}
+
+.window {
+  padding: 22px;
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  background: var(--bg-color);
+}
+
+entry {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 106, 193, 0.38);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.24);
+  color: var(--text-color);
+}
+
+list,
+row,
+button {
+  border-radius: 14px;
+}
+
+row,
+button {
+  padding: 10px 12px;
+}
+
+row:hover,
+button:hover,
+row:selected {
+  background: rgba(87, 199, 255, 0.12);
+  border: 1px solid rgba(255, 106, 193, 0.72);
+}
+
+label {
+  color: var(--text-color);
+}
+
+.large-icons {
+  -gtk-icon-size: 34px;
+}
+
+.monochrome {
+  filter: grayscale(100%);
+}
+
+.text-grayed {
+  color: var(--muted-color);
+}
+
+tooltip {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 106, 193, 0.38);
+  background: rgba(0, 0, 0, 0.88);
+}
