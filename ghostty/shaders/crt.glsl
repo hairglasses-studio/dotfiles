@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (CRT) — Classic CRT scanlines and curvature
+
 // source: https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f
 // credits: https://github.com/qwerasd205
 //==============================================================

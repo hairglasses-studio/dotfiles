@@ -1,3 +1,6 @@
+// Shader attribution: 12jihan
+// (CRT) — CRT with glitch distortion
+
 #define COLOR_BACK vec3(0.10, 0.10, 0.10)
 #define COLOR_TRACE vec3(0.10, 1.10, 0.50)
 

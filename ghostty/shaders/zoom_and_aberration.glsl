@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Post-FX) — Zoom with chromatic aberration
+
 // Configuration
 #define ZOOM_DURATION 0.8
 #define MAX_SCALE 2.0

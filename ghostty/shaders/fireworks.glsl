@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Background) — Fireworks burst animation
+
 // This Ghostty shader is a port of https://www.shadertoy.com/view/lscGRl
 
 // "Fireworks" by Martijn Steinrucken aka BigWings - 2015

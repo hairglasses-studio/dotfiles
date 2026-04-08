@@ -1,3 +1,6 @@
+// Shader attribution: 12jihan
+// (Post-FX) — Screen flicker effect
+
 float rand(vec2 co) {
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Classic starfield fly-through
+
 // transparent background
 const bool transparent = false;
 

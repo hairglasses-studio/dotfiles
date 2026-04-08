@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Colorful animated starfield
+
 // transparent background
 const bool transparent = false;
 

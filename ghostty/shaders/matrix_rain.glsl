@@ -1,3 +1,6 @@
+// Shader attribution: erniee
+// (Background) — Matrix rain with green glow
+
 // [SH17A] Matrix rain. Created by Reinder Nijhoff 2017
 // Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 // @reindernijhoff

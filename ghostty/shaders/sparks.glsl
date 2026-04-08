@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Spark particles from cursor
+
 // Original shader by yakovgal on Shadertoy:
 // https://www.shadertoy.com/user/yakovgal
 

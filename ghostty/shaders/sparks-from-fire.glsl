@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Fire sparks particle effect
+
 // adapted by Alex Sherwin for Ghstty from https://www.shadertoy.com/view/wl2Gzc
 
 //Shader License: CC BY 3.0

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Mechanical gears animation
+
 // sligltly modified version of https://www.shadertoy.com/view/DsVSDV
 // The only changes are done in the mainImage function 
 // Ive added comments on what to modify

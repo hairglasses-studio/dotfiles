@@ -1,3 +1,6 @@
+// Shader attribution: 12jihan
+// (Post-FX) — Simple bloom/glow effect
+
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 uv = fragCoord/iResolution.xy;
     

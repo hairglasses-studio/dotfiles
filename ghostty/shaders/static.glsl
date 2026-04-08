@@ -1,3 +1,6 @@
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Static/snow noise overlay
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     // Normalize pixel coordinates

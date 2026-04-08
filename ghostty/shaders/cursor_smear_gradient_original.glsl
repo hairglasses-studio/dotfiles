@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Original gradient smear cursor (pre-edit)
+
 // Shader Contribution by PremModhaOfficial
 // For inquiries or modifications, please reach him
 // GitHub: https://github.com/PremModhaOfficial

@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Post-FX) — Screen shake effect
+
 
 vec2 norm(vec2 value, float isPosition) {
     return (value * 2.0 - (iResolution.xy * isPosition)) / iResolution.y;

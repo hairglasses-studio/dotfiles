@@ -1,3 +1,6 @@
+// Shader attribution: JRMeyer
+// (Watercolor) — Graded wash with color transition
+
 // Graded Watercolor Wash Background
 // Color gradually fades from full intensity to transparent, top to bottom.
 // Organic, irregular edges like real watercolor on paper.

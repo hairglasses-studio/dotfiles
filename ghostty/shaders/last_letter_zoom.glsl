@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Zoom effect on last typed character
+
 // Configuration
 #define ZOOM_DURATION 0.5
 #define MAX_SCALE 3.0

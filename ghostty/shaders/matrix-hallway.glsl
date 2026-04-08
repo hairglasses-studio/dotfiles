@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Matrix code hallway fly-through
+
 // based on the following Shader Toy entry
 //
 // [SH17A] Matrix rain. Created by Reinder Nijhoff 2017

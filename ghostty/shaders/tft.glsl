@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — TFT/LCD subpixel rendering simulation
+
 /** Size of TFT "pixels" */
 float resolution = 4.0;
 

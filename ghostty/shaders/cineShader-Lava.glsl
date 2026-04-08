@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Background) — Animated lava/magma shader
+
 // INFO: This shader is a port of https://www.shadertoy.com/view/3sySRK
 
 // INFO: Change these variables to create some variation in the animation

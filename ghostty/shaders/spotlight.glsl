@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Post-FX) — Spotlight/vignette following cursor
+
 // Created by Paul Robello
 
 

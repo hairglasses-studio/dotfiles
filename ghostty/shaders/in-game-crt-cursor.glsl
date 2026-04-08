@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (CRT) — In-game CRT with cursor highlight
+
 // In-game CRT shader
 // Author: sarphiv
 // License: CC BY-NC-SA 4.0
