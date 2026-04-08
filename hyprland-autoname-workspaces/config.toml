@@ -1,0 +1,62 @@
+version = "1.2.0"
+
+[format]
+dedup = true
+dedup_inactive_fullscreen = false
+delim = " "
+client = "{icon}{delim}"
+client_active = "<span color='#ff6ac1'>{icon}</span>{delim}"
+client_dup = "{icon}{counter_sup}{delim}"
+client_dup_fullscreen = "[{icon}]{delim}{icon}{counter_unfocused_sup}"
+client_fullscreen = "[{icon}]{delim}"
+workspace = "<b><span color='#57c7ff'>{id}:{name}</span></b>{delim}{clients}"
+workspace_empty = "<b><span color='#686868'>{id}:{name}</span></b>{delim}{clients}"
+
+[class_active]
+DEFAULT = "<span color='#ff6ac1'>{icon}</span>"
+
+[workspaces_name]
+1 = "main"
+2 = "web"
+3 = "code"
+4 = "chat"
+5 = "media"
+6 = "ops"
+7 = "files"
+8 = "notes"
+9 = "misc"
+10 = "vertical"
+
+[title_in_class."(?i)kitty"]
+"zsh" = ""
+"tmux" = ""
+"nvim" = ""
+
+[title_in_class."(?i)(firefox|chrom.*)"]
+"(?i)youtube" = ""
+"(?i)twitch" = ""
+"(?i)github" = ""
+"(?i)calendar" = ""
+
+[class]
+DEFAULT = ""
+"(?i)kitty" = ""
+"(?i)ghostty" = ""
+"(?i)alacritty" = ""
+"(?i)(firefox|librewolf)" = "<span color='#ff5c57'></span>"
+"(?i)(chromium|google-chrome|brave-browser)" = "<span color='#f3f99d'></span>"
+"(?i)code-oss" = ""
+"(?i)discord" = ""
+"(?i)(telegramdesktop|org-telegram-desktop)" = ""
+"(?i)slack" = ""
+"(?i)spotify" = ""
+"(?i)mpv" = ""
+"(?i)nemo" = ""
+"(?i)obsidian" = ""
+"(?i)pavucontrol" = ""
+"(?i)steam" = ""
+"(?i)virt-manager" = ""
+"(?i)zoom" = ""
+
+[exclude]
+"" = "^$"

@@ -22,6 +22,8 @@ bat = true
 fastfetch = true
 macchina = true
 ghosttyfetch = true
+kitty_smart_scroll = true
+kitty_save_session = true
 
 # ── Desktop (Linux — Hyprland primary, Sway fallback) ─
 [desktop.linux]
@@ -30,6 +32,12 @@ sway = true
 eww = true
 waybar = true
 mako = true
+hyprshell = true
+hypr_dock = true
+hyprdynamicmonitors = true
+hyprland_autoname_workspaces = true
+mpvpaper = true
+waydeeper = true
 wofi = true
 wlogout = true
 

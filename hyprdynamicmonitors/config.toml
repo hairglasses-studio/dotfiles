@@ -1,0 +1,35 @@
+[general]
+destination = "$HOME/.local/state/hypr/monitors.dynamic.conf"
+debounce_time_ms = 1500
+
+[notifications]
+disabled = false
+timeout_ms = 3500
+
+[fallback_profile]
+config_file = "hyprconfigs/fallback.conf"
+config_file_type = "static"
+
+[profiles.dual_desktop]
+config_file = "hyprconfigs/dual-desktop.conf"
+config_file_type = "static"
+
+[[profiles.dual_desktop.conditions.required_monitors]]
+name = "DP-2"
+
+[[profiles.dual_desktop.conditions.required_monitors]]
+name = "DP-3"
+
+[profiles.ultrawide_only]
+config_file = "hyprconfigs/ultrawide.conf"
+config_file_type = "static"
+
+[[profiles.ultrawide_only.conditions.required_monitors]]
+name = "DP-3"
+
+[profiles.portrait_only]
+config_file = "hyprconfigs/portrait.conf"
+config_file_type = "static"
+
+[[profiles.portrait_only.conditions.required_monitors]]
+name = "DP-2"

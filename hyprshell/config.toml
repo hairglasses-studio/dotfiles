@@ -1,0 +1,25 @@
+version = 3
+
+[windows]
+scale = 7.75
+items_per_row = 4
+
+[windows.overview]
+key = "D"
+modifier = "super"
+filter_by = ["current_workspace", "current_monitor"]
+exclude_special_workspaces = "dashboard"
+
+[windows.overview.launcher]
+default_terminal = "kitty"
+launch_modifier = "super"
+width = 760
+max_items = 8
+show_when_empty = true
+
+[windows.switch]
+modifier = "alt"
+key = "Tab"
+filter_by = ["current_workspace", "current_monitor"]
+switch_workspaces = false
+exclude_special_workspaces = "dashboard"

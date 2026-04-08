@@ -1,4 +1,4 @@
-# Desktop environment: Hyprland + eww + swaync + wofi
+# Desktop environment: Hyprland + eww + hyprshell + hypr-dock + swaync
 [arch]
 packages = [
     # Hyprland core
@@ -10,6 +10,8 @@ packages = [
     { name = "hyprpicker" },
     { name = "hyprsunset" },
     { name = "hyprshade" },
+    { name = "hyprdynamicmonitors-bin" },
+    { name = "hyprland-autoname-workspaces-git" },
     { name = "pyprland" },
     { name = "xdg-desktop-portal-hyprland" },
     { name = "xdg-desktop-portal-gtk" },
@@ -19,13 +21,14 @@ packages = [
 
     # Bar & widgets
     { name = "eww" },
-    { name = "ironbar" },
+    { name = "hypr-dock" },
 
     # Notifications
     { name = "swaync" },
     { name = "poweralertd" },
 
     # Launcher & session
+    { name = "hyprshell-bin" },
     { name = "wofi" },
     { name = "wofi-emoji" },
     { name = "wlogout" },
@@ -50,6 +53,7 @@ packages = [
     { name = "wdisplays" },
     { name = "wev" },
     { name = "wf-recorder" },
+    { name = "grim-hyprland-git" },
     { name = "ydotool" },
     { name = "flashfocus" },
     { name = "socat" },
@@ -61,6 +65,7 @@ packages = [
     # Wallpaper & theme
     { name = "wallust" },
     { name = "matugen" },
+    { name = "mpvpaper" },
     { name = "shaderbg" },
 
     # GTK/Qt theming

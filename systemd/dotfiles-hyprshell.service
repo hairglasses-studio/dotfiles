@@ -1,0 +1,15 @@
+[Unit]
+Description=dotfiles hyprshell launcher and switcher
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/env sh -c '[ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] || exit 0'
+ExecStart=/usr/bin/env hyprshell -c %h/.config/hyprshell/config.toml -s %h/.config/hyprshell/styles.css run
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

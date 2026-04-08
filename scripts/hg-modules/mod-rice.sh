@@ -39,14 +39,24 @@ _rice_status() {
   printf " %s%-14s%s %s%s%s\n" "$HG_DIM" "opacity" "$HG_RESET" "$HG_CYAN" "$kitty_opacity" "$HG_RESET"
 
   # Wallpaper
-  if pgrep -f shaderbg &>/dev/null; then
+  local wallpaper_state
+  wallpaper_state="$(cat "${XDG_STATE_HOME:-$HOME/.local/state}/wallpaper-mode/mode" 2>/dev/null || true)"
+  if pgrep -x mpvpaper &>/dev/null; then
+    local wp_video
+    wp_video="$(cat "${XDG_STATE_HOME:-$HOME/.local/state}/wallpaper-mode/value" 2>/dev/null || echo "unknown")"
+    printf " %s%-14s%s %svideo:%s %s\n" "$HG_DIM" "wallpaper" "$HG_RESET" "$HG_YELLOW" "$HG_RESET" "$(basename "$wp_video")"
+  elif pgrep -x waydeeper &>/dev/null; then
+    local wp_depth
+    wp_depth="$(cat "${XDG_STATE_HOME:-$HOME/.local/state}/wallpaper-mode/value" 2>/dev/null || echo "unknown")"
+    printf " %s%-14s%s %sdepth:%s %s\n" "$HG_DIM" "wallpaper" "$HG_RESET" "$HG_MAGENTA" "$HG_RESET" "$(basename "$wp_depth")"
+  elif pgrep -f shaderbg &>/dev/null; then
     local wp_shader
     wp_shader="$(cat "${XDG_STATE_HOME:-$HOME/.local/state}/shader-wallpaper/current" 2>/dev/null || echo "unknown")"
     printf " %s%-14s%s %sshader:%s %s\n" "$HG_DIM" "wallpaper" "$HG_RESET" "$HG_MAGENTA" "$HG_RESET" "$(basename "$wp_shader" .frag)"
   else
     local wp_static
     wp_static="$(cat "${XDG_STATE_HOME:-$HOME/.local/state}/swww/current" 2>/dev/null || echo "unknown")"
-    printf " %s%-14s%s %sstatic:%s %s\n" "$HG_DIM" "wallpaper" "$HG_RESET" "$HG_GREEN" "$HG_RESET" "$(basename "$wp_static")"
+    printf " %s%-14s%s %s%s:%s %s\n" "$HG_DIM" "wallpaper" "$HG_RESET" "$HG_GREEN" "${wallpaper_state:-static}" "$HG_RESET" "$(basename "$wp_static")"
   fi
 
   # Bar
@@ -67,6 +77,10 @@ _rice_services() {
   local -a services=(
     "Hyprland:Hyprland"
     "eww:eww"
+    "hyprshell:hyprshell"
+    "hypr-dock:hypr-dock"
+    "hyprdynamicmonitors:hyprdynamicmonitors"
+    "autoname:hyprland-autoname-workspaces"
     "swaync:swaync"
     "swww:swww-daemon"
     "hypridle:hypridle"
@@ -89,6 +103,8 @@ _rice_palette() {
 
   local scan_dirs=(
     "$HG_DOTFILES/hyprland"
+    "$HG_DOTFILES/hyprshell"
+    "$HG_DOTFILES/hypr-dock"
     "$HG_DOTFILES/eww"
     "$HG_DOTFILES/swaync"
     "$HG_DOTFILES/wofi"
@@ -123,7 +139,7 @@ _rice_palette() {
 
 _rice_reload_all() {
   hg_info "Reloading all services in parallel..."
-  config_reload_parallel hyprland swaync eww
+  config_reload_parallel hyprland hyprshell hypr-dock hyprdynamicmonitors autoname swaync eww
   hg_ok "All services reloaded"
 }
 

@@ -77,7 +77,7 @@ func TestMockHTTPServerSetRoute(t *testing.T) {
 
 	// Initially no routes — should 404
 	resp, _ := http.Get(srv.URL() + "/test")
-	resp.Body.Close()
+	defer resp.Body.Close()
 	if resp.StatusCode != 404 {
 		t.Errorf("expected 404, got %d", resp.StatusCode)
 	}
@@ -86,8 +86,8 @@ func TestMockHTTPServerSetRoute(t *testing.T) {
 	srv.SetRoute("GET", "/test", MockHTTPResponse{StatusCode: 200, Body: "ok"})
 
 	resp2, _ := http.Get(srv.URL() + "/test")
+	defer resp2.Body.Close()
 	body, _ := io.ReadAll(resp2.Body)
-	resp2.Body.Close()
 	if string(body) != "ok" {
 		t.Errorf("body = %q, want %q", string(body), "ok")
 	}

@@ -1,0 +1,9 @@
+[Unit]
+Description=dotfiles kitty session save timer
+
+[Timer]
+OnActiveSec=2m
+OnUnitActiveSec=10m
+
+[Install]
+WantedBy=timers.target

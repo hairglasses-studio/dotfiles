@@ -29,6 +29,53 @@ _cached_eval() {
 # ── PATH ────────────────────────────────────────
 export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.cargo/bin:$PATH"
 
+# ── Base environment for all shells ─────────────
+export EDITOR=nvim
+export VISUAL=nvim
+export PAGER=less
+export TERM=xterm-256color
+export GPG_TTY=$TTY
+export AWS_PAGER=""
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+export HISTFILE="$HOME/.zsh_history"
+export HISTSIZE=50000
+export SAVEHIST=50000
+setopt HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS
+setopt HIST_FIND_NO_DUPS HIST_SAVE_NO_DUPS HIST_REDUCE_BLANKS
+setopt HIST_VERIFY SHARE_HISTORY EXTENDED_HISTORY
+
+# ── Agent session quiet mode ───────────────────
+_hg_agent_session_quiet() {
+  [[ "${HG_AGENT_SESSION_QUIET:-0}" == "1" ]]
+}
+
+_hg_define_agent_wrappers() {
+  unalias claude gemini codex 2>/dev/null
+
+  claude() {
+    env -u ANTHROPIC_API_KEY \
+      -u PERSONAL_CLAUDE_MAX_ANTHROPIC_API_KEY \
+      -u ANTHROPIC_AUTH_TOKEN \
+      HG_AGENT_SESSION_QUIET=1 \
+      claude --dangerously-skip-permissions "$@"
+  }
+
+  gemini() {
+    HG_AGENT_SESSION_QUIET=1 command gemini "$@"
+  }
+
+  codex() {
+    HG_AGENT_SESSION_QUIET=1 sudo -H /home/hg/.local/bin/codex "$@"
+  }
+}
+
+if _hg_agent_session_quiet; then
+  _hg_define_agent_wrappers
+  return 0 2>/dev/null || exit 0
+fi
+
 # ── Oh My Zsh ──────────────────────────────────
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -84,11 +131,6 @@ fpath=("$DOTFILES_DIR/zsh" $fpath)
 
 source "$ZSH/oh-my-zsh.sh"
 
-# ── Agent session quiet mode ───────────────────
-_hg_agent_session_quiet() {
-  [[ "${HG_AGENT_SESSION_QUIET:-0}" == "1" ]]
-}
-
 # ── Personal aliases ───────────────────────────
 alias ralph="bash $HOME/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
 
@@ -97,17 +139,6 @@ alias ralph="bash $HOME/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
 [[ -f "$DOTFILES_DIR/zsh/aliases.zsh" ]] && source "$DOTFILES_DIR/zsh/aliases.zsh"
 [[ "$OSTYPE" == "linux"* ]]  && [[ -f "$DOTFILES_DIR/zsh/aliases.linux.zsh" ]]  && source "$DOTFILES_DIR/zsh/aliases.linux.zsh"
 [[ -f "$DOTFILES_DIR/zsh/zshopt" ]] && source "$DOTFILES_DIR/zsh/zshopt"
-
-# ── Environment ─────────────────────────────────
-export EDITOR=nvim
-export VISUAL=nvim
-export PAGER=less
-export TERM=xterm-256color
-export GPG_TTY=$TTY
-export AWS_PAGER=""
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_CACHE_HOME="$HOME/.cache"
 
 # ── EZA Snazzy colors ────────────────────────
 export EZA_COLORS="\
@@ -134,14 +165,6 @@ da=38;5;243:\
 *.pdf=31:*.doc=31:*.docx=31:*.xls=31:*.xlsx=31:\
 *.go=36:*.rs=31:*.py=33:*.js=33:*.ts=34:*.lua=34:\
 *.md=37:*.json=33:*.yaml=33:*.yml=33:*.toml=33"
-
-# ── History ─────────────────────────────────────
-export HISTFILE="$HOME/.zsh_history"
-export HISTSIZE=50000
-export SAVEHIST=50000
-setopt HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS
-setopt HIST_FIND_NO_DUPS HIST_SAVE_NO_DUPS HIST_REDUCE_BLANKS
-setopt HIST_VERIFY SHARE_HISTORY EXTENDED_HISTORY
 
 # ── Autosuggestions styling ─────────────────────
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#686868'
@@ -364,32 +387,7 @@ fi
 [[ -f "$HOME/.zshrc.d/codex-stashapp-full-access.zsh" ]] && source "$HOME/.zshrc.d/codex-stashapp-full-access.zsh"
 
 # Quiet agent sessions by default without disturbing normal shells.
-unalias claude gemini codex 2>/dev/null
-
-claude() {
-  env -u ANTHROPIC_API_KEY \
-    -u PERSONAL_CLAUDE_MAX_ANTHROPIC_API_KEY \
-    -u ANTHROPIC_AUTH_TOKEN \
-    HG_AGENT_SESSION_QUIET=1 \
-    claude --dangerously-skip-permissions "$@"
-}
-
-gemini() {
-  HG_AGENT_SESSION_QUIET=1 command gemini "$@"
-}
-
-unfunction _hg_codex_base 2>/dev/null
-if (( $+functions[codex] )); then
-  functions -c codex _hg_codex_base
-fi
-
-codex() {
-  if (( $+functions[_hg_codex_base] )); then
-    HG_AGENT_SESSION_QUIET=1 _hg_codex_base "$@"
-    return
-  fi
-  HG_AGENT_SESSION_QUIET=1 command codex "$@"
-}
+_hg_define_agent_wrappers
 
 # Android SDK (kirkwood dev)
 export ANDROID_HOME="$HOME/Android/Sdk"

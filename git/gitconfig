@@ -1,7 +1,7 @@
 [user]
     name = hairglasses
-    email = mitch@hairglasses.studio
-	signingkey = A24C0C8CA217C787
+    email = open-source@example.com
+    signingkey = A24C0C8CA217C787
 [core]
     editor = nvim
     pager = delta
@@ -38,7 +38,7 @@
 [rerere]
     enabled = true
 [gpg]
-	format = openpgp
+    format = openpgp
 [commit]
     gpgsign = true
 [alias]
@@ -47,8 +47,8 @@
     st = status --short --branch
     lg = log --oneline --graph --decorate --all -20
     undo = reset --soft HEAD~1
-    wip = !git add -A && git commit -m 'wip [skip ci]'
-    cleanup = !git branch --merged main | grep -v 'main' | xargs git branch -d
+    wip = !git add -A && git commit -m "wip [skip ci]"
+    cleanup = !git branch --merged main | grep -v "main" | xargs git branch -d
     pr = !gh pr create --fill
     prc = !gh pr checkout
 [url "git@github.com:hairglasses-studio/"]
@@ -56,10 +56,17 @@
 [url "git@github.com:hairglasses/"]
     insteadOf = hg:
 [credential "https://github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+    helper = 
+    helper = !/usr/bin/gh auth git-credential
 [credential "https://gist.github.com"]
-	helper = 
-	helper = !/usr/bin/gh auth git-credential
+    helper = 
+    helper = !/usr/bin/gh auth git-credential
 [url "git@github.com:glasshairs/"]
-	insteadOf = https://github.com/glasshairs/
+    insteadOf = https://github.com/glasshairs/
+[filter "lfs"]
+    required = true
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+[url "git@github.com:"]
+    insteadOf = https://github.com/

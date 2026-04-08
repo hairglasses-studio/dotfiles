@@ -40,6 +40,11 @@ _capture_stdout() {
   wayshot "${args[@]}" 2>/dev/null
 }
 
+_grim_supports_window_capture() {
+  command -v grim >/dev/null 2>&1 || return 1
+  grim --help 2>&1 | grep -q -- '-w'
+}
+
 # ── Post-processing ─────────────────────────────
 _timestamp() { date +%Y%m%d_%H%M%S; }
 
@@ -114,9 +119,19 @@ _mode_region() {
 
 _mode_window() {
   hg_require jq
-  local json region
+  local json region address
   json="$(compositor_query activewindow 2>/dev/null)"
   [[ -n "$json" ]] || hg_die "No active window detected"
+  address="$(echo "$json" | jq -r '.address // empty')"
+
+  if [[ -n "$address" ]] && _grim_supports_window_capture; then
+    local tmp
+    tmp="$(mktemp /tmp/hg-ss-XXXXXX.png)"
+    grim -w "$address" "$tmp" 2>/dev/null || hg_die "grim window capture failed"
+    _post_process "$tmp" "$DO_SAVE" "$DO_CLIP" "$DO_NOTIFY" "$OUTPUT_PATH"
+    return 0
+  fi
+
   local ax ay sx sy
   ax="$(echo "$json" | jq -r '.at[0]')"
   ay="$(echo "$json" | jq -r '.at[1]')"

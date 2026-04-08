@@ -5,7 +5,7 @@
 | Key | Action |
 |-----|--------|
 | `Super+Enter` | New terminal |
-| `Super+D` | App launcher |
+| `Super+D` | Hyprshell overview + launcher, with wofi fallback |
 | `Super+`` | Keybind reference |
 | `Super+X` | Dropdown terminal |
 | `Super+P` | Toggle powermenu |
@@ -91,7 +91,7 @@
 |-----|--------|
 | `Super+Shift+Q` | Close window |
 | `Super+Tab` | Workspace overview |
-| `Alt+Tab` | App switcher (wofi) |
+| `Alt+Tab` | Hyprshell app switcher, with wofi fallback |
 | `Super+Shift+R` | Reload config |
 | `Super+Shift+Tab` | Send to other monitor |
 
@@ -187,9 +187,11 @@
 | Key | Action |
 |-----|--------|
 | `Super+Shift+X` | Lock screen |
-| `Super+Shift+W` | Wallpaper next |
-| `Super+Shift+Ctrl+W` | Wallpaper random |
-| `Super+Shift+Alt+W` | Wallpaper static |
+| `Super+Shift+W` | Wallpaper shader next |
+| `Super+Shift+Ctrl+W` | Wallpaper shader random |
+| `Super+Shift+Alt+W` | Wallpaper static random |
+| `Super+Ctrl+W` | Wallpaper video mode |
+| `Super+Alt+W` | Wallpaper depth mode |
 | `Super+Shift+D` | Toggle dashboard |
 | `Super+Shift+E` | Power menu |
 

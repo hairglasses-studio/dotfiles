@@ -79,9 +79,12 @@ hg_doctor() {
   local -a _links=(
     "$HOME/.config/kitty:kitty"
     "$HOME/.config/hypr:hyprland"
+    "$HOME/.config/hyprshell:hyprshell"
+    "$HOME/.config/hypr-dock:hypr-dock"
+    "$HOME/.config/hyprdynamicmonitors:hyprdynamicmonitors"
+    "$HOME/.config/hyprland-autoname-workspaces:autoname"
     "$HOME/.config/eww:eww"
     "$HOME/.config/swaync:swaync"
-    "$HOME/.config/ironbar:ironbar"
   )
   for _entry in "${_links[@]}"; do
     local _path="${_entry%%:*}" _name="${_entry#*:}"
