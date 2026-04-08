@@ -10,6 +10,8 @@ source "$SCRIPT_DIR/lib/hg-workspace.sh"
 DOTFILES="$HG_DOTFILES"
 ORG_GITHUB="$HG_STUDIO_ROOT/.github"
 STUDIO="$HG_STUDIO_ROOT"
+SURFACEKIT_ROOT="${SURFACEKIT_ROOT:-$STUDIO/surfacekit}"
+SURFACEKIT_RUN="$SURFACEKIT_ROOT/scripts/run-surfacekit.sh"
 
 workflow_source() {
   local wf="$1"
@@ -26,6 +28,8 @@ LANG="${2:-go}"
 if [[ -z "$NAME" ]]; then
   hg_die "Usage: hg-new-repo.sh <name> [go|node|python]"
 fi
+
+[[ -f "$SURFACEKIT_RUN" ]] || hg_die "surfacekit launcher not found at $SURFACEKIT_RUN"
 
 REPO_DIR="$STUDIO/$NAME"
 
@@ -180,58 +184,9 @@ hg_ok "Created AGENTS.md skeleton"
 "$SCRIPT_DIR/hg-agent-docs.sh" --source agents "$REPO_DIR"
 hg_ok "Generated CLAUDE.md, GEMINI.md, and .github/copilot-instructions.md"
 
-# ── Codex config baseline ────────────────────
-mkdir -p .codex
-command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/config.toml
-hg_ok "Created .codex/config.toml from shared standard"
-
-# ── Gemini settings baseline ─────────────────
-bash "$SCRIPT_DIR/hg-provider-settings-sync.sh" "$REPO_DIR" --repo-name "$NAME" --allow-dirty >/dev/null
-hg_ok "Created .claude/settings.json and .gemini/settings.json from shared standard"
-
-# ── Canonical skill surface ──────────────────
 SKILL_NAME="${NAME//-/_}_ops"
-mkdir -p ".agents/skills/$SKILL_NAME"
-cat > .agents/skills/surface.yaml << EOF
-{
-  "version": 1,
-  "skills": [
-    {
-      "name": "$SKILL_NAME",
-      "claude_include_canonical": true,
-      "export_plugin": false
-    }
-  ]
-}
-EOF
-cat > ".agents/skills/$SKILL_NAME/SKILL.md" << EOF
----
-name: $SKILL_NAME
-description: Core build, test, release, and maintenance workflow for the $NAME repo.
-allowed-tools:
-  - Bash
-  - Read
-  - Write
-  - Grep
-  - Glob
----
-
-# ${NAME} Ops
-
-Use this skill for the default repo workflow in \`$NAME\`.
-
-## Default loop
-
-1. Read \`AGENTS.md\` and confirm the repo-specific build and test commands.
-2. Inspect the relevant code or docs before editing.
-3. Make focused changes that preserve existing conventions.
-4. Run the narrowest useful verification first, then the broader repo checks before finishing.
-5. Summarize outcome, verification, and any remaining risks.
-
-Read files under \`.agents/skills/$SKILL_NAME/references/\` if this repo later grows domain-specific workflows.
-EOF
-"$SCRIPT_DIR/hg-skill-surface-sync.sh" "$REPO_DIR" >/dev/null
-hg_ok "Created canonical .agents/skills surface"
+"$SURFACEKIT_RUN" init repo "$REPO_DIR" --repo-name "$NAME" --allow-dirty --default-skill-name "$SKILL_NAME" --default-skill-description "Core build, test, release, and maintenance workflow for the $NAME repo." >/dev/null
+hg_ok "Initialized provider settings, Codex config, and canonical skill surface via surfacekit"
 
 if hg_workspace_repo_exists "$NAME"; then
   "$SCRIPT_DIR/hg-repo-profile-sync.sh" sync --allow-dirty --repos="$NAME" >/dev/null
