@@ -84,8 +84,12 @@ fpath=("$DOTFILES_DIR/zsh" $fpath)
 
 source "$ZSH/oh-my-zsh.sh"
 
+# ── Agent session quiet mode ───────────────────
+_hg_agent_session_quiet() {
+  [[ "${HG_AGENT_SESSION_QUIET:-0}" == "1" ]]
+}
+
 # ── Personal aliases ───────────────────────────
-alias claude='env -u ANTHROPIC_API_KEY -u PERSONAL_CLAUDE_MAX_ANTHROPIC_API_KEY -u ANTHROPIC_AUTH_TOKEN claude --dangerously-skip-permissions'
 alias ralph="bash $HOME/hairglasses-studio/ralph-claude-code/ralph_loop.sh"
 
 # ── Dotfiles aliases + options ──────────────────
@@ -164,7 +168,7 @@ _cmd_timer_precmd() {
     local elapsed=$(( EPOCHSECONDS - _CMD_START_TIME ))
     if (( elapsed > 30 )) && [[ -t 1 ]]; then
       # Animated terminal celebration
-      if command -v tte &>/dev/null; then
+      if ! _hg_agent_session_quiet && command -v tte &>/dev/null; then
         if (( last_status == 0 )); then
           echo "✓ ${_CMD_NAME%% *} completed (${elapsed}s)" | tte beams \
             --beam-gradient-stops 5af78e 57c7ff \
@@ -277,7 +281,7 @@ fi
 [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
 # ── Terminal splash (animated banner, <=6 lines) ──
-if [[ $- == *i* && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" ]] && command -v tte &>/dev/null; then
+if [[ $- == *i* && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" ]] && ! _hg_agent_session_quiet && command -v tte &>/dev/null; then
   _splash_banners=(
     "▸ NEURAL LINK ESTABLISHED"
     "▸ MESH_NET // SYNCHRONIZED"
@@ -349,7 +353,7 @@ fi
 [[ -d "$HOME/hairglasses-studio" ]] && cd "$HOME/hairglasses-studio"
 
 # ── Shuffled Ghostty shader per terminal ──────
-if (( $+functions[shader-next] )) || (( $+commands[shader-next] )); then
+if ! _hg_agent_session_quiet && { (( $+functions[shader-next] )) || (( $+commands[shader-next] )); }; then
   { shader-next 2>/dev/null & } 2>/dev/null; disown 2>/dev/null
 fi
 
@@ -358,6 +362,34 @@ fi
 
 # Codex stashapp full-access wrapper
 [[ -f "$HOME/.zshrc.d/codex-stashapp-full-access.zsh" ]] && source "$HOME/.zshrc.d/codex-stashapp-full-access.zsh"
+
+# Quiet agent sessions by default without disturbing normal shells.
+unalias claude gemini codex 2>/dev/null
+
+claude() {
+  env -u ANTHROPIC_API_KEY \
+    -u PERSONAL_CLAUDE_MAX_ANTHROPIC_API_KEY \
+    -u ANTHROPIC_AUTH_TOKEN \
+    HG_AGENT_SESSION_QUIET=1 \
+    claude --dangerously-skip-permissions "$@"
+}
+
+gemini() {
+  HG_AGENT_SESSION_QUIET=1 command gemini "$@"
+}
+
+unfunction _hg_codex_base 2>/dev/null
+if (( $+functions[codex] )); then
+  functions -c codex _hg_codex_base
+fi
+
+codex() {
+  if (( $+functions[_hg_codex_base] )); then
+    HG_AGENT_SESSION_QUIET=1 _hg_codex_base "$@"
+    return
+  fi
+  HG_AGENT_SESSION_QUIET=1 command codex "$@"
+}
 
 # Android SDK (kirkwood dev)
 export ANDROID_HOME="$HOME/Android/Sdk"
