@@ -105,6 +105,18 @@ emit_scalar_line() {
   printf '%s = %s\n' "$key" "$(toml_quote "$value")"
 }
 
+emit_bool_line() {
+  local key="$1"
+  local value="$2"
+  printf '%s = %s\n' "$key" "$value"
+}
+
+emit_int_line() {
+  local key="$1"
+  local value="$2"
+  printf '%s = %s\n' "$key" "$value"
+}
+
 emit_array_line() {
   local key="$1"
   shift
@@ -159,10 +171,6 @@ validate_portable_launch() {
   local command="$2"
   local args_json="$3"
   local cwd="$4"
-
-  if [[ "$cwd" == "." || "$cwd" == "./" ]]; then
-    hg_die "$label uses cwd=$cwd; managed MCP launchers must not depend on repo-relative working directories"
-  fi
 
   if [[ "$command" == "../"* ]]; then
     hg_die "$label uses repo-relative command $command that escapes the repo"
@@ -258,27 +266,41 @@ render_block() {
                 comment: ($profile.comment // ""),
                 command: ($profile.override.command // $server.command),
                 args: ($profile.override.args // $server.args // []),
-                cwd: ($profile.override.cwd // $server.cwd // ""),
+                cwd: ($profile.override.cwd // $server.cwd // "."),
                 env: (($server.env // {}) + ($profile.override.env // {})),
+                enabled: ($profile.enabled // null),
+                required: ($profile.required // null),
+                startup_timeout_sec: ($profile.startup_timeout_sec // null),
+                tool_timeout_sec: ($profile.tool_timeout_sec // null),
                 enabled_tools: ($profile.enabled_tools // []),
+                disabled_tools: ($profile.disabled_tools // []),
                 tool_overrides: ($profile.tool_overrides // {})
               }
             end
         '
     )" || hg_die "Failed to resolve profile from source data"
 
-    local name comment command cwd args_json env_json tools_json tool_overrides_json
+    local name comment command cwd args_json env_json enabled_value required_value startup_timeout_value tool_timeout_value enabled_tools_json disabled_tools_json tool_overrides_json
     name="$(jq -r '.name' <<<"$resolved")"
     comment="$(jq -r '.comment' <<<"$resolved")"
     command="$(jq -r '.command' <<<"$resolved")"
     cwd="$(jq -r '.cwd' <<<"$resolved")"
     args_json="$(jq -c '.args' <<<"$resolved")"
     env_json="$(jq -c '.env' <<<"$resolved")"
-    tools_json="$(jq -c '.enabled_tools' <<<"$resolved")"
+    enabled_value="$(jq -r '.enabled // empty' <<<"$resolved")"
+    required_value="$(jq -r '.required // empty' <<<"$resolved")"
+    startup_timeout_value="$(jq -r '.startup_timeout_sec // empty' <<<"$resolved")"
+    tool_timeout_value="$(jq -r '.tool_timeout_sec // empty' <<<"$resolved")"
+    enabled_tools_json="$(jq -c '.enabled_tools' <<<"$resolved")"
+    disabled_tools_json="$(jq -c '.disabled_tools' <<<"$resolved")"
     tool_overrides_json="$(jq -c '.tool_overrides' <<<"$resolved")"
 
     [[ -n "$command" && "$command" != "null" ]] || hg_die "Profile $name resolved to an empty command"
     validate_portable_launch "profile $name" "$command" "$args_json" "$cwd"
+    [[ -z "$enabled_value" || "$enabled_value" == "true" || "$enabled_value" == "false" ]] || hg_die "Profile $name enabled must be a boolean"
+    [[ -z "$required_value" || "$required_value" == "true" || "$required_value" == "false" ]] || hg_die "Profile $name required must be a boolean"
+    [[ -z "$startup_timeout_value" || "$startup_timeout_value" =~ ^[0-9]+$ ]] || hg_die "Profile $name startup_timeout_sec must be an integer"
+    [[ -z "$tool_timeout_value" || "$tool_timeout_value" =~ ^[0-9]+$ ]] || hg_die "Profile $name tool_timeout_sec must be an integer"
 
     [[ "$first" -eq 1 ]] || printf '\n'
     first=0
@@ -286,6 +308,10 @@ render_block() {
     [[ -n "$comment" ]] && printf '# %s\n' "$comment"
     printf '[mcp_servers.%s]\n' "$name"
     emit_scalar_line "command" "$command"
+    [[ -n "$enabled_value" ]] && emit_bool_line "enabled" "$enabled_value"
+    [[ -n "$required_value" ]] && emit_bool_line "required" "$required_value"
+    [[ -n "$startup_timeout_value" ]] && emit_int_line "startup_timeout_sec" "$startup_timeout_value"
+    [[ -n "$tool_timeout_value" ]] && emit_int_line "tool_timeout_sec" "$tool_timeout_value"
 
     local args
     mapfile -t args < <(jq -r '.[]' <<<"$args_json")
@@ -293,17 +319,28 @@ render_block() {
       emit_array_line "args" "${args[@]}"
     fi
 
-    if [[ -n "$cwd" && "$cwd" != "." && "$cwd" != "./" ]]; then
+    if [[ -n "$cwd" ]]; then
       emit_scalar_line "cwd" "$cwd"
     fi
 
     local tools
-    mapfile -t tools < <(jq -r '.[]' <<<"$tools_json")
+    mapfile -t tools < <(jq -r '.[]' <<<"$enabled_tools_json")
     if [[ "${#tools[@]}" -gt 0 ]]; then
       printf 'enabled_tools = [\n'
       local tool
       for tool in "${tools[@]}"; do
         printf '  %s,\n' "$(toml_quote "$tool")"
+      done
+      printf ']\n'
+    fi
+
+    local disabled_tools
+    mapfile -t disabled_tools < <(jq -r '.[]' <<<"$disabled_tools_json")
+    if [[ "${#disabled_tools[@]}" -gt 0 ]]; then
+      printf 'disabled_tools = [\n'
+      local disabled_tool
+      for disabled_tool in "${disabled_tools[@]}"; do
+        printf '  %s,\n' "$(toml_quote "$disabled_tool")"
       done
       printf ']\n'
     fi

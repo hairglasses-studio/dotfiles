@@ -1,18 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WORKSPACE_ROOT="${WORKSPACE_ROOT:-$HOME/hairglasses-studio}"
-CONFIG_PATH="${CONFIG_PATH:-$HOME/.codex/config.toml}"
-POLICY_PATH="${POLICY_PATH:-}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+ROOT_ARGS=()
+CODEX_ARGS=()
 DRY_RUN=false
+LEGACY_POLICY_PATH=""
 
 usage() {
   cat <<'EOF'
 Usage: hg-codex-global-mcp-sync.sh [--workspace-root <path>] [--config <path>] [--policy <path>] [--dry-run]
 
-Generate a user-global MCP block in ~/.codex/config.toml from every .mcp.json
-found under the hairglasses-studio workspace. If --policy is omitted, the
-sync will auto-load workspace/mcp-global-policy.json when present.
+Deprecated compatibility wrapper around hg-workspace-global-sync.sh.
+
+This command now delegates to:
+  hg-workspace-global-sync.sh --tools-only
+
+Argument mapping:
+  --workspace-root -> --root
+  --config         -> --codex-config
+
+Note: the legacy --policy flag is no longer supported because workspace-global
+sync derives curated Codex overlays from repo-local metadata plus the workspace
+manifest. If you pass --policy, this wrapper exits with an error.
 EOF
 }
 
@@ -23,7 +34,7 @@ while [[ $# -gt 0 ]]; do
         echo "--workspace-root requires a path" >&2
         exit 1
       }
-      WORKSPACE_ROOT="$2"
+      ROOT_ARGS+=(--root "$2")
       shift 2
       ;;
     --config)
@@ -31,7 +42,7 @@ while [[ $# -gt 0 ]]; do
         echo "--config requires a path" >&2
         exit 1
       }
-      CONFIG_PATH="$2"
+      CODEX_ARGS+=(--codex-config "$2")
       shift 2
       ;;
     --policy)
@@ -39,7 +50,7 @@ while [[ $# -gt 0 ]]; do
         echo "--policy requires a path" >&2
         exit 1
       }
-      POLICY_PATH="$2"
+      LEGACY_POLICY_PATH="$2"
       shift 2
       ;;
     --dry-run)
@@ -58,32 +69,21 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-command -v go >/dev/null 2>&1 || {
-  echo "go is required" >&2
+if [[ -n "$LEGACY_POLICY_PATH" ]]; then
+  echo "error: --policy is not supported by the workspace-global sync path; move any remaining policy logic into repo-local .codex/mcp-profile-policy.json files" >&2
   exit 1
-}
+fi
 
-args=(
-  go
-  run
-  "$WORKSPACE_ROOT/codexkit/cmd/codexkit-global-mcp"
-  --workspace-root
-  "$WORKSPACE_ROOT"
-  --config
-  "$CONFIG_PATH"
+echo "warning: hg-codex-global-mcp-sync.sh is deprecated; use hg-workspace-global-sync.sh --tools-only" >&2
+
+ARGS=(
+  --tools-only
+  "${ROOT_ARGS[@]}"
+  "${CODEX_ARGS[@]}"
 )
 
-if [[ -n "$POLICY_PATH" ]]; then
-  args+=(
-    --policy
-    "$POLICY_PATH"
-  )
-fi
-
 if [[ "$DRY_RUN" == true ]]; then
-  args+=(--dry-run)
+  ARGS+=(--dry-run)
 fi
 
-GOCACHE="${GOCACHE:-/tmp/codexkit-global-gocache}" \
-GOTMPDIR="${GOTMPDIR:-/tmp}" \
-  "${args[@]}"
+exec "$SCRIPT_DIR/hg-workspace-global-sync.sh" "${ARGS[@]}"
