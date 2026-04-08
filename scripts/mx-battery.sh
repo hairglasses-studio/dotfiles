@@ -7,7 +7,7 @@ battery=$(solaar show "MX Master 4" 2>/dev/null | strings | grep -oP 'Battery: \
 
 # Fallback: bluetoothctl
 if [[ -z "$battery" ]]; then
-    battery=$(bluetoothctl info ${BT_MX_MASTER:-D2:8E:C5:DE:9F:C8} 2>/dev/null | grep -oP 'Battery Percentage:.*\(\K\d+' || true)
+    battery=$(bluetoothctl info ${BT_MX_MASTER:-D2:8E:C5:DE:9F:CC} 2>/dev/null | grep -oP 'Battery Percentage:.*\(\K\d+' || true)
 fi
 
 if [[ -n "$battery" ]]; then

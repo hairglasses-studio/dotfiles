@@ -18,6 +18,8 @@ CMDS
 
 _input_status() {
   printf "\n %s%sinput devices%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
+  local tracked_logiops="$HG_DOTFILES/logiops/logid.cfg"
+  local deployed_logiops="/etc/logid.cfg"
 
   # logid
   if systemctl is-active logid.service &>/dev/null; then
@@ -31,6 +33,18 @@ _input_status() {
     printf "  %s%-12s%s %sactive%s\n" "$HG_DIM" "makima" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
     printf "  %s%-12s%s %sinactive%s\n" "$HG_DIM" "makima" "$HG_RESET" "$HG_RED" "$HG_RESET"
+  fi
+
+  if [[ -f "$tracked_logiops" && -f "$deployed_logiops" ]]; then
+    if diff -q "$tracked_logiops" "$deployed_logiops" &>/dev/null; then
+      printf "  %s%-12s%s %ssynced%s\n" "$HG_DIM" "logiops cfg" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+    else
+      printf "  %s%-12s%s %sdrifted%s\n" "$HG_DIM" "logiops cfg" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+    fi
+  elif [[ -f "$tracked_logiops" ]]; then
+    printf "  %s%-12s%s %snot deployed%s\n" "$HG_DIM" "logiops cfg" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+  else
+    printf "  %s%-12s%s %smissing%s\n" "$HG_DIM" "logiops cfg" "$HG_RESET" "$HG_RED" "$HG_RESET"
   fi
 
   # solaar config
