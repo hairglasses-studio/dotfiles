@@ -14,6 +14,10 @@ hg_require jq
 STUDIO="$HG_STUDIO_ROOT"
 DOTFILES="$HG_DOTFILES"
 ORG_GITHUB="$STUDIO/.github"
+SURFACEKIT_ROOT="${SURFACEKIT_ROOT:-$STUDIO/surfacekit}"
+SURFACEKIT_RUN="$SURFACEKIT_ROOT/scripts/run-surfacekit.sh"
+
+[[ -f "$SURFACEKIT_RUN" ]] || hg_die "surfacekit launcher not found at $SURFACEKIT_RUN"
 
 workflow_source() {
   local wf="$1"
@@ -165,51 +169,31 @@ fi
 # ── Hosted automation ────────────────────────
 add_note "Hosted GitHub workflows and Dependabot config are not onboarded under the local-only automation policy"
 
-# ── Codex config ─────────────────────────────
-if [[ ! -f .codex/config.toml ]]; then
-  if $DRY_RUN; then
-    add_file ".codex/config.toml"
-  else
-    mkdir -p .codex
-    command cp -f "$SCRIPT_DIR/../templates/codex-config.standard.toml" .codex/config.toml
-    add_file ".codex/config.toml"
-  fi
+NEEDS_SURFACE_MIGRATE=false
+if [[ ! -f .agents/skills/surface.yaml ]]; then
+  while IFS= read -r skill_dir; do
+    [[ -f "$skill_dir/SKILL.md" ]] || continue
+    NEEDS_SURFACE_MIGRATE=true
+    break
+  done < <(find .agents/skills .claude/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null || true)
 fi
 
-# ── Gemini settings ──────────────────────────
-if [[ ! -f .claude/settings.json || ! -f .gemini/settings.json ]]; then
+if $NEEDS_SURFACE_MIGRATE; then
   if $DRY_RUN; then
-    add_file ".claude/settings.json and .gemini/settings.json"
+    add_file "surfacekit skill-surface migration"
   else
-    bash "$SCRIPT_DIR/hg-provider-settings-sync.sh" "$PWD" --repo-name "$REPO_NAME" --allow-dirty >/dev/null
-    add_file ".claude/settings.json and .gemini/settings.json"
+    "$SURFACEKIT_RUN" migrate repo "$PWD" >/dev/null
+    add_file "surfacekit skill-surface migration"
   fi
+elif [[ -d .claude/skills && ! -f .agents/skills/surface.yaml ]]; then
+  hg_warn "$REPO_NAME: found legacy .claude/skills but no canonical surface manifest"
 fi
 
-# ── Codex MCP sync ───────────────────────────
-if [[ -f .mcp.json && -f .codex/mcp-profile-policy.json ]]; then
-  if $DRY_RUN; then
-    add_file ".codex/config.toml MCP block sync"
-  else
-    bash "$SCRIPT_DIR/hg-codex-mcp-sync.sh" "$PWD" >/dev/null
-    add_file ".codex/config.toml MCP block sync"
-  fi
-elif [[ -f .mcp.json && ! -f .codex/mcp-profile-policy.json ]]; then
-  hg_warn "$REPO_NAME: found .mcp.json but no .codex/mcp-profile-policy.json; skipping Codex MCP sync"
-fi
-
-# ── Explicit skill surface sync ──────────────
-if [[ -f .agents/skills/surface.yaml ]]; then
-  if ! jq -e '.version == 1 and (.skills | type == "array")' .agents/skills/surface.yaml >/dev/null 2>&1; then
-    hg_warn "$REPO_NAME: found YAML-only .agents/skills/surface.yaml; skipping repo-local Claude mirror sync"
-  elif $DRY_RUN; then
-    add_file "canonical skill surface sync"
-  else
-    "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$PWD" >/dev/null
-    add_file "canonical skill surface sync"
-  fi
-elif [[ -d .claude/skills ]]; then
-  hg_warn "$REPO_NAME: found legacy .claude/skills but no .agents/skills/surface.yaml"
+if $DRY_RUN; then
+  add_file "surfacekit repo init"
+else
+  "$SURFACEKIT_RUN" init repo "$PWD" --repo-name "$REPO_NAME" --allow-dirty >/dev/null
+  add_file "surfacekit repo init"
 fi
 
 # ── Derived agent docs ───────────────────────
