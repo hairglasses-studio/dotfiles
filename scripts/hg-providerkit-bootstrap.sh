@@ -168,8 +168,8 @@ update_manifest() {
                   visibility: $visibility,
                   lifecycle: "canonical",
                   automation_profile: "application",
-                  ci_profile: "go_standard",
-                  review_profile: (if $visibility == "private" then "private_ai_review" else "public_ai_review" end),
+                  ci_profile: "none",
+                  review_profile: "none",
                   mcp_surface_class: "none",
                   env_profile: "root_inherit",
                   mirror_of: null

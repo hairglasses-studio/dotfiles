@@ -79,47 +79,8 @@ sed "s/<repo>/$NAME/g" "$ORG_GITHUB/CONTRIBUTING.md" > CONTRIBUTING.md
 # CODEOWNERS, issue/PR templates inherited from org .github repo — no local copies needed
 hg_ok "Created LICENSE, CONTRIBUTING.md (issue/PR templates inherited from org)"
 
-# ── CI workflows ─────────────────────────────
-mkdir -p .github/workflows
-# Copy standard workflows from the org templates
-for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml codex-structured-audit.yml codex-baseline-guard.yml ai-dispatch.yml dependabot-auto-merge.yml; do
-  src="$(workflow_source "$wf")"
-  [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
-  [[ -f "$src" ]] && command cp -f "$src" ".github/workflows/$wf"
-done
-
-# CI workflow (standalone template — dotfiles is private, can't use reusable workflows)
-if [[ "$LANG" == "go" ]]; then
-  command cp -f "$DOTFILES/make/ci-go.yml" .github/workflows/ci.yml 2>/dev/null || \
-  command cp -f "$ORG_GITHUB/workflow-templates/ci-go.yml" .github/workflows/ci.yml 2>/dev/null || true
-fi
-
-# Dependabot config
-cat > .github/dependabot.yml << 'DEPEOF'
-version: 2
-updates:
-  - package-ecosystem: gomod
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "09:00"
-      timezone: America/Los_Angeles
-    groups:
-      minor-and-patch:
-        update-types: [minor, patch]
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: "deps(go)"
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "deps(actions)"
-DEPEOF
-hg_ok "Created CI workflows + dependabot.yml"
+# ── Hosted automation ────────────────────────
+hg_warn "Skipping hosted GitHub workflows and Dependabot scaffolding (local-only automation policy)"
 
 # ── Language-specific files ──────────────────
 case "$LANG" in

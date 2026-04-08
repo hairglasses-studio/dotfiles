@@ -653,7 +653,6 @@ for repo in "${repos[@]}"; do
   if [[ "$scope" == "active_operator" ]]; then
     expected_full_profiles=1
     expected_codex_agents=1
-    expected_codex_workflows=1
   fi
   expected_codex_plugin=$(scope_override_bool "$name" "expect_codex_plugin" 0)
   expected_codex_hooks=$(scope_override_bool "$name" "expect_codex_hooks" 0)
@@ -889,7 +888,7 @@ active repos missing .github/copilot-instructions.md: $total_active_missing_copi
 active repos missing .codex/config.toml: $total_active_missing_codex
 active operator repos missing full profile packs: $total_active_missing_full_profiles
 active operator repos missing .codex/agents/*.toml: $total_active_missing_codex_agents
-active operator repos missing Codex workflows: $total_active_missing_codex_workflows
+active repos missing expected hosted Codex workflows: $total_active_missing_codex_workflows
 active repos missing expected Codex plugins: $total_active_missing_codex_plugins
 active repos missing expected codex_hooks: $total_active_missing_codex_hooks
 active MCP repos missing full contract: $total_active_mcp_repos_missing_full_contract
@@ -1056,7 +1055,7 @@ Summary from the latest audit:
 - Repos with \`.mcp.json\` but no MCP policy file: ${total_repos_with_mcp_without_policy}
 - Repos with \`.mcp.json\` but no curated Codex MCP servers: ${total_repos_with_mcp_without_curated_codex}
 - Repos with \`.codex/agents/*.toml\`: ${total_with_codex_agents}
-- Repos with Codex workflows: ${total_with_codex_workflows}
+- Repos with hosted Codex workflows (legacy): ${total_with_codex_workflows}
 - Repos with \`AGENTS.override.md\`: ${total_with_agents_override}
 - Repos with \`codex_hooks = true\`: ${total_with_codex_hooks}
 - Repos with Gemini extension scaffolds: ${total_repos_with_gemini_extensions}
@@ -1075,7 +1074,7 @@ Summary from the latest audit:
 - Active repos missing \`.codex/config.toml\`: ${total_active_missing_codex}
 - Active operator repos missing full Codex profile packs: ${total_active_missing_full_profiles}
 - Active operator repos missing \`.codex/agents/*.toml\`: ${total_active_missing_codex_agents}
-- Active operator repos missing Codex workflows: ${total_active_missing_codex_workflows}
+- Active repos missing expected hosted Codex workflows: ${total_active_missing_codex_workflows}
 - Active repos missing expected Codex plugins: ${total_active_missing_codex_plugins}
 - Active repos missing expected \`codex_hooks = true\`: ${total_active_missing_codex_hooks}
 - Active MCP repos missing the full contract: ${total_active_mcp_repos_missing_full_contract}
@@ -1148,7 +1147,7 @@ Summary from the latest audit:
 - Repos with \`.mcp.json\` but no MCP policy file: ${total_repos_with_mcp_without_policy}
 - Repos with \`.mcp.json\` but no curated Codex MCP servers: ${total_repos_with_mcp_without_curated_codex}
 - Repos with \`.codex/agents/*.toml\`: ${total_with_codex_agents}
-- Repos with Codex workflows: ${total_with_codex_workflows}
+- Repos with hosted Codex workflows (legacy): ${total_with_codex_workflows}
 - Repos with \`AGENTS.override.md\`: ${total_with_agents_override}
 - Repos with \`codex_hooks = true\`: ${total_with_codex_hooks}
 - Repos with Gemini extension scaffolds: ${total_repos_with_gemini_extensions}
@@ -1167,7 +1166,7 @@ Summary from the latest audit:
 - Active repos missing \`.codex/config.toml\`: ${total_active_missing_codex}
 - Active operator repos missing full Codex profile packs: ${total_active_missing_full_profiles}
 - Active operator repos missing \`.codex/agents/*.toml\`: ${total_active_missing_codex_agents}
-- Active operator repos missing Codex workflows: ${total_active_missing_codex_workflows}
+- Active repos missing expected hosted Codex workflows: ${total_active_missing_codex_workflows}
 - Active repos missing expected Codex plugins: ${total_active_missing_codex_plugins}
 - Active repos missing expected \`codex_hooks = true\`: ${total_active_missing_codex_hooks}
 - Active MCP repos missing the full contract: ${total_active_mcp_repos_missing_full_contract}

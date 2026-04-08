@@ -9,8 +9,9 @@ source "$SCRIPT_DIR/lib/hg-workspace.sh"
 hg_workspace_require_manifest
 
 MANIFEST="$(hg_workspace_manifest)"
+REPO_POLICY_PATH="$HG_STUDIO_ROOT/docs/inventory/repo-catalog.policy.json"
 
-hg_require jq git
+hg_require jq git join
 
 jq -e '
   .version == 2
@@ -31,6 +32,10 @@ jq -e '
      )
   ] | length == 0
 ' "$MANIFEST" >/dev/null || hg_die "workspace manifest contains invalid enum values"
+
+[[ -f "$REPO_POLICY_PATH" ]] || hg_die "docs repo catalog policy missing: $REPO_POLICY_PATH"
+jq -e '.repo_overrides | type == "array"' "$REPO_POLICY_PATH" >/dev/null \
+  || hg_die "docs repo catalog policy must define repo_overrides[]"
 
 while IFS= read -r repo; do
   [[ -d "$HG_STUDIO_ROOT/$repo" ]] || hg_die "manifest repo missing on disk: $repo"
@@ -61,6 +66,15 @@ missing_from_go_work="$(comm -13 <(printf '%s\n' "$go_work_entries") <(printf '%
 
 [[ -z "$missing_from_manifest" ]] || hg_die "go.work contains repos missing from manifest: $(paste -sd ', ' <<<"$missing_from_manifest")"
 [[ -z "$missing_from_go_work" ]] || hg_die "manifest go_work_member=true repos missing from go.work: $(paste -sd ', ' <<<"$missing_from_go_work")"
+
+manifest_ci_profiles="$(jq -r '.repos[] | [.name, (.ci_profile // "")] | @tsv' "$MANIFEST" | sort)"
+policy_ci_profiles="$(jq -r '.repo_overrides[] | select(.name != null and .ci_profile != null) | [.name, (.ci_profile // "")] | @tsv' "$REPO_POLICY_PATH" | sort)"
+ci_profile_drift="$(join -t $'\t' -j 1 \
+  <(printf '%s\n' "$manifest_ci_profiles") \
+  <(printf '%s\n' "$policy_ci_profiles") \
+  | awk -F $'\t' '$2 != $3 { printf "%s (manifest=%s, policy=%s)\n", $1, $2, $3 }')"
+
+[[ -z "$ci_profile_drift" ]] || hg_die "docs repo catalog policy ci_profile drift detected: $(paste -sd '; ' <<<"$ci_profile_drift")"
 
 for script in \
   "$SCRIPT_DIR/hg-go-sync.sh" \

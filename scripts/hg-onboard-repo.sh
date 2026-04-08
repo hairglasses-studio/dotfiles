@@ -150,41 +150,20 @@ MKEOF
     add_file "Makefile (with pipeline.mk)"
   fi
 
-  # CI workflow
-  if [[ ! -f .github/workflows/ci.yml ]]; then
-    $DRY_RUN || { mkdir -p .github/workflows && command cp -f "$DOTFILES/make/ci-go.yml" .github/workflows/ci.yml; }
-    add_file ".github/workflows/ci.yml (Go)"
-  fi
 fi
 
 # ── Node.js-specific ─────────────────────────
 if [[ "$LANG" == "node" ]]; then
-  if [[ ! -f .github/workflows/ci.yml ]]; then
-    $DRY_RUN || { mkdir -p .github/workflows && command cp -f "$DOTFILES/make/ci-node.yml" .github/workflows/ci.yml; }
-    add_file ".github/workflows/ci.yml (Node)"
-  fi
+  :
 fi
 
 # ── Python-specific ──────────────────────────
 if [[ "$LANG" == "python" ]]; then
-  if [[ ! -f .github/workflows/ci.yml ]]; then
-    $DRY_RUN || { mkdir -p .github/workflows && command cp -f "$DOTFILES/make/ci-python.yml" .github/workflows/ci.yml; }
-    add_file ".github/workflows/ci.yml (Python)"
-  fi
+  :
 fi
 
-# ── Standard workflows (all repos) ──────────
-$DRY_RUN || mkdir -p .github/workflows
-for wf in claude-review.yml claude-security.yml codex-review.yml codex-security.yml codex-structured-audit.yml codex-baseline-guard.yml ai-dispatch.yml dependabot-auto-merge.yml; do
-  if [[ ! -f ".github/workflows/$wf" ]]; then
-    src="$(workflow_source "$wf")"
-    [[ "$wf" == "dependabot-auto-merge.yml" ]] && src="$STUDIO/mcpkit/.github/workflows/$wf"
-    if [[ -f "$src" ]]; then
-      $DRY_RUN || command cp -f "$src" ".github/workflows/$wf"
-      add_file ".github/workflows/$wf"
-    fi
-  fi
-done
+# ── Hosted automation ────────────────────────
+add_note "Hosted GitHub workflows and Dependabot config are not onboarded under the local-only automation policy"
 
 # ── Codex config ─────────────────────────────
 if [[ ! -f .codex/config.toml ]]; then
