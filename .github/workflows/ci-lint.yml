@@ -1,0 +1,111 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'ghostty/shaders/bin/**'
+      - 'install.sh'
+      - 'docker/**'
+      - '**/*.json'
+      - '**/*.toml'
+      - '.github/workflows/ci-lint.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'ghostty/shaders/bin/**'
+      - 'install.sh'
+      - 'docker/**'
+      - '**/*.json'
+      - '**/*.toml'
+      - '.github/workflows/ci-lint.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
+        with:
+          scandir: scripts
+          additional_files: >-
+            ghostty/shaders/bin/shader-cycle.sh
+            ghostty/shaders/bin/shader-random.sh
+            ghostty/shaders/bin/shader-test.sh
+            ghostty/shaders/bin/shader-benchmark.sh
+            ghostty/shaders/bin/shader-build.sh
+            ghostty/shaders/bin/shader-meta.sh
+            install.sh
+          ignore_paths: scripts/ccg.sh
+          severity: error
+
+  configs:
+    name: Config Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Validate JSON files
+        run: |
+          for f in clipse/*.json; do
+            if [ -f "$f" ]; then
+              python3 -m json.tool "$f" > /dev/null || { echo "FAIL: $f"; exit 1; }
+              echo "OK: $f"
+            fi
+          done
+      - name: Validate TOML files
+        run: |
+          pip install toml
+          python3 -c "
+          import toml, sys, glob
+          files = glob.glob('**/*.toml', recursive=True)
+          errors = 0
+          for f in files:
+              try:
+                  toml.load(f)
+                  print(f'OK: {f}')
+              except Exception as e:
+                  print(f'FAIL: {f}: {e}')
+                  errors += 1
+          sys.exit(errors)
+          "
+
+  dockerfiles:
+    name: Dockerfile Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Lint Dockerfiles
+        run: |
+          for f in docker/Dockerfile.*; do
+            echo "Linting $f..."
+            docker run --rm -i hadolint/hadolint < "$f" || true
+          done
+
+  symlinks:
+    name: Symlink Targets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Validate install.sh syntax
+        run: bash -n install.sh
+      - name: Check symlink targets exist
+        run: |
+          FAIL=0
+          while IFS='|' read -r src _; do
+            if [ ! -e "$src" ] && [ ! -L "$src" ]; then
+              echo "::error::Symlink target missing: $src"
+              FAIL=1
+            fi
+          done < <(bash install.sh --print-link-specs)
+          exit "${FAIL:-0}"
