@@ -19,8 +19,8 @@ fi
 # Recovery warnings (if any recent crash events)
 events_file="$HOME/.claude/recovery-events.jsonl"
 if [[ -f "$events_file" ]]; then
-  recent_crashes=$(tail -20 "$events_file" 2>/dev/null | grep -c '"event":"crash"' 2>/dev/null || echo "0")
-  if [[ "$recent_crashes" -gt 0 ]]; then
+  recent_crashes=$(tail -20 "$events_file" 2>/dev/null | grep -c '"event":"crash"' 2>/dev/null || true)
+  if [[ "${recent_crashes:-0}" -gt 0 ]]; then
     context+="Recent crash events: $recent_crashes"$'\n'
   fi
 fi
