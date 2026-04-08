@@ -14,15 +14,9 @@ HEIGHT=486
 _launch_terminal() {
     tmux kill-session -t "$TMUX_SESSION" 2>/dev/null
     kitty --class="$APP_ID" -o font_size=18 -e bash -c "
-        if command -v tte &>/dev/null; then
-            echo 'CYBERDECK ONLINE' | tte beams \
-                --beam-gradient-stops 57c7ff ff6ac1 \
-                --final-gradient-stops 5af78e 57c7ff \
-                --beam-delay 2 2>/dev/null
-            sleep 0.3
-        fi
+        export HG_AGENT_SESSION_QUIET=1
         tmux new-session -d -s $TMUX_SESSION \
-            'ralphglasses --scan-path $HOME/hairglasses-studio'
+            'HG_AGENT_SESSION_QUIET=1 ralphglasses --scan-path $HOME/hairglasses-studio'
         tmux split-window -t $TMUX_SESSION -h -c $HOME/hairglasses-studio/dotfiles \
             'claude'
         tmux select-pane -t $TMUX_SESSION:0.0

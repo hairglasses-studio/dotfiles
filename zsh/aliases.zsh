@@ -803,7 +803,7 @@ briefing() {
 
 # ── cls — animated clear ────────────────────────
 cls() {
-  if cmd_exists tte && [[ -t 1 ]] && (( COLUMNS > 40 )); then
+  if [[ "${HG_AGENT_SESSION_QUIET:-0}" != "1" ]] && cmd_exists tte && [[ -t 1 ]] && (( COLUMNS > 40 )); then
     printf '\033[2J\033[H'
     echo "BUFFER CLEARED // $(date '+%H:%M:%S')" | tte sweep \
       --final-gradient-stops 57c7ff 1a1a1a 000000 \
@@ -816,7 +816,7 @@ cls() {
 # ── SSH connection animation ───────────────────
 ssh() {
   local target="${@: -1}"
-  if [[ -t 1 ]] && cmd_exists tte; then
+  if [[ "${HG_AGENT_SESSION_QUIET:-0}" != "1" ]] && [[ -t 1 ]] && cmd_exists tte; then
     echo "CONNECTING // $target" | tte decrypt \
       --typing-speed 4 --ciphertext-colors 57c7ff ff6ac1 2>/dev/null
   fi
@@ -825,7 +825,7 @@ ssh() {
 
 # ── Command not found handler ──────────────────
 command_not_found_handler() {
-  if cmd_exists tte && [[ -t 1 ]]; then
+  if [[ "${HG_AGENT_SESSION_QUIET:-0}" != "1" ]] && cmd_exists tte && [[ -t 1 ]]; then
     echo "UNKNOWN PROTOCOL: $1" | tte errorcorrect \
       --final-gradient-stops ff5c57 ff6ac1 2>/dev/null
   else
