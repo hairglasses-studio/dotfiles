@@ -7,13 +7,18 @@ import (
 	"github.com/hairglasses-studio/mcpkit/registry"
 )
 
+func benchmarkRegistry() *registry.ToolRegistry {
+	reg := registry.NewToolRegistry()
+	registerDotfilesModules(reg, nil, nil, dotfilesMCPVersion)
+	return reg
+}
+
 // BenchmarkToolSearch measures the discovery tool search handler, which is the
 // most-called tool in dotfiles-mcp (agents call it to find tools before use).
 func BenchmarkToolSearch(b *testing.B) {
 	b.Setenv("DOTFILES_MCP_PROFILE", "full")
 
-	reg := registry.NewToolRegistry()
-	registerDotfilesModules(reg)
+	reg := benchmarkRegistry()
 
 	disc := &DotfilesDiscoveryModule{reg: reg}
 	tools := disc.Tools()
@@ -41,8 +46,7 @@ func BenchmarkToolSearch(b *testing.B) {
 func BenchmarkToolCatalog(b *testing.B) {
 	b.Setenv("DOTFILES_MCP_PROFILE", "full")
 
-	reg := registry.NewToolRegistry()
-	registerDotfilesModules(reg)
+	reg := benchmarkRegistry()
 
 	disc := &DotfilesDiscoveryModule{reg: reg}
 	tools := disc.Tools()
@@ -70,8 +74,7 @@ func BenchmarkToolCatalog(b *testing.B) {
 func BenchmarkToolStats(b *testing.B) {
 	b.Setenv("DOTFILES_MCP_PROFILE", "full")
 
-	reg := registry.NewToolRegistry()
-	registerDotfilesModules(reg)
+	reg := benchmarkRegistry()
 
 	disc := &DotfilesDiscoveryModule{reg: reg}
 	tools := disc.Tools()
@@ -101,8 +104,7 @@ func BenchmarkRegistrySetup(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		reg := registry.NewToolRegistry()
-		registerDotfilesModules(reg)
+		_ = benchmarkRegistry()
 	}
 }
 
