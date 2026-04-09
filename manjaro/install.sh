@@ -200,15 +200,15 @@ install_tpm() {
 # ── Tattoy shader symlink ────────────────────────────────────
 setup_tattoy_shaders() {
     local tattoy_shaders="$HOME/.config/tattoy/shaders"
-    local ghostty_shaders="$DOTFILES/ghostty/shaders"
-    if [[ -L "$tattoy_shaders" ]] && [[ "$(readlink "$tattoy_shaders")" == "$ghostty_shaders" ]]; then
+    local kitty_shaders="$DOTFILES/kitty/shaders/crtty"
+    if [[ -L "$tattoy_shaders" ]] && [[ "$(readlink "$tattoy_shaders")" == "$kitty_shaders" ]]; then
         success "Tattoy shaders already linked"
     elif [[ -d "$tattoy_shaders" ]]; then
         warn "Tattoy shaders dir exists, skipping symlink"
     else
         mkdir -p "$(dirname "$tattoy_shaders")"
-        ln -sf "$ghostty_shaders" "$tattoy_shaders"
-        success "Linked Tattoy shaders to Ghostty shader collection"
+        ln -sf "$kitty_shaders" "$tattoy_shaders"
+        success "Linked Tattoy shaders to Kitty CRTty shader collection"
     fi
 }
 
@@ -279,7 +279,8 @@ create_symlinks() {
     is_enabled nvim     && link_file "$DOTFILES/nvim"                   "$HOME/.config/nvim"
 
     # ── Terminal ──
-    is_enabled ghostty   && link_file "$DOTFILES/ghostty"   "$HOME/.config/ghostty"
+    is_enabled ghostty   && [[ -d "$DOTFILES/ghostty" ]] && link_file "$DOTFILES/ghostty" "$HOME/.config/ghostty"
+    is_enabled ghostty   && [[ -d "$DOTFILES/kitty" ]]   && link_file "$DOTFILES/kitty"   "$HOME/.config/kitty"
     is_enabled foot      && link_file "$DOTFILES/foot"      "$HOME/.config/foot"
     is_enabled bat       && link_file "$DOTFILES/bat"       "$HOME/.config/bat"
     is_enabled fastfetch && link_file "$DOTFILES/fastfetch" "$HOME/.config/fastfetch"
@@ -335,12 +336,14 @@ install_systemd_services() {
     fi
 }
 
-# ── Ghostty shaders ──────────────────────────────────────────
+# ── Kitty visuals ────────────────────────────────────────────
 setup_shaders() {
-    info "Setting up Ghostty shader pipeline..."
-    if [[ -d "$DOTFILES/ghostty/shaders" ]]; then
-        chmod +x "$DOTFILES/ghostty/shaders/bin/"*.sh 2>/dev/null || true
-        info "  Shader scripts ready"
+    info "Setting up Kitty visual pipeline..."
+    if [[ -d "$DOTFILES/kitty/shaders/bin" ]]; then
+        chmod +x "$DOTFILES/kitty/shaders/bin/"*.sh 2>/dev/null || true
+        chmod +x "$DOTFILES/scripts/kitty-shader-playlist.sh" 2>/dev/null || true
+        chmod +x "$DOTFILES/scripts/kitty-visual-launch.sh" 2>/dev/null || true
+        info "  Kitty shader scripts ready"
     fi
 }
 

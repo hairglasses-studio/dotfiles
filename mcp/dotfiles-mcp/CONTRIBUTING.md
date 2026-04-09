@@ -32,7 +32,7 @@ dotfiles-mcp is a single-binary MCP server with 86 tools registered across modul
 
 - `main.go` -- Server setup, tool registration
 - `mod_hyprland.go` -- Hyprland compositor tools
-- `mod_shader.go` -- Ghostty shader pipeline
+- `mod_shader.go` -- Kitty visual pipeline (CRTty shaders + Kitty themes)
 - `mod_input.go` -- Input device management (logiops, makima, Solaar, MIDI)
 - `oss.go` -- Open-source readiness scoring
 

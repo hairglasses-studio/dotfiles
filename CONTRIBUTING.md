@@ -10,7 +10,7 @@ cd dotfiles
 
 ## Structure
 
-- `ghostty/` — Terminal config + 132+ GLSL shaders
+- `kitty/` — Kitty config, CRTty shader assets, and theme playlists
 - `hyprland/` — Hyprland window manager config  
 - `eww/` — eww bar widgets
 - `zsh/` — Shell config + starship prompt
@@ -18,9 +18,9 @@ cd dotfiles
 
 ## Shader Contributions
 
-Shaders live in `ghostty/shaders/`. To add a new shader:
+Kitty CRTty shaders live in `kitty/shaders/crtty/`. To add a new shader:
 1. Place your `.glsl` file in the directory
-2. Add metadata to `ghostty/shaders/shaders.toml`
+2. Add metadata to `kitty/shaders/crtty/shaders.toml`
 3. Test with `shader-test` (requires glslangValidator)
 4. Submit a PR
 

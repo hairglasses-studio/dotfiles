@@ -2,7 +2,7 @@
 
 ## Current State
 
-dotfiles-mcp is a consolidated desktop environment MCP server with 86 tools across 10 modules: config management, GitHub org lifecycle, fleet auditing, build pipelines, Hyprland desktop, shader pipeline, Bluetooth, input devices (Logitech/gamepad/MIDI), composed workflows, and open-source readiness scoring. Discovery-first design with deferred tool loading. Built on mcpkit with stdio transport.
+dotfiles-mcp is a consolidated desktop environment MCP server with 86 tools across 10 modules: config management, GitHub org lifecycle, fleet auditing, build pipelines, Hyprland desktop, Kitty visual pipeline, Bluetooth, input devices (Logitech/gamepad/MIDI), composed workflows, and open-source readiness scoring. Discovery-first design with deferred tool loading. Built on mcpkit with stdio transport.
 
 All modules functional and tested. MIT licensed, README and CLAUDE.md in place. Batch tools default to dry-run mode.
 

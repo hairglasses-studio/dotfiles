@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand/v2"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -113,9 +112,8 @@ func findShader(name string) (string, error) {
 // Logs the change to the JSONL history.
 func atomicSetShader(shaderPath string, source ...string) error {
 	name := strings.TrimSuffix(filepath.Base(shaderPath), ".glsl")
-	cmd := exec.Command("bash", kittyPlaylistScript(), "set", name)
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("kitty-shader-playlist set %s: %s: %w", name, strings.TrimSpace(string(out)), err)
+	if _, err := runKittyPlaylist("set", name); err != nil {
+		return err
 	}
 
 	src := "mcp:shader_set"
@@ -130,14 +128,27 @@ func atomicSetShader(shaderPath string, source ...string) error {
 	return nil
 }
 
+func runKittyPlaylist(args ...string) (string, error) {
+	cmdArgs := append([]string{kittyPlaylistScript()}, args...)
+	cmd := exec.Command("bash", cmdArgs...)
+	out, err := cmd.CombinedOutput()
+	output := strings.TrimSpace(string(out))
+	if err != nil {
+		if output == "" {
+			return "", fmt.Errorf("kitty-shader-playlist %s: %w", strings.Join(args, " "), err)
+		}
+		return "", fmt.Errorf("kitty-shader-playlist %s: %s: %w", strings.Join(args, " "), output, err)
+	}
+	return output, nil
+}
+
 // readActiveShader reads the current shader from kitty-shader-playlist.sh current.
 func readActiveShader() (string, error) {
-	cmd := exec.Command("bash", kittyPlaylistScript(), "current")
-	out, err := cmd.Output()
+	out, err := runKittyPlaylist("current")
 	if err != nil {
 		return "", nil
 	}
-	name := strings.TrimSpace(string(out))
+	name := strings.TrimSpace(out)
 	if name == "" {
 		return "", nil
 	}
@@ -147,6 +158,42 @@ func readActiveShader() (string, error) {
 		return p, nil
 	}
 	return name, nil
+}
+
+func readKittyStateValue(name string) string {
+	data, err := os.ReadFile(filepath.Join(playlistStateDir(), name))
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
+}
+
+func readActiveTheme() string {
+	return readKittyStateValue("current-theme")
+}
+
+func readVisualLabel() string {
+	return readKittyStateValue("current-label")
+}
+
+func playlistPositionForShader(playlist, shader string) (int, int, error) {
+	if playlist == "" {
+		return 0, 0, nil
+	}
+	shaders, err := loadPlaylist(playlist)
+	if err != nil {
+		return 0, 0, err
+	}
+	if len(shaders) == 0 {
+		return 0, 0, nil
+	}
+	target := strings.TrimSuffix(filepath.Base(shader), ".glsl")
+	for idx, entry := range shaders {
+		if strings.TrimSuffix(filepath.Base(entry), ".glsl") == target {
+			return idx + 1, len(shaders), nil
+		}
+	}
+	return 0, len(shaders), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -313,13 +360,20 @@ type ShaderSetInput struct {
 type ShaderSetOutput struct {
 	Applied string `json:"applied"`
 	Path    string `json:"path"`
+	Theme   string `json:"theme,omitempty"`
+	Label   string `json:"label,omitempty"`
 }
 
 type ShaderRandomInput struct{}
 
 type ShaderRandomOutput struct {
-	Applied string `json:"applied"`
-	Path    string `json:"path"`
+	Applied  string `json:"applied"`
+	Path     string `json:"path"`
+	Theme    string `json:"theme,omitempty"`
+	Label    string `json:"label,omitempty"`
+	Playlist string `json:"playlist,omitempty"`
+	Position int    `json:"position,omitempty"`
+	Total    int    `json:"total,omitempty"`
 }
 
 type ShaderTestInput struct {
@@ -343,6 +397,9 @@ type ShaderGetStateInput struct{}
 type ShaderGetStateOutput struct {
 	ActiveShader string `json:"active_shader"`
 	ShaderName   string `json:"shader_name"`
+	ActiveTheme  string `json:"active_theme,omitempty"`
+	VisualLabel  string `json:"visual_label,omitempty"`
+	Playlist     string `json:"playlist,omitempty"`
 }
 
 type ShaderMetaInput struct {
@@ -398,6 +455,8 @@ type ShaderCycleInput struct {
 type ShaderCycleOutput struct {
 	Applied  string `json:"applied"`
 	Path     string `json:"path"`
+	Theme    string `json:"theme,omitempty"`
+	Label    string `json:"label,omitempty"`
 	Playlist string `json:"playlist"`
 	Position int    `json:"position"`
 	Total    int    `json:"total"`
@@ -408,6 +467,8 @@ type ShaderStatusInput struct{}
 type ShaderStatusOutput struct {
 	ActiveShader string `json:"active_shader"`
 	ShaderName   string `json:"shader_name"`
+	ActiveTheme  string `json:"active_theme,omitempty"`
+	VisualLabel  string `json:"visual_label,omitempty"`
 	Animation    bool   `json:"animation"`
 	Playlist     string `json:"playlist,omitempty"`
 	Position     int    `json:"position,omitempty"`
@@ -581,6 +642,37 @@ type ShaderAuditTrailOutput struct {
 	Count   int                  `json:"count"`
 }
 
+type currentVisualState struct {
+	ActiveShader string
+	ShaderName   string
+	ActiveTheme  string
+	VisualLabel  string
+	Playlist     string
+	Position     int
+	Total        int
+}
+
+func readCurrentVisualState() (currentVisualState, error) {
+	state := currentVisualState{
+		ActiveTheme: readActiveTheme(),
+		VisualLabel: readVisualLabel(),
+		Playlist:    activePlaylistName(),
+	}
+	active, err := readActiveShader()
+	if err != nil {
+		return state, err
+	}
+	state.ActiveShader = active
+	state.ShaderName = strings.TrimSuffix(filepath.Base(active), ".glsl")
+	if state.ShaderName != "" {
+		if position, total, err := playlistPositionForShader(state.Playlist, state.ShaderName); err == nil {
+			state.Position = position
+			state.Total = total
+		}
+	}
+	return state, nil
+}
+
 // ---------------------------------------------------------------------------
 // Module
 // ---------------------------------------------------------------------------
@@ -668,9 +760,15 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 				if err := atomicSetShader(p); err != nil {
 					return ShaderSetOutput{}, fmt.Errorf("failed to apply shader: %w", err)
 				}
+				state, err := readCurrentVisualState()
+				if err != nil {
+					return ShaderSetOutput{}, err
+				}
 				return ShaderSetOutput{
 					Applied: strings.TrimSuffix(filepath.Base(p), ".glsl"),
 					Path:    p,
+					Theme:   state.ActiveTheme,
+					Label:   state.VisualLabel,
 				}, nil
 			},
 		),
@@ -678,23 +776,33 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 		// ── shader_random ─────────────────────────────
 		handler.TypedHandler[ShaderRandomInput, ShaderRandomOutput](
 			"shader_random",
-			"Pick a random shader and apply it to kitty.",
+			"Pick a random paired Kitty visual from the active playlist and apply it.",
 			func(_ context.Context, _ ShaderRandomInput) (ShaderRandomOutput, error) {
-				files, err := listGLSL()
+				playlist := activePlaylistName()
+				if _, err := runKittyPlaylist("random", playlist); err != nil {
+					return ShaderRandomOutput{}, fmt.Errorf("failed to apply random kitty visual: %w", err)
+				}
+				state, err := readCurrentVisualState()
 				if err != nil {
 					return ShaderRandomOutput{}, err
 				}
-				if len(files) == 0 {
-					return ShaderRandomOutput{}, fmt.Errorf("no shaders found")
-				}
-				pick := files[rand.IntN(len(files))]
-				p := filepath.Join(shadersDir(), pick)
-				if err := atomicSetShader(p, "mcp:shader_random"); err != nil {
-					return ShaderRandomOutput{}, fmt.Errorf("failed to apply shader: %w", err)
-				}
+				_ = appendShaderHistory(ShaderHistoryEntry{
+					Action: "random",
+					Shader: state.ShaderName,
+					Source: "mcp:shader_random",
+					Details: map[string]string{
+						"playlist": playlist,
+						"theme":    state.ActiveTheme,
+					},
+				})
 				return ShaderRandomOutput{
-					Applied: strings.TrimSuffix(pick, ".glsl"),
-					Path:    p,
+					Applied:  state.ShaderName,
+					Path:     state.ActiveShader,
+					Theme:    state.ActiveTheme,
+					Label:    state.VisualLabel,
+					Playlist: playlist,
+					Position: state.Position,
+					Total:    state.Total,
 				}, nil
 			},
 		),
@@ -751,16 +859,18 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 		// ── shader_get_state ──────────────────────────
 		handler.TypedHandler[ShaderGetStateInput, ShaderGetStateOutput](
 			"shader_get_state",
-			"Read the currently active shader from kitty shader playlist state.",
+			"Read the current Kitty shader and theme state from kitty-shader-playlist state files.",
 			func(_ context.Context, _ ShaderGetStateInput) (ShaderGetStateOutput, error) {
-				active, err := readActiveShader()
+				state, err := readCurrentVisualState()
 				if err != nil {
 					return ShaderGetStateOutput{}, err
 				}
-				name := strings.TrimSuffix(filepath.Base(active), ".glsl")
 				return ShaderGetStateOutput{
-					ActiveShader: active,
-					ShaderName:   name,
+					ActiveShader: state.ActiveShader,
+					ShaderName:   state.ShaderName,
+					ActiveTheme:  state.ActiveTheme,
+					VisualLabel:  state.VisualLabel,
+					Playlist:     state.Playlist,
 				}, nil
 			},
 		),
@@ -871,50 +981,40 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 		// ── shader_cycle ──────────────────────────────
 		handler.TypedHandler[ShaderCycleInput, ShaderCycleOutput](
 			"shader_cycle",
-			"Advance the shader playlist (next/prev). Reads current playlist state, advances position, and applies the next shader.",
+			"Advance the active Kitty visual playlist (next/prev) via kitty-shader-playlist.sh.",
 			func(_ context.Context, input ShaderCycleInput) (ShaderCycleOutput, error) {
+				direction := input.Direction
+				if direction == "" {
+					direction = "next"
+				}
 				playlist := input.Playlist
 				if playlist == "" {
 					playlist = activePlaylistName()
 				}
-
-				shaders, err := loadPlaylist(playlist)
+				if _, err := runKittyPlaylist(direction, playlist); err != nil {
+					return ShaderCycleOutput{}, fmt.Errorf("failed to apply kitty visual: %w", err)
+				}
+				state, err := readCurrentVisualState()
 				if err != nil {
-					return ShaderCycleOutput{}, fmt.Errorf("[%s] %w", handler.ErrNotFound, err)
+					return ShaderCycleOutput{}, err
 				}
-				if len(shaders) == 0 {
-					return ShaderCycleOutput{}, fmt.Errorf("playlist %s is empty", playlist)
-				}
-
-				idx, _ := readPlaylistIndex(playlist)
-
-				switch input.Direction {
-				case "prev":
-					idx = (idx - 1 + len(shaders)) % len(shaders)
-				default: // "next" or empty
-					idx = (idx + 1) % len(shaders)
-				}
-
-				pick := shaders[idx]
-				p, err := findShader(pick)
-				if err != nil {
-					return ShaderCycleOutput{}, fmt.Errorf("shader %s from playlist %s not found: %w", pick, playlist, err)
-				}
-
-				if err := atomicSetShader(p, "mcp:shader_cycle:"+playlist); err != nil {
-					return ShaderCycleOutput{}, fmt.Errorf("failed to apply shader: %w", err)
-				}
-
-				if err := writePlaylistIndex(playlist, idx); err != nil {
-					return ShaderCycleOutput{}, fmt.Errorf("failed to save playlist index: %w", err)
-				}
-
+				_ = appendShaderHistory(ShaderHistoryEntry{
+					Action: "cycle",
+					Shader: state.ShaderName,
+					Source: "mcp:shader_cycle:" + playlist,
+					Details: map[string]string{
+						"direction": direction,
+						"theme":     state.ActiveTheme,
+					},
+				})
 				return ShaderCycleOutput{
-					Applied:  strings.TrimSuffix(filepath.Base(p), ".glsl"),
-					Path:     p,
+					Applied:  state.ShaderName,
+					Path:     state.ActiveShader,
+					Theme:    state.ActiveTheme,
+					Label:    state.VisualLabel,
 					Playlist: playlist,
-					Position: idx + 1,
-					Total:    len(shaders),
+					Position: state.Position,
+					Total:    state.Total,
 				}, nil
 			},
 		),
@@ -922,29 +1022,21 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 		// ── shader_status ─────────────────────────────
 		handler.TypedHandler[ShaderStatusInput, ShaderStatusOutput](
 			"shader_status",
-			"Rich status: current shader, animation state, active playlist, position, and auto-rotate timer status.",
+			"Rich status: current shader, Kitty theme, visual label, animation state, playlist position, and auto-rotate timer status.",
 			func(_ context.Context, _ ShaderStatusInput) (ShaderStatusOutput, error) {
-				active, err := readActiveShader()
+				state, err := readCurrentVisualState()
 				if err != nil {
 					return ShaderStatusOutput{}, err
 				}
-				name := strings.TrimSuffix(filepath.Base(active), ".glsl")
-				anim := readAnimationState()
-
 				out := ShaderStatusOutput{
-					ActiveShader: active,
-					ShaderName:   name,
-					Animation:    anim,
-				}
-
-				// Playlist info
-				playlist := activePlaylistName()
-				shaders, plErr := loadPlaylist(playlist)
-				if plErr == nil && len(shaders) > 0 {
-					out.Playlist = playlist
-					idx, _ := readPlaylistIndex(playlist)
-					out.Position = idx + 1
-					out.Total = len(shaders)
+					ActiveShader: state.ActiveShader,
+					ShaderName:   state.ShaderName,
+					ActiveTheme:  state.ActiveTheme,
+					VisualLabel:  state.VisualLabel,
+					Animation:    readAnimationState(),
+					Playlist:     state.Playlist,
+					Position:     state.Position,
+					Total:        state.Total,
 				}
 
 				// Check systemd timer
@@ -1045,18 +1137,31 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 					if len(shaders) == 0 {
 						return ShaderPlaylistOutput{}, fmt.Errorf("playlist %s is empty", input.Name)
 					}
-					pick := shaders[rand.IntN(len(shaders))]
-					p, err := findShader(pick)
+					if _, err := runKittyPlaylist("random", input.Name); err != nil {
+						return ShaderPlaylistOutput{}, fmt.Errorf("failed to apply kitty visual: %w", err)
+					}
+					state, err := readCurrentVisualState()
 					if err != nil {
 						return ShaderPlaylistOutput{}, err
 					}
-					if err := atomicSetShader(p, "mcp:shader_playlist:"+input.Name); err != nil {
-						return ShaderPlaylistOutput{}, fmt.Errorf("failed to apply shader: %w", err)
-					}
+					_ = appendShaderHistory(ShaderHistoryEntry{
+						Action: "random",
+						Shader: state.ShaderName,
+						Source: "mcp:shader_playlist:" + input.Name,
+						Details: map[string]string{
+							"playlist": input.Name,
+							"theme":    state.ActiveTheme,
+						},
+					})
 					return ShaderPlaylistOutput{
 						Applied: &ShaderRandomOutput{
-							Applied: strings.TrimSuffix(filepath.Base(p), ".glsl"),
-							Path:    p,
+							Applied:  state.ShaderName,
+							Path:     state.ActiveShader,
+							Theme:    state.ActiveTheme,
+							Label:    state.VisualLabel,
+							Playlist: input.Name,
+							Position: state.Position,
+							Total:    state.Total,
 						},
 					}, nil
 				}
