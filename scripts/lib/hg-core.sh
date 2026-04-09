@@ -31,3 +31,65 @@ HG_STUDIO_ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
 HG_DOTFILES="${DOTFILES_DIR:-$HG_STUDIO_ROOT/dotfiles}"
 HG_STATE_DIR="$HOME/.local/state/hg"
 mkdir -p "$HG_STATE_DIR" 2>/dev/null || true
+
+hg_gemini_builtin_command_names() {
+  cat <<'EOF'
+about
+agents
+auth
+bug
+chat
+clear
+commands
+compress
+copy
+directory
+dir
+docs
+editor
+extensions
+help
+hooks
+ide
+init
+mcp
+memory
+model
+oncall
+permissions
+plan
+policies
+privacy
+quit
+exit
+restore
+rewind
+resume
+settings
+shells
+bashes
+setup-github
+skills
+stats
+terminal-setup
+theme
+tools
+upgrade
+vim
+EOF
+}
+
+hg_gemini_name_is_builtin() {
+  local name="${1:-}"
+  local normalized builtin
+  normalized="$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')"
+
+  while IFS= read -r builtin; do
+    [[ -n "$builtin" ]] || continue
+    if [[ "$normalized" == "$builtin" ]]; then
+      return 0
+    fi
+  done < <(hg_gemini_builtin_command_names)
+
+  return 1
+}
