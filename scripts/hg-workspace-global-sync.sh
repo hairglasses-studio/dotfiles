@@ -674,7 +674,9 @@ append_codex_entry() {
 append_gemini_entry() {
   local stem="$1"
   local value_json="$2"
+  local base_dir="${3:-}"
   local generated_name="studio-$(sanitize_kebab_name "$stem")"
+  local normalized_cwd normalized_env_json
 
   [[ -n "$generated_name" ]] || hg_die "Failed to generate Gemini MCP name for $stem"
   if [[ -n "${gemini_name_seen[$generated_name]:-}" ]]; then
@@ -682,16 +684,21 @@ append_gemini_entry() {
   fi
   gemini_name_seen["$generated_name"]=1
 
+  normalized_cwd="$(normalize_codex_cwd "$base_dir" "$(jq -r '.cwd // ""' <<<"$value_json")")"
+  normalized_env_json="$(normalize_codex_env_json "$(jq -c '.env // {}' <<<"$value_json")")"
+
   jq -cn \
     --arg name "$generated_name" \
     --argjson value "$value_json" \
+    --arg cwd "$normalized_cwd" \
+    --argjson env "$normalized_env_json" \
     '{
       name: $name,
       value: (
         (if ($value | has("command")) then {command: $value.command} else {} end)
         + (if ($value | has("args")) then {args: ($value.args // [])} else {} end)
-        + (if ($value | has("cwd")) then {cwd: ($value.cwd // "")} else {} end)
-        + (if ($value | has("env")) then {env: ($value.env // {})} else {} end)
+        + (if ($cwd | length) > 0 then {cwd: $cwd} else {} end)
+        + (if ($env | length) > 0 then {env: $env} else {} end)
         + (if ($value.url // null) != null then {url: $value.url} else {} end)
         + (if ($value.httpUrl // null) != null then {httpUrl: $value.httpUrl} else {} end)
         + (if ($value.headers // null) != null then {headers: $value.headers} else {} end)
@@ -831,7 +838,9 @@ sync_managed_workspace_skills() {
     fi
 
     description="$(extract_frontmatter_scalar "$source_skill" "description")"
-    printf '%s\t%s\t%s\t%s\t%s\n' "$global_name" "${description:-Compatibility mirror for $canonical_name.}" "$kind" "$repo_name" "$canonical_name" >>"$tmpdir/gemini-skill-catalog.tsv"
+    if ! hg_gemini_name_is_builtin "$global_name"; then
+      printf '%s\t%s\t%s\t%s\t%s\n' "$global_name" "${description:-Compatibility mirror for $canonical_name.}" "$kind" "$repo_name" "$canonical_name" >>"$tmpdir/gemini-skill-catalog.tsv"
+    fi
 
     rm -rf "$staged_dir"
     mkdir -p "$staged_dir"
@@ -886,7 +895,7 @@ sync_managed_workspace_tools() {
     [[ "$foundation_server" != "null" ]] || hg_die "Shared root .mcp.json missing foundational server: $foundational_name"
 
     append_claude_entry "$foundational_name" "$foundation_server"
-    append_gemini_entry "$foundational_name" "$foundation_server"
+    append_gemini_entry "$foundational_name" "$foundation_server" "$WORKSPACE_ROOT"
     append_codex_entry \
       "$foundational_name" \
       "shared root .mcp.json:$foundational_name" \
@@ -938,7 +947,7 @@ sync_managed_workspace_tools() {
       if [[ -z "${raw_source_seen[$raw_id]:-}" ]]; then
         raw_source_seen["$raw_id"]=1
         append_claude_entry "${repo_name}_${source_name}" "$raw_server"
-        append_gemini_entry "${repo_name}_${source_name}" "$raw_server"
+        append_gemini_entry "${repo_name}_${source_name}" "$raw_server" "$repo_path"
         claude_raw_count=$((claude_raw_count + 1))
       fi
 
