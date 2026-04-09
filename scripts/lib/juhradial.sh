@@ -10,8 +10,16 @@ juhradial_config_dir() {
   printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/juhradial"
 }
 
+juhradial_macros_dir() {
+  printf '%s\n' "$(juhradial_config_dir)/macros"
+}
+
 juhradial_seed_dir() {
   printf '%s\n' "$(juhradial_dotfiles_dir)/juhradial"
+}
+
+juhradial_seed_macros_dir() {
+  printf '%s\n' "$(juhradial_seed_dir)/macros"
 }
 
 juhradial_install_dir() {
@@ -53,6 +61,35 @@ juhradial_gdbus() {
     XDG_RUNTIME_DIR="$runtime" \
     DBUS_SESSION_BUS_ADDRESS="$(juhradial_user_bus)" \
     gdbus "$@"
+}
+
+juhradial_dbus_send() {
+  local runtime
+  runtime="$(juhradial_runtime_dir)"
+  env \
+    XDG_RUNTIME_DIR="$runtime" \
+    DBUS_SESSION_BUS_ADDRESS="$(juhradial_user_bus)" \
+    dbus-send "$@"
+}
+
+juhradial_reload_config() {
+  juhradial_dbus_send \
+    --session \
+    --type=method_call \
+    --dest=org.kde.juhradialmx \
+    /org/kde/juhradialmx/Daemon \
+    org.kde.juhradialmx.Daemon.ReloadConfig \
+    >/dev/null 2>&1 || true
+}
+
+juhradial_reload_macro_triggers() {
+  juhradial_dbus_send \
+    --session \
+    --type=method_call \
+    --dest=org.kde.juhradialmx \
+    /org/kde/juhradialmx/Daemon \
+    org.kde.juhradialmx.Daemon.ReloadMacroTriggers \
+    >/dev/null 2>&1 || true
 }
 
 juhradial_overlay_script() {
