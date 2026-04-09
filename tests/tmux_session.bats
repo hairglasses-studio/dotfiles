@@ -79,7 +79,7 @@ EOF
     assert_line --index 0 "has-session -t dropdown"
     assert_output --partial "new-session -d -s dropdown -c ${REAL_STUDIO_DIR}"
     assert_output --partial "HG_AGENT_SESSION_QUIET=1 ralphglasses --scan-path ${REAL_STUDIO_DIR}"
-    assert_output --partial "split-window -t dropdown -h -c ${DOTFILES_DIR} claude"
+    assert_output --partial "split-window -t dropdown -h -c ${REAL_DOTFILES_DIR} claude"
     assert_output --partial "select-pane -t dropdown:0.0"
     assert_line --index 4 "attach-session -t dropdown"
     refute_output --partial "kill-session"
