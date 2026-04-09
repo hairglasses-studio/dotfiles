@@ -27,8 +27,35 @@ hg_require() {
 }
 
 # ── Paths ──────────────────────────────────────
-HG_STUDIO_ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
-HG_DOTFILES="${DOTFILES_DIR:-$HG_STUDIO_ROOT/dotfiles}"
+_hg_core_path="${BASH_SOURCE[0]:-$0}"
+_hg_core_dir="$(cd "$(dirname "$_hg_core_path")" && pwd)"
+_hg_core_dotfiles="$(cd "$_hg_core_dir/../.." && pwd)"
+_hg_core_studio="$(cd "$_hg_core_dotfiles/.." && pwd)"
+
+_hg_core_dotfiles_is_valid() {
+  local root="${1:-}"
+  [[ -n "$root" ]] && [[ -d "$root/scripts" ]] && [[ -f "$root/AGENTS.md" ]]
+}
+
+_hg_core_studio_is_valid() {
+  local root="${1:-}"
+  _hg_core_dotfiles_is_valid "$root/dotfiles"
+}
+
+if [[ -n "${DOTFILES_DIR:-}" ]] && _hg_core_dotfiles_is_valid "${DOTFILES_DIR}"; then
+  HG_DOTFILES="$(cd "${DOTFILES_DIR}" && pwd)"
+  HG_STUDIO_ROOT="$(cd "${HG_DOTFILES}/.." && pwd)"
+elif [[ -n "${HG_STUDIO_ROOT:-}" ]] && _hg_core_studio_is_valid "${HG_STUDIO_ROOT}"; then
+  HG_STUDIO_ROOT="$(cd "${HG_STUDIO_ROOT}" && pwd)"
+  HG_DOTFILES="${HG_STUDIO_ROOT}/dotfiles"
+elif _hg_core_dotfiles_is_valid "$_hg_core_dotfiles"; then
+  HG_STUDIO_ROOT="$_hg_core_studio"
+  HG_DOTFILES="$_hg_core_dotfiles"
+else
+  HG_STUDIO_ROOT="$HOME/hairglasses-studio"
+  HG_DOTFILES="$HG_STUDIO_ROOT/dotfiles"
+fi
+
 HG_STATE_DIR="$HOME/.local/state/hg"
 mkdir -p "$HG_STATE_DIR" 2>/dev/null || true
 

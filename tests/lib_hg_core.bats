@@ -123,6 +123,42 @@ teardown() {
     [[ -n "${HG_DOTFILES}" ]]
 }
 
+@test "hg-core ignores an invalid HG_STUDIO_ROOT and falls back to the sourced repo path" {
+    local expected_dotfiles expected_studio
+    expected_dotfiles="$(cd "${DOTFILES_DIR}" && pwd)"
+    expected_studio="$(cd "${DOTFILES_DIR}/.." && pwd)"
+
+    run env \
+        HG_STUDIO_ROOT="${BATS_TEST_TMPDIR}/missing-studio" \
+        DOTFILES_DIR="" \
+        HG_STATE_DIR="${BATS_TEST_TMPDIR}/state" \
+        bash -lc '
+            source "'"${LIB_DIR}"'/hg-core.sh"
+            printf "%s\n%s\n" "$HG_STUDIO_ROOT" "$HG_DOTFILES"
+        '
+    assert_success
+    assert_line --index 0 "${expected_studio}"
+    assert_line --index 1 "${expected_dotfiles}"
+}
+
+@test "hg-core ignores an invalid DOTFILES_DIR and falls back to the sourced repo path" {
+    local expected_dotfiles expected_studio
+    expected_dotfiles="$(cd "${DOTFILES_DIR}" && pwd)"
+    expected_studio="$(cd "${DOTFILES_DIR}/.." && pwd)"
+
+    run env \
+        DOTFILES_DIR="${BATS_TEST_TMPDIR}/missing-dotfiles" \
+        HG_STUDIO_ROOT="" \
+        HG_STATE_DIR="${BATS_TEST_TMPDIR}/state" \
+        bash -lc '
+            source "'"${LIB_DIR}"'/hg-core.sh"
+            printf "%s\n%s\n" "$HG_STUDIO_ROOT" "$HG_DOTFILES"
+        '
+    assert_success
+    assert_line --index 0 "${expected_studio}"
+    assert_line --index 1 "${expected_dotfiles}"
+}
+
 @test "hg-core: HG_STATE_DIR is set" {
     [[ -n "${HG_STATE_DIR}" ]]
 }
