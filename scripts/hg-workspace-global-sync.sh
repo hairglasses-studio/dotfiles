@@ -14,6 +14,7 @@ MANIFEST_PATH="${HG_WORKSPACE_MANIFEST:-}"
 ROOT_MCP_PATH="${HG_ROOT_MCP_PATH:-}"
 CLAUDE_JSON_PATH="${HG_CLAUDE_JSON_PATH:-$HOME/.claude.json}"
 CLAUDE_PROJECT_KEY="${HG_CLAUDE_PROJECT_KEY:-}"
+CLAUDE_HOME_DOC_PATH="${HG_CLAUDE_HOME_DOC_PATH:-$HOME/.claude/CLAUDE.md}"
 CLAUDE_SKILLS_DIR="${HG_CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 CLAUDE_COMMANDS_DIR="${HG_CLAUDE_COMMANDS_DIR:-$HOME/.claude/commands}"
 AGENTS_SKILLS_DIR="${HG_AGENTS_SKILLS_DIR:-$HOME/.agents/skills}"
@@ -27,8 +28,8 @@ START_MARKER="# BEGIN GENERATED MCP SERVERS: hg-workspace-global-sync"
 END_MARKER="# END GENERATED MCP SERVERS: hg-workspace-global-sync"
 LEGACY_START_MARKER="# BEGIN GENERATED MCP SERVERS: hg-global-mcp-sync"
 LEGACY_END_MARKER="# END GENERATED MCP SERVERS: hg-global-mcp-sync"
-GEMINI_START_MARKER="<!-- BEGIN GENERATED WORKSPACE GLOBAL: hg-workspace-global-sync -->"
-GEMINI_END_MARKER="<!-- END GENERATED WORKSPACE GLOBAL: hg-workspace-global-sync -->"
+HOME_CONTEXT_START_MARKER="<!-- BEGIN GENERATED WORKSPACE GLOBAL: hg-workspace-global-sync -->"
+HOME_CONTEXT_END_MARKER="<!-- END GENERATED WORKSPACE GLOBAL: hg-workspace-global-sync -->"
 SKILL_OWNER_FILE=".hg-workspace-global-sync.json"
 CLAUDE_PREFIX="studio_"
 
@@ -44,6 +45,7 @@ Options:
   --manifest <path>           Manifest path (default: <root>/workspace/manifest.json)
   --root-mcp <path>           Shared root .mcp.json (default: <root>/.mcp.json)
   --claude-json <path>        Claude settings JSON (default: ~/.claude.json)
+  --claude-home-doc <path>    Claude home CLAUDE.md (default: ~/.claude/CLAUDE.md)
   --claude-project-key <key>  Claude project key (default: <root>)
   --claude-skills-dir <path>  Global Claude skills dir (default: ~/.claude/skills)
   --claude-commands-dir <path>
@@ -85,6 +87,11 @@ while [[ $# -gt 0 ]]; do
     --claude-json)
       [[ $# -ge 2 ]] || hg_die "--claude-json requires a path"
       CLAUDE_JSON_PATH="$2"
+      shift 2
+      ;;
+    --claude-home-doc)
+      [[ $# -ge 2 ]] || hg_die "--claude-home-doc requires a path"
+      CLAUDE_HOME_DOC_PATH="$2"
       shift 2
       ;;
     --claude-project-key)
@@ -204,6 +211,7 @@ global_claude_unexpected_count=0
 stale_workspace_claude_overlay_count=0
 stale_workspace_codex_overlay_count=0
 stale_workspace_gemini_overlay_count=0
+stale_claude_home_doc_count=0
 stale_gemini_home_doc_count=0
 stale_gemini_projects_count=0
 
@@ -413,6 +421,9 @@ sync_rendered_file() {
       ;;
     "Synced workspace Gemini MCP overlay")
       stale_workspace_gemini_overlay_count=$((stale_workspace_gemini_overlay_count + 1))
+      ;;
+    "Synced Claude home memory")
+      stale_claude_home_doc_count=$((stale_claude_home_doc_count + 1))
       ;;
     "Synced Gemini home memory")
       stale_gemini_home_doc_count=$((stale_gemini_home_doc_count + 1))
@@ -1136,7 +1147,7 @@ sync_gemini_home_context() {
   gemini_projects_output="$tmpdir/gemini-projects-output.json"
 
   {
-    printf '%s\n' "$GEMINI_START_MARKER"
+    printf '%s\n' "$HOME_CONTEXT_START_MARKER"
     printf '## Managed Workspace Global Context\n\n'
     printf -- '- Managed workspace root: `%s`\n' "$WORKSPACE_ROOT"
     printf -- '- Canonical inventory: `%s`\n' "$MANIFEST_PATH"
@@ -1159,17 +1170,18 @@ sync_gemini_home_context() {
     fi
 
     printf '### Managed Global MCP Overlays\n\n'
+    printf -- '- Claude home memory: `%s`.\n' "$CLAUDE_HOME_DOC_PATH"
     printf -- '- Claude workspace overlay: `%s` managed entries under project `%s` in `%s`.\n' "$claude_tool_count" "$CLAUDE_PROJECT_KEY" "$CLAUDE_JSON_PATH"
     printf -- '- Codex workspace overlay: `%s` managed entries in `%s`.\n' "$codex_tool_count" "$CODEX_CONFIG_PATH"
     printf -- '- Gemini CLI home overlay: `%s` managed entries in `%s`.\n' "$gemini_tool_count" "$GEMINI_SETTINGS_PATH"
     printf -- '- Portable managed skills are discovered from `%s`.\n' "$AGENTS_SKILLS_DIR"
-    printf '\n%s\n' "$GEMINI_END_MARKER"
+    printf '\n%s\n' "$HOME_CONTEXT_END_MARKER"
   } >"$gemini_block_file"
 
   if [[ -f "$GEMINI_HOME_DOC_PATH" ]]; then
     cp "$GEMINI_HOME_DOC_PATH" "$gemini_base_file"
-    if grep -Fqx "$GEMINI_START_MARKER" "$gemini_base_file"; then
-      replace_marked_region "$gemini_base_file" "$gemini_block_file" "$GEMINI_START_MARKER" "$GEMINI_END_MARKER" >"$gemini_output_file"
+    if grep -Fqx "$HOME_CONTEXT_START_MARKER" "$gemini_base_file"; then
+      replace_marked_region "$gemini_base_file" "$gemini_block_file" "$HOME_CONTEXT_START_MARKER" "$HOME_CONTEXT_END_MARKER" >"$gemini_output_file"
     else
       {
         cat "$gemini_base_file"
@@ -1201,6 +1213,48 @@ sync_gemini_home_context() {
   sync_rendered_file "$GEMINI_PROJECTS_PATH" "$gemini_projects_output" "Synced Gemini project registry"
 }
 
+sync_claude_home_context() {
+  local claude_block_file claude_output_file claude_base_file
+  claude_block_file="$tmpdir/claude-managed-block.md"
+  claude_output_file="$tmpdir/claude-home-output.md"
+  claude_base_file="$tmpdir/claude-home-base.md"
+
+  {
+    printf '%s\n' "$HOME_CONTEXT_START_MARKER"
+    printf '## Managed Workspace Global Context\n\n'
+    printf -- '- Managed workspace root: `%s`\n' "$WORKSPACE_ROOT"
+    printf -- '- Canonical inventory: `%s`\n' "$MANIFEST_PATH"
+    printf -- '- Use repo-local `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` first for repo-specific instructions.\n'
+    printf -- '- Shared research repo: `%s/docs`\n' "$WORKSPACE_ROOT"
+    printf -- '- Provider launchers route `codex`, `claude`, and `gemini` through root-owned managed worktrees under `/root/.codex/worktrees`.\n'
+    printf '\n'
+    printf '### Managed Global MCP Overlays\n\n'
+    printf -- '- Claude workspace overlay: `%s` managed entries under project `%s` in `%s`.\n' "$claude_tool_count" "$CLAUDE_PROJECT_KEY" "$CLAUDE_JSON_PATH"
+    printf -- '- Codex workspace overlay: `%s` managed entries in `%s`.\n' "$codex_tool_count" "$CODEX_CONFIG_PATH"
+    printf -- '- Gemini CLI home overlay: `%s` managed entries in `%s`.\n' "$gemini_tool_count" "$GEMINI_SETTINGS_PATH"
+    printf -- '- Portable managed skills are discovered from `%s`.\n' "$AGENTS_SKILLS_DIR"
+    printf '\n%s\n' "$HOME_CONTEXT_END_MARKER"
+  } >"$claude_block_file"
+
+  if [[ -f "$CLAUDE_HOME_DOC_PATH" ]]; then
+    cp "$CLAUDE_HOME_DOC_PATH" "$claude_base_file"
+    if grep -Fqx "$HOME_CONTEXT_START_MARKER" "$claude_base_file"; then
+      replace_marked_region "$claude_base_file" "$claude_block_file" "$HOME_CONTEXT_START_MARKER" "$HOME_CONTEXT_END_MARKER" >"$claude_output_file"
+    else
+      {
+        cat "$claude_base_file"
+        if [[ -s "$claude_base_file" ]]; then
+          printf '\n\n'
+        fi
+        cat "$claude_block_file"
+      } >"$claude_output_file"
+    fi
+  else
+    cp "$claude_block_file" "$claude_output_file"
+  fi
+  sync_rendered_file "$CLAUDE_HOME_DOC_PATH" "$claude_output_file" "Synced Claude home memory"
+}
+
 if $RUN_SKILLS; then
   sync_managed_workspace_skills
 else
@@ -1212,12 +1266,13 @@ if $RUN_TOOLS; then
 fi
 
 if $RUN_SKILLS; then
+  sync_claude_home_context
   sync_gemini_home_context
 fi
 
 if $RUN_SKILLS && $CHECK_GLOBAL_TARGETS; then
   hg_info "Managed workspace global skills: ${global_canonical_count} canonical + ${global_alias_count} aliases (${global_alias_conflict_names} conflicts skipped across ${repos_with_skill_surfaces} skill surfaces)"
-  hg_info "Managed Gemini CLI home context: memory at $GEMINI_HOME_DOC_PATH and project registry at $GEMINI_PROJECTS_PATH"
+  hg_info "Managed home context: Claude memory at $CLAUDE_HOME_DOC_PATH; Gemini memory at $GEMINI_HOME_DOC_PATH; Gemini project registry at $GEMINI_PROJECTS_PATH"
 elif $RUN_SKILLS; then
   hg_info "Managed workspace global source contract validated for ${global_canonical_count} canonical skills across ${repos_with_skill_surfaces} skill surfaces"
 fi
@@ -1229,7 +1284,7 @@ elif $RUN_TOOLS; then
 fi
 
 if $CHECK_GLOBAL_TARGETS && [[ "$overall_pending" -ne 0 ]]; then
-  hg_info "Managed home overlay drift breakdown: Claude skills ${global_claude_stale_count} stale + ${global_claude_unexpected_count} unexpected owned + ${global_claude_manual_block_count} manual blockers; Claude MCP ${stale_workspace_claude_overlay_count}; Codex MCP ${stale_workspace_codex_overlay_count}; Gemini MCP ${stale_workspace_gemini_overlay_count}; Gemini home ${stale_gemini_home_doc_count}; Gemini projects ${stale_gemini_projects_count}"
+  hg_info "Managed home overlay drift breakdown: Claude skills ${global_claude_stale_count} stale + ${global_claude_unexpected_count} unexpected owned + ${global_claude_manual_block_count} manual blockers; Claude MCP ${stale_workspace_claude_overlay_count}; Claude home ${stale_claude_home_doc_count}; Codex MCP ${stale_workspace_codex_overlay_count}; Gemini MCP ${stale_workspace_gemini_overlay_count}; Gemini home ${stale_gemini_home_doc_count}; Gemini projects ${stale_gemini_projects_count}"
 fi
 
 case "$MODE" in

@@ -47,7 +47,7 @@ setopt HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS
 setopt HIST_FIND_NO_DUPS HIST_SAVE_NO_DUPS HIST_REDUCE_BLANKS
 setopt HIST_VERIFY SHARE_HISTORY EXTENDED_HISTORY
 
-# ── Agent session quiet mode ───────────────────
+# ── Managed agent launchers ────────────────────
 _hg_agent_session_quiet() {
   [[ "${HG_AGENT_SESSION_QUIET:-0}" == "1" ]]
 }
@@ -60,15 +60,15 @@ _hg_define_agent_wrappers() {
       -u PERSONAL_CLAUDE_MAX_ANTHROPIC_API_KEY \
       -u ANTHROPIC_AUTH_TOKEN \
       HG_AGENT_SESSION_QUIET=1 \
-      claude --dangerously-skip-permissions "$@"
+      "$DOTFILES_DIR/scripts/hg-claude-launch.sh" "$@"
   }
 
   gemini() {
-    HG_AGENT_SESSION_QUIET=1 command gemini "$@"
+    HG_AGENT_SESSION_QUIET=1 "$DOTFILES_DIR/scripts/hg-gemini-launch.sh" "$@"
   }
 
   codex() {
-    HG_AGENT_SESSION_QUIET=1 sudo -H /home/hg/.local/bin/codex "$@"
+    HG_AGENT_SESSION_QUIET=1 "$DOTFILES_DIR/scripts/hg-codex-launch.sh" "$@"
   }
 }
 
@@ -305,7 +305,7 @@ fi
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 
 # Codex stashapp full-access wrapper
-[[ -f "$HOME/.zshrc.d/codex-stashapp-full-access.zsh" ]] && source "$HOME/.zshrc.d/codex-stashapp-full-access.zsh"
+# Full-access launcher behavior is global now; no repo-specific Codex wrapper is sourced here.
 
 # Quiet agent sessions by default without disturbing normal shells.
 _hg_define_agent_wrappers

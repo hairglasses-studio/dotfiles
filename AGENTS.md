@@ -13,6 +13,7 @@ Desktop automation, local workstation config, MCP server scaffolding, and org-wi
 ## Working Rules
 
 - Use the shared scripts in `scripts/` and `scripts/lib/` instead of ad hoc replacements when touching onboarding, workflow sync, hook, or audit flows.
+- Agent entrypoints are centralized in `scripts/hg-codex-launch.sh`, `scripts/hg-claude-launch.sh`, and `scripts/hg-gemini-launch.sh`. Keep shell wrappers and tmux/bootstrap helpers pointed at those launchers instead of raw provider binaries.
 - Preserve provider-neutral behavior in repo scaffolding. New repo setup should not reintroduce placeholder Codex configs or Claude-only defaults.
 - Canonical reusable workflows live under `.agents/skills/`; `.claude/skills/` is a generated compatibility layer, not the source of truth.
 - When editing hook-related scripts, document what is repo-local versus what is installed into user scope by tools such as `hgmux`.
@@ -21,6 +22,7 @@ Desktop automation, local workstation config, MCP server scaffolding, and org-wi
 
 - Script checks: `bash -n scripts/*.sh scripts/lib/*.sh`
 - Migration inventory: `bash ./scripts/hg-codex-audit.sh --write-workspace-cache --write-wiki-docs --write-json`
+- Global provider home parity: `bash ./scripts/hg-agent-home-sync.sh --check`
 - Workflow propagation: `bash ./scripts/hg-workflow-sync.sh --dry-run`
 - Repo doc generation: `bash ./scripts/hg-agent-docs.sh --source auto .`
 
