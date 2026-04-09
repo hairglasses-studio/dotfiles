@@ -17,6 +17,7 @@ ANTIGRAVITY_ENV_MANIFEST_PATH="${HG_ANTIGRAVITY_ENV_MANIFEST_PATH:-$HOME/.config
 ANTIGRAVITY_LEGACY_ENV_PATH="${HG_ANTIGRAVITY_LEGACY_ENV_PATH:-$HOME/.config/antigravity/env.sh}"
 ANTIGRAVITY_WRAPPER_PATH="${HG_ANTIGRAVITY_WRAPPER_PATH:-$HOME/.local/bin/antigravity-managed}"
 ANTIGRAVITY_DESKTOP_PATH="${HG_ANTIGRAVITY_DESKTOP_PATH:-$HOME/.local/share/applications/antigravity.desktop}"
+ANTIGRAVITY_WORKSPACE_FILE_PATH="${HG_ANTIGRAVITY_WORKSPACE_FILE_PATH:-$WORKSPACE_ROOT/hairglasses-studio.code-workspace}"
 ANTIGRAVITY_HOME_DOC_PATH="${HG_ANTIGRAVITY_HOME_DOC_PATH:-$HOME/.gemini/GEMINI.md}"
 WORKSPACE_RULE_PATH="${HG_ANTIGRAVITY_RULE_PATH:-$WORKSPACE_ROOT/.agents/rules/antigravity-workspace.md}"
 WORKSPACE_SKILLS_DIR="${HG_ANTIGRAVITY_WORKSPACE_SKILLS_DIR:-$WORKSPACE_ROOT/.agents/skills}"
@@ -62,6 +63,7 @@ Options:
   --antigravity-env <path>         Runtime env manifest path
   --antigravity-wrapper <path>     Managed Antigravity launcher wrapper path
   --antigravity-desktop <path>     User-local Antigravity desktop entry path
+  --antigravity-workspace <path>   Managed default Antigravity workspace file path
   --rule-path <path>               Workspace Antigravity rule file path
   --dry-run                        Report changes without writing
   --check                          Exit non-zero if managed state is stale
@@ -109,6 +111,11 @@ while [[ $# -gt 0 ]]; do
     --antigravity-desktop)
       [[ $# -ge 2 ]] || hg_die "--antigravity-desktop requires a path"
       ANTIGRAVITY_DESKTOP_PATH="$2"
+      shift 2
+      ;;
+    --antigravity-workspace)
+      [[ $# -ge 2 ]] || hg_die "--antigravity-workspace requires a path"
+      ANTIGRAVITY_WORKSPACE_FILE_PATH="$2"
       shift 2
       ;;
     --rule-path)
@@ -663,10 +670,43 @@ build_env_bridge_manifest() {
   remove_managed_path "$ANTIGRAVITY_LEGACY_ENV_PATH" "legacy Antigravity env bridge"
 }
 
+build_default_workspace_file() {
+  local repo rel repo_name
+
+  {
+    printf '{\n'
+    printf '  "folders": [\n'
+    printf '    {\n'
+    printf '      "name": %s,\n' "$(jq -Rn --arg v "$(basename "$WORKSPACE_ROOT")" '$v')"
+    printf '      "path": "."\n'
+    printf '    }'
+
+    while IFS= read -r repo; do
+      [[ -n "$repo" ]] || continue
+      rel="${repo#$WORKSPACE_ROOT/}"
+      repo_name="$(basename "$repo")"
+      printf ',\n'
+      printf '    {\n'
+      printf '      "name": %s,\n' "$(jq -Rn --arg v "$repo_name" '$v')"
+      printf '      "path": %s\n' "$(jq -Rn --arg v "./$rel" '$v')"
+      printf '    }'
+    done < <(list_workspace_member_repos)
+
+    printf '\n  ],\n'
+    printf '  "settings": {\n'
+    printf '    "terminal.integrated.cwd": %s\n' "$(jq -Rn --arg v "$WORKSPACE_ROOT" '$v')"
+    printf '  }\n'
+    printf '}\n'
+  } >"$tmpdir/hairglasses-studio.code-workspace"
+
+  sync_rendered_file "$ANTIGRAVITY_WORKSPACE_FILE_PATH" "$tmpdir/hairglasses-studio.code-workspace" "Synced Antigravity default workspace"
+}
+
 build_launcher_wrapper() {
   {
     printf '#!/usr/bin/env bash\n'
     printf 'set -euo pipefail\n\n'
+    printf 'default_workspace=%q\n\n' "$ANTIGRAVITY_WORKSPACE_FILE_PATH"
     printf 'parse_runtime_env_file() {\n'
     printf '  local env_file="$1"\n'
     printf '  [[ -f "$env_file" ]] || return 0\n'
@@ -699,6 +739,9 @@ build_launcher_wrapper() {
     printf '    [[ -n "$env_file" ]] || continue\n'
     printf '    parse_runtime_env_file "$env_file"\n'
     printf "  done < <(jq -r '.ordered_sources[]?' %q)\n" "$ANTIGRAVITY_ENV_MANIFEST_PATH"
+    printf 'fi\n\n'
+    printf 'if [[ "$#" -eq 0 && -f "$default_workspace" ]]; then\n'
+    printf '  set -- "$default_workspace"\n'
     printf 'fi\n\n'
     printf 'exec /usr/bin/antigravity "$@"\n'
   } >"$tmpdir/antigravity-managed"
@@ -877,6 +920,7 @@ write_metadata() {
     printf '  "env_source_manifest_path": %s,\n' "$(jq -Rn --arg v "$ANTIGRAVITY_ENV_MANIFEST_PATH" '$v')"
     printf '  "wrapper_path": %s,\n' "$(jq -Rn --arg v "$ANTIGRAVITY_WRAPPER_PATH" '$v')"
     printf '  "desktop_entry_path": %s,\n' "$(jq -Rn --arg v "$ANTIGRAVITY_DESKTOP_PATH" '$v')"
+    printf '  "workspace_file_path": %s,\n' "$(jq -Rn --arg v "$ANTIGRAVITY_WORKSPACE_FILE_PATH" '$v')"
     printf '  "workspace_rule_path": %s,\n' "$(jq -Rn --arg v "$WORKSPACE_RULE_PATH" '$v')"
     printf '  "global_gemini_md_path": %s,\n' "$(jq -Rn --arg v "$ANTIGRAVITY_HOME_DOC_PATH" '$v')"
     printf '  "workspace_skills_dir": %s,\n' "$(jq -Rn --arg v "$WORKSPACE_SKILLS_DIR" '$v')"
@@ -923,6 +967,7 @@ render_home_gemini_doc
 build_workspace_skill_links
 build_workspace_workflows
 build_env_bridge_manifest
+build_default_workspace_file
 build_launcher_wrapper
 build_desktop_entry
 build_settings_json
