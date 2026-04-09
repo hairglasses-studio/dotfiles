@@ -64,7 +64,7 @@ class = "shader-indicator"
 on_click_left = "!kitty-shader-playlist next ambient"
 on_click_right = "!kitty-shader-playlist random"
 bar = [
-  { type = "label", label = " {{10000:cat ~/.local/state/kitty-shaders/current 2>/dev/null | sed 's/\\.glsl$//' || cat ~/.local/state/shader-cycle/current 2>/dev/null | xargs basename 2>/dev/null | sed 's/\\.glsl$//' || echo 'none'}}" },
+  { type = "label", label = " {{10000:cat ~/.local/state/kitty-shaders/current-label 2>/dev/null || cat ~/.local/state/kitty-shaders/current 2>/dev/null | sed 's/\\.glsl$//' || echo 'none'}}" },
 ]
 
 # MPRIS media

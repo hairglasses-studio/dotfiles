@@ -36,6 +36,7 @@ alias shader-next='kitty-shader-playlist next ambient'
 alias shader-prev='kitty-shader-playlist prev ambient'
 alias shader-random='kitty-shader-playlist random'
 alias shader-current='kitty-shader-playlist current'
+alias shader-theme='kitty-shader-playlist theme-current'
 alias shader-list='kitty-shader-playlist list'
 alias shader-set='kitty-shader-playlist set'
 alias shader-engine='kitty-shader-playlist engine'
@@ -63,7 +64,7 @@ WantedBy=timers.target
 UNIT
       cat > "$timer_dir/$service" <<UNIT
 [Unit]
-Description=Rotate kitty shader
+Description=Rotate kitty visuals
 
 [Service]
 Type=oneshot
@@ -72,17 +73,17 @@ Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 UNIT
       systemctl --user daemon-reload
       systemctl --user enable --now "$timer"
-      echo "Shader auto-rotate started (every ${interval} minutes)"
+      echo "Kitty visual auto-rotate started (every ${interval} minutes)"
       ;;
     stop)
       systemctl --user disable --now "$timer" 2>/dev/null
-      echo "Shader auto-rotate stopped"
+      echo "Kitty visual auto-rotate stopped"
       ;;
     status)
       if systemctl --user is-active "$timer" &>/dev/null; then
-        echo "Shader auto-rotate: running"
+        echo "Kitty visual auto-rotate: running"
       else
-        echo "Shader auto-rotate: stopped"
+        echo "Kitty visual auto-rotate: stopped"
       fi
       ;;
     *)

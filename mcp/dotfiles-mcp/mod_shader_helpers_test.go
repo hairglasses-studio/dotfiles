@@ -55,7 +55,7 @@ func TestFindShader_Found(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
 
-	shadersPath := filepath.Join(dir, "ghostty", "shaders")
+	shadersPath := filepath.Join(dir, "kitty", "shaders", "crtty")
 	os.MkdirAll(shadersPath, 0755)
 	os.WriteFile(filepath.Join(shadersPath, "test-shader.glsl"), []byte("// shader"), 0644)
 
@@ -81,7 +81,7 @@ func TestFindShader_Found(t *testing.T) {
 func TestFindShader_NotFound(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	os.MkdirAll(filepath.Join(dir, "ghostty", "shaders"), 0755)
+	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "crtty"), 0755)
 
 	_, err := findShader("nonexistent-shader")
 	if err == nil {
@@ -97,7 +97,7 @@ func TestListGLSL(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
 
-	shadersPath := filepath.Join(dir, "ghostty", "shaders")
+	shadersPath := filepath.Join(dir, "kitty", "shaders", "crtty")
 	os.MkdirAll(shadersPath, 0755)
 
 	// Create some shader files and a non-shader file.
@@ -121,7 +121,7 @@ func TestListGLSL(t *testing.T) {
 func TestListGLSL_EmptyDir(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	os.MkdirAll(filepath.Join(dir, "ghostty", "shaders"), 0755)
+	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "crtty"), 0755)
 
 	shaders, err := listGLSL()
 	if err != nil {
@@ -168,7 +168,7 @@ func TestKittyPlaylistScript(t *testing.T) {
 func TestPlaylistsDir(t *testing.T) {
 	t.Setenv("DOTFILES_DIR", "/tmp/test-dotfiles")
 	got := playlistsDir()
-	want := "/tmp/test-dotfiles/ghostty/shaders/playlists"
+	want := "/tmp/test-dotfiles/kitty/shaders/playlists"
 	if got != want {
 		t.Errorf("playlistsDir() = %q, want %q", got, want)
 	}
@@ -191,7 +191,7 @@ func TestLoadPlaylist(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
 
-	plDir := filepath.Join(dir, "ghostty", "shaders", "playlists")
+	plDir := filepath.Join(dir, "kitty", "shaders", "playlists")
 	os.MkdirAll(plDir, 0755)
 
 	content := "crt-effect.glsl\nbloomy\n# comment\n\nrain-drops\n"
@@ -216,7 +216,7 @@ func TestLoadPlaylist(t *testing.T) {
 func TestLoadPlaylist_NotFound(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	os.MkdirAll(filepath.Join(dir, "ghostty", "shaders", "playlists"), 0755)
+	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "playlists"), 0755)
 
 	_, err := loadPlaylist("nonexistent")
 	if err == nil {
@@ -232,7 +232,7 @@ func TestListPlaylists(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
 
-	plDir := filepath.Join(dir, "ghostty", "shaders", "playlists")
+	plDir := filepath.Join(dir, "kitty", "shaders", "playlists")
 	os.MkdirAll(plDir, 0755)
 
 	os.WriteFile(filepath.Join(plDir, "ambient.txt"), []byte("shader1\n"), 0644)
@@ -344,7 +344,7 @@ func TestReadAnimationState(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
 
-	shadersPath := filepath.Join(dir, "ghostty", "shaders")
+	shadersPath := filepath.Join(dir, "kitty", "shaders", "crtty")
 	os.MkdirAll(shadersPath, 0755)
 
 	// Animated shader (contains iTime).
@@ -365,7 +365,7 @@ func TestReadAnimationState(t *testing.T) {
 func TestLoadManifest_Valid(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	shadersPath := filepath.Join(dir, "ghostty", "shaders")
+	shadersPath := filepath.Join(dir, "kitty", "shaders", "crtty")
 	os.MkdirAll(shadersPath, 0755)
 
 	manifest := `[shaders.crt-effect]
@@ -401,7 +401,7 @@ description = "Bloom glow effect"
 func TestLoadManifest_Missing(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	os.MkdirAll(filepath.Join(dir, "ghostty", "shaders"), 0755)
+	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "crtty"), 0755)
 
 	m, err := loadManifest()
 	if err != nil {

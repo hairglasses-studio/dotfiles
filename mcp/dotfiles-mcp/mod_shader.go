@@ -1,4 +1,4 @@
-// mod_shader.go — Terminal shader pipeline tools (kitty via CRTty/DarkWindow)
+// mod_shader.go — Terminal shader pipeline tools (kitty via CRTty + Kitty themes)
 package main
 
 import (
@@ -24,11 +24,10 @@ import (
 // ---------------------------------------------------------------------------
 
 func shadersDir() string {
-	// Source GLSL shaders live in ghostty/shaders/ (legacy path kept as canonical source).
 	if d := os.Getenv("DOTFILES_DIR"); d != "" {
-		return filepath.Join(d, "ghostty", "shaders")
+		return filepath.Join(d, "kitty", "shaders", "crtty")
 	}
-	return filepath.Join(os.Getenv("HOME"), "hairglasses-studio", "dotfiles", "ghostty", "shaders")
+	return filepath.Join(os.Getenv("HOME"), "hairglasses-studio", "dotfiles", "kitty", "shaders", "crtty")
 }
 
 func wallpaperShadersDir() string {
@@ -136,7 +135,7 @@ func readActiveShader() (string, error) {
 	cmd := exec.Command("bash", kittyPlaylistScript(), "current")
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("kitty-shader-playlist current: %w", err)
+		return "", nil
 	}
 	name := strings.TrimSpace(string(out))
 	if name == "" {
@@ -187,7 +186,10 @@ func loadManifest() (map[string]ShaderMeta, error) {
 // ---------------------------------------------------------------------------
 
 func playlistsDir() string {
-	return filepath.Join(shadersDir(), "playlists")
+	if d := os.Getenv("DOTFILES_DIR"); d != "" {
+		return filepath.Join(d, "kitty", "shaders", "playlists")
+	}
+	return filepath.Join(os.Getenv("HOME"), "hairglasses-studio", "dotfiles", "kitty", "shaders", "playlists")
 }
 
 func playlistStateDir() string {
@@ -657,7 +659,7 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 		// ── shader_set ────────────────────────────────
 		handler.TypedHandler[ShaderSetInput, ShaderSetOutput](
 			"shader_set",
-			"Apply a shader to kitty via kitty-shader-playlist.sh.",
+			"Apply a CRTty shader to kitty via kitty-shader-playlist.sh.",
 			func(_ context.Context, input ShaderSetInput) (ShaderSetOutput, error) {
 				p, err := findShader(input.Name)
 				if err != nil {
@@ -1263,4 +1265,3 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 // ---------------------------------------------------------------------------
 // main
 // ---------------------------------------------------------------------------
-

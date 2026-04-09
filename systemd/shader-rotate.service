@@ -1,5 +1,5 @@
 [Unit]
-Description=Advance kitty shader rotation
+Description=Advance kitty visual rotation
 ConditionPathExists=%t/hypr
 
 [Service]

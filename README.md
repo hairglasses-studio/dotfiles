@@ -1,7 +1,7 @@
 # dotfiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Shaders](https://img.shields.io/badge/GLSL_Shaders-131-purple)](ghostty/shaders/)
+[![Shaders](https://img.shields.io/badge/GLSL_Shaders-131-purple)](kitty/shaders/)
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 [![CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml)
@@ -9,13 +9,13 @@
 [![Lint](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml)
 [![Scorecard](https://api.securityscorecards.dev/projects/github.com/hairglasses-studio/dotfiles/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hairglasses-studio/dotfiles)
 
-Full-stack development environment for Manjaro Linux. Combines GPU-rendered shader pipelines, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
+Full-stack development environment for Manjaro Linux. Combines Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
 ![Desktop — Hyprland + eww sidebar + tiled terminals (Snazzy palette)](.github/assets/desktop.png)
 
 ### Technical Highlights
 
-- **GPU Shaders**: 131 GLSL shaders transpiled to CRTty/Hypr-DarkWindow for kitty, with playlist rotation and auto-benchmarking
+- **GPU Shaders**: 131 CRTty-ready GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
 - **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, shader pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
@@ -79,7 +79,7 @@ hyprpm reload -n
 | `swaync/` | Notification center — Snazzy themed, visibility filtering |
 | `wofi/` | Fallback launcher and emoji picker |
 | `wlogout/` | Power menu overlay |
-| `kitty/` | GPU terminal with 131 GLSL shaders (CRTty/DarkWindow), shuffled playlists, shader-cycle scripts |
+| `kitty/` | GPU terminal with CRTty shaders, Kitty theme playlists, shuffled visuals, and watcher-driven retheming |
 | `foot/` | Lightweight terminal (dropdown/fallback) |
 | `zsh/` | Oh My Zsh, Starship prompt, 650+ aliases |
 | `starship/` | Fill-based right alignment, git metrics, cloud context |

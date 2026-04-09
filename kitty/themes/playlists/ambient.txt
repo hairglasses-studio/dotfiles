@@ -1,0 +1,7 @@
+# Kitty theme playlist for the default ambient rotation.
+Dracula
+Tokyo Night
+Nord
+Snazzy
+One Half Dark
+Solarized Dark

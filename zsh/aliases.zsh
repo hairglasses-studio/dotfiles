@@ -848,10 +848,10 @@ alias icat='kitten icat'
 alias kdiff='kitten diff'
 alias kssh='kitten ssh'
 
-# Shader toolchain (source shaders still in ghostty/shaders/, transpiled to kitty/shaders/)
-alias shader-meta='bash ~/dotfiles/ghostty/shaders/bin/shader-meta.sh'
-alias shader-build='bash ~/dotfiles/ghostty/shaders/bin/shader-build.sh'
-alias shader-test='bash ~/dotfiles/ghostty/shaders/bin/shader-test.sh'
+# Shader toolchain (canonical CRTty shaders live in kitty/shaders/)
+alias shader-meta='bash ~/dotfiles/kitty/shaders/bin/shader-meta.sh'
+alias shader-build='bash ~/dotfiles/kitty/shaders/bin/shader-build.sh'
+alias shader-test='bash ~/dotfiles/kitty/shaders/bin/shader-test.sh'
 
 # MCP audit dashboard
 alias audit='$HOME/hairglasses-studio/dotfiles/scripts/audit-dashboard.sh'

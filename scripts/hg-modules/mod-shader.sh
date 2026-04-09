@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # mod-shader.sh — hg shader module
-# Uses kitty-shader-playlist.sh for shader management (CRTty/DarkWindow backends).
-# Source GLSL shaders remain in ghostty/shaders/ (transpiled to kitty/shaders/).
+# Uses kitty-shader-playlist.sh for Kitty theme + CRTty shader management.
 
-_SHADER_BIN="$HG_DOTFILES/ghostty/shaders/bin"
-_SHADER_DIR="$HG_DOTFILES/ghostty/shaders"
+_SHADER_BIN="$HG_DOTFILES/kitty/shaders/bin"
+_SHADER_DIR="$HG_DOTFILES/kitty/shaders/crtty"
 _KITTY_PLAYLIST="$HG_DOTFILES/scripts/kitty-shader-playlist.sh"
 
 if [[ ! -f "$_KITTY_PLAYLIST" ]]; then
@@ -14,7 +13,7 @@ if [[ ! -f "$_KITTY_PLAYLIST" ]]; then
 fi
 
 shader_description() {
-  echo "131+ GLSL shaders — browse, pick, cycle, test"
+  echo "Kitty visual stack — CRTty shaders, theme rotation, playlist control"
 }
 
 shader_commands() {
@@ -88,11 +87,13 @@ _shader_pick() {
 }
 
 _shader_status() {
-  printf "\n %s%sshader status%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
+  printf "\n %s%skitty visual status%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
 
   # Active shader
-  printf " %s%-14s%s " "$HG_DIM" "active" "$HG_RESET"
+  printf " %s%-14s%s " "$HG_DIM" "shader" "$HG_RESET"
   _shader_current
+
+  printf " %s%-14s%s %s\n" "$HG_DIM" "theme" "$HG_RESET" "$(bash "$_KITTY_PLAYLIST" theme-current 2>/dev/null || echo none)"
 
   # Timer status
   if systemctl --user is-active shader-rotate.timer &>/dev/null 2>&1; then
