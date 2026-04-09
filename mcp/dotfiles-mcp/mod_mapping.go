@@ -52,8 +52,8 @@ type MappingSetInput struct {
 }
 
 type MappingSetOutput struct {
-	Written string            `json:"written"`
-	Valid   bool              `json:"valid"`
+	Written string                    `json:"written"`
+	Valid   bool                      `json:"valid"`
 	Issues  []mapping.ValidationIssue `json:"issues,omitempty"`
 }
 
@@ -75,11 +75,11 @@ type MappingValidateInput struct {
 }
 
 type MappingValidateOutput struct {
-	Valid         bool              `json:"valid"`
-	Format        string            `json:"format"`
-	MappingCount  int               `json:"mapping_count"`
-	DeviceName    string            `json:"device_name,omitempty"`
-	Issues        []mapping.ValidationIssue `json:"issues"`
+	Valid        bool                      `json:"valid"`
+	Format       string                    `json:"format"`
+	MappingCount int                       `json:"mapping_count"`
+	DeviceName   string                    `json:"device_name,omitempty"`
+	Issues       []mapping.ValidationIssue `json:"issues"`
 }
 
 // ── Migrate Legacy ──
@@ -90,11 +90,11 @@ type MappingMigrateInput struct {
 }
 
 type MigrationResult struct {
-	Name     string `json:"name"`
-	Status   string `json:"status"` // "migrated", "already_unified", "dry_run", "error"
-	Preview  string `json:"preview,omitempty"`
-	Written  string `json:"written,omitempty"`
-	Error    string `json:"error,omitempty"`
+	Name    string `json:"name"`
+	Status  string `json:"status"` // "migrated", "already_unified", "dry_run", "error"
+	Preview string `json:"preview,omitempty"`
+	Written string `json:"written,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
 type MappingMigrateOutput struct {
@@ -113,10 +113,10 @@ type MappingResolveTestInput struct {
 }
 
 type MappingResolveTestOutput struct {
-	Matched     bool         `json:"matched"`
+	Matched     bool                 `json:"matched"`
 	Rule        *mapping.MappingRule `json:"rule,omitempty"`
-	Context     string       `json:"context"` // "default", "app_override"
-	Description string       `json:"description,omitempty"`
+	Context     string               `json:"context"` // "default", "app_override"
+	Description string               `json:"description,omitempty"`
 }
 
 // ── Generate ──
@@ -157,13 +157,13 @@ type MappingImportInput struct {
 }
 
 type MappingImportOutput struct {
-	Valid   bool              `json:"valid"`
-	Written string            `json:"written,omitempty"`
-	Name    string            `json:"name"`
-	Format  string            `json:"format"`
+	Valid   bool                      `json:"valid"`
+	Written string                    `json:"written,omitempty"`
+	Name    string                    `json:"name"`
+	Format  string                    `json:"format"`
 	Issues  []mapping.ValidationIssue `json:"issues,omitempty"`
-	DryRun  bool              `json:"dry_run"`
-	Exists  bool              `json:"exists,omitempty"`
+	DryRun  bool                      `json:"dry_run"`
+	Exists  bool                      `json:"exists,omitempty"`
 }
 
 // ── Diff ──
@@ -196,7 +196,7 @@ type MappingDiffOutput struct {
 // MappingEngineModule provides MCP tools for unified controller mapping management.
 type MappingEngineModule struct{}
 
-func (m *MappingEngineModule) Name() string        { return "mapping" }
+func (m *MappingEngineModule) Name() string { return "mapping" }
 func (m *MappingEngineModule) Description() string {
 	return "Unified controller mapping engine: profile management, validation, migration, and generation"
 }
@@ -805,11 +805,17 @@ func countTOMLMappings(content string) int {
 func sanitizeProfile(content string) string {
 	lines := strings.Split(content, "\n")
 	var sanitized []string
+	home := homeDir()
 	for _, line := range lines {
-		// Remove lines containing absolute paths.
+		// Replace the active user's home path first so root and other non-/home
+		// environments still sanitize correctly under test and in exports.
+		if len(home) > 1 && strings.Contains(line, home) {
+			line = strings.ReplaceAll(line, home, "~")
+		}
+		// Fall back to common home-directory prefixes for imported profiles.
 		if strings.Contains(line, "/home/") || strings.Contains(line, "/Users/") {
-			// Replace absolute paths with relative placeholders.
-			line = strings.ReplaceAll(line, homeDir(), "~")
+			line = strings.ReplaceAll(line, "/home/", "~/")
+			line = strings.ReplaceAll(line, "/Users/", "~/")
 		}
 		sanitized = append(sanitized, line)
 	}
