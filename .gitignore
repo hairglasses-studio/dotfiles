@@ -63,8 +63,7 @@ id_ed25519*
 !.agents/skills/
 .claude/skills/
 !.claude/skills/*/SKILL.md
-.ralph/ab_tests/
-.ralph/benchmarks/
+.ralph/
 
 # Local Go workspace metadata
 mcp/go.work.sum
