@@ -55,8 +55,11 @@ packages = [
     { name = "wf-recorder" },
     { name = "grim-hyprland-git" },
     { name = "ydotool" },
+    { name = "wtype" },
     { name = "flashfocus" },
     { name = "socat" },
+    { name = "tesseract" },
+    { name = "imagemagick" },
 
     # Clipboard
     { name = "cliphist" },

@@ -23,6 +23,9 @@ func TestDotfilesProfile(t *testing.T) {
 		{"default", "default"},
 		{"Default", "default"},
 		{"DEFAULT", "default"},
+		{"desktop", "desktop"},
+		{"Desktop", "desktop"},
+		{"DESKTOP", "desktop"},
 		{"ops", "ops"},
 		{"Ops", "ops"},
 		{"OPS", "ops"},
@@ -58,6 +61,18 @@ func TestShouldDeferDotfilesTool(t *testing.T) {
 		{"full", "shader_list", false},
 		{"full", "dotfiles_validate_config", false},
 		{"full", "hypr_list_windows", false},
+
+		// desktop profile: desktop control surfaces eager, non-desktop deferred
+		{"desktop", "hypr_list_windows", false},
+		{"desktop", "screen_screenshot", false},
+		{"desktop", "desktop_find_text", false},
+		{"desktop", "shader_status", false},
+		{"desktop", "input_type_text", false},
+		{"desktop", "dotfiles_rice_check", false},
+		{"desktop", "dotfiles_fleet_audit", true},
+		{"desktop", "bt_connect", true},
+		{"desktop", "midi_list_devices", true},
+		{"desktop", "system_info", true},
 
 		// ops profile: dotfiles_, workflow_, oss_ are NOT deferred
 		{"ops", "dotfiles_validate_config", false},
@@ -146,6 +161,36 @@ func TestRegisterDotfilesModules_OpsProfile(t *testing.T) {
 	}
 }
 
+func TestRegisterDotfilesModules_DesktopProfile(t *testing.T) {
+	t.Setenv("DOTFILES_MCP_PROFILE", "desktop")
+
+	reg := registry.NewToolRegistry()
+	registerDotfilesModules(reg, nil, nil, dotfilesMCPVersion)
+
+	for _, toolName := range []string{
+		"hypr_list_windows",
+		"screen_screenshot",
+		"desktop_find_text",
+		"shader_status",
+		"input_type_text",
+		"dotfiles_rice_check",
+	} {
+		if reg.IsDeferred(toolName) {
+			t.Fatalf("%s should NOT be deferred in desktop profile", toolName)
+		}
+	}
+	for _, toolName := range []string{
+		"dotfiles_fleet_audit",
+		"bt_connect",
+		"midi_list_devices",
+		"system_info",
+	} {
+		if !reg.IsDeferred(toolName) {
+			t.Fatalf("%s should be deferred in desktop profile", toolName)
+		}
+	}
+}
+
 // ---------------------------------------------------------------------------
 // DotfilesDiscoveryModule
 // ---------------------------------------------------------------------------
@@ -159,8 +204,8 @@ func TestDiscoveryModuleRegistration(t *testing.T) {
 	}
 
 	tools := m.Tools()
-	if len(tools) != 5 {
-		t.Fatalf("expected 5 discovery tools, got %d", len(tools))
+	if len(tools) != 6 {
+		t.Fatalf("expected 6 discovery tools, got %d", len(tools))
 	}
 
 	names := make(map[string]bool)
@@ -173,6 +218,7 @@ func TestDiscoveryModuleRegistration(t *testing.T) {
 		"dotfiles_tool_catalog",
 		"dotfiles_tool_stats",
 		"dotfiles_server_health",
+		"dotfiles_desktop_status",
 	} {
 		if !names[want] {
 			t.Errorf("missing tool: %s", want)
@@ -314,11 +360,11 @@ func TestServerHealth_WithSurfaceRegistries(t *testing.T) {
 	if out.PromptCount == 0 {
 		t.Fatal("expected non-zero prompt count")
 	}
-	if out.WorkflowCount != 8 {
-		t.Fatalf("expected 8 workflows, got %d", out.WorkflowCount)
+	if out.WorkflowCount != 9 {
+		t.Fatalf("expected 9 workflows, got %d", out.WorkflowCount)
 	}
-	if out.SkillCount != 4 {
-		t.Fatalf("expected 4 skills, got %d", out.SkillCount)
+	if out.SkillCount != 5 {
+		t.Fatalf("expected 5 skills, got %d", out.SkillCount)
 	}
 	prioritySummary, ok := out.PrioritySummary.(map[string]any)
 	if !ok {
@@ -327,8 +373,8 @@ func TestServerHealth_WithSurfaceRegistries(t *testing.T) {
 	if got, ok := prioritySummary["missing_front_door_count"].(float64); !ok || int(got) != 0 {
 		t.Fatalf("expected zero missing front doors in priority summary, got %#v", prioritySummary["missing_front_door_count"])
 	}
-	if len(out.DiscoveryTools) != 5 {
-		t.Fatalf("expected 5 discovery tools, got %d", len(out.DiscoveryTools))
+	if len(out.DiscoveryTools) != 6 {
+		t.Fatalf("expected 6 discovery tools, got %d", len(out.DiscoveryTools))
 	}
 }
 

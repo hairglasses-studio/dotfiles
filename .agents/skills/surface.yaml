@@ -22,6 +22,11 @@
       "export_plugin": false
     },
     {
+      "name": "dotfiles_desktop_control",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
       "name": "codex_rollout",
       "claude_include_canonical": true,
       "export_plugin": false

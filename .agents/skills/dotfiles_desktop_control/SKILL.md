@@ -1,0 +1,41 @@
+---
+name: dotfiles_desktop_control
+description: 'Desktop control workflow for the hairglasses dotfiles repo: capability checks, Hyprland targeting, OCR-assisted inspection, input automation, and targeted reloads.'
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - mcp__dotfiles__dotfiles_desktop_status
+  - mcp__dotfiles__dotfiles_rice_check
+  - mcp__dotfiles__hypr_list_windows
+  - mcp__dotfiles__hypr_get_monitors
+  - mcp__dotfiles__screen_screenshot
+  - mcp__dotfiles__desktop_screenshot_ocr
+  - mcp__dotfiles__desktop_find_text
+  - mcp__dotfiles__input_type_text
+  - mcp__dotfiles__desktop_click_text
+  - mcp__dotfiles__hypr_reload_config
+  - mcp__dotfiles__dotfiles_reload_service
+  - mcp__dotfiles__dotfiles_cascade_reload
+---
+
+# Dotfiles Desktop Control
+
+Use this skill when the task is direct desktop interaction rather than static config editing: Hyprland targeting, OCR-assisted UI inspection, terminal visual control, text entry, clicks, and the smallest safe desktop reload.
+
+## Default loop
+
+1. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm that Wayland, Hyprland, OCR, input injection, and the terminal shader pipeline are actually ready.
+2. Use `hypr_list_windows` or `hypr_get_monitors` to identify the exact surface before taking screenshots or sending input.
+3. Use `screen_screenshot`, `desktop_screenshot_ocr`, or `desktop_find_text` to prove the visible state before acting.
+4. Prefer narrow write tools such as `input_type_text`, `desktop_click_text`, `hypr_click`, and `hypr_focus_window` over broad reloads.
+5. If a reload is required, use `dotfiles_reload_service` or `hypr_reload_config` before escalating to `dotfiles_cascade_reload`.
+
+## Related surfaces
+
+- Keep `dotfiles_ui` as the config-and-visual-iteration companion once the live surface is understood.
+- The terminal visual pipeline is still kitty-first for writes; Ghostty is the state-aware companion surface, not a second control plane.
+- After global sync, the related global skills to keep in mind are `desktop-rice`, `input`, `rice`, and `shader`.
+
+Read `references/workflows.md` for the compressed desktop-control checklist.
