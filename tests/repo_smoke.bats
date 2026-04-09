@@ -59,6 +59,7 @@ teardown() {
     run bash "${SCRIPTS_DIR}/hg-mcp-mirror-parity.sh" --list
     assert_success
     assert_output --partial "dotfiles-mcp"
+    assert_output --partial "manual_projection"
     assert_output --partial "mapitall"
     assert_output --partial "mapping"
     assert_output --partial "tmux-mcp"

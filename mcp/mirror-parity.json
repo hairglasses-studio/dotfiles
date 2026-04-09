@@ -5,37 +5,43 @@
       "module": "dotfiles-mcp",
       "standalone_repo": "dotfiles-mcp",
       "canonical_path": "mcp/dotfiles-mcp",
-      "purpose": "Desktop and workstation control-plane MCP server"
+      "purpose": "Desktop and workstation control-plane MCP server",
+      "sync_strategy": "manual_projection"
     },
     {
       "module": "mapitall",
       "standalone_repo": "mapitall",
       "canonical_path": "mcp/mapitall",
-      "purpose": "Controller and input mapping MCP runtime"
+      "purpose": "Controller and input mapping MCP runtime",
+      "sync_strategy": "tree_sync"
     },
     {
       "module": "mapping",
       "standalone_repo": "mapping",
       "canonical_path": "mcp/mapping",
-      "purpose": "Shared Go package for mapping and profile resolution"
+      "purpose": "Shared Go package for mapping and profile resolution",
+      "sync_strategy": "tree_sync"
     },
     {
       "module": "process-mcp",
       "standalone_repo": "process-mcp",
       "canonical_path": "mcp/process-mcp",
-      "purpose": "Linux process inspection and debugging MCP server"
+      "purpose": "Linux process inspection and debugging MCP server",
+      "sync_strategy": "tree_sync"
     },
     {
       "module": "systemd-mcp",
       "standalone_repo": "systemd-mcp",
       "canonical_path": "mcp/systemd-mcp",
-      "purpose": "Systemd service and timer management MCP server"
+      "purpose": "Systemd service and timer management MCP server",
+      "sync_strategy": "tree_sync"
     },
     {
       "module": "tmux-mcp",
       "standalone_repo": "tmux-mcp",
       "canonical_path": "mcp/tmux-mcp",
-      "purpose": "Tmux session and workspace orchestration MCP server"
+      "purpose": "Tmux session and workspace orchestration MCP server",
+      "sync_strategy": "tree_sync"
     }
   ]
 }
