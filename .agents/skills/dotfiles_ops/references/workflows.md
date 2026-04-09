@@ -13,6 +13,7 @@ This skill replaces the previous narrow catalog around config management, workst
 - Use the onboarding, workflow-sync, and org/fleet scripts instead of one-off shell loops.
 - Shared scripts should be dry-run friendly and explicit about scope.
 - When syncing across repos, separate audit output from mutation output.
+- For repo git debt, use `dotfiles_repo_git_hygiene` and the `dotfiles://workflows/repo-hygiene` resource before deleting branches or worktrees by hand.
 
 ## CI And Shipping
 

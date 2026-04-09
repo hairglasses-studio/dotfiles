@@ -14,8 +14,8 @@ import (
 
 func TestBuildDotfilesPromptRegistry(t *testing.T) {
 	promptReg := buildDotfilesPromptRegistry()
-	if promptReg.PromptCount() != 7 {
-		t.Fatalf("expected 7 prompts, got %d", promptReg.PromptCount())
+	if promptReg.PromptCount() != 8 {
+		t.Fatalf("expected 8 prompts, got %d", promptReg.PromptCount())
 	}
 	if _, ok := promptReg.GetPrompt("dotfiles_audit_fleet"); !ok {
 		t.Fatal("expected dotfiles_audit_fleet prompt to be registered")
@@ -23,14 +23,17 @@ func TestBuildDotfilesPromptRegistry(t *testing.T) {
 	if _, ok := promptReg.GetPrompt("dotfiles_repair_config"); !ok {
 		t.Fatal("expected dotfiles_repair_config prompt to be registered")
 	}
+	if _, ok := promptReg.GetPrompt("dotfiles_cleanup_repo_hygiene"); !ok {
+		t.Fatal("expected dotfiles_cleanup_repo_hygiene prompt to be registered")
+	}
 }
 
 func TestBuildDotfilesResourceRegistry(t *testing.T) {
 	reg := registry.NewToolRegistry()
 	promptReg := buildDotfilesPromptRegistry()
 	resReg := buildDotfilesResourceRegistry(reg, promptReg)
-	if resReg.ResourceCount() != 15 {
-		t.Fatalf("expected 15 resources, got %d", resReg.ResourceCount())
+	if resReg.ResourceCount() != 16 {
+		t.Fatalf("expected 16 resources, got %d", resReg.ResourceCount())
 	}
 	if _, ok := resReg.GetResource("dotfiles://server/overview"); !ok {
 		t.Fatal("expected dotfiles overview resource to be registered")
@@ -117,8 +120,14 @@ func TestDotfilesWorkflowCatalogResource(t *testing.T) {
 	if !containsText(text.Text, `"config_repair"`) {
 		t.Fatalf("expected config_repair in workflow catalog: %s", text.Text)
 	}
+	if !containsText(text.Text, `"repo_hygiene"`) {
+		t.Fatalf("expected repo_hygiene in workflow catalog: %s", text.Text)
+	}
 	if !containsText(text.Text, `"dotfiles_repair_config"`) {
 		t.Fatalf("expected dotfiles_repair_config in workflow catalog: %s", text.Text)
+	}
+	if !containsText(text.Text, `"dotfiles_cleanup_repo_hygiene"`) {
+		t.Fatalf("expected dotfiles_cleanup_repo_hygiene in workflow catalog: %s", text.Text)
 	}
 }
 
@@ -143,7 +152,7 @@ func TestDotfilesPrioritiesResource(t *testing.T) {
 	if !containsText(text.Text, `"missing_front_door_count": 0`) {
 		t.Fatalf("expected zero missing front doors: %s", text.Text)
 	}
-	if !containsText(text.Text, `"workflow_count": 7`) {
+	if !containsText(text.Text, `"workflow_count": 8`) {
 		t.Fatalf("expected workflow count in priorities resource: %s", text.Text)
 	}
 }

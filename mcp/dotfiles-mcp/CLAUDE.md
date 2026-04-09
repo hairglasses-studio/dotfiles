@@ -10,7 +10,7 @@ go test ./... -count=1
 go install .
 ```
 
-## Tools (99)
+## Tools (100)
 
 ### Config Management (4)
 - `dotfiles_list_configs` — List dotfiles config directories with symlink health and format
@@ -127,9 +127,10 @@ go install .
 - `midi_get_mapping` — Read existing MIDI controller mapping config
 - `midi_set_mapping` — Create or update MIDI mapping (validates TOML)
 
-### Composed Workflows (2)
+### Composed Workflows (3)
 - `bt_discover_and_connect` — **Composed**: scan→find→remove stale→pair (with agent)→trust→connect (with retry)
 - `input_auto_setup_controller` — **Composed**: detect controllers→generate missing profiles→restart makima
+- `dotfiles_repo_git_hygiene` — **Composed**: dry-run-first scan or cleanup for merged branches, extra worktrees, and managed worktree residue
 
 ### Open-Source Readiness (2)
 - `dotfiles_oss_score` — Score a repo's open-source readiness (0-100) across 8 categories: community files, README quality, Go module, testing, CI/CD, security, release, maintenance. Returns structured report with per-check pass/fail and top action items.

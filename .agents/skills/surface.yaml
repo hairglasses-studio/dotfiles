@@ -7,6 +7,11 @@
       "export_plugin": false
     },
     {
+      "name": "dotfiles_git_hygiene",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
       "name": "dotfiles_recovery",
       "claude_include_canonical": true,
       "export_plugin": false

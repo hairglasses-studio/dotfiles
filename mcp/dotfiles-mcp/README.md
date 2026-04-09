@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP](https://img.shields.io/badge/MCP-2025--11--25-blue)](https://modelcontextprotocol.io/specification/2025-11-25)
 
-MCP server for desktop environment management -- Hyprland, Ghostty shaders, Bluetooth, MIDI, input devices, GitHub org lifecycle, fleet auditing, and open-source readiness scoring. 90 tools across 15 modules.
+MCP server for desktop environment management, repo ops, GitHub org lifecycle, fleet auditing, and open-source readiness scoring.
 
 Canonical development lives in [`hairglasses-studio/dotfiles`](https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp) under `dotfiles/mcp/dotfiles-mcp`. The standalone [`dotfiles-mcp`](https://github.com/hairglasses-studio/dotfiles-mcp) repo is a publish mirror kept in parity for installation and discovery.
 
@@ -43,7 +43,7 @@ The server also exposes read-first workflow resources and prompt entrypoints for
 - Workflow catalog: `dotfiles://catalog/workflows`
 - Skill catalog: `dotfiles://catalog/skills`
 - Workflow priorities: `dotfiles://catalog/priorities`
-- Prompt workflows: fleet audit, config repair, desktop triage, workstation diagnosis, repo validation, repo onboarding, and session recovery
+- Prompt workflows: fleet audit, config repair, desktop triage, workstation diagnosis, repo validation, repo hygiene, repo onboarding, and session recovery
 
 ## Quick Start
 
@@ -71,7 +71,7 @@ Control how many tools load at startup via `DOTFILES_MCP_PROFILE`:
 |---------|----------|-------------|
 | `default` | Discovery tools loaded, rest deferred on demand | ~2K tokens |
 | `ops` | Operational subset (config, desktop, fleet) loaded eagerly | ~15K tokens |
-| `full` | All 90 tools loaded immediately | ~40K tokens |
+| `full` | All tools loaded immediately | ~40K tokens |
 
 Set in your MCP config:
 
@@ -100,7 +100,7 @@ Set in your MCP config:
 | Bluetooth | 9 | Device discovery, pairing (BLE-safe), connect/disconnect, battery, trust |
 | Input Devices | 13 | Logitech mouse config, gamepad profiles (makima), Solaar settings |
 | MIDI | 4 | USB MIDI controller detection and mapping config |
-| Composed Workflows | 2 | Multi-step automations: BT discover-and-connect, controller auto-setup |
+| Composed Workflows | 3 | Multi-step automations: BT discover-and-connect, controller auto-setup, repo git hygiene |
 | Open-Source Readiness | 2 | Score repos 0-100 across 8 categories with actionable suggestions |
 
 ## Key Patterns
