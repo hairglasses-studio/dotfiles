@@ -13,6 +13,7 @@ on:
       - 'mcp/**'
       - 'make/golangci.yml'
       - '.github/workflows/ci-go-mcp.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -118,6 +119,107 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  systemd-live:
+    name: Test (systemd-mcp live)
+    runs-on: [self-hosted, archglasses, optimized]
+    defaults:
+      run:
+        working-directory: mcp/systemd-mcp
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: mcp/go.work
+
+      - name: Preflight live systemd capabilities
+        id: preflight
+        run: |
+          user_manager=false
+          system_manager=false
+
+          if command -v systemctl >/dev/null 2>&1; then
+            if systemctl --user show-environment >/tmp/systemd-mcp-user.out 2>/tmp/systemd-mcp-user.err; then
+              user_manager=true
+            fi
+            if systemctl show-environment >/tmp/systemd-mcp-system.out 2>/tmp/systemd-mcp-system.err; then
+              system_manager=true
+            fi
+          fi
+
+          echo "user_manager=$user_manager" >> "$GITHUB_OUTPUT"
+          echo "system_manager=$system_manager" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### systemd-mcp live preflight"
+            echo "- user_manager: $user_manager"
+            echo "- system_manager: $system_manager"
+            if [ "$user_manager" != "true" ] && [ -f /tmp/systemd-mcp-user.err ]; then
+              echo
+              echo "user-manager probe stderr:"
+              echo '```'
+              cat /tmp/systemd-mcp-user.err
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run live integration tests
+        if: steps.preflight.outputs.user_manager == 'true'
+        env:
+          SYSTEMD_MCP_LIVE: "1"
+        run: go test -race -count=1 ./...
+
+      - name: Skip note
+        if: steps.preflight.outputs.user_manager != 'true'
+        run: echo "Skipping systemd-mcp live integration tests because the runner does not expose a usable user manager." >> "$GITHUB_STEP_SUMMARY"
+
+  systemd-live-system:
+    name: Test (systemd-mcp system scope)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, archglasses, optimized]
+    defaults:
+      run:
+        working-directory: mcp/systemd-mcp
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: mcp/go.work
+
+      - name: Preflight system-scope capabilities
+        id: preflight
+        run: |
+          system_manager=false
+
+          if command -v systemctl >/dev/null 2>&1; then
+            if systemctl show-environment >/tmp/systemd-mcp-system.out 2>/tmp/systemd-mcp-system.err; then
+              system_manager=true
+            fi
+          fi
+
+          echo "system_manager=$system_manager" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### systemd-mcp system-scope preflight"
+            echo "- system_manager: $system_manager"
+            if [ "$system_manager" != "true" ] && [ -f /tmp/systemd-mcp-system.err ]; then
+              echo
+              echo "system-manager probe stderr:"
+              echo '```'
+              cat /tmp/systemd-mcp-system.err
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run system-scope live tests
+        if: steps.preflight.outputs.system_manager == 'true'
+        env:
+          SYSTEMD_MCP_LIVE: "1"
+        run: go test -race -count=1 -run 'TestStatus_SystemScope' ./...
+
+      - name: Skip note
+        if: steps.preflight.outputs.system_manager != 'true'
+        run: echo "Skipping system-scope live tests because the runner does not expose a usable system manager." >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Build (${{ matrix.module }})

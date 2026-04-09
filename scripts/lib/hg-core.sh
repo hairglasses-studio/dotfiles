@@ -42,12 +42,12 @@ _hg_core_studio_is_valid() {
   _hg_core_dotfiles_is_valid "$root/dotfiles"
 }
 
-if [[ -n "${DOTFILES_DIR:-}" ]] && _hg_core_dotfiles_is_valid "${DOTFILES_DIR}"; then
-  HG_DOTFILES="$(cd "${DOTFILES_DIR}" && pwd)"
-  HG_STUDIO_ROOT="$(cd "${HG_DOTFILES}/.." && pwd)"
-elif [[ -n "${HG_STUDIO_ROOT:-}" ]] && _hg_core_studio_is_valid "${HG_STUDIO_ROOT}"; then
+if [[ -n "${HG_STUDIO_ROOT:-}" ]] && _hg_core_studio_is_valid "${HG_STUDIO_ROOT}"; then
   HG_STUDIO_ROOT="$(cd "${HG_STUDIO_ROOT}" && pwd)"
   HG_DOTFILES="${HG_STUDIO_ROOT}/dotfiles"
+elif [[ -n "${DOTFILES_DIR:-}" ]] && _hg_core_dotfiles_is_valid "${DOTFILES_DIR}"; then
+  HG_DOTFILES="$(cd "${DOTFILES_DIR}" && pwd)"
+  HG_STUDIO_ROOT="$(cd "${HG_DOTFILES}/.." && pwd)"
 elif _hg_core_dotfiles_is_valid "$_hg_core_dotfiles"; then
   HG_STUDIO_ROOT="$_hg_core_studio"
   HG_DOTFILES="$_hg_core_dotfiles"

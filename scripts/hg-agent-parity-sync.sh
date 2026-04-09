@@ -314,7 +314,7 @@ verify_or_sync_workflows() {
   $INCLUDE_COMPATIBILITY && args+=("--include-compatibility")
 
   if [[ "$MODE" == "write" ]]; then
-    if "$SCRIPT_DIR/hg-workflow-sync.sh" --ensure-missing "${args[@]}" >/dev/null 2>&1; then
+    if bash "$SCRIPT_DIR/hg-workflow-sync.sh" --ensure-missing "${args[@]}" >/dev/null 2>&1; then
       printf "%s%-20s %s (synced)%s\n" "$HG_GREEN" "$repo" "workflows" "$HG_RESET"
       UPDATED=$((UPDATED + 1))
     else
@@ -325,7 +325,7 @@ verify_or_sync_workflows() {
   fi
 
   local output
-  output="$("$SCRIPT_DIR/hg-workflow-sync.sh" "${args[@]}" 2>/dev/null || true)"
+  output="$(bash "$SCRIPT_DIR/hg-workflow-sync.sh" "${args[@]}" 2>/dev/null || true)"
   if grep -Eq 'would create|would update' <<<"$output"; then
     report_missing_or_drift "$repo" "workflows"
   else

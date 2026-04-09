@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-STUDIO_ROOT="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}"
-TARGET="$STUDIO_ROOT/surfacekit/scripts/gemini-settings-sync.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/hg-core.sh"
+
+export HG_STUDIO_ROOT HG_DOTFILES
+TARGET="$HG_STUDIO_ROOT/surfacekit/scripts/gemini-settings-sync.sh"
 
 [[ -f "$TARGET" ]] || {
   echo "surfacekit gemini sync entrypoint missing: $TARGET" >&2
