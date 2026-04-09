@@ -18,7 +18,8 @@ rice_commands() {
 status	Comprehensive rice status dashboard
 services	Check which services are running
 palette	Scan configs for non-Snazzy colors
-reload-all	Reload all compositor services
+reload-all	Reload all compositor services with safe hot-reload lanes
+restart-ui	Explicitly restart service-backed UI companions
 CMDS
 }
 
@@ -143,6 +144,12 @@ _rice_reload_all() {
   hg_ok "All services reloaded"
 }
 
+_rice_restart_ui() {
+  hg_info "Restarting UI companion services in parallel..."
+  config_restart_parallel hyprshell hypr-dock hyprdynamicmonitors autoname
+  hg_ok "UI companion services restarted"
+}
+
 rice_run() {
   local cmd="${1:-}"
   shift || true
@@ -152,6 +159,7 @@ rice_run() {
     services)   _rice_services ;;
     palette)    _rice_palette ;;
     reload-all) _rice_reload_all ;;
+    restart-ui) _rice_restart_ui ;;
     *)          hg_die "Unknown rice command: $cmd. Run 'hg rice --help'." ;;
   esac
 }
