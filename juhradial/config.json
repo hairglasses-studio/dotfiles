@@ -1,0 +1,122 @@
+{
+  "haptics": {
+    "enabled": false,
+    "default_pattern": "subtle_collision",
+    "per_event": {
+      "menu_appear": "damp_state_change",
+      "slice_change": "subtle_collision",
+      "confirm": "sharp_state_change",
+      "invalid": "angry_alert"
+    },
+    "debounce_ms": 20,
+    "slice_debounce_ms": 20,
+    "reentry_debounce_ms": 50
+  },
+  "desktop_environment": "generic",
+  "de_defaults_applied": true,
+  "language": "system",
+  "theme": "catppuccin-mocha",
+  "blur_enabled": true,
+  "pointer": {
+    "speed": 10,
+    "acceleration": true
+  },
+  "scroll": {
+    "natural": true,
+    "smooth": true,
+    "smartshift": true,
+    "smartshift_threshold": 15,
+    "mode": "smartshift"
+  },
+  "app": {
+    "start_at_login": false,
+    "show_tray_icon": false
+  },
+  "device_mode": "auto",
+  "buttons": {
+    "gesture": "virtual_desktops",
+    "thumb": "radial_menu",
+    "middle": "middle_click",
+    "shift_wheel": "smartshift",
+    "forward": "forward",
+    "back": "back",
+    "horizontal_scroll": "scroll_left_right"
+  },
+  "radial": {
+    "minimal_mode": false
+  },
+  "radial_menu": {
+    "slices": [
+      {
+        "label": "Play/Pause",
+        "action_id": "play_pause",
+        "type": "exec",
+        "command": "playerctl play-pause",
+        "color": "green",
+        "icon": "media-playback-start-symbolic"
+      },
+      {
+        "label": "Next Track",
+        "action_id": "next_track",
+        "type": "exec",
+        "command": "playerctl next",
+        "color": "green",
+        "icon": "media-skip-forward-symbolic"
+      },
+      {
+        "label": "Previous Track",
+        "action_id": "prev_track",
+        "type": "exec",
+        "command": "playerctl previous",
+        "color": "green",
+        "icon": "media-skip-backward-symbolic"
+      },
+      {
+        "label": "Lock",
+        "action_id": "lock",
+        "type": "exec",
+        "command": "loginctl lock-session",
+        "color": "red",
+        "icon": "system-lock-screen-symbolic"
+      },
+      {
+        "label": "Settings",
+        "action_id": "settings",
+        "type": "exec",
+        "command": "juhradial-settings",
+        "color": "blue",
+        "icon": "preferences-system-symbolic"
+      },
+      {
+        "label": "Disabled",
+        "action_id": "none",
+        "type": "none",
+        "command": "",
+        "color": "gray",
+        "icon": "action-unavailable-symbolic"
+      },
+      {
+        "label": "Disabled",
+        "action_id": "none",
+        "type": "none",
+        "command": "",
+        "color": "gray",
+        "icon": "action-unavailable-symbolic"
+      },
+      {
+        "label": "Disabled",
+        "action_id": "none",
+        "type": "none",
+        "command": "",
+        "color": "gray",
+        "icon": "action-unavailable-symbolic"
+      }
+    ],
+    "easy_switch_shortcuts": false,
+    "easy_switch_host_os": [
+      "linux",
+      "unknown",
+      "unknown"
+    ]
+  }
+}

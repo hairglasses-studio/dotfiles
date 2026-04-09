@@ -96,9 +96,9 @@ func TestMacRegex(t *testing.T) {
 	invalid := []string{
 		"",
 		"not-a-mac",
-		"D2:8E:C5:DE:9F",    // too short
+		"D2:8E:C5:DE:9F",       // too short
 		"D2:8E:C5:DE:9F:CB:00", // too long
-		"G2:8E:C5:DE:9F:CB", // invalid hex char
+		"G2:8E:C5:DE:9F:CB",    // invalid hex char
 	}
 
 	for _, mac := range valid {
@@ -115,8 +115,8 @@ func TestMacRegex(t *testing.T) {
 
 func TestDeviceRegex(t *testing.T) {
 	tests := []struct {
-		line    string
-		wantMAC string
+		line     string
+		wantMAC  string
 		wantName string
 	}{
 		{"Device D2:8E:C5:DE:9F:CB MX Master 4", "D2:8E:C5:DE:9F:CB", "MX Master 4"},
@@ -170,6 +170,22 @@ func TestBatteryRegex(t *testing.T) {
 		if m[1] != tc.want {
 			t.Errorf("got %q, want %q", m[1], tc.want)
 		}
+	}
+}
+
+func TestParseJuhradialBatteryOutput(t *testing.T) {
+	out, err := parseJuhradialBatteryOutput("(uint32 73, true)")
+	if err != nil {
+		t.Fatalf("parseJuhradialBatteryOutput returned error: %v", err)
+	}
+	if out.Percent != 73 {
+		t.Fatalf("expected percent 73, got %d", out.Percent)
+	}
+	if !out.Charging {
+		t.Fatal("expected charging=true")
+	}
+	if out.Source != "dbus" {
+		t.Fatalf("expected source dbus, got %q", out.Source)
 	}
 }
 

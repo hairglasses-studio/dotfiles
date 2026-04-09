@@ -146,8 +146,6 @@ $DOTFILES_DIR/pypr/config.toml|$HOME/.config/pypr/config.toml
 $DOTFILES_DIR/eww|$HOME/.config/eww
 $DOTFILES_DIR/helix/config.toml|$HOME/.config/helix/config.toml
 $DOTFILES_DIR/makima|$HOME/.config/makima
-$DOTFILES_DIR/solaar/config.yaml|$HOME/.config/solaar/config.yaml
-$DOTFILES_DIR/solaar/rules.yaml|$HOME/.config/solaar/rules.yaml
 $DOTFILES_DIR/environment.d/ralphglasses.conf|$HOME/.config/environment.d/ralphglasses.conf
 $DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf|$HOME/.config/fontconfig/conf.d/51-monospace.conf
 $DOTFILES_DIR/metapac|$HOME/.config/metapac
@@ -164,6 +162,8 @@ $DOTFILES_DIR/scripts/kitty-dev-launch.sh|$HOME/.local/bin/kitty-dev-launch
 $DOTFILES_DIR/scripts/kitty-visual-launch.sh|$HOME/.local/bin/kitty-visual-launch
 $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
+$DOTFILES_DIR/scripts/juhradial-mx.sh|$HOME/.local/bin/juhradial-mx
+$DOTFILES_DIR/scripts/juhradial-settings.sh|$HOME/.local/bin/juhradial-settings
 EOF
 }
 
@@ -392,6 +392,25 @@ setup_tattoy_shaders() {
     log_info "Tattoy shaders skipped (kitty uses CRTty/DarkWindow pipeline)"
 }
 
+install_juhradial_stack() {
+    if [[ "$OS" != "Linux" ]]; then
+        return 0
+    fi
+
+    local script="$DOTFILES_DIR/scripts/juhradial-install.sh"
+    if [[ ! -x "$script" ]]; then
+        log_warn "Skipping juhradial install — missing executable: $script"
+        return 0
+    fi
+
+    log_info "Installing juhradial-mx stack..."
+    if "$script" --quiet; then
+        log_success "juhradial-mx installed"
+    else
+        log_warn "juhradial-mx install reported an error — rerun: $script"
+    fi
+}
+
 # ── Tmux Plugin Manager ──────────────────────
 install_tpm() {
     local tpm_dir="$HOME/.tmux/plugins/tpm"
@@ -609,6 +628,7 @@ main() {
     log_phase "SYMLINK CONFIGURATION"
     create_symlinks
     setup_tattoy_shaders
+    install_juhradial_stack
 
     # Build bat cache (custom themes)
     if command -v bat &>/dev/null; then

@@ -1,0 +1,15 @@
+# Repo-managed juhradial access rules for Logitech MX Master devices.
+SUBSYSTEM=="input", ATTRS{idVendor}=="046d", MODE="0660", GROUP="input"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", MODE="0660", GROUP="input"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="046d", MODE="0660", GROUP="input", TAG+="uaccess"
+
+SUBSYSTEM=="input", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="b034", MODE="0660", GROUP="input", TAG+="uaccess"
+SUBSYSTEM=="input", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="b035", MODE="0660", GROUP="input", TAG+="uaccess"
+SUBSYSTEM=="input", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="4082", MODE="0660", GROUP="input", TAG+="uaccess"
+
+SUBSYSTEM=="input", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c548", MODE="0660", GROUP="input", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c548", MODE="0660", GROUP="input", TAG+="uaccess"
+
+SUBSYSTEM=="input", ATTRS{idVendor}=="046d", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", TAG+="uaccess"
+ACTION=="add", SUBSYSTEM=="hid", ATTRS{idVendor}=="046d", TAG+="systemd"

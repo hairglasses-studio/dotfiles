@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "profiles": [
+    {
+      "name": "default",
+      "slices": [
+        {
+          "type": "command",
+          "value": "playerctl play-pause",
+          "label": "Play/Pause",
+          "icon": "media-playback-start-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "playerctl next",
+          "label": "Next Track",
+          "icon": "media-skip-forward-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "playerctl previous",
+          "label": "Previous Track",
+          "icon": "media-skip-backward-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "loginctl lock-session",
+          "label": "Lock",
+          "icon": "system-lock-screen-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "juhradial-settings",
+          "label": "Settings",
+          "icon": "preferences-system-symbolic"
+        },
+        {
+          "type": "none",
+          "label": "Disabled",
+          "icon": "action-unavailable-symbolic"
+        },
+        {
+          "type": "none",
+          "label": "Disabled",
+          "icon": "action-unavailable-symbolic"
+        },
+        {
+          "type": "none",
+          "label": "Disabled",
+          "icon": "action-unavailable-symbolic"
+        }
+      ],
+      "description": "Repo-managed default profile for Hyprland"
+    }
+  ]
+}

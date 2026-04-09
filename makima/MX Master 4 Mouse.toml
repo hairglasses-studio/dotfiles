@@ -1,6 +1,0 @@
-# makima — MX Master 4 Mouse default profile
-# Applies when no per-app config matches
-
-[remap]
-BTN_SIDE = ["KEY_BACK"]
-BTN_EXTRA = ["KEY_FORWARD"]

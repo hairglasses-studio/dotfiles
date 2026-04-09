@@ -1,6 +1,0 @@
-# makima — MX Master 4 Mouse :: Chrome
-# Tab switching on thumb buttons (same as Firefox)
-
-[remap]
-BTN_SIDE = ["KEY_LEFTCTRL", "KEY_PAGEUP"]
-BTN_EXTRA = ["KEY_LEFTCTRL", "KEY_PAGEDOWN"]

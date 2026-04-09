@@ -1,6 +1,0 @@
-# makima — MX Master 4 Mouse :: Ghostty
-# Tmux pane navigation on thumb buttons
-
-[remap]
-BTN_SIDE = ["KEY_LEFTCTRL", "KEY_B", "KEY_P"]
-BTN_EXTRA = ["KEY_LEFTCTRL", "KEY_B", "KEY_N"]
