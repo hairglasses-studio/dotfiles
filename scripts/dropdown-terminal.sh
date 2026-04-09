@@ -7,21 +7,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/compositor.sh"
 
 APP_ID="dropdown-cyber"
-TMUX_SESSION="dropdown"
-WIDTH=5120
-HEIGHT=486
+LAUNCHER="${KITTY_DROPDOWN_LAUNCHER:-$SCRIPT_DIR/kitty-visual-launch.sh}"
 
 _launch_terminal() {
-    tmux kill-session -t "$TMUX_SESSION" 2>/dev/null
-    "$SCRIPT_DIR/kitty-visual-launch.sh" --class="$APP_ID" -o font_size=18 -e bash -c "
-        export HG_AGENT_SESSION_QUIET=1
-        tmux new-session -d -s $TMUX_SESSION \
-            'HG_AGENT_SESSION_QUIET=1 ralphglasses --scan-path $HOME/hairglasses-studio'
-        tmux split-window -t $TMUX_SESSION -h -c $HOME/hairglasses-studio/dotfiles \
-            'claude'
-        tmux select-pane -t $TMUX_SESSION:0.0
-        tmux attach-session -t $TMUX_SESSION
-    " &
+    "$LAUNCHER" --class="$APP_ID" -o font_size=18 -e "$SCRIPT_DIR/dropdown-session.sh" &
 }
 
 case "$(compositor_type)" in

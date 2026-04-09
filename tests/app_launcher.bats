@@ -211,6 +211,7 @@ teardown() {
     run bash "${DOTFILES_DIR}/install.sh" --print-link-specs
     assert_success
     assert_output --partial "scripts/kitty-shader-playlist.sh|${HOME}/.local/bin/kitty-shader-playlist"
+    assert_output --partial "scripts/kitty-dev-launch.sh|${HOME}/.local/bin/kitty-dev-launch"
     assert_output --partial "scripts/kitty-visual-launch.sh|${HOME}/.local/bin/kitty-visual-launch"
     assert_output --partial "scripts/app-launcher.sh|${HOME}/.local/bin/app-launcher"
     assert_output --partial "scripts/app-switcher.sh|${HOME}/.local/bin/app-switcher"
