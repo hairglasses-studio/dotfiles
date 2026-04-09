@@ -9,6 +9,9 @@ on:
       - 'mcp/mirror-parity.json'
       - 'mcp/**/README.md'
       - 'scripts/**'
+      - 'docs/MCP-MIRROR-PARITY.md'
+      - 'mcp/mirror-parity.json'
+      - 'mcp/**/README.md'
       - 'tests/repo_smoke.bats'
       - '.github/workflows/ci-smoke.yml'
   pull_request:
@@ -19,6 +22,9 @@ on:
       - 'mcp/mirror-parity.json'
       - 'mcp/**/README.md'
       - 'scripts/**'
+      - 'docs/MCP-MIRROR-PARITY.md'
+      - 'mcp/mirror-parity.json'
+      - 'mcp/**/README.md'
       - 'tests/repo_smoke.bats'
       - '.github/workflows/ci-smoke.yml'
 
@@ -48,6 +54,7 @@ jobs:
           bash -n scripts/hg-workflow-sync.sh
           bash -n scripts/hg-mcp-mirror-parity.sh
           bash -n scripts/app-launcher.sh
+          bash -n scripts/hg-mcp-mirror-parity.sh
 
       - name: Run repo smoke tests
         run: bats tests/repo_smoke.bats

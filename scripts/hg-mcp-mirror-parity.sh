@@ -11,11 +11,12 @@ usage() {
   cat <<'EOF'
 Usage: hg-mcp-mirror-parity.sh [--list|--check]
 
-Inspect or validate the repo-local MCP mirror contract used by public docs and CI.
+Track and validate the MCP modules that ship from dotfiles and also publish
+from standalone mirror repositories.
 
 Options:
-  --list   Print the tracked mirror matrix.
-  --check  Validate the manifest, docs, and bundled module README banners.
+  --list   Print the current mirror matrix.
+  --check  Validate the manifest, docs, and README mirror banners.
   --help   Show this help text.
 EOF
 }
@@ -32,10 +33,9 @@ validate_manifest() {
     .version == 1 and
     (.mirrors | type == "array") and
     (.mirrors | length > 0) and
-    ([.mirrors[].module] | length == (. | unique | length)) and
-    ([.mirrors[].standalone_repo] | length == (. | unique | length)) and
-    ([.mirrors[].repo_subpath] | length == (. | unique | length)) and
-    ([.mirrors[].workspace_path] | length == (. | unique | length))
+    ([.mirrors[].module] | length == ([.[]] | unique | length)) and
+    ([.mirrors[].standalone_repo] | length == ([.[]] | unique | length)) and
+    ([.mirrors[].canonical_path] | length == ([.[]] | unique | length))
   ' "$MANIFEST_PATH" >/dev/null
 }
 
@@ -43,13 +43,13 @@ list_matrix() {
   require_jq
   validate_manifest
 
-  printf '%-13s %-16s %-28s %s\n' "module" "standalone-repo" "workspace-path" "purpose"
-  printf '%-13s %-16s %-28s %s\n' "------" "---------------" "--------------" "-------"
+  printf '%-14s %-16s %-22s %s\n' "module" "standalone-repo" "canonical-path" "purpose"
+  printf '%-14s %-16s %-22s %s\n' "------" "---------------" "--------------" "-------"
   jq -r '
     .mirrors[] |
-    [.module, .standalone_repo, .workspace_path, .purpose] | @tsv
+    [.module, .standalone_repo, .canonical_path, .purpose] | @tsv
   ' "$MANIFEST_PATH" | while IFS=$'\t' read -r module repo path purpose; do
-    printf '%-13s %-16s %-28s %s\n' "$module" "$repo" "$path" "$purpose"
+    printf '%-14s %-16s %-22s %s\n' "$module" "$repo" "$path" "$purpose"
   done
 }
 
@@ -64,8 +64,8 @@ check_matrix() {
 
   local failures=0
 
-  while IFS=$'\t' read -r module repo repo_subpath workspace_path purpose; do
-    local module_dir="$DOTFILES_DIR/$repo_subpath"
+  while IFS=$'\t' read -r module repo canonical_path purpose; do
+    local module_dir="$DOTFILES_DIR/$canonical_path"
     local readme_path="$module_dir/README.md"
     local canonical_url="https://github.com/hairglasses-studio/dotfiles"
     local standalone_url="https://github.com/hairglasses-studio/$repo"
@@ -77,7 +77,7 @@ check_matrix() {
     fi
 
     if [[ ! -f "$module_dir/go.mod" ]]; then
-      printf 'FAIL  %s  missing go.mod under %s\n' "$module" "$repo_subpath"
+      printf 'FAIL  %s  missing go.mod under %s\n' "$module" "$canonical_path"
       failures=$((failures + 1))
       continue
     fi
@@ -94,8 +94,8 @@ check_matrix() {
       continue
     fi
 
-    if ! grep -q "$repo_subpath" "$readme_path"; then
-      printf 'FAIL  %s  README missing bundled repo path %s\n' "$module" "$repo_subpath"
+    if ! grep -q "$canonical_path" "$readme_path"; then
+      printf 'FAIL  %s  README missing canonical path %s\n' "$module" "$canonical_path"
       failures=$((failures + 1))
       continue
     fi
@@ -112,24 +112,15 @@ check_matrix() {
       continue
     fi
 
-    if ! grep -q "\`$workspace_path\`" "$DOC_PATH"; then
-      printf 'FAIL  %s  docs missing workspace path row %s\n' "$module" "$workspace_path"
-      failures=$((failures + 1))
-      continue
-    fi
-
-    if ! grep -q "\`hairglasses-studio/$repo\`" "$DOC_PATH"; then
-      printf 'FAIL  %s  docs missing standalone repo row %s\n' "$module" "$repo"
+    if ! grep -q "\`$module\`" "$DOC_PATH"; then
+      printf 'FAIL  %s  docs missing module row in MCP-MIRROR-PARITY.md\n' "$module"
       failures=$((failures + 1))
       continue
     fi
 
     printf 'PASS  %s  %s\n' "$module" "$purpose"
   done < <(
-    jq -r '
-      .mirrors[] |
-      [.module, .standalone_repo, .repo_subpath, .workspace_path, .purpose] | @tsv
-    ' "$MANIFEST_PATH"
+    jq -r '.mirrors[] | [.module, .standalone_repo, .canonical_path, .purpose] | @tsv' "$MANIFEST_PATH"
   )
 
   if [[ "$failures" -gt 0 ]]; then

@@ -4,37 +4,37 @@
     {
       "module": "dotfiles-mcp",
       "standalone_repo": "dotfiles-mcp",
-      "repo_subpath": "mcp/dotfiles-mcp",
-      "workspace_path": "dotfiles/mcp/dotfiles-mcp",
-      "visibility": "public",
-      "workflow_policy": "repo_owned",
+      "canonical_path": "mcp/dotfiles-mcp",
       "purpose": "Desktop and workstation control-plane MCP server"
+    },
+    {
+      "module": "mapitall",
+      "standalone_repo": "mapitall",
+      "canonical_path": "mcp/mapitall",
+      "purpose": "Controller and input mapping MCP runtime"
+    },
+    {
+      "module": "mapping",
+      "standalone_repo": "mapping",
+      "canonical_path": "mcp/mapping",
+      "purpose": "Shared Go package for mapping and profile resolution"
     },
     {
       "module": "process-mcp",
       "standalone_repo": "process-mcp",
-      "repo_subpath": "mcp/process-mcp",
-      "workspace_path": "dotfiles/mcp/process-mcp",
-      "visibility": "public",
-      "workflow_policy": "repo_owned",
+      "canonical_path": "mcp/process-mcp",
       "purpose": "Linux process inspection and debugging MCP server"
     },
     {
       "module": "systemd-mcp",
       "standalone_repo": "systemd-mcp",
-      "repo_subpath": "mcp/systemd-mcp",
-      "workspace_path": "dotfiles/mcp/systemd-mcp",
-      "visibility": "public",
-      "workflow_policy": "repo_owned",
+      "canonical_path": "mcp/systemd-mcp",
       "purpose": "Systemd service and timer management MCP server"
     },
     {
       "module": "tmux-mcp",
       "standalone_repo": "tmux-mcp",
-      "repo_subpath": "mcp/tmux-mcp",
-      "workspace_path": "dotfiles/mcp/tmux-mcp",
-      "visibility": "public",
-      "workflow_policy": "repo_owned",
+      "canonical_path": "mcp/tmux-mcp",
       "purpose": "Tmux session and workspace orchestration MCP server"
     }
   ]

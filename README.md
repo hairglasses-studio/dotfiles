@@ -156,6 +156,8 @@ All MCP tools are consolidated under `mcp/` (7 Go modules + 3 JS servers via `go
 All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
 Mirror-managed MCP modules and the repo-local parity checker are documented in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
 
+Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
+
 ## Troubleshooting
 
 **Shaders don't animate:** Check shader configuration in kitty config and verify CRTty/Hypr-DarkWindow transpilation.

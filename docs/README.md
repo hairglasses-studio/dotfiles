@@ -5,7 +5,7 @@ This directory holds the searchable, repo-local documents that sit below the roo
 ## Orientation
 
 - `ARCHITECTURE-PROVENANCE.md`: ownership map for installer flow, workstation config, and `mcp/` packaging.
-- `MCP-MIRROR-PARITY.md`: mirror-managed bundled MCP modules and the parity verification contract.
+- `MCP-MIRROR-PARITY.md`: mirrored MCP module inventory and the parity verification contract.
 - `RESOURCES.md`: external community references and upstream project links.
 - `SPRINT-NEXT.md`: historical sprint handoff and session context.
 
