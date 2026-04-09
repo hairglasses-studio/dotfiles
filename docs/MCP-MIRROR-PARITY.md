@@ -10,6 +10,8 @@ For the mirror-managed modules listed below, the code under `dotfiles/mcp/*` is 
 
 The workspace manifest declares these mirror relationships.
 
+For standalone CI and repo-local smoke coverage, this repo also vendors the same mirror set in [mcp/mirror-parity.json](../mcp/mirror-parity.json). Use [scripts/hg-mcp-mirror-parity.sh](../scripts/hg-mcp-mirror-parity.sh) to validate that the manifest, this note, and the bundled README mirror banners stay aligned.
+
 | Canonical bundled path | Standalone mirror repo | Visibility | Workflow policy |
 | --- | --- | --- | --- |
 | `dotfiles/mcp/dotfiles-mcp` | `hairglasses-studio/dotfiles-mcp` | public | `repo_owned` |
@@ -74,6 +76,12 @@ Implication:
 
 Start with the manifest-backed mirror check rather than comparing directories manually.
 
+### Repo-local parity check
+
+```bash
+bash ./scripts/hg-mcp-mirror-parity.sh --check
+```
+
 ### Check all declared mirrors
 
 ```bash
@@ -106,6 +114,8 @@ bash ./scripts/sync-standalone-mcp-repos.sh bootstrap --repos=<mirror-repo>
 `scripts/sync-standalone-mcp-repos.sh` refuses to sync dirty canonical paths or dirty mirror repos unless `--allow-dirty` is set.
 
 That guard exists to prevent accidental parity writes from stomping on in-progress local work.
+
+The repo-local checker is read-only. It validates metadata and bundled docs without touching the standalone mirror repos.
 
 ## Change Policy
 

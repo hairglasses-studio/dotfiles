@@ -14,7 +14,7 @@ elif [[ -d "${BATS_TEST_DIRNAME}/lib/bats-support" ]]; then
 fi
 
 # Set up paths
-export DOTFILES_DIR="${BATS_TEST_DIRNAME}/.."
+export DOTFILES_DIR="$(cd "${BATS_TEST_DIRNAME}/.." && pwd)"
 export LIB_DIR="${DOTFILES_DIR}/scripts/lib"
 export SCRIPTS_DIR="${DOTFILES_DIR}/scripts"
 

@@ -154,6 +154,7 @@ All MCP tools are consolidated under `mcp/` (7 Go modules + 3 JS servers via `go
 | `mapping` | 20+ | Input mapping profiles |
 
 All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
+Mirror-managed MCP modules and the repo-local parity checker are documented in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
 
 ## Troubleshooting
 

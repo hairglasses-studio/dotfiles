@@ -54,3 +54,23 @@ teardown() {
     assert_output --partial "Dry-run mode is informational only"
     assert_output --partial "No hosted workflows are managed"
 }
+
+@test "hg mcp mirror parity list exposes only mirror-managed bundled modules" {
+    run bash "${SCRIPTS_DIR}/hg-mcp-mirror-parity.sh" --list
+    assert_success
+    assert_output --partial "dotfiles-mcp"
+    assert_output --partial "process-mcp"
+    assert_output --partial "systemd-mcp"
+    assert_output --partial "tmux-mcp"
+    refute_output --partial "mapitall"
+    refute_output --partial "mapping"
+}
+
+@test "hg mcp mirror parity check passes for the tracked mirror set" {
+    run bash "${SCRIPTS_DIR}/hg-mcp-mirror-parity.sh" --check
+    assert_success
+    assert_output --partial "PASS  dotfiles-mcp"
+    assert_output --partial "PASS  process-mcp"
+    assert_output --partial "PASS  systemd-mcp"
+    assert_output --partial "PASS  tmux-mcp"
+}
