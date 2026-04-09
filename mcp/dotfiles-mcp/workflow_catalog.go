@@ -89,6 +89,15 @@ func dotfilesWorkflowCatalog() []dotfilesWorkflowCatalogEntry {
 			KeyTools:     []string{"dotfiles_oss_check", "dotfiles_oss_score", "dotfiles_pipeline_run", "dotfiles_workflow_sync"},
 		},
 		{
+			Name:         "repo_hygiene",
+			Title:        "Repo Hygiene",
+			Description:  "Scan or safely clean merged branches, extra worktrees, and managed worktree residue with a dry-run-first workflow.",
+			PrimarySkill: "dotfiles_git_hygiene",
+			ResourceURI:  "dotfiles://workflows/repo-hygiene",
+			PromptName:   "dotfiles_cleanup_repo_hygiene",
+			KeyTools:     []string{"dotfiles_repo_git_hygiene", "dotfiles_pipeline_run", "dotfiles_gh_local_sync_audit"},
+		},
+		{
 			Name:         "repo_onboarding",
 			Title:        "Repo Onboarding",
 			Description:  "Create or onboard a repo into the shared studio baseline and finish with workflow drift checks.",
@@ -112,9 +121,10 @@ func dotfilesWorkflowCatalog() []dotfilesWorkflowCatalogEntry {
 func dotfilesSkillCatalog() []dotfilesSkillCatalogEntry {
 	workflowCatalog := dotfilesWorkflowCatalog()
 	skillDescriptions := map[string]string{
-		"dotfiles_ops":      "Workstation operations, repo tooling, onboarding, and fleet maintenance for the dotfiles repo.",
-		"dotfiles_ui":       "Desktop UI, rice, shader, eww, Hyprland, and screenshot workflow for the dotfiles repo.",
-		"dotfiles_recovery": "Claude and Codex session recovery, forensic analysis, and handoff workflow for the dotfiles repo.",
+		"dotfiles_ops":         "Workstation operations, repo tooling, onboarding, and fleet maintenance for the dotfiles repo.",
+		"dotfiles_ui":          "Desktop UI, rice, shader, eww, Hyprland, and screenshot workflow for the dotfiles repo.",
+		"dotfiles_recovery":    "Claude and Codex session recovery, forensic analysis, and handoff workflow for the dotfiles repo.",
+		"dotfiles_git_hygiene": "Dry-run-first repo branch, worktree, and managed cleanup workflow for the dotfiles repo.",
 	}
 
 	index := map[string]*dotfilesSkillCatalogEntry{}

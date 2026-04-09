@@ -314,11 +314,11 @@ func TestServerHealth_WithSurfaceRegistries(t *testing.T) {
 	if out.PromptCount == 0 {
 		t.Fatal("expected non-zero prompt count")
 	}
-	if out.WorkflowCount != 7 {
-		t.Fatalf("expected 7 workflows, got %d", out.WorkflowCount)
+	if out.WorkflowCount != 8 {
+		t.Fatalf("expected 8 workflows, got %d", out.WorkflowCount)
 	}
-	if out.SkillCount != 3 {
-		t.Fatalf("expected 3 skills, got %d", out.SkillCount)
+	if out.SkillCount != 4 {
+		t.Fatalf("expected 4 skills, got %d", out.SkillCount)
 	}
 	prioritySummary, ok := out.PrioritySummary.(map[string]any)
 	if !ok {

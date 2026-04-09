@@ -219,6 +219,31 @@ func (m *dotfilesResourceModule) Resources() []resources.ResourceDefinition {
 		},
 		{
 			Resource: mcp.NewResource(
+				"dotfiles://workflows/repo-hygiene",
+				"Repo Hygiene Workflow",
+				mcp.WithResourceDescription("Compact workflow for dry-run-first branch, worktree, and managed worktree cleanup"),
+				mcp.WithMIMEType("text/markdown"),
+			),
+			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+				return []mcp.ResourceContents{
+					mcp.TextResourceContents{
+						URI:      "dotfiles://workflows/repo-hygiene",
+						MIMEType: "text/markdown",
+						Text: strings.Join([]string{
+							"1. Start with `dotfiles_repo_git_hygiene` in dry-run mode for the target repo, usually with `cleanup_local_merged=true` and `cleanup_worktrees=true`.",
+							"2. Review blocked branches or dirty worktrees before enabling `execute=true`; only enable `cleanup_remote_merged=true` once the merged remote branch list is clearly safe.",
+							"3. Add `branch_prefixes` when you want to constrain cleanup to a family such as `codex/`, `claude/`, or `dependabot/`.",
+							"4. Use `prune_managed_state=true` when Codex-managed worktree metadata or orphaned agent worktrees are part of the repo debt.",
+							"5. Follow with `dotfiles_pipeline_run` or the repo baseline when cleanup coincides with merge or integration work.",
+						}, "\n"),
+					},
+				}, nil
+			},
+			Category: "workflow",
+			Tags:     []string{"repo", "git", "worktree", "cleanup", "workflow"},
+		},
+		{
+			Resource: mcp.NewResource(
 				"dotfiles://workflows/repo-onboarding",
 				"Repo Onboarding Workflow",
 				mcp.WithResourceDescription("Compact workflow for creating or onboarding repos into the shared studio baseline"),
@@ -537,6 +562,31 @@ func (m *dotfilesPromptModule) Prompts() []prompts.PromptDefinition {
 			},
 			Category: "workflow",
 			Tags:     []string{"repo", "validate", "pipeline"},
+		},
+		{
+			Prompt: mcp.NewPrompt(
+				"dotfiles_cleanup_repo_hygiene",
+				mcp.WithPromptDescription("Scan or clean repo branch and worktree drift with a dry-run-first workflow"),
+				mcp.WithArgument("repo_path", mcp.RequiredArgument(), mcp.ArgumentDescription("Repo path to scan or clean")),
+				mcp.WithArgument("branch_prefixes", mcp.ArgumentDescription("Optional comma-separated branch prefixes such as codex/,claude/,dependabot/")),
+			),
+			Handler: func(_ context.Context, req mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
+				repoPath := req.Params.Arguments["repo_path"]
+				branchPrefixes := strings.TrimSpace(req.Params.Arguments["branch_prefixes"])
+				prefixHint := ""
+				if branchPrefixes != "" {
+					prefixHint = fmt.Sprintf(" Limit cleanup candidates to the branch prefixes %q.", branchPrefixes)
+				}
+				return mcp.NewGetPromptResult("Clean repo git hygiene", []mcp.PromptMessage{
+					mcp.NewPromptMessage(mcp.RoleUser, mcp.NewTextContent(fmt.Sprintf(
+						"Clean git branch and worktree drift for %q. Start with `dotfiles_repo_git_hygiene` in dry-run mode with `cleanup_local_merged=true` and `cleanup_worktrees=true`, then inspect blocked or dirty candidates before enabling `execute=true`. Only enable `cleanup_remote_merged=true` once the merged remote branch list is clearly safe, and use `prune_managed_state=true` if Codex-managed worktree residue is part of the problem.%s",
+						repoPath,
+						prefixHint,
+					))),
+				}), nil
+			},
+			Category: "workflow",
+			Tags:     []string{"repo", "git", "cleanup", "worktree"},
 		},
 		{
 			Prompt: mcp.NewPrompt(
