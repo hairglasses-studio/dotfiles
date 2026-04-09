@@ -18,6 +18,7 @@ rice_commands() {
 status	Comprehensive rice status dashboard
 services	Check which services are running
 palette	Scan configs for non-Snazzy colors
+persistence	Check tmux continuity bootstrap and plugin health
 reload-all	Reload all compositor services with safe hot-reload lanes
 restart-ui	Explicitly restart service-backed UI companions
 CMDS
@@ -138,6 +139,10 @@ _rice_palette() {
   printf "\n"
 }
 
+_rice_persistence() {
+  "$HG_DOTFILES/scripts/tmux-persistence-health.sh"
+}
+
 _rice_reload_all() {
   hg_info "Reloading all services in parallel..."
   config_reload_parallel hyprland hyprshell hypr-dock hyprdynamicmonitors autoname swaync eww
@@ -158,6 +163,7 @@ rice_run() {
     status)     _rice_status ;;
     services)   _rice_services ;;
     palette)    _rice_palette ;;
+    persistence) _rice_persistence ;;
     reload-all) _rice_reload_all ;;
     restart-ui) _rice_restart_ui ;;
     *)          hg_die "Unknown rice command: $cmd. Run 'hg rice --help'." ;;

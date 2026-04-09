@@ -3,7 +3,7 @@ set -euo pipefail
 # rice-selftest.sh — Comprehensive self-test for all dotfiles rice components
 # Outputs structured JSON for MCP/agent consumption, human-readable summary to stderr
 # Usage: rice-selftest.sh [--json] [--section SECTION]
-# Sections: config, keybinds, plugins, services, fonts, symlinks, palette, tools, shader, all
+# Sections: config, keybinds, plugins, services, fonts, symlinks, palette, tools, shader, persistence, all
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh" 2>/dev/null || true
@@ -266,6 +266,33 @@ test_shader() {
   add_result shader "cursor_trail" pass "${trail:-disabled}"
 }
 
+# ── Section: Tmux persistence ─────────────────────
+test_persistence() {
+  echo "── Tmux Persistence ──" >&2
+  if ! $JQ_AVAILABLE; then
+    add_result persistence "jq_dependency" fail "jq not found"
+    return
+  fi
+
+  local health_script output
+  health_script="$SCRIPT_DIR/tmux-persistence-health.sh"
+  if [[ ! -x "$health_script" ]]; then
+    add_result persistence "tmux_persistence_health" fail "missing $health_script"
+    return
+  fi
+
+  output="$("$health_script" --json 2>/dev/null || true)"
+  if [[ -z "$output" ]] || ! printf '%s' "$output" | jq -e '.results | type == "array"' >/dev/null 2>&1; then
+    add_result persistence "tmux_persistence_health" fail "invalid health output"
+    return
+  fi
+
+  while IFS=$'\t' read -r check status detail; do
+    [[ -n "$check" ]] || continue
+    add_result persistence "$check" "$status" "$detail"
+  done < <(printf '%s' "$output" | jq -r '.results[] | "\(.check)\t\(.status)\t\(.detail)"')
+}
+
 # ── Run sections ───────────────────────────────────
 case "$SECTION" in
   config)    test_config ;;
@@ -277,6 +304,7 @@ case "$SECTION" in
   palette)   test_palette ;;
   tools)     test_tools ;;
   shader)    test_shader ;;
+  persistence) test_persistence ;;
   all)
     test_config
     test_keybinds
@@ -284,6 +312,7 @@ case "$SECTION" in
     test_services
     test_fonts
     test_shader
+    test_persistence
     test_palette
     test_tools
     test_symlinks
