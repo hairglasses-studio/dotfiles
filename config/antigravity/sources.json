@@ -1,0 +1,79 @@
+{
+  "libraries": {
+    "skills": [
+      {
+        "id": "sickn33-antigravity-awesome-skills",
+        "repo": "https://github.com/sickn33/antigravity-awesome-skills.git",
+        "ref": "v9.11.0",
+        "library_root": "skills",
+        "category": "archive",
+        "live_skill_ids": [
+          "concise-planning",
+          "lint-and-validate",
+          "git-pushing",
+          "kaizen",
+          "systematic-debugging"
+        ]
+      },
+      {
+        "id": "webzler-agentmemory",
+        "repo": "https://github.com/webzler/agentMemory.git",
+        "ref": "0409b7b7bb6fe443d0d4b6a6b1ee0d4df214f3cd",
+        "library_root": ".",
+        "category": "manual"
+      }
+    ],
+    "workflows": [
+      {
+        "id": "addyosmani-agent-skills",
+        "repo": "https://github.com/addyosmani/agent-skills.git",
+        "ref": "b3e905987490e948667f04d95ab3169236b9c212",
+        "command_root": ".claude/commands",
+        "global_workflows": [
+          "spec",
+          "plan",
+          "build",
+          "test",
+          "review",
+          "code-simplify",
+          "ship"
+        ]
+      },
+      {
+        "id": "harikrishna8121999-antigravity-workflows",
+        "repo": "https://github.com/harikrishna8121999/antigravity-workflows.git",
+        "ref": "v1.1.2",
+        "workflow_root": "workflows",
+        "category": "archive"
+      }
+    ]
+  },
+  "extensions": [
+    {
+      "id": "n2ns.antigravity-panel",
+      "version": "2.5.13",
+      "vsix_url": "https://open-vsx.org/api/n2ns/antigravity-panel/2.5.13/file/n2ns.antigravity-panel-2.5.13.vsix",
+      "policy": "default_on"
+    }
+  ],
+  "sidecars": [
+    {
+      "id": "draculabo-antigravity-manager",
+      "repo": "https://github.com/Draculabo/AntigravityManager.git",
+      "ref": "fce38ec6f0f031d1b11225e4030a03b4ceec37e3",
+      "version": "v0.10.0",
+      "asset_name": "Antigravity.Manager_0.10.0_amd64.AppImage",
+      "asset_url": "https://github.com/Draculabo/AntigravityManager/releases/download/v0.10.0/Antigravity.Manager_0.10.0_amd64.AppImage",
+      "policy": "manual"
+    },
+    {
+      "id": "dinobot22-antigravity-ssh-proxy",
+      "repo": "https://github.com/dinobot22/antigravity-ssh-proxy.git",
+      "ref": "2ac202b226de2996da9b51fb02505dc548d3f23f",
+      "version": "v0.0.15",
+      "asset_name": "antigravity-ssh-proxy-0.0.15.vsix",
+      "asset_url": "https://github.com/dinobot22/antigravity-ssh-proxy/releases/download/v0.0.15/antigravity-ssh-proxy-0.0.15.vsix",
+      "policy": "manual"
+    }
+  ]
+}
