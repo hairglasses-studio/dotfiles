@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEVICE_MAC="${BT_MX_MASTER:-D2:8E:C5:DE:9F:CC}"
 DEVICE_NAME="MX Master 4"
 DEPLOY_SCRIPT="$SCRIPT_DIR/logiops-deploy.sh"
+WHEEL_SCRIPT="$SCRIPT_DIR/mx-wheel-apply.sh"
 
 info()  { printf '\033[0;36m:: %s\033[0m\n' "$*"; }
 ok()    { printf '\033[0;32m   %s\033[0m\n' "$*"; }
@@ -35,9 +36,13 @@ fi
 
 # Step 2: Restore Solaar settings
 info "Restoring Solaar settings..."
-solaar config "$DEVICE_NAME" scroll-ratchet-torque 75 2>/dev/null && ok "torque: 75" || warn "torque failed"
-solaar config "$DEVICE_NAME" haptic-level 60 2>/dev/null && ok "haptic-level: 60" || warn "haptic-level failed"
-solaar config "$DEVICE_NAME" thumb-scroll-mode on 2>/dev/null && ok "thumb-scroll-mode: on" || warn "thumb-scroll-mode failed"
+if [[ -x "$WHEEL_SCRIPT" ]]; then
+    "$WHEEL_SCRIPT" --quiet && ok "wheel settings restored" || warn "wheel restore failed"
+else
+    solaar config "$DEVICE_NAME" scroll-ratchet-torque 75 2>/dev/null && ok "torque: 75" || warn "torque failed"
+    solaar config "$DEVICE_NAME" haptic-level 60 2>/dev/null && ok "haptic-level: 60" || warn "haptic-level failed"
+    solaar config "$DEVICE_NAME" thumb-scroll-mode on 2>/dev/null && ok "thumb-scroll-mode: on" || warn "thumb-scroll-mode failed"
+fi
 
 # Step 3: Restart makima (reloads per-app profiles)
 info "Restarting makima..."
@@ -60,9 +65,13 @@ if $full; then
         sudo systemctl restart logid.service
     fi
     sleep 1
-    solaar config "$DEVICE_NAME" scroll-ratchet-torque 75 2>/dev/null
-    solaar config "$DEVICE_NAME" haptic-level 60 2>/dev/null
-    solaar config "$DEVICE_NAME" thumb-scroll-mode on 2>/dev/null
+    if [[ -x "$WHEEL_SCRIPT" ]]; then
+        "$WHEEL_SCRIPT" --quiet || true
+    else
+        solaar config "$DEVICE_NAME" scroll-ratchet-torque 75 2>/dev/null
+        solaar config "$DEVICE_NAME" haptic-level 60 2>/dev/null
+        solaar config "$DEVICE_NAME" thumb-scroll-mode on 2>/dev/null
+    fi
     sudo systemctl restart makima
     sleep 1
 fi
