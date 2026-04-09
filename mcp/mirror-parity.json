@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "mirrors": [
+    {
+      "module": "dotfiles-mcp",
+      "standalone_repo": "dotfiles-mcp",
+      "repo_subpath": "mcp/dotfiles-mcp",
+      "workspace_path": "dotfiles/mcp/dotfiles-mcp",
+      "visibility": "public",
+      "workflow_policy": "repo_owned",
+      "purpose": "Desktop and workstation control-plane MCP server"
+    },
+    {
+      "module": "process-mcp",
+      "standalone_repo": "process-mcp",
+      "repo_subpath": "mcp/process-mcp",
+      "workspace_path": "dotfiles/mcp/process-mcp",
+      "visibility": "public",
+      "workflow_policy": "repo_owned",
+      "purpose": "Linux process inspection and debugging MCP server"
+    },
+    {
+      "module": "systemd-mcp",
+      "standalone_repo": "systemd-mcp",
+      "repo_subpath": "mcp/systemd-mcp",
+      "workspace_path": "dotfiles/mcp/systemd-mcp",
+      "visibility": "public",
+      "workflow_policy": "repo_owned",
+      "purpose": "Systemd service and timer management MCP server"
+    },
+    {
+      "module": "tmux-mcp",
+      "standalone_repo": "tmux-mcp",
+      "repo_subpath": "mcp/tmux-mcp",
+      "workspace_path": "dotfiles/mcp/tmux-mcp",
+      "visibility": "public",
+      "workflow_policy": "repo_owned",
+      "purpose": "Tmux session and workspace orchestration MCP server"
+    }
+  ]
+}

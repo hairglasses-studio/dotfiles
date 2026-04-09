@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'install.sh'
+      - 'docs/MCP-MIRROR-PARITY.md'
+      - 'mcp/mirror-parity.json'
+      - 'mcp/**/README.md'
       - 'scripts/**'
       - 'tests/repo_smoke.bats'
       - '.github/workflows/ci-smoke.yml'
@@ -12,6 +15,9 @@ on:
     branches: [main]
     paths:
       - 'install.sh'
+      - 'docs/MCP-MIRROR-PARITY.md'
+      - 'mcp/mirror-parity.json'
+      - 'mcp/**/README.md'
       - 'scripts/**'
       - 'tests/repo_smoke.bats'
       - '.github/workflows/ci-smoke.yml'
@@ -40,6 +46,7 @@ jobs:
           bash -n install.sh
           bash -n scripts/hg
           bash -n scripts/hg-workflow-sync.sh
+          bash -n scripts/hg-mcp-mirror-parity.sh
           bash -n scripts/app-launcher.sh
 
       - name: Run repo smoke tests
