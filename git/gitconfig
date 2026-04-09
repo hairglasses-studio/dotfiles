@@ -103,14 +103,11 @@
 	directory = /home/hg/actions-runner/11/_work/ngrok.plugin.zsh/ngrok.plugin.zsh
 	directory = /home/hg/actions-runner/10/_work/makima/makima
 	directory = /home/hg/actions-runner/12/_work/open-sourcing-research/open-sourcing-research
-	directory = /home/hg/actions-runner/04/_work/openai_cli/openai_cli
 	directory = /home/hg/actions-runner/14/_work/opnsense-monolith/opnsense-monolith
 	directory = /home/hg/actions-runner/15/_work/opnsense-monolith/opnsense-monolith
 	directory = /home/hg/actions-runner/14/_work/opnsense-monolith/opnsense-monolith
 	directory = /home/hg/actions-runner/09/_work/procgen-videoclip/procgen-videoclip
 	directory = /home/hg/actions-runner/03/_work/makima/makima
-	directory = /home/hg/actions-runner/16/_work/openai_cli/openai_cli
-	directory = /home/hg/actions-runner/01/_work/openai_cli/openai_cli
 	directory = /home/hg/actions-runner/15/_work/opnsense-monolith/opnsense-monolith
 	directory = /home/hg/actions-runner/13/_work/procgen-videoclip/procgen-videoclip
 	directory = /home/hg/actions-runner/08/_work/procgen-videoclip/procgen-videoclip
@@ -123,12 +120,10 @@
 	directory = /home/hg/actions-runner/07/_work/sam3-video-segmenter/sam3-video-segmenter
 	directory = /home/hg/actions-runner/06/_work/sam3-video-segmenter/sam3-video-segmenter
 	directory = /home/hg/actions-runner/08/_work/procgen-videoclip/procgen-videoclip
-	directory = /home/hg/actions-runner/04/_work/openai_cli/openai_cli
 	directory = /home/hg/actions-runner/05/_work/unraid-monolith/unraid-monolith
 	directory = /home/hg/actions-runner/10/_work/unraid-monolith/unraid-monolith
 	directory = /home/hg/actions-runner/12/_work/video-ai-toolkit/video-ai-toolkit
 	directory = /home/hg/actions-runner/03/_work/video-ai-toolkit/video-ai-toolkit
-	directory = /home/hg/actions-runner/01/_work/openai_cli/openai_cli
 	directory = /home/hg/actions-runner/15/_work/vj-archive/vj-archive
 	directory = /home/hg/actions-runner/09/_work/procgen-videoclip/procgen-videoclip
 	directory = /home/hg/actions-runner/12/_work/video-ai-toolkit/video-ai-toolkit
@@ -137,7 +132,6 @@
 	directory = /home/hg/actions-runner/03/_work/video-ai-toolkit/video-ai-toolkit
 	directory = /home/hg/actions-runner/07/_work/vj-archive/vj-archive
 	directory = /home/hg/actions-runner/14/_work/vj-archive/vj-archive
-	directory = /home/hg/actions-runner/16/_work/openai_cli/openai_cli
 	directory = /home/hg/actions-runner/07/_work/vj-archive/vj-archive
 	directory = /home/hg/actions-runner/06/_work/wallpaper-procgen/wallpaper-procgen
 	directory = /home/hg/actions-runner/08/_work/wallpaper-procgen/wallpaper-procgen
@@ -153,9 +147,7 @@
 	directory = /home/hg/actions-runner/11/_work/wallpaper-procgen/wallpaper-procgen
 	directory = /home/hg/actions-runner/08/_work/wallpaper-procgen/wallpaper-procgen
 	directory = /home/hg/actions-runner/06/_work/wallpaper-procgen/wallpaper-procgen
-	directory = /home/hg/actions-runner/02/_work/openai_cli/openai_cli
 	directory = /home/hg/actions-runner/15/_work/vj-archive/vj-archive
-	directory = /home/hg/actions-runner/02/_work/openai_cli/openai_cli
 	directory = /home/hg/actions-runner/13/_work/codexkit/codexkit
 	directory = /home/hg/actions-runner/13/_work/codexkit/codexkit
 	directory = /home/hg/actions-runner/01/_work/codexkit/codexkit
