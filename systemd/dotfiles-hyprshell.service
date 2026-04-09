@@ -6,6 +6,7 @@ ConditionEnvironment=WAYLAND_DISPLAY
 
 [Service]
 Type=simple
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 ExecStartPre=/usr/bin/env sh -c '[ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] || exit 0'
 ExecStart=/usr/bin/env hyprshell -c %h/.config/hyprshell/config.toml -s %h/.config/hyprshell/styles.css run
 Restart=on-failure

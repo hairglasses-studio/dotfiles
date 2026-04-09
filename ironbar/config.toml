@@ -61,8 +61,8 @@ label = "{{30000:jq -r '\"$\\(.cost.total_spend_usd // 0)\"' /tmp/rg-status.json
 [[end]]
 type = "custom"
 class = "shader-indicator"
-on_click_left = "!kitty-shader-playlist next ambient"
-on_click_right = "!kitty-shader-playlist random"
+on_click_left = "!$HOME/.local/bin/kitty-shader-playlist next ambient"
+on_click_right = "!$HOME/.local/bin/kitty-shader-playlist random"
 bar = [
   { type = "label", label = " {{10000:cat ~/.local/state/kitty-shaders/current-label 2>/dev/null || cat ~/.local/state/kitty-shaders/current 2>/dev/null | sed 's/\\.glsl$//' || echo 'none'}}" },
 ]
@@ -109,7 +109,7 @@ label = "{{10000:n=$(bluetoothctl devices Connected 2>/dev/null | wc -l); [ \"$n
 type = "label"
 class = "bar-updates"
 label = "{{3600000:n=$(checkupdates 2>/dev/null | wc -l); [ \"$n\" -gt 0 ] && echo \" $n\" || echo ''}}"
-on_click_left = "!kitty -e yay"
+on_click_left = "!$HOME/.local/bin/kitty-visual-launch -e yay"
 
 # MX mouse battery
 [[end]]
@@ -138,7 +138,7 @@ label = "{{1800000:$HOME/hairglasses-studio/dotfiles/scripts/eww-weather.sh 2>/d
 type = "label"
 class = "bar-net"
 label = "{{5000: ip -j route get 1.1.1.1 2>/dev/null | jq -r '.[0].dev // \"none\"'}}"
-on_click_left = "!kitty -e nmtui"
+on_click_left = "!$HOME/.local/bin/kitty-visual-launch -e nmtui"
 
 # System tray
 [[end]]

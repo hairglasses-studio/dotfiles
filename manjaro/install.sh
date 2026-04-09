@@ -64,6 +64,8 @@ _parse_features() {
 }
 
 is_enabled() { [[ "${FEATURES[${1}]:-true}" == "true" ]]; }
+kitty_terminal_enabled() { is_enabled kitty || is_enabled ghostty; }
+kitty_visuals_enabled() { is_enabled kitty-shaders || is_enabled ghostty-shaders || kitty_terminal_enabled; }
 
 _parse_features
 
@@ -119,9 +121,12 @@ install_packages() {
 
     if command -v yay &>/dev/null; then
         info "Installing AUR packages..."
-        yay -S --needed --noconfirm ttf-maple-nerd-font logiops makima-bin
+        local -a aur_pkgs=(ttf-maple-nerd-font logiops makima-bin)
+        is_enabled hyprshell && aur_pkgs+=(hyprshell-bin)
+        kitty_visuals_enabled && aur_pkgs+=(crtty-git)
+        yay -S --needed --noconfirm "${aur_pkgs[@]}"
     else
-        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, logiops, makima-bin)"
+        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, logiops, makima-bin, hyprshell-bin, crtty-git)"
         warn "Install yay: https://github.com/Jguer/yay"
     fi
 }
@@ -279,8 +284,8 @@ create_symlinks() {
     is_enabled nvim     && link_file "$DOTFILES/nvim"                   "$HOME/.config/nvim"
 
     # ── Terminal ──
-    is_enabled ghostty   && [[ -d "$DOTFILES/ghostty" ]] && link_file "$DOTFILES/ghostty" "$HOME/.config/ghostty"
-    is_enabled ghostty   && [[ -d "$DOTFILES/kitty" ]]   && link_file "$DOTFILES/kitty"   "$HOME/.config/kitty"
+    is_enabled ghostty        && [[ -d "$DOTFILES/ghostty" ]] && link_file "$DOTFILES/ghostty" "$HOME/.config/ghostty"
+    kitty_terminal_enabled    && [[ -d "$DOTFILES/kitty" ]]   && link_file "$DOTFILES/kitty"   "$HOME/.config/kitty"
     is_enabled foot      && link_file "$DOTFILES/foot"      "$HOME/.config/foot"
     is_enabled bat       && link_file "$DOTFILES/bat"       "$HOME/.config/bat"
     is_enabled fastfetch && link_file "$DOTFILES/fastfetch" "$HOME/.config/fastfetch"
@@ -297,6 +302,7 @@ create_symlinks() {
     # ── Desktop (Linux) ──
     is_enabled waybar   && [[ -d "$DOTFILES/waybar" ]]   && link_file "$DOTFILES/waybar"   "$HOME/.config/waybar"
     is_enabled hyprland && [[ -d "$DOTFILES/hyprland" ]] && link_file "$DOTFILES/hyprland" "$HOME/.config/hypr"
+    is_enabled hyprshell && [[ -d "$DOTFILES/hyprshell" ]] && link_file "$DOTFILES/hyprshell" "$HOME/.config/hyprshell"
     is_enabled eww      && [[ -d "$DOTFILES/eww" ]]      && link_file "$DOTFILES/eww"      "$HOME/.config/eww"
     is_enabled mako     && [[ -d "$DOTFILES/mako" ]]     && link_file "$DOTFILES/mako"     "$HOME/.config/mako"
     is_enabled wofi     && [[ -d "$DOTFILES/wofi" ]]     && link_file "$DOTFILES/wofi"     "$HOME/.config/wofi"
@@ -339,10 +345,13 @@ install_systemd_services() {
 # ── Kitty visuals ────────────────────────────────────────────
 setup_shaders() {
     info "Setting up Kitty visual pipeline..."
-    if [[ -d "$DOTFILES/kitty/shaders/bin" ]]; then
+    if kitty_visuals_enabled && [[ -d "$DOTFILES/kitty/shaders/bin" ]]; then
         chmod +x "$DOTFILES/kitty/shaders/bin/"*.sh 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-shader-playlist.sh" 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-visual-launch.sh" 2>/dev/null || true
+        mkdir -p "$HOME/.local/bin"
+        link_file "$DOTFILES/scripts/kitty-shader-playlist.sh" "$HOME/.local/bin/kitty-shader-playlist"
+        link_file "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
         info "  Kitty shader scripts ready"
     fi
 }
@@ -375,6 +384,7 @@ check_install() {
     check_link "$DOTFILES/ssh/config"             "$HOME/.ssh/config"
     check_link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
     check_link "$DOTFILES/ghostty"    "$HOME/.config/ghostty"
+    check_link "$DOTFILES/kitty"      "$HOME/.config/kitty"
     check_link "$DOTFILES/nvim"       "$HOME/.config/nvim"
     check_link "$DOTFILES/bat"        "$HOME/.config/bat"
     check_link "$DOTFILES/fastfetch"  "$HOME/.config/fastfetch"
@@ -389,6 +399,9 @@ check_install() {
     check_link "$DOTFILES/glow"       "$HOME/.config/glow"
     check_link "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
     check_link "$DOTFILES/tattoy/tattoy.toml" "$HOME/.config/tattoy/tattoy.toml"
+    check_link "$DOTFILES/hyprshell" "$HOME/.config/hyprshell"
+    check_link "$DOTFILES/scripts/kitty-shader-playlist.sh" "$HOME/.local/bin/kitty-shader-playlist"
+    check_link "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
 
     # ── Input devices ──
     check_link "$DOTFILES/makima" "$HOME/.config/makima"

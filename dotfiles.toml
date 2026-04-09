@@ -16,6 +16,7 @@ nvim = true
 
 # ── Terminal emulators & tools ───────────────────
 [terminal]
+kitty = true
 ghostty = true
 foot = true
 bat = true
@@ -62,6 +63,7 @@ gh = true
 
 # ── Visual effects ───────────────────────────────
 [visual]
+kitty-shaders = true
 ghostty-shaders = true
 wallpaper-shaders = true
 refind = false          # Manual deploy (needs sudo for EFI)
@@ -86,7 +88,7 @@ sway-mcp = false
 enable = ["zsh", "git", "ssh", "starship", "nvim"]
 
 [profiles.dev]
-enable = ["zsh", "git", "ssh", "starship", "nvim", "tmux", "lazygit", "gh", "bat", "fastfetch", "ghostty"]
+enable = ["zsh", "git", "ssh", "starship", "nvim", "tmux", "lazygit", "gh", "bat", "fastfetch", "kitty", "ghostty", "kitty-shaders", "ghostty-shaders"]
 
 [profiles.full]
 enable = ["*"]

@@ -13,7 +13,7 @@ HEIGHT=486
 
 _launch_terminal() {
     tmux kill-session -t "$TMUX_SESSION" 2>/dev/null
-    kitty-visual-launch.sh --class="$APP_ID" -o font_size=18 -e bash -c "
+    "$SCRIPT_DIR/kitty-visual-launch.sh" --class="$APP_ID" -o font_size=18 -e bash -c "
         export HG_AGENT_SESSION_QUIET=1
         tmux new-session -d -s $TMUX_SESSION \
             'HG_AGENT_SESSION_QUIET=1 ralphglasses --scan-path $HOME/hairglasses-studio'

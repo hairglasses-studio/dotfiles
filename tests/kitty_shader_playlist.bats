@@ -114,3 +114,13 @@ teardown() {
     assert_output --partial "label:    Dracula · digital-mist"
     assert_output --partial "position: 1/1"
 }
+
+@test "kitty-shader-playlist set marks status as custom" {
+    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" set neon-glow "Gruvbox Dark"
+    assert_success
+
+    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" status
+    assert_success
+    assert_output --partial "label:    Gruvbox Dark · neon-glow"
+    assert_output --partial "position: custom"
+}

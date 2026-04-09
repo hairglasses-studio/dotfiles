@@ -5,7 +5,8 @@ set -euo pipefail
 # Canonical shader assets live in kitty/shaders/crtty/ and are paired with
 # Kitty theme playlists for per-spawn visual variation.
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]:-$0}")"
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/notify.sh"
 
@@ -23,6 +24,9 @@ _current_theme_conf="$_state_dir/current-theme.conf"
 _pending_theme="$_state_dir/pending-theme"
 _auto_rotate_playlist="$_state_dir/auto-rotate-playlist"
 _crtty_active="$_state_dir/crtty-active.glsl"
+_current_position="$_state_dir/current-position"
+_current_total="$_state_dir/current-total"
+_current_selection_mode="$_state_dir/current-selection-mode"
 
 mkdir -p "$_state_dir" "$_theme_cache_dir"
 
@@ -287,8 +291,39 @@ _playlist_ordinal() {
   printf '%s\t%s\n' "$idx" "$total"
 }
 
+_queue_progress() {
+  local playlist="$1"
+  local queue_file idx_file idx total
+  queue_file="$(_queue_file shader "$playlist")"
+  idx_file="$(_idx_file shader "$playlist")"
+  [[ -f "$queue_file" && -f "$idx_file" ]] || return 1
+  idx="$(< "$idx_file")"
+  [[ "$idx" =~ ^[0-9]+$ ]] || return 1
+  total="$(wc -l < "$queue_file" | tr -d ' ')"
+  (( total > 0 )) || return 1
+  printf '%s\t%s\n' "$idx" "$total"
+}
+
+_write_selection_state() {
+  local mode="$1" playlist="$2"
+  case "$mode" in
+    queue)
+      if IFS=$'\t' read -r position total < <(_queue_progress "$playlist"); then
+        printf '%s' "$position" > "$_current_position"
+        printf '%s' "$total" > "$_current_total"
+      else
+        rm -f "$_current_position" "$_current_total"
+      fi
+      ;;
+    *)
+      rm -f "$_current_position" "$_current_total"
+      ;;
+  esac
+  printf '%s' "$mode" > "$_current_selection_mode"
+}
+
 _write_visual_state() {
-  local shader="$1" theme="$2" playlist="$3" theme_conf="$4"
+  local shader="$1" theme="$2" playlist="$3" theme_conf="$4" mode="${5:-queue}"
   printf '%s' "$shader" > "$_current_shader"
   printf '%s' "$theme" > "$_current_theme"
   _state_label "$shader" "$theme" > "$_current_label"
@@ -296,6 +331,7 @@ _write_visual_state() {
   cp "$(_shader_path "$shader")" "$_crtty_active"
   printf '%s' "$theme" > "$_pending_theme"
   printf '%s' "$playlist" > "$_auto_rotate_playlist"
+  _write_selection_state "$mode" "$playlist"
 }
 
 _theme_only_state() {
@@ -332,7 +368,7 @@ cmd_next() {
   local playlist="${1:-$(_active_playlist)}"
   local shader theme theme_conf
   IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual next "$playlist")
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf"
+  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" queue
   _try_apply_theme_to_active "$theme_conf"
   hg_notify_low "Kitty Visual" "$(_state_label "$shader" "$theme")"
   hg_ok "$(_state_label "$shader" "$theme")"
@@ -342,7 +378,7 @@ cmd_prev() {
   local playlist="${1:-$(_active_playlist)}"
   local shader theme theme_conf
   IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual prev "$playlist")
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf"
+  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" queue
   _try_apply_theme_to_active "$theme_conf"
   hg_notify_low "Kitty Visual" "$(_state_label "$shader" "$theme")"
   hg_ok "$(_state_label "$shader" "$theme")"
@@ -352,7 +388,7 @@ cmd_random() {
   local playlist="${1:-$(_active_playlist)}"
   local shader theme theme_conf
   IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual random "$playlist")
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf"
+  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" random
   _try_apply_theme_to_active "$theme_conf"
   hg_notify_low "Kitty Visual" "$(_state_label "$shader" "$theme")"
   hg_ok "$(_state_label "$shader" "$theme")"
@@ -371,7 +407,7 @@ cmd_theme_current() {
 }
 
 cmd_status() {
-  local shader theme playlist label position total
+  local shader theme playlist label position total selection_mode
   if [[ -f "$_current_shader" ]]; then
     shader="$(< "$_current_shader")"
   else
@@ -384,13 +420,33 @@ cmd_status() {
   fi
   playlist="$(_active_playlist)"
   label="$(_state_label "$shader" "$theme")"
+  if [[ -f "$_current_selection_mode" ]]; then
+    selection_mode="$(< "$_current_selection_mode")"
+  else
+    selection_mode=""
+  fi
   hg_info "playlist: ${playlist:-$_default_playlist}"
   hg_info "shader:   ${shader%.glsl}"
   hg_info "theme:    $theme"
   hg_info "label:    $label"
-  if [[ -n "$shader" ]] && IFS=$'\t' read -r position total < <(_playlist_ordinal shader "$playlist" "$shader" 2>/dev/null); then
-    hg_info "position: ${position}/${total}"
-  fi
+  case "$selection_mode" in
+    queue)
+      if [[ -f "$_current_position" && -f "$_current_total" ]]; then
+        hg_info "position: $(< "$_current_position")/$(< "$_current_total")"
+      fi
+      ;;
+    random)
+      hg_info "position: random"
+      ;;
+    manual)
+      hg_info "position: custom"
+      ;;
+    *)
+      if [[ -n "$shader" ]] && IFS=$'\t' read -r position total < <(_playlist_ordinal shader "$playlist" "$shader" 2>/dev/null); then
+        hg_info "position: ${position}/${total}"
+      fi
+      ;;
+  esac
 }
 
 cmd_set() {
@@ -412,7 +468,7 @@ cmd_set() {
   fi
   theme_conf="$(_dump_theme "$theme")" || hg_die "Failed to resolve Kitty theme: $theme"
 
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf"
+  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" manual
   _try_apply_theme_to_active "$theme_conf"
   hg_notify_low "Kitty Visual" "$(_state_label "$shader" "$theme")"
   hg_ok "$(_state_label "$shader" "$theme")"
@@ -435,6 +491,9 @@ cmd_reset() {
   rm -f \
     "$(_queue_file shader "$playlist")" "$(_idx_file shader "$playlist")" "$(_hash_file shader "$playlist")" \
     "$(_queue_file theme "$playlist")" "$(_idx_file theme "$playlist")" "$(_hash_file theme "$playlist")"
+  if [[ "$playlist" == "$(_active_playlist)" ]]; then
+    rm -f "$_current_position" "$_current_total" "$_current_selection_mode"
+  fi
   hg_ok "Reset Kitty visual playlist state: $playlist"
 }
 
@@ -459,7 +518,7 @@ cmd_spawn() {
 
   local shader theme theme_conf shader_path
   IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual next "$playlist")
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf"
+  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" queue
   shader_path="$(_shader_path "$shader")"
 
   if command -v crtty >/dev/null 2>&1; then

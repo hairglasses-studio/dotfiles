@@ -4,5 +4,5 @@ ConditionPathExists=%t/hypr
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/env bash %h/hairglasses-studio/dotfiles/scripts/kitty-shader-playlist.sh next ambient
+ExecStart=%h/.local/bin/kitty-shader-playlist next ambient
 Environment=PATH=%h/.local/bin:/usr/bin:/usr/local/bin:/bin

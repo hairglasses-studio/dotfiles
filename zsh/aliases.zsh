@@ -3,6 +3,13 @@
 
 # Helper function to check if command exists
 function cmd_exists() {
+    if [[ "${HG_SHELL_ANIMATIONS:-0}" != "1" ]]; then
+        case "${1:-}" in
+            tte|nms|pipes.sh|cbonsai|tty-clock|cmatrix|unimatrix|asciiquarium|hollywood|lavat|rusty-rain|neo-matrix|tmatrix|genact|lolcat|toilet|figlet)
+                return 1
+                ;;
+        esac
+    fi
     command -v "$1" > /dev/null 2>&1
 }
 
