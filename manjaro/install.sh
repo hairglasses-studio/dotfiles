@@ -342,17 +342,26 @@ install_systemd_services() {
     fi
 }
 
-# ── Kitty visuals ────────────────────────────────────────────
-setup_shaders() {
-    info "Setting up Kitty visual pipeline..."
+# ── Managed user-bin wrappers ────────────────────────────────
+setup_runtime_wrappers() {
+    info "Setting up managed launcher wrappers..."
+    mkdir -p "$HOME/.local/bin"
+
     if kitty_visuals_enabled && [[ -d "$DOTFILES/kitty/shaders/bin" ]]; then
         chmod +x "$DOTFILES/kitty/shaders/bin/"*.sh 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-shader-playlist.sh" 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-visual-launch.sh" 2>/dev/null || true
-        mkdir -p "$HOME/.local/bin"
         link_file "$DOTFILES/scripts/kitty-shader-playlist.sh" "$HOME/.local/bin/kitty-shader-playlist"
         link_file "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
         info "  Kitty shader scripts ready"
+    fi
+
+    if is_enabled hyprland || is_enabled hyprshell || is_enabled wofi; then
+        chmod +x "$DOTFILES/scripts/app-launcher.sh" 2>/dev/null || true
+        chmod +x "$DOTFILES/scripts/app-switcher.sh" 2>/dev/null || true
+        link_file "$DOTFILES/scripts/app-launcher.sh" "$HOME/.local/bin/app-launcher"
+        link_file "$DOTFILES/scripts/app-switcher.sh" "$HOME/.local/bin/app-switcher"
+        info "  Launcher wrappers ready"
     fi
 }
 
@@ -402,6 +411,8 @@ check_install() {
     check_link "$DOTFILES/hyprshell" "$HOME/.config/hyprshell"
     check_link "$DOTFILES/scripts/kitty-shader-playlist.sh" "$HOME/.local/bin/kitty-shader-playlist"
     check_link "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
+    check_link "$DOTFILES/scripts/app-launcher.sh" "$HOME/.local/bin/app-launcher"
+    check_link "$DOTFILES/scripts/app-switcher.sh" "$HOME/.local/bin/app-switcher"
 
     # ── Input devices ──
     check_link "$DOTFILES/makima" "$HOME/.config/makima"
@@ -478,7 +489,7 @@ main() {
     setup_mcp
     setup_tattoy_shaders
     install_systemd_services
-    setup_shaders
+    setup_runtime_wrappers
 
     # Build bat cache (custom themes)
     if command -v bat &>/dev/null; then

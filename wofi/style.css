@@ -6,32 +6,19 @@ window {
     border-radius: 8px;
     background-color: rgba(0, 0, 0, 0.92);
     font-family: "Hack Nerd Font", monospace;
-    font-size: 14px;
-    animation: fade-in 0.15s ease-out;
-}
-
-@keyframes fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    font-size: 16px;
 }
 
 #input {
-    margin: 8px 12px;
-    padding: 8px 12px;
+    margin: 10px 14px;
+    padding: 10px 14px;
     border: none;
     border-bottom: 2px solid #57c7ff;
     border-radius: 0;
     background-color: transparent;
     color: #f1f1f0;
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 500;
-    animation: border-glow 4s ease-in-out infinite;
-}
-
-@keyframes border-glow {
-    0%   { border-bottom-color: #57c7ff; }
-    50%  { border-bottom-color: #ff6ac1; }
-    100% { border-bottom-color: #57c7ff; }
 }
 
 #input:focus {
@@ -57,7 +44,7 @@ window {
 
 #text {
     margin: 0;
-    padding: 4px 0;
+    padding: 6px 0;
     color: #f1f1f0;
 }
 
@@ -66,11 +53,10 @@ window {
 }
 
 #entry {
-    padding: 6px 12px;
+    padding: 10px 14px;
     border-radius: 4px;
-    margin: 2px 4px;
+    margin: 3px 6px;
     background-color: transparent;
-    transition: all 0.15s ease;
 }
 
 #entry:hover {
@@ -82,15 +68,8 @@ window {
     background-color: #57c7ff;
     color: #000000;
     box-shadow: 0 0 16px rgba(87, 199, 255, 0.6);
-    animation: select-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes select-pulse {
-    0%   { box-shadow: 0 0 8px rgba(87, 199, 255, 0.3); }
-    50%  { box-shadow: 0 0 16px rgba(87, 199, 255, 0.6); }
-    100% { box-shadow: 0 0 8px rgba(87, 199, 255, 0.3); }
 }
 
 #img {
-    margin-right: 8px;
+    margin-right: 10px;
 }

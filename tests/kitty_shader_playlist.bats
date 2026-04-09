@@ -124,3 +124,10 @@ teardown() {
     assert_output --partial "label:    Gruvbox Dark · neon-glow"
     assert_output --partial "position: custom"
 }
+
+@test "kitty-shader-playlist derives dotfiles root from script path when HOME differs" {
+    run env -u DOTFILES_DIR -u HG_STUDIO_ROOT HOME="${BATS_TEST_TMPDIR}/alt-home" \
+        bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" list ambient
+    assert_success
+    assert_output --partial "shader playlist: ambient"
+}
