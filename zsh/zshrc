@@ -28,6 +28,7 @@ _cached_eval() {
 
 # ── PATH ────────────────────────────────────────
 export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.cargo/bin:$PATH"
+export HG_SHELL_ANIMATIONS="${HG_SHELL_ANIMATIONS:-0}"
 
 # ── Base environment for all shells ─────────────
 export EDITOR=nvim
@@ -190,19 +191,6 @@ _cmd_timer_precmd() {
   if [[ -n "$_CMD_START_TIME" ]]; then
     local elapsed=$(( EPOCHSECONDS - _CMD_START_TIME ))
     if (( elapsed > 30 )) && [[ -t 1 ]]; then
-      # Animated terminal celebration
-      if ! _hg_agent_session_quiet && command -v tte &>/dev/null; then
-        if (( last_status == 0 )); then
-          echo "✓ ${_CMD_NAME%% *} completed (${elapsed}s)" | tte beams \
-            --beam-gradient-stops 5af78e 57c7ff \
-            --final-gradient-stops 5af78e 57c7ff \
-            --beam-delay 2 2>/dev/null
-        else
-          echo "✗ ${_CMD_NAME%% *} failed [exit $last_status] (${elapsed}s)" | tte burn \
-            --burn-colors ffffff f3f99d ff5c57 8A003C \
-            --final-gradient-stops ff5c57 ff6ac1 2>/dev/null
-        fi
-      fi
       # Notification sound (Linux - notify-send)
       if command -v notify-send &>/dev/null; then
         notify-send -u normal -a "Command Complete" "Command Complete" \
@@ -217,7 +205,7 @@ autoload -Uz add-zsh-hook
 add-zsh-hook preexec _cmd_timer_preexec
 add-zsh-hook precmd _cmd_timer_precmd
 
-# ── Terminal title (cwd in Ghostty titlebar) ──
+# ── Terminal title ─────────────────────────────
 _set_terminal_title_precmd() {
   print -Pn "\e]0;%~\a"
 }
@@ -303,40 +291,6 @@ fi
 # Rust
 [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
-# ── Terminal splash (animated banner, <=6 lines) ──
-if [[ $- == *i* && -z "$INSIDE_EMACS" && -z "$VSCODE_PID" ]] && ! _hg_agent_session_quiet && command -v tte &>/dev/null; then
-  _splash_banners=(
-    "▸ NEURAL LINK ESTABLISHED"
-    "▸ MESH_NET // SYNCHRONIZED"
-    "▸ SYSTEM ONLINE"
-    "▸ SIGNAL ACQUIRED"
-    "▸ DECRYPTION COMPLETE"
-    "▸ UPLINK ACTIVE"
-    "▸ CORE INITIALIZED"
-    "▸ PHANTOM PROTOCOL"
-    "▸ GRID CONNECTED"
-    "▸ QUANTUM LOCK ENGAGED"
-    "▸ CIPHER STREAM OPEN"
-    "▸ MAINFRAME ACCESS"
-    "▸ PULSE // DETECTED"
-    "▸ VOID SEQUENCE LOADED"
-    "▸ DATASTREAM ONLINE"
-    "▸ ARC REACTOR STABLE"
-  )
-  _splash_effects=(beams decrypt slide sweep scattered errorcorrect)
-  _banner="${_splash_banners[RANDOM % ${#_splash_banners} + 1]}"
-  _effect="${_splash_effects[RANDOM % ${#_splash_effects} + 1]}"
-  case "$_effect" in
-    beams)      echo "$_banner" | tte beams --beam-delay 1 --beam-gradient-stops 57c7ff ff6ac1 --final-gradient-stops 57c7ff 5af78e 2>/dev/null ;;
-    decrypt)    echo "$_banner" | tte decrypt --typing-speed 2 --final-gradient-stops 57c7ff 5af78e 2>/dev/null ;;
-    slide)      echo "$_banner" | tte slide --movement-speed 1.5 --final-gradient-stops 57c7ff ff6ac1 2>/dev/null ;;
-    sweep)      echo "$_banner" | tte sweep --final-gradient-stops 57c7ff ff6ac1 5af78e --final-gradient-direction horizontal 2>/dev/null ;;
-    scattered)  echo "$_banner" | tte scattered --final-gradient-stops 5af78e 57c7ff --movement-speed 0.5 2>/dev/null ;;
-    errorcorrect) echo "$_banner" | tte errorcorrect --final-gradient-stops ff6ac1 57c7ff --movement-speed 0.5 2>/dev/null ;;
-  esac
-  unset _splash_banners _splash_effects _banner _effect
-fi
-
 # ── Prompt engine init ──────────────────────────
 if [[ "$PROMPT_ENGINE" == "starship" ]]; then
   _cached_eval starship starship init zsh
@@ -344,41 +298,8 @@ elif [[ "$PROMPT_ENGINE" == "p10k" ]]; then
   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 fi
 
-# ── Transient prompt (minimal after Enter) ────
-if [[ "$PROMPT_ENGINE" == "starship" ]]; then
-  zle-line-init() {
-    emulate -L zsh
-    [[ $CONTEXT == start ]] || return 0
-    while true; do
-      zle .recursive-edit
-      local -i ret=$?
-      [[ $ret == 0 && $KEYS == $'\4' ]] || break
-      [[ -o ignore_eof ]] || exit 0
-    done
-    local saved_prompt="$PROMPT"
-    local saved_rprompt="$RPROMPT"
-    PROMPT='%(?.%F{#5af78e}❯%f.%F{#ff5c57}❯%f) '
-    RPROMPT=''
-    zle .reset-prompt
-    PROMPT="$saved_prompt"
-    RPROMPT="$saved_rprompt"
-    if (( ret )); then
-      zle .send-break
-    else
-      zle .accept-line
-    fi
-    return ret
-  }
-  zle -N zle-line-init
-fi
-
 # ── Default working directory ──────────────────
 [[ -d "$HOME/hairglasses-studio" ]] && cd "$HOME/hairglasses-studio"
-
-# ── Shuffled Kitty visuals per terminal ───────
-if ! _hg_agent_session_quiet && { (( $+functions[shader-next] )) || (( $+commands[shader-next] )); }; then
-  { shader-next 2>/dev/null & } 2>/dev/null; disown 2>/dev/null
-fi
 
 # ── Local overrides ────────────────────────────
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

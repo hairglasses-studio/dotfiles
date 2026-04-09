@@ -5,7 +5,7 @@
 # ── Quick reference ──────────────────────────────────────
 #   A       = select / click (left mouse)
 #   B       = close window (killactive)
-#   X       = open terminal (ghostty)
+#   X       = open terminal (kitty visual wrapper)
 #   Y       = app launcher (wofi)
 #   LB/RB   = move window focus left/right
 #   LT/RT   = left/right mouse click
@@ -22,7 +22,7 @@
 # Face buttons — primary actions
 BTN_SOUTH = ["hyprctl dispatch focusurgentorlast"]
 BTN_EAST = ["hyprctl dispatch killactive"]
-BTN_WEST = ["ghostty --gtk-single-instance=false"]
+BTN_WEST = ["$HOME/.local/bin/kitty-visual-launch"]
 BTN_NORTH = ["wofi --show drun"]
 
 # Bumpers — window focus left/right ($mod+Shift+Left/Right equivalent)

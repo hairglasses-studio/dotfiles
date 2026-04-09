@@ -47,6 +47,7 @@ waybar
 eww
 wl-clipboard
 xorg-xwayland
+kitty
 ghostty
 foot
 swaync
@@ -107,5 +108,7 @@ solaar
 
 # Fonts (AUR — install with yay)
 # ttf-jetbrains-mono-nerd
+# hyprshell-bin
 # logiops
 # makima-bin
+# crtty-git

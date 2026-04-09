@@ -17,30 +17,19 @@ alias emptytrash='rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/
 
 # ── Package management wrapper ────────────────
 yay() {
-  if [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
-    echo "PACKAGE ACQUISITION // $*" | tte beams \
-      --beam-delay 2 --beam-gradient-stops 57c7ff 5af78e \
-      --final-gradient-stops 57c7ff 5af78e 2>/dev/null
-  fi
   command yay "$@"
-  local rc=$?
-  if (( rc == 0 )) && [[ -t 1 ]] && cmd_exists tte && [[ "$1" == "-S" || "$1" == "-Syu" ]]; then
-    echo "PACKAGES SYNCHRONIZED" | tte slide \
-      --movement-speed 1.5 --final-gradient-stops 5af78e 57c7ff 2>/dev/null
-  fi
-  return $rc
 }
 
 # ── Kitty shader playlist ──────────────────────────
-alias shader-next='kitty-shader-playlist next ambient'
-alias shader-prev='kitty-shader-playlist prev ambient'
-alias shader-random='kitty-shader-playlist random'
-alias shader-current='kitty-shader-playlist current'
-alias shader-theme='kitty-shader-playlist theme-current'
-alias shader-list='kitty-shader-playlist list'
-alias shader-set='kitty-shader-playlist set'
-alias shader-engine='kitty-shader-playlist engine'
-alias shader-build='kitty-shader-playlist build'
+alias shader-next='$HOME/.local/bin/kitty-shader-playlist next ambient'
+alias shader-prev='$HOME/.local/bin/kitty-shader-playlist prev ambient'
+alias shader-random='$HOME/.local/bin/kitty-shader-playlist random'
+alias shader-current='$HOME/.local/bin/kitty-shader-playlist current'
+alias shader-theme='$HOME/.local/bin/kitty-shader-playlist theme-current'
+alias shader-list='$HOME/.local/bin/kitty-shader-playlist list'
+alias shader-set='$HOME/.local/bin/kitty-shader-playlist set'
+alias shader-engine='$HOME/.local/bin/kitty-shader-playlist engine'
+alias shader-build='$HOME/.local/bin/kitty-shader-playlist build'
 
 shader-auto() {
   local timer="shader-rotate.timer"
@@ -68,7 +57,7 @@ Description=Rotate kitty visuals
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/env bash %h/hairglasses-studio/dotfiles/scripts/kitty-shader-playlist.sh next ambient
+ExecStart=%h/.local/bin/kitty-shader-playlist next ambient
 Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 UNIT
       systemctl --user daemon-reload
