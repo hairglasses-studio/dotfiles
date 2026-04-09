@@ -16,7 +16,7 @@ Full-stack development environment for Manjaro Linux. Combines Kitty-native visu
 ### Technical Highlights
 
 - **GPU Shaders**: 131 CRTty-ready GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
-- **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, shader pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
@@ -144,7 +144,7 @@ All MCP tools are consolidated under `mcp/` (7 Go modules + 3 JS servers via `go
 
 | Server | Tools | Description |
 |--------|-------|-------------|
-| `dotfiles-mcp` | 82 | Desktop config management, Hyprland control, shader pipeline, input devices |
+| `dotfiles-mcp` | 82 | Desktop config management, Hyprland control, Kitty visual pipeline, input devices |
 | `hg-mcp` | 200+ | SDLC ops, fleet management, repo analysis, prompt pipeline |
 | `systemd-mcp` | 10 | Systemd unit management |
 | `tmux-mcp` | 11 | Tmux session management |

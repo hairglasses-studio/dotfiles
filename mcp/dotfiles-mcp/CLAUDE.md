@@ -76,15 +76,15 @@ go install .
 
 ### Shader Pipeline (13)
 - `shader_list` — List GLSL shaders, optionally filter by category
-- `shader_set` — Apply shader to Ghostty via atomic config write
-- `shader_cycle` — Advance shader playlist (next/prev)
-- `shader_random` — Pick and apply a random shader
-- `shader_status` — Current shader, animation state, playlist position, auto-rotate
+- `shader_set` — Apply a CRTty shader and keep the paired Kitty theme state in sync
+- `shader_cycle` — Advance the active Kitty visual playlist (next/prev)
+- `shader_random` — Pick and apply a random paired Kitty visual from the active playlist
+- `shader_status` — Current shader, Kitty theme, visual label, animation state, playlist position, auto-rotate
 - `shader_meta` — Full manifest metadata (category, cost, source, playlists)
 - `shader_test` — Compile-test shaders via glslangValidator
 - `shader_build` — Preprocess and validate shaders
-- `shader_playlist` — List playlists or pick random shader from one
-- `shader_get_state` — Read active shader from Ghostty config
+- `shader_playlist` — List playlists or pick a random paired visual from one
+- `shader_get_state` — Read current Kitty shader and theme state
 - `wallpaper_set` — Set a live wallpaper shader via shaderbg
 - `wallpaper_random` — Set random wallpaper shader
 - `wallpaper_list` — List available wallpaper shaders

@@ -321,19 +321,43 @@ func TestActivePlaylistName_Custom(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// readActiveShader (requires kitty-shader-playlist.sh — skip in CI)
+// readKittyStateValue / theme helpers
 // ---------------------------------------------------------------------------
 
-func TestReadActiveShader_RequiresPlaylistScript(t *testing.T) {
-	// readActiveShader shells out to kitty-shader-playlist.sh.
-	// This test verifies the function signature; integration testing
-	// requires the full kitty shader pipeline.
-	t.Setenv("DOTFILES_DIR", "/nonexistent")
-	_, err := readActiveShader()
-	if err == nil {
-		t.Skip("kitty-shader-playlist.sh available — integration test passed")
+func TestReadKittyStateValue(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+
+	stateDir := filepath.Join(dir, ".local", "state", "kitty-shaders")
+	os.MkdirAll(stateDir, 0755)
+	os.WriteFile(filepath.Join(stateDir, "current-theme"), []byte("Dracula\n"), 0644)
+	os.WriteFile(filepath.Join(stateDir, "current-label"), []byte("Dracula · neon-glow\n"), 0644)
+
+	if got := readKittyStateValue("current-theme"); got != "Dracula" {
+		t.Fatalf("readKittyStateValue(current-theme) = %q, want Dracula", got)
 	}
-	// Expected: error because the script doesn't exist at /nonexistent
+	if got := readActiveTheme(); got != "Dracula" {
+		t.Fatalf("readActiveTheme() = %q, want Dracula", got)
+	}
+	if got := readVisualLabel(); got != "Dracula · neon-glow" {
+		t.Fatalf("readVisualLabel() = %q, want Dracula · neon-glow", got)
+	}
+}
+
+func TestPlaylistPositionForShader(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("DOTFILES_DIR", dir)
+	plDir := filepath.Join(dir, "kitty", "shaders", "playlists")
+	os.MkdirAll(plDir, 0755)
+	os.WriteFile(filepath.Join(plDir, "ambient.txt"), []byte("# comment\nneon-glow\n\ndigital-mist.glsl\n"), 0644)
+
+	position, total, err := playlistPositionForShader("ambient", "digital-mist")
+	if err != nil {
+		t.Fatalf("playlistPositionForShader: %v", err)
+	}
+	if position != 2 || total != 2 {
+		t.Fatalf("playlistPositionForShader = %d/%d, want 2/2", position, total)
+	}
 }
 
 // ---------------------------------------------------------------------------

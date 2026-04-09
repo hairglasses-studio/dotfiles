@@ -20,8 +20,9 @@ shader_commands() {
   cat <<'CMDS'
 current	Show currently active shader
 set	Set active shader by name
-random	Pick a random shader
-next	Advance shader playlist
+random	Pick a random Kitty visual from the active playlist
+next	Advance the active Kitty visual playlist
+prev	Go back one entry in the active Kitty visual playlist
 pick	Interactive fzf shader picker
 list	List shaders [--category X] [--cost Y]
 info	Show shader metadata
@@ -114,7 +115,8 @@ shader_run() {
     current)  _shader_current ;;
     set)      _shader_set "$@" ;;
     random)   exec bash "$_KITTY_PLAYLIST" random ;;
-    next)     exec bash "$_KITTY_PLAYLIST" next ambient ;;
+    next)     exec bash "$_KITTY_PLAYLIST" next ;;
+    prev)     exec bash "$_KITTY_PLAYLIST" prev ;;
     pick)     _shader_pick ;;
     list)     exec bash "$_SHADER_BIN/shader-meta.sh" list "$@" ;;
     info)     _shader_info "$@" ;;

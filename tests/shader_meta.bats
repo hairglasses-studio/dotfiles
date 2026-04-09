@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Tests for ghostty/shaders/bin/shader-meta.sh — TOML parser and metadata queries
+# Tests for kitty/shaders/bin/shader-meta.sh — TOML parser and metadata queries
 
 load 'test_helper'
 
@@ -41,7 +41,7 @@ TOML
     echo "// cyber-rain stub" > "${TEST_SHADERS_DIR}/cyber-rain.glsl"
 
     # Create a patched copy of shader-meta.sh that uses our test paths
-    local real_script="${DOTFILES_DIR}/ghostty/shaders/bin/shader-meta.sh"
+    local real_script="${DOTFILES_DIR}/kitty/shaders/bin/shader-meta.sh"
     export PATCHED_META="${BATS_TEST_TMPDIR}/shader-meta.sh"
     {
         echo '#!/usr/bin/env bash'

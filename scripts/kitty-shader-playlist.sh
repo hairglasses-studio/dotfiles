@@ -268,6 +268,25 @@ _state_label() {
   fi
 }
 
+_playlist_ordinal() {
+  local kind="$1" playlist="$2" entry="$3"
+  local source_file normalized idx=0 total=0 line
+  source_file="$(_playlist_file "$kind" "$playlist")" || return 1
+  normalized="${entry%.glsl}"
+  while IFS= read -r line; do
+    line="${line%%#*}"
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -n "$line" ]] || continue
+    total=$((total + 1))
+    if [[ "${line%.glsl}" == "$normalized" ]]; then
+      idx=$total
+    fi
+  done < "$source_file"
+  (( total > 0 )) || return 1
+  printf '%s\t%s\n' "$idx" "$total"
+}
+
 _write_visual_state() {
   local shader="$1" theme="$2" playlist="$3" theme_conf="$4"
   printf '%s' "$shader" > "$_current_shader"
@@ -352,7 +371,7 @@ cmd_theme_current() {
 }
 
 cmd_status() {
-  local shader theme playlist
+  local shader theme playlist label position total
   if [[ -f "$_current_shader" ]]; then
     shader="$(< "$_current_shader")"
   else
@@ -364,9 +383,14 @@ cmd_status() {
     theme=""
   fi
   playlist="$(_active_playlist)"
+  label="$(_state_label "$shader" "$theme")"
   hg_info "playlist: ${playlist:-$_default_playlist}"
   hg_info "shader:   ${shader%.glsl}"
   hg_info "theme:    $theme"
+  hg_info "label:    $label"
+  if [[ -n "$shader" ]] && IFS=$'\t' read -r position total < <(_playlist_ordinal shader "$playlist" "$shader" 2>/dev/null); then
+    hg_info "position: ${position}/${total}"
+  fi
 }
 
 cmd_set() {
@@ -459,7 +483,11 @@ cmd_theme_for_window() {
     theme="$(_pick_theme next "$playlist")" || hg_die "No valid Kitty themes in playlist: $playlist"
   fi
   theme_conf="$(_dump_theme "$theme")" || hg_die "Failed to resolve Kitty theme: $theme"
-  shader="$(< "$_current_shader" 2>/dev/null || true)"
+  if [[ -f "$_current_shader" ]]; then
+    shader="$(< "$_current_shader")"
+  else
+    shader=""
+  fi
   _theme_only_state "$shader" "$theme" "$theme_conf"
   printf '%s\t%s\t%s\n' "$theme" "$theme_conf" "$(_state_label "$shader" "$theme")"
 }
