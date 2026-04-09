@@ -36,14 +36,14 @@ By default, `dotfiles-mcp` marks its non-discovery tools as `defer_loading` and 
 - `dotfiles_tool_stats`
 - `dotfiles_server_health`
 
-Use `DOTFILES_MCP_PROFILE=full` if you explicitly want the full catalog treated as eager.
+Use `DOTFILES_MCP_PROFILE=desktop` for workstation desktop control, or `DOTFILES_MCP_PROFILE=full` if you explicitly want the full catalog treated as eager.
 
 The server also exposes read-first workflow resources and prompt entrypoints for the common operator loops:
 
 - Workflow catalog: `dotfiles://catalog/workflows`
 - Skill catalog: `dotfiles://catalog/skills`
 - Workflow priorities: `dotfiles://catalog/priorities`
-- Prompt workflows: fleet audit, config repair, desktop triage, workstation diagnosis, repo validation, repo hygiene, repo onboarding, and session recovery
+- Prompt workflows: desktop control, fleet audit, config repair, desktop triage, workstation diagnosis, repo validation, repo hygiene, repo onboarding, and session recovery
 
 ## Quick Start
 
@@ -59,6 +59,9 @@ claude mcp call dotfiles dotfiles_tool_catalog '{}'
 # Read the canonical workflow catalog
 claude mcp read dotfiles dotfiles://catalog/workflows
 
+# Check desktop runtime readiness
+claude mcp call dotfiles dotfiles_desktop_status '{}'
+
 # Check desktop rice health
 claude mcp call dotfiles dotfiles_rice_check '{}'
 ```
@@ -70,6 +73,7 @@ Control how many tools load at startup via `DOTFILES_MCP_PROFILE`:
 | Profile | Behavior | Context Cost |
 |---------|----------|-------------|
 | `default` | Discovery tools loaded, rest deferred on demand | ~2K tokens |
+| `desktop` | Desktop-control subset eager: Hyprland, screenshot/OCR, input, shader, clipboard, notifications, and rice status | ~12K tokens |
 | `ops` | Operational subset (config, desktop, fleet) loaded eagerly | ~15K tokens |
 | `full` | All tools loaded immediately | ~40K tokens |
 
@@ -80,7 +84,7 @@ Set in your MCP config:
   "mcpServers": {
     "dotfiles": {
       "command": "dotfiles-mcp",
-      "env": { "DOTFILES_MCP_PROFILE": "ops" }
+      "env": { "DOTFILES_MCP_PROFILE": "desktop" }
     }
   }
 }
@@ -96,7 +100,7 @@ Set in your MCP config:
 | Build & Sync | 5 | Multi-language build pipeline, Go version sync, repo scaffolding |
 | Hyprland Desktop | 12 | Window/workspace management, screenshots, monitor config, input simulation |
 | Desktop Services | 6 | Cascade reload, rice check, eww bar management |
-| Shader Pipeline | 13 | GLSL shader lifecycle for Ghostty and wallpapers -- list, set, cycle, test, build |
+| Shader Pipeline | 13 | GLSL shader lifecycle for the kitty write-target pipeline, with Ghostty kept as the state-aware companion surface |
 | Bluetooth | 9 | Device discovery, pairing (BLE-safe), connect/disconnect, battery, trust |
 | Input Devices | 14 | juhradial-mx config, MX battery, and gamepad profiles (makima) |
 | MIDI | 4 | USB MIDI controller detection and mapping config |
@@ -120,6 +124,7 @@ Runtime tools vary by category. Missing tools are detected gracefully -- unused 
 | Category | Runtime Dependencies |
 |----------|---------------------|
 | Hyprland | `hyprctl`, `ydotool`, `wtype` |
+| Screenshot / OCR | `wayshot`, `tesseract`, `magick` |
 | Bluetooth | `bluetoothctl` |
 | Shaders | `glslangValidator` (optional, for compile-testing) |
 | Input / Mouse | `juhradial-mx`, `ydotool`, `makima` |

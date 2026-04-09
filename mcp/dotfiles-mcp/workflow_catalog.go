@@ -62,6 +62,15 @@ func dotfilesWorkflowCatalog() []dotfilesWorkflowCatalogEntry {
 			KeyTools:     []string{"dotfiles_rice_check", "system_health_check", "dotfiles_eww_status", "hypr_list_windows", "hypr_get_monitors", "dotfiles_cascade_reload"},
 		},
 		{
+			Name:         "desktop_control",
+			Title:        "Desktop Control",
+			Description:  "Validate desktop runtime readiness, inspect the visible target, then drive Hyprland, OCR, input, and targeted reload actions from a single workflow.",
+			PrimarySkill: "dotfiles_desktop_control",
+			ResourceURI:  "dotfiles://workflows/desktop-control",
+			PromptName:   "dotfiles_control_desktop",
+			KeyTools:     []string{"dotfiles_desktop_status", "dotfiles_rice_check", "hypr_list_windows", "hypr_get_monitors", "desktop_screenshot_ocr", "desktop_find_text", "input_type_text", "desktop_click_text", "dotfiles_reload_service", "dotfiles_cascade_reload"},
+		},
+		{
 			Name:         "config_repair",
 			Title:        "Config Repair",
 			Description:  "Inspect a config surface, validate the narrowest file, and only then reload the smallest affected service.",
@@ -121,10 +130,11 @@ func dotfilesWorkflowCatalog() []dotfilesWorkflowCatalogEntry {
 func dotfilesSkillCatalog() []dotfilesSkillCatalogEntry {
 	workflowCatalog := dotfilesWorkflowCatalog()
 	skillDescriptions := map[string]string{
-		"dotfiles_ops":         "Workstation operations, repo tooling, onboarding, and fleet maintenance for the dotfiles repo.",
-		"dotfiles_ui":          "Desktop UI, rice, shader, eww, Hyprland, and screenshot workflow for the dotfiles repo.",
-		"dotfiles_recovery":    "Claude and Codex session recovery, forensic analysis, and handoff workflow for the dotfiles repo.",
-		"dotfiles_git_hygiene": "Dry-run-first repo branch, worktree, and managed cleanup workflow for the dotfiles repo.",
+		"dotfiles_desktop_control": "Desktop control workflow for the dotfiles repo: capability checks, Hyprland targeting, OCR inspection, input automation, and targeted reloads.",
+		"dotfiles_ops":             "Workstation operations, repo tooling, onboarding, and fleet maintenance for the dotfiles repo.",
+		"dotfiles_ui":              "Desktop UI, rice, shader, eww, Hyprland, and screenshot workflow for the dotfiles repo.",
+		"dotfiles_recovery":        "Claude and Codex session recovery, forensic analysis, and handoff workflow for the dotfiles repo.",
+		"dotfiles_git_hygiene":     "Dry-run-first repo branch, worktree, and managed cleanup workflow for the dotfiles repo.",
 	}
 
 	index := map[string]*dotfilesSkillCatalogEntry{}

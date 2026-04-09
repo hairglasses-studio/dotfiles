@@ -527,6 +527,26 @@ profile_exports_global_codex() {
   jq -e '(.global_codex // false) == true' <<<"$profile_json" >/dev/null
 }
 
+profile_exports_global_claude() {
+  local profile_json="$1"
+  jq -e '(.global_claude // false) == true' <<<"$profile_json" >/dev/null
+}
+
+profile_exports_global_gemini() {
+  local profile_json="$1"
+  jq -e '(.global_gemini // false) == true' <<<"$profile_json" >/dev/null
+}
+
+profile_exports_raw_source() {
+  local profile_json="$1"
+  jq -e '(.mode == "review" or .mode == "research") or (.global_raw_source // false) == true' <<<"$profile_json" >/dev/null
+}
+
+profile_global_name() {
+  local profile_json="$1"
+  jq -r '.global_name // .name' <<<"$profile_json"
+}
+
 emit_env_block() {
   local server_name="$1"
   local env_json="$2"
@@ -948,7 +968,7 @@ sync_managed_workspace_tools() {
     while IFS= read -r profile_json; do
       [[ -n "$profile_json" ]] || continue
 
-      local profile_name mode source_name raw_id raw_server resolved
+      local profile_name mode source_name raw_id raw_server resolved resolved_server resolved_claude_server global_stem
       profile_name="$(jq -r '.name' <<<"$profile_json")"
       mode="$(jq -r '.mode' <<<"$profile_json")"
       source_name="$(jq -r '.from' <<<"$profile_json")"
@@ -957,7 +977,7 @@ sync_managed_workspace_tools() {
       raw_server="$(jq -c --arg name "$source_name" '.mcpServers[$name]' "$mcp_json")"
       [[ "$raw_server" != "null" ]] || hg_die "Policy source server not found: $repo_name/.mcp.json:$source_name"
 
-      if [[ -z "${raw_source_seen[$raw_id]:-}" ]]; then
+      if profile_exports_raw_source "$profile_json" && [[ -z "${raw_source_seen[$raw_id]:-}" ]]; then
         raw_source_seen["$raw_id"]=1
         append_claude_entry "${repo_name}_${source_name}" "$raw_server"
         append_gemini_entry "${repo_name}_${source_name}" "$raw_server" "$repo_path"
@@ -982,10 +1002,33 @@ sync_managed_workspace_tools() {
               end
           '
       )" || hg_die "Failed to resolve managed MCP profile: $repo_name:$profile_name"
+      resolved_server="$(jq -c 'del(.enabled_tools)' <<<"$resolved")"
+      resolved_claude_server="$(
+        jq -cn \
+          --arg command "$(jq -r '.command' <<<"$resolved_server")" \
+          --argjson args "$(jq -c '.args // []' <<<"$resolved_server")" \
+          --arg cwd "$(normalize_codex_cwd "$repo_path" "$(jq -r '.cwd // ""' <<<"$resolved_server")")" \
+          --argjson env "$(normalize_codex_env_json "$(jq -c '.env // {}' <<<"$resolved_server")")" \
+          '{
+            command: $command,
+            args: $args
+          }
+          + (if ($cwd | length) > 0 then {cwd: $cwd} else {} end)
+          + (if ($env | length) > 0 then {env: $env} else {} end)'
+      )"
+      global_stem="$(profile_global_name "$profile_json")"
+
+      if profile_exports_global_claude "$profile_json"; then
+        append_claude_entry "$global_stem" "$resolved_claude_server"
+      fi
+
+      if profile_exports_global_gemini "$profile_json"; then
+        append_gemini_entry "$global_stem" "$resolved_server" "$repo_path"
+      fi
 
       if profile_exports_global_codex "$profile_json"; then
         append_codex_entry \
-          "$profile_name" \
+          "$global_stem" \
           "$repo_name/.codex/mcp-profile-policy.json:$profile_name ($mode <- $source_name)" \
           "$(jq -r '.command' <<<"$resolved")" \
           "$(jq -c '.args' <<<"$resolved")" \
@@ -995,7 +1038,7 @@ sync_managed_workspace_tools() {
 
         codex_profile_count=$((codex_profile_count + 1))
       fi
-    done < <(jq -c '.profiles[] | select(.mode == "review" or .mode == "research")' "$policy_path")
+    done < <(jq -c '.profiles[] | select((.mode == "review" or .mode == "research") or (.global_codex // false) == true or (.global_claude // false) == true or (.global_gemini // false) == true)' "$policy_path")
   done < <(
     jq -r '
       .repos[]

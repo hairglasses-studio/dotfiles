@@ -14,11 +14,14 @@ import (
 
 func TestBuildDotfilesPromptRegistry(t *testing.T) {
 	promptReg := buildDotfilesPromptRegistry()
-	if promptReg.PromptCount() != 8 {
-		t.Fatalf("expected 8 prompts, got %d", promptReg.PromptCount())
+	if promptReg.PromptCount() != 9 {
+		t.Fatalf("expected 9 prompts, got %d", promptReg.PromptCount())
 	}
 	if _, ok := promptReg.GetPrompt("dotfiles_audit_fleet"); !ok {
 		t.Fatal("expected dotfiles_audit_fleet prompt to be registered")
+	}
+	if _, ok := promptReg.GetPrompt("dotfiles_control_desktop"); !ok {
+		t.Fatal("expected dotfiles_control_desktop prompt to be registered")
 	}
 	if _, ok := promptReg.GetPrompt("dotfiles_repair_config"); !ok {
 		t.Fatal("expected dotfiles_repair_config prompt to be registered")
@@ -32,11 +35,14 @@ func TestBuildDotfilesResourceRegistry(t *testing.T) {
 	reg := registry.NewToolRegistry()
 	promptReg := buildDotfilesPromptRegistry()
 	resReg := buildDotfilesResourceRegistry(reg, promptReg)
-	if resReg.ResourceCount() != 16 {
-		t.Fatalf("expected 16 resources, got %d", resReg.ResourceCount())
+	if resReg.ResourceCount() != 17 {
+		t.Fatalf("expected 17 resources, got %d", resReg.ResourceCount())
 	}
 	if _, ok := resReg.GetResource("dotfiles://server/overview"); !ok {
 		t.Fatal("expected dotfiles overview resource to be registered")
+	}
+	if _, ok := resReg.GetResource("dotfiles://workflows/desktop-control"); !ok {
+		t.Fatal("expected desktop control workflow resource to be registered")
 	}
 	if _, ok := resReg.GetResource("dotfiles://catalog/workflows"); !ok {
 		t.Fatal("expected dotfiles workflow catalog resource to be registered")
@@ -120,8 +126,14 @@ func TestDotfilesWorkflowCatalogResource(t *testing.T) {
 	if !containsText(text.Text, `"config_repair"`) {
 		t.Fatalf("expected config_repair in workflow catalog: %s", text.Text)
 	}
+	if !containsText(text.Text, `"desktop_control"`) {
+		t.Fatalf("expected desktop_control in workflow catalog: %s", text.Text)
+	}
 	if !containsText(text.Text, `"repo_hygiene"`) {
 		t.Fatalf("expected repo_hygiene in workflow catalog: %s", text.Text)
+	}
+	if !containsText(text.Text, `"dotfiles_control_desktop"`) {
+		t.Fatalf("expected dotfiles_control_desktop in workflow catalog: %s", text.Text)
 	}
 	if !containsText(text.Text, `"dotfiles_repair_config"`) {
 		t.Fatalf("expected dotfiles_repair_config in workflow catalog: %s", text.Text)
@@ -152,7 +164,7 @@ func TestDotfilesPrioritiesResource(t *testing.T) {
 	if !containsText(text.Text, `"missing_front_door_count": 0`) {
 		t.Fatalf("expected zero missing front doors: %s", text.Text)
 	}
-	if !containsText(text.Text, `"workflow_count": 8`) {
+	if !containsText(text.Text, `"workflow_count": 9`) {
 		t.Fatalf("expected workflow count in priorities resource: %s", text.Text)
 	}
 }

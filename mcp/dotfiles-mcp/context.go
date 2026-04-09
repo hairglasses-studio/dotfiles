@@ -171,6 +171,31 @@ func (m *dotfilesResourceModule) Resources() []resources.ResourceDefinition {
 		},
 		{
 			Resource: mcp.NewResource(
+				"dotfiles://workflows/desktop-control",
+				"Desktop Control Workflow",
+				mcp.WithResourceDescription("Compact workflow for desktop capability checks, OCR-assisted targeting, input actions, and the smallest safe reload"),
+				mcp.WithMIMEType("text/markdown"),
+			),
+			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+				return []mcp.ResourceContents{
+					mcp.TextResourceContents{
+						URI:      "dotfiles://workflows/desktop-control",
+						MIMEType: "text/markdown",
+						Text: strings.Join([]string{
+							"1. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm Wayland, Hyprland, OCR, input, and shader readiness before trying UI writes.",
+							"2. Use `hypr_list_windows` or `hypr_get_monitors` to identify the exact target surface before taking screenshots or sending input.",
+							"3. Use `screen_screenshot`, `desktop_screenshot_ocr`, or `desktop_find_text` to prove the visible state and coordinates you are about to act on.",
+							"4. Use `input_type_text`, `desktop_click_text`, `hypr_click`, or other narrow write tools only after the read path proves the target.",
+							"5. Prefer `dotfiles_reload_service` or `hypr_reload_config` for one stale layer; reserve `dotfiles_cascade_reload` for broader desktop refreshes.",
+						}, "\n"),
+					},
+				}, nil
+			},
+			Category: "workflow",
+			Tags:     []string{"desktop", "automation", "ocr", "hyprland", "workflow"},
+		},
+		{
+			Resource: mcp.NewResource(
 				"dotfiles://workflows/workstation-diagnose",
 				"Workstation Diagnose Workflow",
 				mcp.WithResourceDescription("Compact read-first workflow for machine health, services, and local workstation failures"),
@@ -423,8 +448,9 @@ func (m *dotfilesResourceModule) overviewMarkdown() string {
 		"",
 		"Highest-value paths:",
 		"",
+		"- Desktop control: `dotfiles_desktop_status` -> `dotfiles_rice_check` -> `hypr_list_windows` / `hypr_get_monitors` -> `desktop_screenshot_ocr` / `desktop_find_text` -> narrow input or reload action.",
 		"- Fleet maintenance: `dotfiles_fleet_audit` -> `dotfiles_dep_audit` / `dotfiles_gh_local_sync_audit` -> `dotfiles_workflow_sync` or `dotfiles_gh_full_sync`.",
-		"- Desktop triage: `dotfiles_rice_check` -> `system_health_check` / targeted Hyprland or eww reads -> reload only the failing layer.",
+		"- Desktop triage: `dotfiles_desktop_status` / `dotfiles_rice_check` -> `system_health_check` / targeted Hyprland or eww reads -> reload only the failing layer.",
 		"- Config repair: `dotfiles_list_configs` / config resources -> `dotfiles_validate_config` -> smallest-safe reload.",
 		"- Workstation diagnosis: `system_health_check` -> subsystem reads -> `systemd_failed` before desktop-specific escalation.",
 		"- Repo validation: `dotfiles_oss_check` / `dotfiles_oss_score` -> `dotfiles_pipeline_run` -> `dotfiles_workflow_sync` in dry-run mode.",
@@ -437,7 +463,7 @@ type dotfilesPromptModule struct{}
 
 func (m *dotfilesPromptModule) Name() string { return "dotfiles_prompts" }
 func (m *dotfilesPromptModule) Description() string {
-	return "Prompt workflows for fleet maintenance, desktop triage, config repair, workstation diagnosis, onboarding, repo validation, and recovery"
+	return "Prompt workflows for desktop control, fleet maintenance, desktop triage, config repair, workstation diagnosis, onboarding, repo validation, and recovery"
 }
 
 func (m *dotfilesPromptModule) Prompts() []prompts.PromptDefinition {
@@ -505,6 +531,24 @@ func (m *dotfilesPromptModule) Prompts() []prompts.PromptDefinition {
 			},
 			Category: "workflow",
 			Tags:     []string{"desktop", "triage", "hyprland", "eww"},
+		},
+		{
+			Prompt: mcp.NewPrompt(
+				"dotfiles_control_desktop",
+				mcp.WithPromptDescription("Drive a desktop automation task with capability checks, OCR-assisted targeting, and the smallest write action"),
+				mcp.WithArgument("objective", mcp.RequiredArgument(), mcp.ArgumentDescription("Short description of the desktop task to complete")),
+			),
+			Handler: func(_ context.Context, req mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
+				objective := req.Params.Arguments["objective"]
+				return mcp.NewGetPromptResult("Control desktop surface", []mcp.PromptMessage{
+					mcp.NewPromptMessage(mcp.RoleUser, mcp.NewTextContent(fmt.Sprintf(
+						"Complete this desktop control task: %q. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm runtime readiness. Use `hypr_list_windows` or `hypr_get_monitors` to find the target, then use `screen_screenshot`, `desktop_screenshot_ocr`, or `desktop_find_text` to prove the visible state before any write. After the target is confirmed, prefer narrow actions such as `input_type_text`, `desktop_click_text`, `hypr_click`, or `hypr_focus_window`, and only use `dotfiles_reload_service`, `hypr_reload_config`, or `dotfiles_cascade_reload` when the failing layer is clear.",
+						objective,
+					))),
+				}), nil
+			},
+			Category: "workflow",
+			Tags:     []string{"desktop", "control", "ocr", "hyprland"},
 		},
 		{
 			Prompt: mcp.NewPrompt(

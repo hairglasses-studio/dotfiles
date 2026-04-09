@@ -38,6 +38,22 @@
         "dotfiles_cascade_reload",
         "dotfiles_rice_check"
       ]
+    },
+    {
+      "name": "dotfiles_desktop",
+      "from": "dotfiles",
+      "mode": "desktop",
+      "comment": "Desktop-first dotfiles MCP profile for Hyprland, OCR, input control, and the kitty terminal visual pipeline.",
+      "global_name": "desktop",
+      "global_claude": true,
+      "global_codex": true,
+      "global_gemini": true,
+      "override": {
+        "env": {
+          "DOTFILES_DIR": "/home/hg/hairglasses-studio/dotfiles",
+          "DOTFILES_MCP_PROFILE": "desktop"
+        }
+      }
     }
   ]
 }

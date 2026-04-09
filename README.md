@@ -16,10 +16,12 @@ Full-stack development environment for Manjaro Linux. Combines Kitty-native visu
 ### Technical Highlights
 
 - **GPU Shaders**: 131 CRTty-ready GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
-- **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, the kitty-first terminal visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
+
+The managed workstation alias `studio_desktop` now projects the desktop-focused `dotfiles-mcp` profile into Codex, Claude, and Gemini through the existing home-sync path.
 
 Hyprland + eww + hyprshell + hypr-dock + swaync + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
 
@@ -80,7 +82,8 @@ hyprpm reload -n
 | `swaync/` | Notification center — Snazzy themed, visibility filtering |
 | `wofi/` | Responsive fallback launcher/switcher styling and emoji picker |
 | `wlogout/` | Power menu overlay |
-| `kitty/` | GPU terminal with CRTty shaders, Kitty theme playlists, shuffled visuals, and watcher-driven retheming |
+| `kitty/` | GPU terminal write target with CRTty shaders, theme playlists, shuffled visuals, and watcher-driven retheming |
+| `ghostty/` | State-aware companion terminal config and shader compatibility surface for the shared desktop pipeline |
 | `foot/` | Lightweight terminal (dropdown/fallback) |
 | `zsh/` | Oh My Zsh, Starship prompt, 650+ aliases |
 | `starship/` | Fill-based right alignment, git metrics, cloud context |

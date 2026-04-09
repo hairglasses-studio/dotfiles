@@ -43,6 +43,16 @@ enabled_tools = [
   "dotfiles_rice_check",
 ]
 
+# Desktop-first dotfiles MCP profile for Hyprland, OCR, input control, and the kitty terminal visual pipeline.
+[mcp_servers.dotfiles_desktop]
+command = "bash"
+args = ["/home/hg/hairglasses-studio/dotfiles/scripts/run-dotfiles-mcp.sh"]
+cwd = "."
+
+[mcp_servers.dotfiles_desktop.env]
+DOTFILES_DIR = "/home/hg/hairglasses-studio/dotfiles"
+DOTFILES_MCP_PROFILE = "desktop"
+
 # END GENERATED MCP SERVERS: codex-mcp-sync
 
 [profiles.readonly_quiet]
