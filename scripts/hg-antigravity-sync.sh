@@ -730,7 +730,10 @@ build_desktop_entry() {
 }
 
 build_settings_json() {
-  local search_excludes watcher_excludes
+  local file_excludes search_excludes watcher_excludes
+  file_excludes='{
+    "**/.*": true
+  }'
   search_excludes='{
     "workspace/**": true,
     "**/.ralph/**": true,
@@ -752,6 +755,7 @@ build_settings_json() {
   fi
 
   jq -S \
+    --argjson file_excludes "$file_excludes" \
     --argjson search_excludes "$search_excludes" \
     --argjson watcher_excludes "$watcher_excludes" '
       . + {
@@ -766,6 +770,7 @@ build_settings_json() {
         "tfa.system.debugMode": false,
         "tfa.system.autoAccept": false,
         "tfa.cache.autoClean": false,
+        "files.exclude": ((.["files.exclude"] // {}) + $file_excludes),
         "files.watcherExclude": ((.["files.watcherExclude"] // {}) + $watcher_excludes),
         "search.exclude": ((.["search.exclude"] // {}) + $search_excludes)
       }
