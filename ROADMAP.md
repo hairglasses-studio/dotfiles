@@ -31,3 +31,28 @@ Shader collection is one of the largest curated GLSL terminal shader sets public
 - Neovim migration from vim-plug to lazy.nvim
 - Shared dotfiles module system (pick configs a la carte instead of all-or-nothing)
 - Automated rice screenshot CI (Hyprland headless + screenshot comparison)
+
+<!-- whiteclaw-rollout:start -->
+## Whiteclaw-Derived Improvements (2026-04-08)
+
+Recommendations seeded from the restored whiteclaw snapshot research, prompt-pack audit, MCP explorer packaging review, and current fleet gap scan.
+
+### Recommended Work
+- [ ] Audit AGENTS.md against the actual build/test/release loop and keep `CLAUDE.md`, `GEMINI.md`, and Copilot instructions as thin mirrors of the canonical guidance.
+- [ ] Write or refresh a searchable architecture/provenance note so future cross-repo research does not depend on raw code spelunking alone.
+- [ ] Audit the existing `.agents/skills/` surface for stale workflows, missing references, and opportunities to split generic steps into sharper skills.
+- [ ] Bootstrap a minimal `.ralph` loop with verification gates, cost observations, and improvement journaling so the repo can participate in controlled autonomous sweeps.
+- [ ] Expand handler/CLI/MCP integration coverage around the most user-facing surfaces and add runnable examples for the public entrypoints.
+- [ ] Prefer typed contracts for tools, commands, and workflow inputs at system boundaries instead of ad hoc maps or implicit structs.
+- [ ] Add lightweight validation (shell lint, config checks, link checks, JSON/schema validation, or snapshot verification) that matches the actual artifact types in the repo.
+- [ ] Harden public-facing docs, examples, and release notes so outside consumers can discover the intended workflow without org-private context.
+- [ ] Add search-oriented architecture notes for installer flow, shader pipeline, and desktop control-plane integration so the repo is navigable without spelunking.
+
+### Rationale Snapshot
+- Tier: `tier-1`
+- Lifecycle: `active`
+- Language profile: `Go/Shell/Config`
+- Visibility / sensitivity: `PUBLIC` / `public`
+- Surface gaps: skills=`no`, codex=`no`, ralph=`yes`, roadmap=`no`
+
+<!-- whiteclaw-rollout:end -->
