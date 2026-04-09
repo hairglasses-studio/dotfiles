@@ -2,13 +2,13 @@
 plugins = ["scratchpads"]
 
 [scratchpads.term]
-command = "kitty --class=scratchpad"
+command = "kitty-visual-launch.sh --class=scratchpad"
 class = "scratchpad"
 size = "80% 70%"
 animation = "fromTop"
 
 [scratchpads.keybinds]
-command = "kitty --class=keybinds -o font_size=10 bash -c '$HOME/hairglasses-studio/dotfiles/scripts/hypr-keybinds.sh --md && glow -s $HOME/hairglasses-studio/dotfiles/glow/snazzy.json -p -w 0 $HOME/hairglasses-studio/dotfiles/hyprland/keybinds.md'"
+command = "kitty-visual-launch.sh --class=keybinds -o font_size=10 bash -c '$HOME/hairglasses-studio/dotfiles/scripts/hypr-keybinds.sh --md && glow -s $HOME/hairglasses-studio/dotfiles/glow/snazzy.json -p -w 0 $HOME/hairglasses-studio/dotfiles/hyprland/keybinds.md'"
 class = "keybinds"
 size = "25% 95%"
 position = "0% 0%"

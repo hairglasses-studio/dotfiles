@@ -1,0 +1,7 @@
+# Higher-contrast themes for more dramatic visual swaps.
+Tokyo Night
+Dracula
+Nord
+Snazzy
+One Half Dark
+Solarized Dark

@@ -1,0 +1,7 @@
+picom-bloom.glsl
+picom-chromatic.glsl
+picom-dissolve.glsl
+picom-dither.glsl
+picom-glass.glsl
+picom-pixelize.glsl
+picom-vignette.glsl

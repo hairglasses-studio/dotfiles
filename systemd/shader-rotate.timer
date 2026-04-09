@@ -1,5 +1,5 @@
 [Unit]
-Description=Rotate Ghostty shader every 30 minutes
+Description=Rotate Kitty visuals every 30 minutes
 
 [Timer]
 OnBootSec=60

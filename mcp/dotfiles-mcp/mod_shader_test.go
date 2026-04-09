@@ -47,7 +47,7 @@ func TestShadersDir(t *testing.T) {
 	// With DOTFILES_DIR set
 	t.Setenv("DOTFILES_DIR", "/tmp/test-dotfiles")
 	got := shadersDir()
-	want := "/tmp/test-dotfiles/ghostty/shaders"
+	want := "/tmp/test-dotfiles/kitty/shaders/crtty"
 	if got != want {
 		t.Errorf("shadersDir() = %q, want %q", got, want)
 	}

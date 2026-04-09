@@ -1,15 +1,6 @@
 #!/usr/bin/env bash
-# kitty-crtty.sh — Launch kitty with CRTty shader injection
-# Falls back to plain kitty if CRTty is not installed.
+set -euo pipefail
 
-ACTIVE="$HOME/.local/state/kitty-shaders/crtty-active.glsl"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if command -v crtty &>/dev/null; then
-  if [[ -f "$ACTIVE" ]]; then
-    exec crtty -s "$ACTIVE" --app kitty "$@"
-  else
-    exec crtty --app kitty "$@"
-  fi
-else
-  exec kitty "$@"
-fi
+exec "$SCRIPT_DIR/kitty-visual-launch.sh" "$@"
