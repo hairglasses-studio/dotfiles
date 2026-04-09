@@ -40,7 +40,7 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 3. Bootstraps lazy.nvim for Neovim
 4. Installs TPM (Tmux Plugin Manager)
 5. Symlinks all 60+ configs to their expected locations
-6. Links managed `~/.local/bin` wrappers for Kitty, launcher fallback, and app switcher on Linux
+6. Links managed `~/.local/bin` wrappers for Kitty, launcher fallback, app switcher, and the canonical Codex/Claude/Gemini launchers on Linux
 7. Enables repo-managed systemd user services and packaged system services where applicable
 8. Builds bat theme cache
 

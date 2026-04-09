@@ -28,7 +28,7 @@ tmux_bootstrap_dropdown_session() {
   fi
 
   printf -v ralph_cmd 'HG_AGENT_SESSION_QUIET=1 ralphglasses --scan-path %q' "$studio_root"
-  claude_cmd="claude"
+  printf -v claude_cmd 'HG_AGENT_SESSION_QUIET=1 %q' "$dotfiles_root/scripts/hg-claude-launch.sh"
 
   tmux new-session -d -s "$session_name" -c "$studio_root" "$ralph_cmd"
   tmux split-window -t "$session_name" -h -c "$dotfiles_root" "$claude_cmd"

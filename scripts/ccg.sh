@@ -7,13 +7,20 @@ set -uo pipefail
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-readonly CLAUDE_DIR="$HOME/.claude"
+if [[ -n "${HG_CLAUDE_HOME:-}" ]]; then
+    readonly CLAUDE_DIR="$HG_CLAUDE_HOME"
+elif [[ -r /root/.claude ]] && [[ -x /root ]]; then
+    readonly CLAUDE_DIR="/root/.claude"
+else
+    readonly CLAUDE_DIR="$HOME/.claude"
+fi
 readonly PROJECTS_DIR="$CLAUDE_DIR/projects"
 readonly SESSIONS_DIR="$CLAUDE_DIR/sessions"
 readonly HISTORY_FILE="$CLAUDE_DIR/history.jsonl"
 readonly TASKS_DIR="$CLAUDE_DIR/tasks"
 readonly CACHE_FILE="$CLAUDE_DIR/cache/ccg-index.jsonl"
 readonly SELF="${0:a}"
+readonly CLAUDE_LAUNCHER="${HG_CLAUDE_LAUNCHER:-${SELF:h}/hg-claude-launch.sh}"
 
 # Snazzy palette ANSI codes
 readonly C_RESET=$'\033[0m'
@@ -616,9 +623,9 @@ _ccg_resume() {
         fi
     fi
     if [[ "$fork" == "fork" ]]; then
-        claude --resume "$session_id" --fork-session
+        HG_CLAUDE_HOME="$CLAUDE_DIR" "$CLAUDE_LAUNCHER" --resume "$session_id" --fork-session
     else
-        claude --resume "$session_id"
+        HG_CLAUDE_HOME="$CLAUDE_DIR" "$CLAUDE_LAUNCHER" --resume "$session_id"
     fi
 }
 
@@ -752,7 +759,7 @@ _ccg_main() {
                 echo "  ccg --preview UUID   Preview a session"
                 echo ""
                 echo "FZF Keybinds:"
-                echo "  Enter     Resume session (cd + claude --resume)"
+                echo "  Enter     Resume session (cd + launcher-backed Claude resume)"
                 echo "  Alt+F     Fork-resume (new session ID)"
                 echo "  Alt+C     Copy session UUID to clipboard"
                 echo "  Alt+O     Open CWD in a new shell"

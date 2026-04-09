@@ -39,12 +39,32 @@ Use the repo scripts instead of editing compatibility mirrors by hand.
 
 - `scripts/hg-agent-docs.sh --source auto .`: regenerate `CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md` from the canonical source file
 - `scripts/hg-skill-surface-sync.sh`: refresh generated skill mirrors from `.agents/skills/`
+- `scripts/hg-agent-home-sync.sh`: align `/home/hg` and `/root` provider homes, managed skill mirrors, and workspace-global overlays
 
 The rule is simple:
 
 - `AGENTS.md` is canonical when marked canonical.
 - `CLAUDE.md`, `GEMINI.md`, and Copilot instructions are mirrors.
 - `.agents/skills/` is canonical; `.claude/skills/` is generated compatibility output.
+
+## Canonical Agent Launchers
+
+Agent launch behavior is centralized in repo-managed launchers instead of shell-local one-offs.
+
+- `scripts/hg-codex-launch.sh`
+- `scripts/hg-claude-launch.sh`
+- `scripts/hg-gemini-launch.sh`
+- `scripts/hg-codex-worktree-prune.sh`
+
+Operational contract:
+
+- launchers re-exec through `sudo -H` when needed
+- git repos launch into fresh managed worktrees under `/root/.codex/worktrees`
+- dirty tracked and untracked non-ignored state is carried into the fresh worktree
+- non-git directories run in place
+- sessions already inside a managed worktree do not nest another worktree
+
+Use these scripts from shell wrappers, tmux/bootstrap entrypoints, and automation instead of calling raw `codex`, `claude`, or `gemini` binaries directly.
 
 ## Workflow sync status
 
@@ -66,6 +86,7 @@ Use the smallest check that matches the surface you touched.
 
 ```bash
 bash ./scripts/hg-agent-docs.sh --source auto .
+bash ./scripts/hg-agent-home-sync.sh --check
 ```
 
 ### Workflow-sync messaging path

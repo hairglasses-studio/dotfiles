@@ -112,6 +112,11 @@ $DOTFILES_DIR/clipse/config.json|$HOME/.config/clipse/config.json
 $DOTFILES_DIR/clipse/custom_theme.json|$HOME/.config/clipse/custom_theme.json
 $DOTFILES_DIR/glow|$HOME/.config/glow
 $DOTFILES_DIR/tmux/tmux.conf|$HOME/.tmux.conf
+$DOTFILES_DIR/scripts/hg-codex-launch.sh|$HOME/.local/bin/hg-codex-launch.sh
+$DOTFILES_DIR/scripts/hg-claude-launch.sh|$HOME/.local/bin/hg-claude-launch.sh
+$DOTFILES_DIR/scripts/hg-gemini-launch.sh|$HOME/.local/bin/hg-gemini-launch.sh
+$DOTFILES_DIR/scripts/hg-codex-worktree-prune.sh|$HOME/.local/bin/hg-codex-worktree-prune.sh
+$DOTFILES_DIR/scripts/hg-agent-home-sync.sh|$HOME/.local/bin/hg-agent-home-sync.sh
 EOF
 }
 
