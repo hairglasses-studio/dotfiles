@@ -12,9 +12,9 @@
   divert-keys: {82: 0, 83: 1, 86: 1, 195: 1, 196: 1, 416: 0}
   dpi: 4000
   force-sensing: {0: 5237}
-  haptic-level: 60
+  haptic-level: 0
   hires-scroll-mode: false
-  hires-smooth-invert: false
+  hires-smooth-invert: true
   hires-smooth-resolution: true
   reprogrammable-keys: {82: 82, 83: 83, 86: 86, 195: 195, 196: 196, 416: 416}
   scroll-ratchet: 2
