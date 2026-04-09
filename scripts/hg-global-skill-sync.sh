@@ -159,6 +159,10 @@ tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
 pending_changes=0
+stale_agents_count=0
+stale_codex_count=0
+unexpected_agents_count=0
+unexpected_codex_count=0
 declare -A desired_agents_dirs=()
 declare -A desired_codex_dirs=()
 
@@ -172,6 +176,14 @@ sync_file() {
   fi
 
   pending_changes=1
+  case "$label" in
+    *agents*)
+      stale_agents_count=$((stale_agents_count + 1))
+      ;;
+    *codex*)
+      stale_codex_count=$((stale_codex_count + 1))
+      ;;
+  esac
   case "$MODE" in
     write)
       mkdir -p "$(dirname "$target")"
@@ -291,6 +303,7 @@ if [[ -d "$AGENTS_SKILLS" ]]; then
     if [[ -f "$dir/SKILL.md" ]] && grep -q "$GENERATED_MARKER" "$dir/SKILL.md" 2>/dev/null; then
       if [[ -z "${desired_agents_dirs[$skill_name]:-}" ]]; then
         pending_changes=1
+        unexpected_agents_count=$((unexpected_agents_count + 1))
         case "$MODE" in
           write)
             rm -rf "$dir"
@@ -315,6 +328,7 @@ if [[ -d "$CODEX_SKILLS" ]]; then
     if [[ -f "$dir/SKILL.md" ]] && grep -q "$GENERATED_MARKER" "$dir/SKILL.md" 2>/dev/null; then
       if [[ -z "${desired_codex_dirs[$skill_name]:-}" ]]; then
         pending_changes=1
+        unexpected_codex_count=$((unexpected_codex_count + 1))
         case "$MODE" in
           write)
             rm -rf "$dir"
@@ -338,6 +352,10 @@ fi
 
 total_agents=$((commands_portable + skills_synced))
 total_codex=$((commands_portable + skills_synced))
+
+if [[ "$pending_changes" -ne 0 ]]; then
+  hg_info "Global skill drift breakdown: agents ${stale_agents_count} stale + ${unexpected_agents_count} unexpected, codex ${stale_codex_count} stale + ${unexpected_codex_count} unexpected"
+fi
 
 case "$MODE" in
   write)

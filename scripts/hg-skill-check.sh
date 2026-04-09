@@ -140,14 +140,14 @@ if [[ -x "$WORKSPACE_SYNC_SCRIPT" ]]; then
     pass=$((pass + 1))
     hg_ok "Workspace global source contract: up to date"
   else
-    hg_warn "Workspace global source contract: out of date"
+    hg_warn "Workspace global source contract: out of date (run hg-workspace-global-sync.sh --source-check for a repo/source breakdown)"
     warn=$((warn + 1))
   fi
   if "$WORKSPACE_SYNC_SCRIPT" --root "$ROOT" --check >/dev/null 2>&1; then
     pass=$((pass + 1))
-    hg_ok "Workspace global managed home overlays: in sync or unclaimed"
+    hg_ok "Workspace global home overlays: up to date"
   else
-    hg_warn "Workspace global managed home overlays: stale (run hg-workspace-global-sync.sh)"
+    hg_warn "Workspace global home overlays: out of date (run hg-workspace-global-sync.sh --check for a managed/manual breakdown)"
     warn=$((warn + 1))
   fi
 elif [[ -x "$SCRIPT_DIR/hg-global-skill-sync.sh" ]]; then
