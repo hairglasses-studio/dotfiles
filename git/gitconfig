@@ -162,3 +162,4 @@
 	directory = /home/hg/actions-runner/12/_work/github-runner-mcp/github-runner-mcp
 	directory = /home/hg/actions-runner/01/_work/mcp-catalog/mcp-catalog
 	directory = /home/hg/actions-runner/01/_work/mcp-catalog/mcp-catalog
+	directory = /tmp/rg-pt-aftrs
