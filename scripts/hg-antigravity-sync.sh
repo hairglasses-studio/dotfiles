@@ -196,7 +196,7 @@ normalize_cwd() {
   fi
 
   if [[ ! -d "$cwd" ]]; then
-    hg_warn "Antigravity MCP cwd does not exist, keeping original path: $cwd"
+    hg_warn "Antigravity MCP cwd does not exist, keeping original path: $cwd" >&2
     printf '%s\n' "$cwd"
     return 0
   fi
@@ -336,16 +336,18 @@ build_antigravity_mcp_config() {
   local output="$tmpdir/antigravity-mcp.ndjson"
   : >"$output"
 
-  while IFS=$'\t' read -r name value; do
-    [[ -n "$name" ]] || continue
+  while IFS= read -r entry; do
+    [[ -n "$entry" ]] || continue
+    local name value
+    name="$(jq -r '.name' <<<"$entry")"
+    value="$(jq -c '.value' <<<"$entry")"
     append_antigravity_server "$output" "$name" "$value" "$WORKSPACE_ROOT"
   done < <(
-    jq -r '
+    jq -c '
       (.mcpServers // {})
       | to_entries[]
       | select(.key | startswith("_") | not)
-      | [.key, (.value | @json)]
-      | @tsv
+      | {name: .key, value: .value}
     ' "$ROOT_MCP_PATH"
   )
 
@@ -355,16 +357,18 @@ build_antigravity_mcp_config() {
     local repo_name repo_key
     repo_name="$(basename "$repo")"
     repo_key="$(sanitize_kebab_name "$repo_name")"
-    while IFS=$'\t' read -r name value; do
-      [[ -n "$name" ]] || continue
+    while IFS= read -r entry; do
+      [[ -n "$entry" ]] || continue
+      local name value
+      name="$(jq -r '.name' <<<"$entry")"
+      value="$(jq -c '.value' <<<"$entry")"
       append_antigravity_server "$output" "${repo_key}-$(sanitize_kebab_name "$name")" "$value" "$repo"
     done < <(
-      jq -r '
+      jq -c '
         (.mcpServers // {})
         | to_entries[]
         | select(.key | startswith("_") | not)
-        | [.key, (.value | @json)]
-        | @tsv
+        | {name: .key, value: .value}
       ' "$repo/.mcp.json"
     )
   done < <(list_workspace_git_repos)
@@ -525,7 +529,7 @@ build_antigravity_workflows() {
   done < <(sort -u "$managed_names_file")
 
   WORKFLOW_MANAGED_COUNT="$(sort -u "$managed_names_file" | wc -l | tr -d ' ')"
-  WORKFLOW_SKILL_COUNT="$(grep -Ec -- '--.*\.md$' "$managed_names_file" 2>/dev/null || printf '0')"
+  WORKFLOW_SKILL_COUNT="$(awk '/--.*\.md$/ {count++} END {print count + 0}' "$managed_names_file")"
   WORKFLOW_REPO_COUNT="$(awk '!/--/ && $0 !~ /^00-/ {count++} END {print count + 0}' "$managed_names_file")"
 
   if [[ -f "$ANTIGRAVITY_METADATA_PATH" ]]; then
