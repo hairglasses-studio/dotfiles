@@ -1,0 +1,46 @@
+name: Smoke Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'install.sh'
+      - 'scripts/**'
+      - 'tests/repo_smoke.bats'
+      - '.github/workflows/ci-smoke.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'install.sh'
+      - 'scripts/**'
+      - 'tests/repo_smoke.bats'
+      - '.github/workflows/ci-smoke.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Installer and CLI Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install BATS helpers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats bats-support bats-assert
+
+      - name: Validate shell entrypoints
+        run: |
+          bash -n install.sh
+          bash -n scripts/hg
+          bash -n scripts/hg-workflow-sync.sh
+          bash -n scripts/app-launcher.sh
+
+      - name: Run repo smoke tests
+        run: bats tests/repo_smoke.bats
