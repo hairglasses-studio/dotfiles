@@ -22,11 +22,11 @@
     "acceleration": true
   },
   "scroll": {
-    "natural": true,
+    "natural": false,
     "smooth": true,
-    "smartshift": true,
+    "smartshift": false,
     "smartshift_threshold": 15,
-    "mode": "smartshift"
+    "mode": "ratchet"
   },
   "app": {
     "start_at_login": false,

@@ -25,6 +25,12 @@ juhradial_systemctl restart ydotool.service >/dev/null
 juhradial_systemctl restart juhradialmx-daemon.service >/dev/null
 ok "user services restarted"
 
+if [[ -x "$SCRIPT_DIR/juhradial-wheel-apply.sh" ]]; then
+    info "Applying wheel hardware compatibility state..."
+    "$SCRIPT_DIR/juhradial-wheel-apply.sh" --quiet || true
+    ok "wheel state applied"
+fi
+
 info "Restarting juhradial overlay..."
 "$SCRIPT_DIR/juhradial-mx.sh" --restart --quiet
 ok "overlay restarted"

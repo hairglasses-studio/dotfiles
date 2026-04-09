@@ -99,8 +99,10 @@ _hg() {
         cmds=(
           'status:Show running state of juhradial services'
           'install:Install or update the juhradial stack'
+          'settings:Open the juhradial settings dashboard'
           'sync:Copy repo-owned juhradial seed config into ~/.config/juhradial'
           'restart:Restart juhradial, ydotool, and the overlay'
+          'wheel-fix:Reapply compatible MX wheel hardware settings'
           'battery:Show MX Master 4 battery via juhradial D-Bus'
           'devices:List Logitech hidraw devices and paired MX devices'
         ) ;;

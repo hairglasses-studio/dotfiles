@@ -10,8 +10,10 @@ input_commands() {
   cat <<'CMDS'
 status	Show running state of juhradial and related services
 install	Install or update the juhradial stack
+settings	Open the juhradial settings dashboard
 sync	Copy repo-owned juhradial seed config into ~/.config/juhradial
 restart	Restart juhradial, ydotool, and the overlay
+wheel-fix	Reapply compatible MX wheel hardware settings
 battery	Show MX Master 4 battery from juhradial D-Bus
 devices	List Logitech hidraw devices and paired MX devices
 CMDS
@@ -23,9 +25,11 @@ _input_status() {
   printf "\n %s%sinput devices%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
   local tracked_config="$HG_DOTFILES/juhradial/config.json"
   local tracked_profiles="$HG_DOTFILES/juhradial/profiles.json"
+  local tracked_macros="$HG_DOTFILES/juhradial/macros"
   local live_dir="${XDG_CONFIG_HOME:-$HOME/.config}/juhradial"
   local live_config="$live_dir/config.json"
   local live_profiles="$live_dir/profiles.json"
+  local live_macros="$live_dir/macros"
   local status
 
   if juhradial_systemctl is-active juhradialmx-daemon.service &>/dev/null; then
@@ -76,6 +80,18 @@ _input_status() {
     printf "  %s%-12s%s %smissing seed%s\n" "$HG_DIM" "profiles" "$HG_RESET" "$HG_RED" "$HG_RESET"
   fi
 
+  if [[ -d "$tracked_macros" && -d "$live_macros" ]]; then
+    if diff -qr --exclude='.gitkeep' --exclude='*.bak.*' "$tracked_macros" "$live_macros" &>/dev/null; then
+      printf "  %s%-12s%s %ssynced%s\n" "$HG_DIM" "macros" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+    else
+      printf "  %s%-12s%s %sdrifted%s\n" "$HG_DIM" "macros" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+    fi
+  elif [[ -d "$tracked_macros" ]]; then
+    printf "  %s%-12s%s %smissing%s\n" "$HG_DIM" "macros" "$HG_RESET" "$HG_RED" "$HG_RESET"
+  else
+    printf "  %s%-12s%s %smissing seed%s\n" "$HG_DIM" "macros" "$HG_RESET" "$HG_RED" "$HG_RESET"
+  fi
+
   if status="$(juhradial_battery_status 2>/dev/null)"; then
     local battery charging
     read -r battery charging <<<"$status"
@@ -94,13 +110,23 @@ _input_install() {
   "$script"
 }
 
+_input_settings() {
+  local script="$HG_DOTFILES/scripts/juhradial-settings.sh"
+  if [[ ! -x "$script" ]]; then
+    hg_die "Settings launcher not found: $script"
+  fi
+  "$script"
+}
+
 _input_sync() {
   local script="$HG_DOTFILES/scripts/juhradial-sync.sh"
+  local wheel_script="$HG_DOTFILES/scripts/juhradial-wheel-apply.sh"
   if [[ ! -x "$script" ]]; then
     hg_die "Sync script not found: $script"
   fi
   "$script"
   juhradial_systemctl restart juhradialmx-daemon.service >/dev/null
+  [[ -x "$wheel_script" ]] && "$wheel_script" --quiet || true
   hg_ok "Synced juhradial seed config"
 }
 
@@ -109,7 +135,16 @@ _input_restart() {
   juhradial_systemctl restart ydotool.service >/dev/null
   juhradial_systemctl restart juhradialmx-daemon.service >/dev/null
   "$HG_DOTFILES/scripts/juhradial-mx.sh" --restart --quiet
+  [[ -x "$HG_DOTFILES/scripts/juhradial-wheel-apply.sh" ]] && "$HG_DOTFILES/scripts/juhradial-wheel-apply.sh" --quiet || true
   hg_ok "juhradial + ydotool restarted"
+}
+
+_input_wheel_fix() {
+  local script="$HG_DOTFILES/scripts/juhradial-wheel-apply.sh"
+  if [[ ! -x "$script" ]]; then
+    hg_die "Wheel apply script not found: $script"
+  fi
+  "$script"
 }
 
 _input_battery() {
@@ -160,8 +195,10 @@ input_run() {
   case "$cmd" in
     status)       _input_status ;;
     install)      _input_install ;;
+    settings)     _input_settings ;;
     sync)         _input_sync ;;
     restart)      _input_restart ;;
+    wheel-fix)    _input_wheel_fix ;;
     battery)      _input_battery ;;
     devices)      _input_devices ;;
     *)            hg_die "Unknown input command: $cmd. Run 'hg input --help'." ;;
