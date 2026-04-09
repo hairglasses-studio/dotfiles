@@ -350,8 +350,10 @@ setup_runtime_wrappers() {
     if kitty_visuals_enabled && [[ -d "$DOTFILES/kitty/shaders/bin" ]]; then
         chmod +x "$DOTFILES/kitty/shaders/bin/"*.sh 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-shader-playlist.sh" 2>/dev/null || true
+        chmod +x "$DOTFILES/scripts/kitty-dev-launch.sh" 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-visual-launch.sh" 2>/dev/null || true
         link_file "$DOTFILES/scripts/kitty-shader-playlist.sh" "$HOME/.local/bin/kitty-shader-playlist"
+        link_file "$DOTFILES/scripts/kitty-dev-launch.sh" "$HOME/.local/bin/kitty-dev-launch"
         link_file "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
         info "  Kitty shader scripts ready"
     fi

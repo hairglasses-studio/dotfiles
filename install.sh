@@ -155,6 +155,7 @@ $DOTFILES_DIR/gtk-4.0/settings.ini|$HOME/.config/gtk-4.0/settings.ini
 $DOTFILES_DIR/xdg-desktop-portal/portals.conf|$HOME/.config/xdg-desktop-portal/portals.conf
 $DOTFILES_DIR/tattoy/tattoy.toml|${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml
 $DOTFILES_DIR/scripts/kitty-shader-playlist.sh|$HOME/.local/bin/kitty-shader-playlist
+$DOTFILES_DIR/scripts/kitty-dev-launch.sh|$HOME/.local/bin/kitty-dev-launch
 $DOTFILES_DIR/scripts/kitty-visual-launch.sh|$HOME/.local/bin/kitty-visual-launch
 $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
