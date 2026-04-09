@@ -6,14 +6,14 @@ The machine-readable manifest lives at [`mcp/mirror-parity.json`](../mcp/mirror-
 
 ## Mirrored Modules
 
-| Module | Standalone repo | Canonical path | Purpose |
-|--------|------------------|----------------|---------|
-| `dotfiles-mcp` | `hairglasses-studio/dotfiles-mcp` | `mcp/dotfiles-mcp` | Desktop and workstation control-plane MCP server |
-| `mapitall` | `hairglasses-studio/mapitall` | `mcp/mapitall` | Controller and input mapping MCP runtime |
-| `mapping` | `hairglasses-studio/mapping` | `mcp/mapping` | Shared Go package for mapping and profile resolution |
-| `process-mcp` | `hairglasses-studio/process-mcp` | `mcp/process-mcp` | Linux process inspection and debugging MCP server |
-| `systemd-mcp` | `hairglasses-studio/systemd-mcp` | `mcp/systemd-mcp` | Systemd service and timer management MCP server |
-| `tmux-mcp` | `hairglasses-studio/tmux-mcp` | `mcp/tmux-mcp` | Tmux session and workspace orchestration MCP server |
+| Module | Standalone repo | Canonical path | Sync strategy | Purpose |
+|--------|------------------|----------------|---------------|---------|
+| `dotfiles-mcp` | `hairglasses-studio/dotfiles-mcp` | `mcp/dotfiles-mcp` | `manual_projection` | Desktop and workstation control-plane MCP server |
+| `mapitall` | `hairglasses-studio/mapitall` | `mcp/mapitall` | `tree_sync` | Controller and input mapping MCP runtime |
+| `mapping` | `hairglasses-studio/mapping` | `mcp/mapping` | `tree_sync` | Shared Go package for mapping and profile resolution |
+| `process-mcp` | `hairglasses-studio/process-mcp` | `mcp/process-mcp` | `tree_sync` | Linux process inspection and debugging MCP server |
+| `systemd-mcp` | `hairglasses-studio/systemd-mcp` | `mcp/systemd-mcp` | `tree_sync` | Systemd service and timer management MCP server |
+| `tmux-mcp` | `hairglasses-studio/tmux-mcp` | `mcp/tmux-mcp` | `tree_sync` | Tmux session and workspace orchestration MCP server |
 
 ## Verification
 
@@ -21,6 +21,13 @@ Run the parity checker after touching bundled MCP module READMEs, the manifest, 
 
 ```bash
 bash ./scripts/hg-mcp-mirror-parity.sh --check
+
+Only mirrors with `sync_strategy: tree_sync` are safe to mutate through the generic
+`mcp-mirror.sh` and `sync-standalone-mcp-repos.sh` rsync path. Mirrors marked
+`manual_projection` need a dedicated repo-local projection or packaging workflow.
+`dotfiles-mcp` is in that category because the standalone repo has its own root-level
+package layout, generated surfaces, and publish metadata that are not tree-isomorphic
+to `dotfiles/mcp/dotfiles-mcp`.
 ```
 
 The checker validates:

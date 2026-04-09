@@ -10,6 +10,7 @@ Usage:
 
 Sync or compare a canonical MCP source tree with a standalone publish mirror while
 preserving standalone-only repository metadata such as workflows and release files.
+Use this helper only for mirrors whose sync strategy is `tree_sync`.
 EOF
 }
 

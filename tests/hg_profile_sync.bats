@@ -528,3 +528,31 @@ EOF
     run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/sync-standalone-mcp-repos.sh" check --repos=mirror-repo
     assert_success
 }
+
+@test "sync-standalone-mcp-repos: skips mirrors marked manual_projection" {
+    write_manifest "mirror-repo" "mirror" "\"canonical-src\""
+    mkdir -p "${TEST_ROOT}/canonical-src"
+    printf 'hello\n' > "${TEST_ROOT}/canonical-src/README.md"
+
+    init_repo "mirror-repo"
+    printf 'hello\n' > "${TEST_ROOT}/mirror-repo/README.md"
+
+    cat > "${TEST_ROOT}/mirror-parity.json" <<'EOF'
+{
+  "version": 1,
+  "mirrors": [
+    {
+      "module": "mirror-repo",
+      "standalone_repo": "mirror-repo",
+      "canonical_path": "canonical-src",
+      "purpose": "test mirror",
+      "sync_strategy": "manual_projection"
+    }
+  ]
+}
+EOF
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" HG_MCP_MIRROR_MANIFEST="${TEST_ROOT}/mirror-parity.json" bash "${SCRIPTS_REAL}/sync-standalone-mcp-repos.sh" check --repos=mirror-repo
+    assert_success
+    assert_output --partial "sync_strategy=manual_projection"
+}

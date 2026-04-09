@@ -46,6 +46,10 @@ done
 
 hg_require git
 
+mirror_parity_manifest() {
+  printf '%s\n' "${HG_MCP_MIRROR_MANIFEST:-$HG_DOTFILES/mcp/mirror-parity.json}"
+}
+
 abspath() {
   local target="$1"
   if [[ -d "$target" ]]; then
@@ -78,6 +82,24 @@ git_path_dirty() {
   [[ -n "$(git -C "$repo_root" status --porcelain --untracked-files=all -- "$rel" 2>/dev/null)" ]]
 }
 
+mirror_sync_strategy() {
+  local repo="$1"
+  local canonical_path="$2"
+  local manifest canonical_rel
+  manifest="$(mirror_parity_manifest)"
+  [[ -f "$manifest" ]] || {
+    printf 'tree_sync\n'
+    return
+  }
+
+  canonical_rel="${canonical_path#$HG_DOTFILES/}"
+  jq -r \
+    --arg repo "$repo" \
+    --arg canonical "$canonical_rel" \
+    'first(.mirrors[] | select(.standalone_repo == $repo or .canonical_path == $canonical) | (.sync_strategy // "tree_sync")) // "tree_sync"' \
+    "$manifest"
+}
+
 repo_names() {
   local selected=()
   hg_workspace_parse_repo_filter "$REPO_FILTER" selected
@@ -96,6 +118,7 @@ repo_names() {
 }
 
 UPDATED=0
+SKIPPED=0
 
 while IFS= read -r repo; do
   [[ -n "$repo" ]] || continue
@@ -108,6 +131,13 @@ while IFS= read -r repo; do
 
   [[ -e "$mirror_path/.git" ]] || hg_die "mirror repo missing: $mirror_path"
   [[ -d "$canonical_path" ]] || hg_die "canonical path missing: $canonical_path"
+
+  sync_strategy="$(mirror_sync_strategy "$repo" "$canonical_path")"
+  if [[ "$sync_strategy" != "tree_sync" ]]; then
+    hg_warn "$repo: skipping $MODE because sync_strategy=$sync_strategy requires a dedicated projection workflow"
+    SKIPPED=$((SKIPPED + 1))
+    continue
+  fi
 
   if ! $ALLOW_DIRTY && [[ "$MODE" != "check" ]]; then
     if git_path_dirty "$canonical_path"; then
@@ -126,3 +156,6 @@ while IFS= read -r repo; do
 done < <(repo_names)
 
 hg_info "$UPDATED mirror repos processed"
+if [[ "$SKIPPED" -gt 0 ]]; then
+  hg_info "$SKIPPED mirror repos skipped due to non-tree sync strategy"
+fi

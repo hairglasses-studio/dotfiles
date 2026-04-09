@@ -33,6 +33,7 @@ validate_manifest() {
     .version == 1 and
     (.mirrors | type == "array") and
     (.mirrors | length > 0) and
+    ([.mirrors[] | (.sync_strategy // "tree_sync")] | all(. == "tree_sync" or . == "manual_projection")) and
     ([.mirrors[].module] | length == ([.[]] | unique | length)) and
     ([.mirrors[].standalone_repo] | length == ([.[]] | unique | length)) and
     ([.mirrors[].canonical_path] | length == ([.[]] | unique | length))
@@ -43,13 +44,13 @@ list_matrix() {
   require_jq
   validate_manifest
 
-  printf '%-14s %-16s %-22s %s\n' "module" "standalone-repo" "canonical-path" "purpose"
-  printf '%-14s %-16s %-22s %s\n' "------" "---------------" "--------------" "-------"
+  printf '%-14s %-16s %-22s %-18s %s\n' "module" "standalone-repo" "canonical-path" "sync-strategy" "purpose"
+  printf '%-14s %-16s %-22s %-18s %s\n' "------" "---------------" "--------------" "-------------" "-------"
   jq -r '
     .mirrors[] |
-    [.module, .standalone_repo, .canonical_path, .purpose] | @tsv
-  ' "$MANIFEST_PATH" | while IFS=$'\t' read -r module repo path purpose; do
-    printf '%-14s %-16s %-22s %s\n' "$module" "$repo" "$path" "$purpose"
+    [.module, .standalone_repo, .canonical_path, (.sync_strategy // "tree_sync"), .purpose] | @tsv
+  ' "$MANIFEST_PATH" | while IFS=$'\t' read -r module repo path strategy purpose; do
+    printf '%-14s %-16s %-22s %-18s %s\n' "$module" "$repo" "$path" "$strategy" "$purpose"
   done
 }
 
@@ -64,7 +65,7 @@ check_matrix() {
 
   local failures=0
 
-  while IFS=$'\t' read -r module repo canonical_path purpose; do
+  while IFS=$'\t' read -r module repo canonical_path strategy purpose; do
     local module_dir="$DOTFILES_DIR/$canonical_path"
     local readme_path="$module_dir/README.md"
     local canonical_url="https://github.com/hairglasses-studio/dotfiles"
@@ -118,9 +119,9 @@ check_matrix() {
       continue
     fi
 
-    printf 'PASS  %s  %s\n' "$module" "$purpose"
+    printf 'PASS  %s  [%s] %s\n' "$module" "$strategy" "$purpose"
   done < <(
-    jq -r '.mirrors[] | [.module, .standalone_repo, .canonical_path, .purpose] | @tsv' "$MANIFEST_PATH"
+    jq -r '.mirrors[] | [.module, .standalone_repo, .canonical_path, (.sync_strategy // "tree_sync"), .purpose] | @tsv' "$MANIFEST_PATH"
   )
 
   if [[ "$failures" -gt 0 ]]; then
