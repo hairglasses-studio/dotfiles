@@ -26,6 +26,33 @@ hg_require() {
   done
 }
 
+hg_env_file_value() {
+  local env_file="${1:-}"
+  local key="${2:-}"
+  [[ -n "$env_file" ]] && [[ -n "$key" ]] && [[ -f "$env_file" ]] || return 0
+
+  local line raw value
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+    if [[ "$line" =~ ^[[:space:]]*(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]]; then
+      [[ "${BASH_REMATCH[2]}" == "$key" ]] || continue
+      raw="${BASH_REMATCH[3]}"
+      raw="${raw#"${raw%%[![:space:]]*}"}"
+      raw="${raw%"${raw##*[![:space:]]}"}"
+      if [[ "$raw" =~ ^\"(.*)\"$ ]]; then
+        value="${BASH_REMATCH[1]}"
+      elif [[ "$raw" =~ ^\'(.*)\'$ ]]; then
+        value="${BASH_REMATCH[1]}"
+      else
+        value="${raw%%[[:space:]]#*}"
+      fi
+      printf '%s\n' "$value"
+      return 0
+    fi
+  done <"$env_file"
+}
+
 # ── Paths ──────────────────────────────────────
 _hg_core_path="${BASH_SOURCE[0]:-$0}"
 _hg_core_dir="$(cd "$(dirname "$_hg_core_path")" && pwd)"
