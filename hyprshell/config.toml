@@ -13,7 +13,7 @@ exclude_special_workspaces = "dashboard"
 [windows.overview.launcher]
 default_terminal = "$HOME/.local/bin/kitty-visual-launch"
 launch_modifier = "super"
-width = 760
+width = 980
 max_items = 8
 show_when_empty = true
 

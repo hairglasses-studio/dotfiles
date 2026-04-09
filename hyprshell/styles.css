@@ -9,19 +9,19 @@
 
 * {
   font-family: "Monaspace Neon", "Maple Mono NF CN", monospace;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .window {
-  padding: 22px;
+  padding: 26px;
   border: 1px solid var(--border-color);
   border-radius: 18px;
   background: var(--bg-color);
 }
 
 entry {
-  margin-bottom: 14px;
-  padding: 12px 14px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
   border: 1px solid rgba(255, 106, 193, 0.38);
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.24);
@@ -36,7 +36,7 @@ button {
 
 row,
 button {
-  padding: 10px 12px;
+  padding: 12px 14px;
 }
 
 row:hover,
@@ -51,7 +51,7 @@ label {
 }
 
 .large-icons {
-  -gtk-icon-size: 34px;
+  -gtk-icon-size: 40px;
 }
 
 .monochrome {

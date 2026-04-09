@@ -40,8 +40,9 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 3. Bootstraps lazy.nvim for Neovim
 4. Installs TPM (Tmux Plugin Manager)
 5. Symlinks all 60+ configs to their expected locations
-6. Enables repo-managed systemd user services and packaged system services where applicable
-7. Builds bat theme cache
+6. Links managed `~/.local/bin` wrappers for Kitty, launcher fallback, and app switcher on Linux
+7. Enables repo-managed systemd user services and packaged system services where applicable
+8. Builds bat theme cache
 
 ### Post-install
 
@@ -72,12 +73,12 @@ hyprpm reload -n
 |--------|-------------|
 | `hyprland/` | Tiling WM — 113 keybinds, custom animations, plugin-based layout, wallpaper mode orchestration |
 | `eww/` | Status bar widgets, calendar, sidebar, powermenu, dashboard |
-| `hyprshell/` | Launcher, overview, and app switcher for `Super+D` / `Alt+Tab` |
+| `hyprshell/` | Primary launcher, overview, and app switcher for `Super+D` / `Alt+Tab` |
 | `hypr-dock/` | Bottom dock with pinned apps, indicators, and window previews |
 | `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |
 | `hyprland-autoname-workspaces/` | Workspace naming and icon rules for cleaner shell surfaces |
 | `swaync/` | Notification center — Snazzy themed, visibility filtering |
-| `wofi/` | Fallback launcher and emoji picker |
+| `wofi/` | Responsive fallback launcher/switcher styling and emoji picker |
 | `wlogout/` | Power menu overlay |
 | `kitty/` | GPU terminal with CRTty shaders, Kitty theme playlists, shuffled visuals, and watcher-driven retheming |
 | `foot/` | Lightweight terminal (dropdown/fallback) |
@@ -132,7 +133,7 @@ dotfiles/
 ├── git/            → ~/.gitconfig + ~/.config/delta + ~/.config/git/ignore
 ├── tmux/           → ~/.tmux.conf
 ├── starship/       → ~/.config/starship.toml
-├── scripts/        → 40+ utility scripts (not symlinked)
+├── scripts/        → 40+ utility scripts (selected launchers are linked into ~/.local/bin)
 ├── Pacfile         → fallback package list
 ├── install.sh      → symlink installer
 └── Pacfile         → fallback package list for bootstrap installs
