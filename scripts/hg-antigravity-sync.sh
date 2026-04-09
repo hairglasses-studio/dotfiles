@@ -808,6 +808,31 @@ remove_stale_workspace_artifacts() {
   fi
 }
 
+remove_legacy_global_workspace_workflows() {
+  [[ -d "$ANTIGRAVITY_GLOBAL_WORKFLOWS_DIR" ]] || return 0
+  [[ -d "$WORKSPACE_WORKFLOWS_DIR" ]] || return 0
+
+  local managed_global_workflow
+  declare -A managed_global_workflow_set=()
+
+  if [[ -f "$ANTIGRAVITY_ECOSYSTEM_METADATA_PATH" ]]; then
+    while IFS= read -r managed_global_workflow; do
+      [[ -n "$managed_global_workflow" ]] || continue
+      managed_global_workflow_set["$managed_global_workflow"]=1
+    done < <(jq -r '.managed_global_workflows[]? // empty' "$ANTIGRAVITY_ECOSYSTEM_METADATA_PATH" 2>/dev/null || true)
+  fi
+
+  local legacy_name
+  while IFS= read -r legacy_name; do
+    [[ -n "$legacy_name" ]] || continue
+    [[ -n "${managed_global_workflow_set[$legacy_name]:-}" ]] && continue
+    [[ -f "$WORKSPACE_WORKFLOWS_DIR/$legacy_name" ]] || continue
+    remove_managed_path "$ANTIGRAVITY_GLOBAL_WORKFLOWS_DIR/$legacy_name" "legacy Antigravity global workflow"
+  done < <(
+    find "$ANTIGRAVITY_GLOBAL_WORKFLOWS_DIR" -mindepth 1 -maxdepth 1 -type f -name '*.md' -printf '%f\n' 2>/dev/null | sort
+  )
+}
+
 write_metadata() {
   local imported_vars_file="$tmpdir/imported-vars.txt"
   local missing_vars_file="$tmpdir/missing-vars.txt"
@@ -902,6 +927,8 @@ remove_stale_workspace_artifacts
 if [[ -x "$ECOSYSTEM_SYNC_SCRIPT" ]]; then
   "$ECOSYSTEM_SYNC_SCRIPT" "${MODE_ARGS[@]}"
 fi
+
+remove_legacy_global_workspace_workflows
 
 write_metadata
 
