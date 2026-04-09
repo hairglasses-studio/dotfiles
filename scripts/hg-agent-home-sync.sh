@@ -98,6 +98,31 @@ sync_directory_tree() {
   esac
 }
 
+restore_workspace_skill_surface_ownership() {
+  local manifest_path repo_rel repo_path skill_dir plugin_skill_dir
+  manifest_path="${HG_WORKSPACE_MANIFEST:-$WORKSPACE_ROOT/workspace/manifest.json}"
+  [[ -f "$manifest_path" ]] || return 0
+
+  while IFS= read -r repo_rel; do
+    [[ -n "$repo_rel" ]] || continue
+    repo_path="$WORKSPACE_ROOT/$repo_rel"
+
+    skill_dir="$repo_path/.claude/skills"
+    [[ -d "$skill_dir" ]] && chown -R hg:hg "$skill_dir" 2>/dev/null || true
+
+    for plugin_skill_dir in "$repo_path"/plugins/*/skills; do
+      [[ -d "$plugin_skill_dir" ]] || continue
+      chown -R hg:hg "$plugin_skill_dir" 2>/dev/null || true
+    done
+  done < <(
+    jq -r '
+      .repos[]
+      | select(.baseline_target == true)
+      | (if ((.path // "") | length) > 0 then .path else .name end)
+    ' "$manifest_path"
+  )
+}
+
 normalize_gemini_settings() {
   local target="$1"
   local tmp base
@@ -228,6 +253,7 @@ normalize_gemini_settings "$USER_HOME_DIR/.gemini/settings.json"
 normalize_gemini_settings "$ROOT_HOME_DIR/.gemini/settings.json"
 
 if [[ "$MODE" == "write" ]]; then
+  restore_workspace_skill_surface_ownership
   chown -R hg:hg \
     "$USER_HOME_DIR/.claude" \
     "$USER_HOME_DIR/.claude.json" \
