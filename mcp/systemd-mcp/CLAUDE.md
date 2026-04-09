@@ -27,11 +27,12 @@ All tools default to **user scope** (`--user`). Set `system: true` for system sc
 go build -o systemd-mcp ./...
 go vet ./...
 go test ./... -count=1
+SYSTEMD_MCP_LIVE=1 go test ./... -count=1
 ```
 
 ## Architecture
 
-Go program with D-Bus primary backend and systemctl/journalctl fallback. One `SystemdModule` registers all 10 tools. D-Bus connections are optional — if unavailable, tools transparently fall back to shell commands.
+Go program with D-Bus primary backend, explicit runtime capability probes for user and system scope, and structured fallback to systemctl/journalctl only when those backends are actually usable.
 
 ## Scope Convention
 

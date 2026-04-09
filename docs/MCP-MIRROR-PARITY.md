@@ -33,3 +33,5 @@ The checker validates:
 ## CI Hook
 
 The repo smoke workflow is expected to run the mirror parity checker alongside the installer and CLI entrypoint smoke tests. Treat parity drift as a repo-health failure, not a docs-only issue.
+
+For mirrored modules with live host dependencies, the canonical dotfiles workflow is still the source of truth for test partitioning and runner requirements even when standalone README badges point at the publish mirror.

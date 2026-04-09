@@ -481,7 +481,7 @@ run_workflow_sync() {
 
   if [[ "$MODE" == "verify" ]]; then
     local output
-    output="$("$SCRIPT_DIR/hg-workflow-sync.sh" "${args[@]}" 2>/dev/null || true)"
+    output="$(bash "$SCRIPT_DIR/hg-workflow-sync.sh" "${args[@]}" 2>/dev/null || true)"
     if grep -Eq 'would create|would update' <<<"$output"; then
       hg_warn "$repo: workflow drift detected"
       mark_failure
@@ -489,7 +489,7 @@ run_workflow_sync() {
     return
   fi
 
-  "$SCRIPT_DIR/hg-workflow-sync.sh" "${args[@]}" >/dev/null
+  bash "$SCRIPT_DIR/hg-workflow-sync.sh" "${args[@]}" >/dev/null
 }
 
 while IFS= read -r repo; do

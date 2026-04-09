@@ -9,6 +9,7 @@ setup() {
     export SCRIPTS_REAL="${DOTFILES_DIR}/scripts"
 
     mkdir -p "${TEST_HOME}" "${TEST_ROOT}/workspace" "${TEST_ROOT}/.github/workflow-templates" "${TEST_ROOT}/mcpkit/.github/workflows"
+    ln -s "${DOTFILES_DIR}" "${TEST_ROOT}/dotfiles"
 
     export HOME="${TEST_HOME}"
     export HG_STUDIO_ROOT="${TEST_ROOT}"
@@ -16,6 +17,8 @@ setup() {
 
     git config --global user.name "Codex Test"
     git config --global user.email "codex@example.com"
+
+    install_surfacekit_stubs
 }
 
 teardown() {
@@ -75,12 +78,195 @@ write_parity_objectives() {
     printf '%s\n' "${json}" > "${TEST_ROOT}/docs/${relpath}"
 }
 
+install_surfacekit_stubs() {
+    mkdir -p "${TEST_ROOT}/surfacekit/scripts"
+
+    cat > "${TEST_ROOT}/surfacekit/scripts/provider-settings-sync.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_PATH="${1:?repo path required}"
+shift
+REPO_NAME=""
+CHECK=false
+ALLOW_DIRTY=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --repo-name)
+      REPO_NAME="${2:?repo name required}"
+      shift 2
+      ;;
+    --check)
+      CHECK=true
+      shift
+      ;;
+    --allow-dirty)
+      ALLOW_DIRTY=true
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+REPO_NAME="${REPO_NAME:-$(basename "$REPO_PATH")}"
+
+mkdir -p "${REPO_PATH}/.claude" "${REPO_PATH}/.gemini"
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+extension_required=false
+objectives_path="${HG_STUDIO_ROOT}/docs/projects/agent-parity/parity-objectives.json"
+if [[ ! -f "$objectives_path" ]]; then
+  objectives_path="${HG_STUDIO_ROOT}/docs/projects/codex-migration/parity-objectives.json"
+fi
+if [[ -f "$objectives_path" ]] && [[ "$(jq -r --arg repo "$REPO_NAME" 'if ((.repo_overrides[$repo] // {}) | has("gemini_extension_scaffold")) then .repo_overrides[$repo].gemini_extension_scaffold elif ((.defaults // {}) | has("gemini_extension_scaffold")) then .defaults.gemini_extension_scaffold else false end' "$objectives_path")" == "true" ]]; then
+  extension_required=true
+fi
+
+if $extension_required; then
+  cat > "${tmpdir}/settings.json" <<'EOF2'
+{
+  "hooks": {},
+  "instructions": ["AGENTS.md"],
+  "extensions": [
+    {
+      "name": "gemini-extension",
+      "required": true
+    }
+  ]
+}
+EOF2
+else
+  cat > "${tmpdir}/settings.json" <<'EOF2'
+{
+  "hooks": {},
+  "instructions": ["AGENTS.md"]
+}
+EOF2
+fi
+
+cat > "${tmpdir}/claude-settings.json" <<'EOF2'
+{
+  "hooks": {}
+}
+EOF2
+
+if $CHECK; then
+  if ! cmp -s "${tmpdir}/settings.json" "${REPO_PATH}/.gemini/settings.json" || ! cmp -s "${tmpdir}/claude-settings.json" "${REPO_PATH}/.claude/settings.json"; then
+    if $extension_required; then
+      echo "gemini-extension (required)" >&2
+    fi
+    exit 1
+  fi
+  exit 0
+fi
+
+generated_drift=false
+if [[ -f "${REPO_PATH}/.gemini/settings.json" ]] && ! cmp -s "${tmpdir}/settings.json" "${REPO_PATH}/.gemini/settings.json"; then
+  generated_drift=true
+fi
+if [[ -f "${REPO_PATH}/.claude/settings.json" ]] && ! cmp -s "${tmpdir}/claude-settings.json" "${REPO_PATH}/.claude/settings.json"; then
+  generated_drift=true
+fi
+
+if ! $ALLOW_DIRTY && { $generated_drift || [[ -n "$(git -C "${REPO_PATH}" status --porcelain -- .gemini/settings.json .claude/settings.json 2>/dev/null)" ]]; }; then
+  echo "skipping dirty gemini-settings" >&2
+  exit 1
+fi
+
+cp "${tmpdir}/settings.json" "${REPO_PATH}/.gemini/settings.json"
+cp "${tmpdir}/claude-settings.json" "${REPO_PATH}/.claude/settings.json"
+EOF
+    chmod +x "${TEST_ROOT}/surfacekit/scripts/provider-settings-sync.sh"
+
+    cat > "${TEST_ROOT}/surfacekit/scripts/codex-mcp-sync.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_PATH="${1:?repo path required}"
+shift
+DRY_RUN=false
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+fi
+
+command_line="$(python3 - "${REPO_PATH}/.mcp.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+server = next(iter(data["mcpServers"].values()))
+print(server["command"])
+print(json.dumps(server.get("args", [])))
+PY
+)"
+
+command_value="$(printf '%s\n' "$command_line" | sed -n '1p')"
+args_value="$(printf '%s\n' "$command_line" | sed -n '2p')"
+
+generated_block=$'\n# BEGIN GENERATED MCP SERVERS: codex-mcp-sync\ncommand = "'"${command_value}"$'"\nargs = '"${args_value}"$'\n# END GENERATED MCP SERVERS: codex-mcp-sync\n'
+
+config_path="${REPO_PATH}/.codex/config.toml"
+current="$(cat "$config_path")"
+if [[ "$current" == *"$generated_block"* ]]; then
+  exit 0
+fi
+
+if $DRY_RUN; then
+  echo "generated codex mcp block drift"
+  exit 0
+fi
+
+python3 - "$config_path" "$generated_block" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+block = sys.argv[2]
+text = path.read_text(encoding="utf-8")
+begin = "# BEGIN GENERATED MCP SERVERS: codex-mcp-sync"
+end = "# END GENERATED MCP SERVERS: codex-mcp-sync"
+
+if begin in text and end in text:
+    prefix = text.split(begin, 1)[0].rstrip()
+    text = prefix + "\n" + block.lstrip("\n")
+else:
+    text = text.rstrip() + block
+
+path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
+PY
+EOF
+    chmod +x "${TEST_ROOT}/surfacekit/scripts/codex-mcp-sync.sh"
+
+    cat > "${TEST_ROOT}/surfacekit/scripts/agent-parity-audit.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'USAGE'
+Usage: hg-agent-parity-audit.sh [--help]
+USAGE
+  exit 0
+fi
+
+echo "stub audit" >&2
+exit 0
+EOF
+    chmod +x "${TEST_ROOT}/surfacekit/scripts/agent-parity-audit.sh"
+}
+
 @test "hg-repo-profile-sync: sync creates Gemini project settings baseline" {
     write_manifest "demo"
     init_repo "demo"
     write_agents "demo"
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync --repos=demo
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync
     assert_success
 
     run test -f "${TEST_ROOT}/demo/.gemini/settings.json"
@@ -113,7 +299,7 @@ write_parity_objectives() {
     assert_output "false"
 }
 
-@test "hg-agent-parity library: historical objectives remain a fallback when canonical path is absent" {
+@test "hg-agent-parity library: explicit objectives path can use historical objectives" {
     write_parity_objectives "projects/codex-migration/parity-objectives.json" '{
   "version": 1,
   "defaults": {"gemini_extension_scaffold": false},
@@ -121,7 +307,7 @@ write_parity_objectives() {
   "repo_overrides": {"demo": {"gemini_extension_scaffold": true}}
 }'
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash -lc '
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" HG_PARITY_OBJECTIVES_PATH="${TEST_ROOT}/docs/projects/codex-migration/parity-objectives.json" bash -lc '
         source "'"${SCRIPTS_REAL}/lib/hg-core.sh"'"
         source "'"${SCRIPTS_REAL}/lib/hg-agent-parity.sh"'"
         hg_parity_repo_objective_bool demo gemini_extension_scaffold false
@@ -135,7 +321,7 @@ write_parity_objectives() {
     init_repo "demo"
     write_agents "demo"
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync --repos=demo
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync
     assert_success
 
     git -C "${TEST_ROOT}/demo" add -A
@@ -224,14 +410,14 @@ EOF
 
     printf '\ndirty manual edit\n' >> "${TEST_ROOT}/demo/CLAUDE.md"
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync --repos=demo
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync
     assert_success
     assert_output --partial "skipping dirty generated agent docs"
 
     run grep -F "dirty manual edit" "${TEST_ROOT}/demo/CLAUDE.md"
     assert_success
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync --allow-dirty --repos=demo
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync --allow-dirty
     assert_success
     refute_output --partial "skipping dirty generated agent docs"
 
@@ -239,38 +425,30 @@ EOF
     assert_failure
 }
 
-@test "hg-workflow-sync: allow-dirty updates a dirty managed workflow" {
+@test "hg-workflow-sync: retired workflow sync ignores legacy workflow arguments" {
     write_manifest "demo" "canonical" "null" "none" "public_ai_review"
     init_repo "demo"
     mkdir -p "${TEST_ROOT}/demo/.github/workflows"
 
-    cat > "${TEST_ROOT}/.github/workflow-templates/claude-review.yml" <<'EOF'
-name: claude-review
-on: pull_request
-EOF
-
     cat > "${TEST_ROOT}/demo/.github/workflows/claude-review.yml" <<'EOF'
 name: old-review
 EOF
-
-    git -C "${TEST_ROOT}/demo" add .github/workflows/claude-review.yml
-    git -C "${TEST_ROOT}/demo" commit -q -m "seed workflow"
-
     printf '\n# dirty\n' >> "${TEST_ROOT}/demo/.github/workflows/claude-review.yml"
 
     run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-workflow-sync.sh" --repos=demo
     assert_success
-    assert_output --partial "skipping dirty workflow claude-review.yml"
+    assert_output --partial "Ignoring retired argument: --repos=demo"
+    assert_output --partial "Hosted workflow sync is retired under the local-only automation policy"
 
     run grep -F "# dirty" "${TEST_ROOT}/demo/.github/workflows/claude-review.yml"
     assert_success
 
     run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-workflow-sync.sh" --allow-dirty --repos=demo
     assert_success
+    assert_output --partial "Ignoring retired argument: --allow-dirty"
+    assert_output --partial "Ignoring retired argument: --repos=demo"
 
     run grep -F "# dirty" "${TEST_ROOT}/demo/.github/workflows/claude-review.yml"
-    assert_failure
-    run grep -F "name: claude-review" "${TEST_ROOT}/demo/.github/workflows/claude-review.yml"
     assert_success
 }
 
@@ -279,7 +457,7 @@ EOF
     init_repo "demo"
     write_agents "demo"
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync --repos=demo
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" sync
     assert_success
 
     git -C "${TEST_ROOT}/demo" add -A
@@ -298,11 +476,11 @@ with open(path, "w", encoding="utf-8") as f:
     f.write("\n")
 PY
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" verify --repos=demo
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-repo-profile-sync.sh" verify
     assert_failure
     assert_output --partial "provider settings out of sync"
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-agent-parity-sync.sh" --check --repos=demo
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-agent-parity-sync.sh" --check
     assert_failure
     assert_output --partial "provider settings sync failed"
 }
@@ -315,6 +493,28 @@ PY
     run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-codex-audit.sh" --help
     assert_success
     assert_output --partial "Usage: hg-agent-parity-audit.sh"
+}
+
+@test "surfacekit wrappers derive and export studio root from script location" {
+    local alt_root="${BATS_TEST_TMPDIR}/derived-root"
+    mkdir -p "${alt_root}/dotfiles/scripts/lib" "${alt_root}/surfacekit/scripts"
+    cp "${DOTFILES_DIR}/AGENTS.md" "${alt_root}/dotfiles/AGENTS.md"
+    cp "${SCRIPTS_REAL}/lib/hg-core.sh" "${alt_root}/dotfiles/scripts/lib/hg-core.sh"
+    cp "${SCRIPTS_REAL}/hg-agent-parity-audit.sh" "${alt_root}/dotfiles/scripts/hg-agent-parity-audit.sh"
+
+    cat > "${alt_root}/surfacekit/scripts/agent-parity-audit.sh" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "\${HG_STUDIO_ROOT:-}" > "${alt_root}/exported-studio-root.txt"
+EOF
+    chmod +x "${alt_root}/surfacekit/scripts/agent-parity-audit.sh" "${alt_root}/dotfiles/scripts/hg-agent-parity-audit.sh"
+
+    run env -u HG_STUDIO_ROOT -u DOTFILES_DIR HOME="${HOME}" bash "${alt_root}/dotfiles/scripts/hg-agent-parity-audit.sh"
+    assert_success
+
+    run cat "${alt_root}/exported-studio-root.txt"
+    assert_success
+    assert_output "${alt_root}"
 }
 
 @test "sync-standalone-mcp-repos: check works through bash wrapper when mcp-mirror helper is non-executable" {

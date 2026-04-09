@@ -1,10 +1,16 @@
-.PHONY: build test vet lint check coverage
+.PHONY: build test test-unit test-live vet lint check coverage
 
 build:
 	go build -o systemd-mcp ./...
 
 test:
 	go test ./... -count=1
+
+test-unit:
+	go test ./... -count=1
+
+test-live:
+	SYSTEMD_MCP_LIVE=1 go test ./... -count=1
 
 vet:
 	go vet ./...

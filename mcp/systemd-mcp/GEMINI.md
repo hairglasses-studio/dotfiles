@@ -10,16 +10,18 @@ MCP server for systemd service and timer management. Built on mcpkit (stdio tran
 go build -o systemd-mcp ./...
 go vet ./...
 go test ./... -count=1
-make check              # All three above
+SYSTEMD_MCP_LIVE=1 go test ./... -count=1
+make check
+make test-live
 ```
 
 ## Architecture
 
-Go program with D-Bus primary backend and systemctl/journalctl fallback. One `SystemdModule` registers all 10 tools. D-Bus connections are optional — if unavailable, tools transparently fall back to shell commands.
+Go program with D-Bus primary backend, explicit runtime capability probes for user and system scope, and systemctl/journalctl fallback only when those backends are actually usable.
 
 ## Key Conventions
 
 - All tools default to user scope (`--user`). Set `system: true` for system scope.
 - Critical services (sshd, NetworkManager, systemd-*, dbus, polkit) require `confirm: true` for stop/disable.
-- Error codes: `handler.CodedErrorResult(handler.ErrInvalidParam, err)` — never `(nil, error)`.
+- Default `go test` is the deterministic tier. Live systemd integration requires `SYSTEMD_MCP_LIVE=1` and a host that actually exposes the requested scope.
 - Thread safety: `sync.RWMutex` with `RLock` for reads, `Lock` for writes.

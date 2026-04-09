@@ -23,6 +23,7 @@ CODEX_CONFIG_PATH="${HG_CODEX_CONFIG_PATH:-$HOME/.codex/config.toml}"
 GEMINI_HOME_DOC_PATH="${HG_GEMINI_HOME_DOC_PATH:-$HOME/.gemini/GEMINI.md}"
 GEMINI_PROJECTS_PATH="${HG_GEMINI_PROJECTS_PATH:-$HOME/.gemini/projects.json}"
 GEMINI_SETTINGS_PATH="${HG_GEMINI_SETTINGS_PATH:-$HOME/.gemini/settings.json}"
+ANTIGRAVITY_SYNC_SCRIPT="${HG_ANTIGRAVITY_SYNC_SCRIPT:-$SCRIPT_DIR/hg-antigravity-sync.sh}"
 
 START_MARKER="# BEGIN GENERATED MCP SERVERS: hg-workspace-global-sync"
 END_MARKER="# END GENERATED MCP SERVERS: hg-workspace-global-sync"
@@ -214,6 +215,7 @@ stale_workspace_gemini_overlay_count=0
 stale_claude_home_doc_count=0
 stale_gemini_home_doc_count=0
 stale_gemini_projects_count=0
+stale_antigravity_overlay_count=0
 
 managed_repo_count=0
 repos_with_skill_surfaces=0
@@ -1174,6 +1176,7 @@ sync_gemini_home_context() {
     printf -- '- Claude workspace overlay: `%s` managed entries under project `%s` in `%s`.\n' "$claude_tool_count" "$CLAUDE_PROJECT_KEY" "$CLAUDE_JSON_PATH"
     printf -- '- Codex workspace overlay: `%s` managed entries in `%s`.\n' "$codex_tool_count" "$CODEX_CONFIG_PATH"
     printf -- '- Gemini CLI home overlay: `%s` managed entries in `%s`.\n' "$gemini_tool_count" "$GEMINI_SETTINGS_PATH"
+    printf -- '- Antigravity home overlay: managed MCP/workflow/env/settings state via `%s`.\n' "$ANTIGRAVITY_SYNC_SCRIPT"
     printf -- '- Portable managed skills are discovered from `%s`.\n' "$AGENTS_SKILLS_DIR"
     printf '\n%s\n' "$HOME_CONTEXT_END_MARKER"
   } >"$gemini_block_file"
@@ -1232,6 +1235,7 @@ sync_claude_home_context() {
     printf -- '- Claude workspace overlay: `%s` managed entries under project `%s` in `%s`.\n' "$claude_tool_count" "$CLAUDE_PROJECT_KEY" "$CLAUDE_JSON_PATH"
     printf -- '- Codex workspace overlay: `%s` managed entries in `%s`.\n' "$codex_tool_count" "$CODEX_CONFIG_PATH"
     printf -- '- Gemini CLI home overlay: `%s` managed entries in `%s`.\n' "$gemini_tool_count" "$GEMINI_SETTINGS_PATH"
+    printf -- '- Antigravity home overlay: managed MCP/workflow/env/settings state via `%s`.\n' "$ANTIGRAVITY_SYNC_SCRIPT"
     printf -- '- Portable managed skills are discovered from `%s`.\n' "$AGENTS_SKILLS_DIR"
     printf '\n%s\n' "$HOME_CONTEXT_END_MARKER"
   } >"$claude_block_file"
@@ -1255,6 +1259,22 @@ sync_claude_home_context() {
   sync_rendered_file "$CLAUDE_HOME_DOC_PATH" "$claude_output_file" "Synced Claude home memory"
 }
 
+sync_antigravity_home_state() {
+  if ! $CHECK_GLOBAL_TARGETS; then
+    return 0
+  fi
+
+  [[ -f "$ANTIGRAVITY_SYNC_SCRIPT" ]] || hg_die "Antigravity sync script not found: $ANTIGRAVITY_SYNC_SCRIPT"
+
+  if "$ANTIGRAVITY_SYNC_SCRIPT" --root "$WORKSPACE_ROOT" "${MODE_ARGS[@]}"; then
+    return 0
+  fi
+
+  overall_pending=1
+  tool_pending=1
+  stale_antigravity_overlay_count=$((stale_antigravity_overlay_count + 1))
+}
+
 if $RUN_SKILLS; then
   sync_managed_workspace_skills
 else
@@ -1263,6 +1283,10 @@ fi
 
 if $RUN_TOOLS; then
   sync_managed_workspace_tools
+fi
+
+if $RUN_SKILLS || $RUN_TOOLS; then
+  sync_antigravity_home_state
 fi
 
 if $RUN_SKILLS; then
@@ -1278,13 +1302,13 @@ elif $RUN_SKILLS; then
 fi
 
 if $RUN_TOOLS && $CHECK_GLOBAL_TARGETS; then
-  hg_info "Managed workspace global tools: Claude ${claude_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw) / Codex ${codex_tool_count} (${claude_foundational_count} shared + ${codex_profile_count} curated) / Gemini ${gemini_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw)"
+  hg_info "Managed workspace global tools: Claude ${claude_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw) / Codex ${codex_tool_count} (${claude_foundational_count} shared + ${codex_profile_count} curated) / Gemini ${gemini_tool_count} (${claude_foundational_count} shared + ${claude_raw_count} raw) / Antigravity via ${ANTIGRAVITY_SYNC_SCRIPT}"
 elif $RUN_TOOLS; then
   hg_info "Managed workspace global tool sources validated: ${claude_raw_count} repo-local raw MCP sources + ${codex_profile_count} curated Codex profiles"
 fi
 
 if $CHECK_GLOBAL_TARGETS && [[ "$overall_pending" -ne 0 ]]; then
-  hg_info "Managed home overlay drift breakdown: Claude skills ${global_claude_stale_count} stale + ${global_claude_unexpected_count} unexpected owned + ${global_claude_manual_block_count} manual blockers; Claude MCP ${stale_workspace_claude_overlay_count}; Claude home ${stale_claude_home_doc_count}; Codex MCP ${stale_workspace_codex_overlay_count}; Gemini MCP ${stale_workspace_gemini_overlay_count}; Gemini home ${stale_gemini_home_doc_count}; Gemini projects ${stale_gemini_projects_count}"
+  hg_info "Managed home overlay drift breakdown: Claude skills ${global_claude_stale_count} stale + ${global_claude_unexpected_count} unexpected owned + ${global_claude_manual_block_count} manual blockers; Claude MCP ${stale_workspace_claude_overlay_count}; Claude home ${stale_claude_home_doc_count}; Codex MCP ${stale_workspace_codex_overlay_count}; Gemini MCP ${stale_workspace_gemini_overlay_count}; Gemini home ${stale_gemini_home_doc_count}; Gemini projects ${stale_gemini_projects_count}; Antigravity ${stale_antigravity_overlay_count}"
 fi
 
 case "$MODE" in

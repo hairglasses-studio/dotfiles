@@ -1,12 +1,14 @@
 # pipeline.mk — Standardized build pipeline targets for hairglasses-studio repos.
 # Include at the bottom of any repo's Makefile:
-#   -include $(HOME)/hairglasses-studio/dotfiles/make/pipeline.mk
+#   HG_PIPELINE_MK ?= $(or $(wildcard $(abspath $(CURDIR)/../dotfiles/make/pipeline.mk)),$(wildcard $(HOME)/hairglasses-studio/dotfiles/make/pipeline.mk))
+#   -include $(HG_PIPELINE_MK)
 #
 # Override PIPELINE_GO to use a custom Go wrapper (e.g., ./scripts/dev/go.sh).
 # Override PIPELINE_BINARY for repos with non-default binary names.
 # Existing repo targets (build, test, vet, lint) are NOT overridden.
 
 PIPELINE_GO      ?= go
+PIPELINE_DOTFILES_ROOT ?= $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 PIPELINE_REPO    ?= $(notdir $(CURDIR))
 PIPELINE_BINARY  ?= $(PIPELINE_REPO)
 PIPELINE_IS_MCP  ?= $(shell test -f .mcp.json && echo yes || echo no)
@@ -42,7 +44,7 @@ pipeline-info:
 		"$(PIPELINE_HAS_GO)" "$(PIPELINE_HAS_NODE)" "$(PIPELINE_HAS_PY)"
 
 install-hooks:
-	@$(HOME)/hairglasses-studio/dotfiles/scripts/hg-install-hooks.sh
+	@$(PIPELINE_DOTFILES_ROOT)/scripts/hg-install-hooks.sh
 
 claude-lint:
 	@if [ -f CLAUDE.md ]; then \

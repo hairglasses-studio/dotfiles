@@ -10,6 +10,7 @@ All 10 tools are functional and tested. MIT licensed, README and CLAUDE.md in pl
 
 ### Phase 1 — Hardening & Observability
 - Add integration tests using `mcptest.NewServer()`
+- Add backend capability detection and an environment-aware integration harness
 - Structured JSON output for `systemd_list_units` and `systemd_list_timers` (machine-parseable)
 - Input validation for unit names (reject path traversal, shell metacharacters)
 - Rate limiting on start/stop/restart to prevent rapid-fire toggles
