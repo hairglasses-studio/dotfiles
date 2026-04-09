@@ -2,7 +2,7 @@
 # hg-agent-home-sync.sh — Keep user and root provider homes aligned with the managed launcher contract.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/hg-agent-launch.sh"
 
