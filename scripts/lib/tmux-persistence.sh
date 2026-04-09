@@ -106,6 +106,19 @@ tmux_persistence_report() {
   return "$rc"
 }
 
+tmux_persistence_is_operational() {
+  local check status detail
+
+  while IFS=$'\t' read -r check status detail; do
+    [[ -n "${check:-}" ]] || continue
+    if [[ "$status" == "fail" ]]; then
+      return 1
+    fi
+  done < <(tmux_persistence_report)
+
+  return 0
+}
+
 tmux_persistence_bootstrap() {
   local plugin_root
   local tpm_dir

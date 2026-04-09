@@ -3,6 +3,7 @@
 # Dotfiles config management — reload, backup, check, list
 
 source "$HG_DOTFILES/scripts/lib/config.sh"
+source "$HG_DOTFILES/scripts/lib/tmux-persistence.sh" 2>/dev/null
 _CFG_TOML="$HG_DOTFILES/dotfiles.toml"
 
 config_description() {
@@ -12,7 +13,8 @@ config_description() {
 config_commands() {
   cat <<'CMDS'
 reload	Reload a component (hyprshell uses watched-file hot reload)
-restart	Explicitly restart a service-backed component (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)
+restart	Explicitly restart a service-backed component (guarded; use --force to override failed continuity preflight)
+lane	Show whether a component uses safe_reload, service_reload, or explicit_restart
 backup	Backup a config file before modification
 check	Validate symlinks and feature flags
 list	Show managed components and paths
@@ -31,14 +33,59 @@ _config_cmd_reload() {
 }
 
 _config_cmd_restart() {
-  local component="${1:-}"
-  [[ -n "$component" ]] || hg_die "Usage: hg config restart <component> (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)"
+  local force=false component=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --force) force=true ;;
+      -*) hg_die "Unknown option for restart: $1" ;;
+      *)
+        [[ -z "$component" ]] || hg_die "Usage: hg config restart [--force] <component> (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)"
+        component="$1"
+        ;;
+    esac
+    shift
+  done
+
+  [[ -n "$component" ]] || hg_die "Usage: hg config restart [--force] <component> (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)"
   case "$component" in
     hyprshell|hypr-dock|hyprdock|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname) ;;
     *) hg_die "Unknown restartable component: $component (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)" ;;
   esac
+
+  if ! $force && ! tmux_persistence_is_operational; then
+    hg_die "Blocked explicit restart for $component: tmux persistence health has failures. Run 'hg rice persistence' or retry with --force."
+  fi
+
   config_restart_service "$component"
   hg_ok "Restarted $component"
+}
+
+_config_cmd_lane() {
+  local component="${1:-}"
+  local verb="${2:-}"
+  local reload_lane="" restart_lane=""
+
+  [[ -n "$component" ]] || hg_die "Usage: hg config lane <component> [reload|restart]"
+  if [[ -n "$verb" && "$verb" != "reload" && "$verb" != "restart" ]]; then
+    hg_die "Unknown action verb: $verb (reload|restart)"
+  fi
+
+  if [[ -z "$verb" || "$verb" == "reload" ]]; then
+    reload_lane="$(config_action_lane reload "$component" 2>/dev/null || true)"
+  fi
+  if [[ -z "$verb" || "$verb" == "restart" ]]; then
+    restart_lane="$(config_action_lane restart "$component" 2>/dev/null || true)"
+  fi
+
+  [[ -n "$reload_lane$restart_lane" ]] || hg_die "Unknown component: $component"
+
+  if [[ -n "$reload_lane" ]]; then
+    printf '%s\treload\t%s\n' "$component" "$reload_lane"
+  fi
+  if [[ -n "$restart_lane" ]]; then
+    printf '%s\trestart\t%s\n' "$component" "$restart_lane"
+  fi
 }
 
 _config_cmd_backup() {
@@ -134,6 +181,7 @@ config_run() {
   case "$cmd" in
     reload) _config_cmd_reload "$@" ;;
     restart) _config_cmd_restart "$@" ;;
+    lane)   _config_cmd_lane "$@" ;;
     backup) _config_cmd_backup "$@" ;;
     check)  _config_cmd_check ;;
     list)   _config_cmd_list ;;
