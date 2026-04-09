@@ -45,28 +45,31 @@ fi
 
 hg_require jq rsync
 
-sync_file_from_source() {
+# Seed the provider home docs from the repo template when missing, but let
+# hg-workspace-global-sync.sh remain the authoritative renderer for the final
+# file because it appends the managed workspace context block.
+seed_file_from_source_if_missing() {
   local source="$1"
   local target="$2"
   local label="$3"
 
   mkdir -p "$(dirname "$target")"
-  if [[ -f "$target" ]] && cmp -s "$source" "$target"; then
+  if [[ -f "$target" ]]; then
     return 0
   fi
 
   case "$MODE" in
     dry-run)
-      hg_warn "Would sync $label: $target"
+      hg_warn "Would seed $label: $target"
       ;;
     check)
-      hg_warn "Out of date $label: $target"
+      hg_warn "Missing $label: $target"
       FAILED=1
       return 0
       ;;
     write)
       cp "$source" "$target"
-      hg_ok "Synced $label: $target"
+      hg_ok "Seeded $label: $target"
       ;;
   esac
 }
@@ -205,10 +208,10 @@ run_skill_sync() {
   fi
 }
 
-sync_file_from_source "$CLAUDE_TEMPLATE" "$USER_HOME_DIR/.claude/CLAUDE.md" "Claude home doc"
-sync_file_from_source "$CLAUDE_TEMPLATE" "$ROOT_HOME_DIR/.claude/CLAUDE.md" "root Claude home doc"
-sync_file_from_source "$GEMINI_TEMPLATE" "$USER_HOME_DIR/.gemini/GEMINI.md" "Gemini home doc"
-sync_file_from_source "$GEMINI_TEMPLATE" "$ROOT_HOME_DIR/.gemini/GEMINI.md" "root Gemini home doc"
+seed_file_from_source_if_missing "$CLAUDE_TEMPLATE" "$USER_HOME_DIR/.claude/CLAUDE.md" "Claude home doc"
+seed_file_from_source_if_missing "$CLAUDE_TEMPLATE" "$ROOT_HOME_DIR/.claude/CLAUDE.md" "root Claude home doc"
+seed_file_from_source_if_missing "$GEMINI_TEMPLATE" "$USER_HOME_DIR/.gemini/GEMINI.md" "Gemini home doc"
+seed_file_from_source_if_missing "$GEMINI_TEMPLATE" "$ROOT_HOME_DIR/.gemini/GEMINI.md" "root Gemini home doc"
 
 sync_directory_tree "$USER_HOME_DIR/.claude/commands" "$ROOT_HOME_DIR/.claude/commands" "root Claude commands"
 sync_directory_tree "$USER_HOME_DIR/.claude/skills" "$ROOT_HOME_DIR/.claude/skills" "root Claude skills"

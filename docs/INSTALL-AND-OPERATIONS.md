@@ -39,13 +39,14 @@ Use the repo scripts instead of editing compatibility mirrors by hand.
 
 - `scripts/hg-agent-docs.sh --source auto .`: regenerate `CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md` from the canonical source file
 - `scripts/hg-skill-surface-sync.sh`: refresh generated skill mirrors from `.agents/skills/`
-- `scripts/hg-agent-home-sync.sh`: align `/home/hg` and `/root` provider homes, managed skill mirrors, and workspace-global overlays
+- `scripts/hg-agent-home-sync.sh`: seed missing `/home/hg` and `/root` provider home docs, then align managed skill mirrors and workspace-global overlays
 
 The rule is simple:
 
 - `AGENTS.md` is canonical when marked canonical.
 - `CLAUDE.md`, `GEMINI.md`, and Copilot instructions are mirrors.
 - `.agents/skills/` is canonical; `.claude/skills/` is generated compatibility output.
+- If a Claude command and Claude skill share a name, the full skill definition wins; global home sync does not overwrite canonical skill mirrors with the command shim.
 
 ## Canonical Agent Launchers
 

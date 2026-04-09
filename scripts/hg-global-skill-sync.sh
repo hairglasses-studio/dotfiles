@@ -164,8 +164,17 @@ stale_codex_count=0
 unexpected_agents_count=0
 unexpected_codex_count=0
 gemini_builtin_name_skips=0
+commands_shadowed_by_skills=0
 declare -A desired_agents_dirs=()
 declare -A desired_codex_dirs=()
+declare -A claude_skill_names=()
+
+if [[ -d "$CLAUDE_SKILLS" ]]; then
+  while IFS= read -r skill_dir; do
+    [[ -f "$skill_dir/SKILL.md" ]] || continue
+    claude_skill_names["$(basename "$skill_dir")"]=1
+  done < <(find "$CLAUDE_SKILLS" -mindepth 1 -maxdepth 1 -type d -print 2>/dev/null | sort)
+fi
 
 sync_file() {
   local staged="$1"
@@ -216,6 +225,14 @@ for source_file in "$CLAUDE_COMMANDS"/*.md; do
 
   if is_claude_only "$raw_name"; then
     commands_skipped=$((commands_skipped + 1))
+    continue
+  fi
+
+  # Prefer the full Claude skill when a command shim and skill share a name.
+  # Without this, check mode reports false drift because the command pass and
+  # skill pass generate different bodies for the same agents/codex target.
+  if [[ -n "${claude_skill_names[$raw_name]:-}" ]]; then
+    commands_shadowed_by_skills=$((commands_shadowed_by_skills + 1))
     continue
   fi
 
@@ -369,19 +386,19 @@ fi
 case "$MODE" in
   write)
     if [[ "$pending_changes" -eq 0 ]]; then
-      hg_ok "All skills synchronized (${commands_portable} commands + ${skills_synced} skills → agents+codex, ${commands_skipped} Claude-only skipped, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
+      hg_ok "All skills synchronized (${commands_portable} commands + ${skills_synced} skills → agents+codex, ${commands_skipped} Claude-only skipped, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
     else
-      hg_info "Synchronized ${commands_portable} commands + ${skills_synced} skills → agents+codex (${commands_skipped} Claude-only skipped, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
+      hg_info "Synchronized ${commands_portable} commands + ${skills_synced} skills → agents+codex (${commands_skipped} Claude-only skipped, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
     fi
     ;;
   dry-run)
     if [[ "$pending_changes" -eq 0 ]]; then
-      hg_ok "No changes needed (${commands_portable} commands + ${skills_synced} skills, ${commands_skipped} Claude-only, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
+      hg_ok "No changes needed (${commands_portable} commands + ${skills_synced} skills, ${commands_skipped} Claude-only, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
     fi
     ;;
   check)
     if [[ "$pending_changes" -eq 0 ]]; then
-      hg_ok "All skills up to date (${commands_portable} commands + ${skills_synced} skills, ${commands_skipped} Claude-only, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
+      hg_ok "All skills up to date (${commands_portable} commands + ${skills_synced} skills, ${commands_skipped} Claude-only, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
     else
       exit 1
     fi
