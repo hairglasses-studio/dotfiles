@@ -2,7 +2,7 @@
 # hg-codex-worktree-prune.sh — Prune orphaned managed worktree state and optional old worktrees.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-agent-launch.sh"
 
 MODE="write"
