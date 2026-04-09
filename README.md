@@ -93,8 +93,7 @@ hyprpm reload -n
 | `lazygit/` | Git TUI with Snazzy theme |
 | `bat/` | Cat replacement with Snazzy syntax theme |
 | `makima/` | Gamepad-to-keyboard remapper with per-app profiles |
-| `logiops/` | Repo-managed `logid` config for MX Master 4 button/gesture handling |
-| `solaar/` | Logitech MX Master 4 wireless device manager |
+| `juhradial/` | Seed `config.json` + `profiles.json` for MX Master 4 via juhradial-mx |
 | `metapac/` | Declarative package management — 12 groups, paru backend |
 | `topgrade/` | System update orchestration |
 | `pypr/` | Hyprland scratchpads (terminal, volume, files) |
@@ -122,9 +121,8 @@ dotfiles/
 ├── yazi/           → ~/.config/yazi (file manager)
 ├── k9s/            → ~/.config/k9s (kubernetes)
 ├── lazygit/        → ~/.config/lazygit (git TUI)
-├── logiops/        → deployed to /etc/logid.cfg (Logitech HID++ config)
+├── juhradial/      → copied to ~/.config/juhradial (MX Master 4 seed config)
 ├── makima/         → ~/.config/makima (gamepad mapping)
-├── solaar/         → ~/.config/solaar (Logitech devices)
 ├── pypr/           → ~/.config/pypr (scratchpads)
 ├── metapac/        → ~/.config/metapac (package groups)
 ├── topgrade/       → ~/.config/topgrade (system updates)

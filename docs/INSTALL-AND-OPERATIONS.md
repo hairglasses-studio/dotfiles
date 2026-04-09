@@ -27,7 +27,7 @@ Use the dedicated deploy scripts when the target is machine-global instead of us
 
 - `scripts/etc-deploy.sh`: tracked `/etc` config deployment
 - `scripts/greetd-deploy.sh`: greetd deployment path
-- `scripts/logiops-deploy.sh`: system-level Logitech config deployment
+- `scripts/juhradial-install.sh`: juhradial-mx install/build/deploy helper for the MX Master 4 stack
 - `scripts/refind-deploy.sh`: rEFInd deployment
 - `scripts/plymouth-deploy.sh`: Plymouth deployment
 

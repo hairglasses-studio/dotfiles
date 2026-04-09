@@ -2,8 +2,16 @@
 [arch]
 packages = [
     # Input devices
-    { name = "solaar" },
-    { name = "logiops", hooks = { after_sync = ["sudo", "systemctl", "enable", "--now", "logid.service"] } },
+    { name = "python-pyqt6" },
+    { name = "qt6-svg" },
+    { name = "python-gobject" },
+    { name = "python-cairo" },
+    { name = "python-cryptography" },
+    { name = "gtk4" },
+    { name = "libadwaita" },
+    { name = "gtk4-layer-shell" },
+    { name = "hidapi" },
+    { name = "libevdev" },
     { name = "makima-bin" },
     { name = "openlinkhub-bin", hooks = { after_sync = ["sudo", "systemctl", "enable", "--now", "openlinkhub.service"] } },
     { name = "udev-usb-sync" },

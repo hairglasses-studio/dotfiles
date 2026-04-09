@@ -13,7 +13,7 @@ These files decide how the repo is installed, linked, and verified on a machine.
 - `Brewfile`, `Pacfile`, `metapac/`, `paru/`, `topgrade/`: package and update surfaces.
 - `etc/`: repo-tracked system config intended to deploy into `/etc`.
 - `systemd/`: repo-managed user services linked into `~/.config/systemd/user/`.
-- `scripts/etc-deploy.sh`, `scripts/greetd-deploy.sh`, `scripts/logiops-deploy.sh`, `scripts/refind-deploy.sh`, `scripts/plymouth-deploy.sh`: privileged or machine-scoped deployment helpers.
+- `scripts/etc-deploy.sh`, `scripts/greetd-deploy.sh`, `scripts/juhradial-install.sh`, `scripts/refind-deploy.sh`, `scripts/plymouth-deploy.sh`: privileged or machine-scoped deployment helpers.
 
 ### 2. Workstation runtime config
 
@@ -22,7 +22,7 @@ These directories are the day-to-day desktop and shell runtime state managed by 
 - Desktop control plane: `hyprland/`, `hyprshell/`, `hypr-dock/`, `hyprdynamicmonitors/`, `hyprland-autoname-workspaces/`, `eww/`, `swaync/`, `wofi/`, `wlogout/`, `greetd/`.
 - Terminal and shell stack: `kitty/`, `ghostty/`, `tmux/`, `zsh/`, `starship/`, `nvim/`.
 - TUI theming and utilities: `bat/`, `btop/`, `cava/`, `glow/`, `k9s/`, `lazygit/`, `yazi/`, `fastfetch/`, `gh/`.
-- Device or hardware config: `keyboard/`, `makima/`, `logiops/`, `solaar/`, `environment.d/`, `udev/`.
+- Device or hardware config: `keyboard/`, `juhradial/`, `makima/`, `environment.d/`, `udev/`.
 - Visual and boot stack: `wallpaper-shaders/`, `refind/`, `plymouth/`.
 
 ### 3. Automation and MCP surface

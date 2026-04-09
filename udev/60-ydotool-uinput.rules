@@ -1,0 +1,2 @@
+# Repo-managed ydotool uinput access rules.
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"

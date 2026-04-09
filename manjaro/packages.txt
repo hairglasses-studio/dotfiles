@@ -104,11 +104,19 @@ protobuf
 grpcurl
 
 # Input devices
-solaar
+python-pyqt6
+qt6-svg
+python-gobject
+python-cairo
+python-cryptography
+gtk4
+libadwaita
+gtk4-layer-shell
+hidapi
+libevdev
 
 # Fonts (AUR — install with yay)
 # ttf-jetbrains-mono-nerd
 # hyprshell-bin
-# logiops
 # makima-bin
 # crtty-git

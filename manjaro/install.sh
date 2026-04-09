@@ -5,6 +5,7 @@
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "$0")/.." && pwd)"
+source "$DOTFILES/scripts/lib/juhradial.sh"
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 BACKUP_CREATED=false
 CHECK_ONLY=false
@@ -121,12 +122,12 @@ install_packages() {
 
     if command -v yay &>/dev/null; then
         info "Installing AUR packages..."
-        local -a aur_pkgs=(ttf-maple-nerd-font logiops makima-bin)
+        local -a aur_pkgs=(ttf-maple-nerd-font makima-bin)
         is_enabled hyprshell && aur_pkgs+=(hyprshell-bin)
         kitty_visuals_enabled && aur_pkgs+=(crtty-git)
         yay -S --needed --noconfirm "${aur_pkgs[@]}"
     else
-        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, logiops, makima-bin, hyprshell-bin, crtty-git)"
+        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, makima-bin, hyprshell-bin, crtty-git)"
         warn "Install yay: https://github.com/Jguer/yay"
     fi
 }
@@ -221,15 +222,9 @@ setup_tattoy_shaders() {
 setup_input_devices() {
     info "Setting up input device configs..."
 
-    # Solaar — copy (not symlink) because solaar writes runtime state
-    if is_enabled solaar && [[ -f "$DOTFILES/solaar/config.yaml" ]]; then
-        local solaar_dir="$HOME/.config/solaar"
-        mkdir -p "$solaar_dir"
-        if [[ -f "$solaar_dir/config.yaml" ]]; then
-            backup_file "$solaar_dir/config.yaml"
-        fi
-        cp "$DOTFILES/solaar/config.yaml" "$solaar_dir/config.yaml"
-        success "Copied solaar config"
+    if [[ -x "$DOTFILES/scripts/juhradial-sync.sh" ]]; then
+        "$DOTFILES/scripts/juhradial-sync.sh" --quiet
+        success "Synced juhradial seed config"
     fi
 
     # makima — symlink the config directory
@@ -237,10 +232,12 @@ setup_input_devices() {
         link_file "$DOTFILES/makima" "$HOME/.config/makima"
     fi
 
-    # logiops — remind about deploy script (needs sudo)
-    if is_enabled logiops && [[ -f "$DOTFILES/logiops/logid.cfg" ]]; then
-        warn "logiops config tracked in dotfiles/logiops/logid.cfg"
-        warn "Deploy to /etc/: ./scripts/logiops-deploy.sh (needs sudo)"
+    if [[ -x "$DOTFILES/scripts/juhradial-install.sh" ]]; then
+        if "$DOTFILES/scripts/juhradial-install.sh" --quiet; then
+            success "Installed juhradial stack"
+        else
+            warn "juhradial install reported an error — rerun ./scripts/juhradial-install.sh"
+        fi
     fi
 
     # udev rules (Keychron USB power, etc.)
@@ -415,15 +412,23 @@ check_install() {
     check_link "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
     check_link "$DOTFILES/scripts/app-launcher.sh" "$HOME/.local/bin/app-launcher"
     check_link "$DOTFILES/scripts/app-switcher.sh" "$HOME/.local/bin/app-switcher"
+    check_link "$DOTFILES/scripts/juhradial-mx.sh" "$HOME/.local/bin/juhradial-mx"
+    check_link "$DOTFILES/scripts/juhradial-settings.sh" "$HOME/.local/bin/juhradial-settings"
 
     # ── Input devices ──
     check_link "$DOTFILES/makima" "$HOME/.config/makima"
 
-    if systemctl is-active logid.service &>/dev/null; then
-        success "logid service active"
+    if juhradial_systemctl is-active juhradialmx-daemon.service &>/dev/null; then
+        success "juhradial daemon active"
     else
-        error "logid service not active"
+        error "juhradial daemon not active"
         errors=$((errors + 1))
+    fi
+
+    if juhradial_systemctl is-active ydotool.service &>/dev/null; then
+        success "ydotool service active"
+    else
+        warn "ydotool service not active"
     fi
 
     if systemctl is-enabled makima.service &>/dev/null; then
@@ -432,10 +437,10 @@ check_install() {
         warn "makima service not enabled"
     fi
 
-    if [[ -f "$HOME/.config/solaar/config.yaml" ]]; then
-        success "solaar config present"
+    if [[ -f "$HOME/.config/juhradial/config.json" && -f "$HOME/.config/juhradial/profiles.json" ]]; then
+        success "juhradial config present"
     else
-        warn "solaar config missing"
+        warn "juhradial config missing"
     fi
 
     info "Checking pacman packages..."

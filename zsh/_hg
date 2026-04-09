@@ -8,7 +8,7 @@ _hg() {
       'bt:Bluetooth — list, connect, disconnect, scan'
       'config:Dotfiles config — reload, backup, check, list'
       'gamepad:Xbox controller — profiles, status, test'
-      'input:Input devices — logiops, solaar, makima'
+      'input:Input devices — juhradial-mx, ydotool, makima'
       'media:Terminal video & ASCII art — play, convert, stream'
       'rice:Rice health — status, services, palette, reload-all'
       'screenshot:Screenshots — crop, full, window, list, open'
@@ -97,11 +97,12 @@ _hg() {
         ) ;;
       input)
         cmds=(
-          'status:Show running state of input services'
-          'deploy:Deploy logiops config to /etc/'
-          'sync-solaar:Copy live solaar config back to dotfiles'
-          'restart:Restart input services'
-          'devices:List makima-detected evdev devices'
+          'status:Show running state of juhradial services'
+          'install:Install or update the juhradial stack'
+          'sync:Copy repo-owned juhradial seed config into ~/.config/juhradial'
+          'restart:Restart juhradial, ydotool, and the overlay'
+          'battery:Show MX Master 4 battery via juhradial D-Bus'
+          'devices:List Logitech hidraw devices and paired MX devices'
         ) ;;
       gamepad)
         cmds=(
