@@ -5,6 +5,7 @@
 source "$HG_DOTFILES/scripts/lib/compositor.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/config.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/kitty-config.sh" 2>/dev/null
+source "$HG_DOTFILES/scripts/lib/tmux-persistence.sh" 2>/dev/null
 
 # Snazzy palette allowed hex values (lowercase, no #)
 _SNAZZY_ALLOWED="57c7ff|ff6ac1|5af78e|f3f99d|ff5c57|686868|9aedfe|eff0eb|f1f1f0|000000|1a1a1a|1a1b26"
@@ -20,7 +21,7 @@ services	Check which services are running
 palette	Scan configs for non-Snazzy colors
 persistence	Check tmux continuity bootstrap and plugin health
 reload-all	Reload all compositor services with safe hot-reload lanes
-restart-ui	Explicitly restart service-backed UI companions
+restart-ui	Explicitly restart service-backed UI companions (guarded; use --force to override failed continuity preflight)
 CMDS
 }
 
@@ -150,6 +151,21 @@ _rice_reload_all() {
 }
 
 _rice_restart_ui() {
+  local force=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --force) force=true ;;
+      -*) hg_die "Unknown option for restart-ui: $1" ;;
+      *) hg_die "Usage: hg rice restart-ui [--force]" ;;
+    esac
+    shift
+  done
+
+  if ! $force && ! tmux_persistence_is_operational; then
+    hg_die "Blocked UI restart: tmux persistence health has failures. Run 'hg rice persistence' or retry with --force."
+  fi
+
   hg_info "Restarting UI companion services in parallel..."
   config_restart_parallel hyprshell hypr-dock hyprdynamicmonitors autoname
   hg_ok "UI companion services restarted"
@@ -165,7 +181,7 @@ rice_run() {
     palette)    _rice_palette ;;
     persistence) _rice_persistence ;;
     reload-all) _rice_reload_all ;;
-    restart-ui) _rice_restart_ui ;;
+    restart-ui) _rice_restart_ui "$@" ;;
     *)          hg_die "Unknown rice command: $cmd. Run 'hg rice --help'." ;;
   esac
 }

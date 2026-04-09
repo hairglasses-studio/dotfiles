@@ -5,6 +5,25 @@
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/notify.sh"
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/compositor.sh"
 
+config_action_lane() {
+  local verb="${1:-}" component="${2:-}"
+
+  case "${verb}:${component}" in
+    reload:hyprland|reload:hypr|reload:hyprshell|reload:swaync|reload:eww|reload:ironbar|reload:tmux)
+      printf 'safe_reload\n'
+      ;;
+    reload:hypr-dock|reload:hyprdock|reload:hyprdynamicmonitors|reload:monitors|reload:hyprland-autoname-workspaces|reload:autoname)
+      printf 'service_reload\n'
+      ;;
+    restart:hyprshell|restart:hypr-dock|restart:hyprdock|restart:hyprdynamicmonitors|restart:monitors|restart:hyprland-autoname-workspaces|restart:autoname)
+      printf 'explicit_restart\n'
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 # Atomic write: writes content to file via mktemp+mv (no partial reads)
 # Usage: config_atomic_write <file> <content>
 config_atomic_write() {
