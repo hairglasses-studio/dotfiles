@@ -116,3 +116,69 @@ line3"
     config_backup "${target}"
     [[ -d "${backup_dir}" ]]  # should exist now
 }
+
+# --- Reload / restart tests ---
+
+@test "config_reload_service: hyprshell touches watched files instead of restarting the service" {
+    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
+    mkdir -p "${HOME}/.config/hyprshell"
+    printf 'version = 3\n' > "${HOME}/.config/hyprshell/config.toml"
+    printf 'window {}\n' > "${HOME}/.config/hyprshell/styles.css"
+
+    cat > "${BATS_TEST_TMPDIR}/pgrep" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/pgrep"
+
+    cat > "${BATS_TEST_TMPDIR}/touch" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/touch.log"
+/usr/bin/touch "$@"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/touch"
+
+    cat > "${BATS_TEST_TMPDIR}/systemctl" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/systemctl.log"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/systemctl"
+
+    config_reload_service hyprshell --quiet
+
+    run cat "${BATS_TEST_TMPDIR}/touch.log"
+    assert_success
+    assert_output --partial "${HOME}/.config/hyprshell/config.toml"
+    assert_output --partial "${HOME}/.config/hyprshell/styles.css"
+
+    run test -f "${BATS_TEST_TMPDIR}/systemctl.log"
+    assert_failure
+}
+
+@test "config_reload_service: hyprshell fails cleanly when the process is not running" {
+    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
+    cat > "${BATS_TEST_TMPDIR}/pgrep" <<'EOF'
+#!/usr/bin/env bash
+exit 1
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/pgrep"
+
+    run config_reload_service hyprshell --quiet
+    assert_failure
+}
+
+@test "config_restart_service: hyprshell still has an explicit systemctl restart path" {
+    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
+    cat > "${BATS_TEST_TMPDIR}/systemctl" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/systemctl.log"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/systemctl"
+
+    run config_restart_service hyprshell --quiet
+    assert_success
+
+    run cat "${BATS_TEST_TMPDIR}/systemctl.log"
+    assert_success
+    assert_output --partial "--user restart dotfiles-hyprshell.service"
+}

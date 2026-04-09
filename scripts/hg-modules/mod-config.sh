@@ -11,7 +11,8 @@ config_description() {
 
 config_commands() {
   cat <<'CMDS'
-reload	Reload a component (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|eww|tmux)
+reload	Reload a component (hyprshell uses watched-file hot reload)
+restart	Explicitly restart a service-backed component (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)
 backup	Backup a config file before modification
 check	Validate symlinks and feature flags
 list	Show managed components and paths
@@ -27,6 +28,17 @@ _config_cmd_reload() {
   esac
   config_reload_service "$component"
   hg_ok "Reloaded $component"
+}
+
+_config_cmd_restart() {
+  local component="${1:-}"
+  [[ -n "$component" ]] || hg_die "Usage: hg config restart <component> (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)"
+  case "$component" in
+    hyprshell|hypr-dock|hyprdock|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname) ;;
+    *) hg_die "Unknown restartable component: $component (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)" ;;
+  esac
+  config_restart_service "$component"
+  hg_ok "Restarted $component"
 }
 
 _config_cmd_backup() {
@@ -92,7 +104,7 @@ _config_cmd_list() {
   local -a _components=(
     "kitty:$HG_DOTFILES/kitty:SIGUSR1 reload"
     "hyprland:$HG_DOTFILES/hyprland:hyprctl reload"
-    "hyprshell:$HG_DOTFILES/hyprshell:systemctl --user restart dotfiles-hyprshell.service"
+    "hyprshell:$HG_DOTFILES/hyprshell:touch config.toml + styles.css"
     "hypr-dock:$HG_DOTFILES/hypr-dock:systemctl --user restart dotfiles-hypr-dock.service"
     "hyprdynamic:$HG_DOTFILES/hyprdynamicmonitors:systemctl --user restart dotfiles-hyprdynamicmonitors.service"
     "autoname:$HG_DOTFILES/hyprland-autoname-workspaces:systemctl --user restart dotfiles-hyprland-autoname-workspaces.service"
@@ -121,6 +133,7 @@ config_run() {
 
   case "$cmd" in
     reload) _config_cmd_reload "$@" ;;
+    restart) _config_cmd_restart "$@" ;;
     backup) _config_cmd_backup "$@" ;;
     check)  _config_cmd_check ;;
     list)   _config_cmd_list ;;

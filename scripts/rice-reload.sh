@@ -7,6 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/compositor.sh"
+source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/notify.sh"
 
 reloaded=""
@@ -52,16 +53,16 @@ else
 fi
 
 # Hyprland companion services
-for unit in \
-  dotfiles-hyprshell.service \
-  dotfiles-hypr-dock.service \
-  dotfiles-hyprdynamicmonitors.service \
-  dotfiles-hyprland-autoname-workspaces.service
+for component in \
+  hyprshell \
+  hypr-dock \
+  hyprdynamicmonitors \
+  autoname
 do
-  if systemctl --user restart "$unit" 2>/dev/null; then
-    reloaded="${reloaded} ${unit%.service}"
+  if config_reload_service "$component" --quiet 2>/dev/null; then
+    reloaded="${reloaded} ${component}"
   else
-    failed="${failed} ${unit%.service}"
+    failed="${failed} ${component}"
   fi
 done
 
