@@ -212,13 +212,15 @@ ensure_repo_checkout() {
     git -C "$target" checkout --detach "$ref" >/dev/null 2>&1
   else
     local head=""
+    local expected=""
     head="$(git -C "$target" rev-parse HEAD 2>/dev/null || true)"
-    if [[ -n "$head" && "$head" != "$ref" ]]; then
+    expected="$(git -C "$target" rev-parse "${ref}^{commit}" 2>/dev/null || true)"
+    if [[ -n "$head" && -n "$expected" && "$head" != "$expected" ]]; then
       pending=1
       if [[ "$MODE" == "dry-run" ]]; then
         hg_warn "Would checkout $label to $ref: $target"
       else
-        hg_warn "Unexpected $label ref in check mode: $target (have $head want $ref)"
+        hg_warn "Unexpected $label ref in check mode: $target (have $head want $expected from $ref)"
       fi
     fi
   fi
