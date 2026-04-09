@@ -353,8 +353,16 @@ cmd_theme_current() {
 
 cmd_status() {
   local shader theme playlist
-  shader="$(< "$_current_shader" 2>/dev/null || true)"
-  theme="$(< "$_current_theme" 2>/dev/null || true)"
+  if [[ -f "$_current_shader" ]]; then
+    shader="$(< "$_current_shader")"
+  else
+    shader=""
+  fi
+  if [[ -f "$_current_theme" ]]; then
+    theme="$(< "$_current_theme")"
+  else
+    theme=""
+  fi
   playlist="$(_active_playlist)"
   hg_info "playlist: ${playlist:-$_default_playlist}"
   hg_info "shader:   ${shader%.glsl}"
