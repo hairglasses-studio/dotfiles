@@ -5,10 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 
 export HG_STUDIO_ROOT HG_DOTFILES
-TARGET="$HG_STUDIO_ROOT/surfacekit/scripts/codex-mcp-sync.sh"
+TARGET="$HG_STUDIO_ROOT/codexkit/scripts/codex-mcp-sync.sh"
 
 [[ -f "$TARGET" ]] || {
-  echo "surfacekit codex MCP sync entrypoint missing: $TARGET" >&2
+  echo "codexkit codex MCP sync entrypoint missing: $TARGET" >&2
   exit 1
 }
 

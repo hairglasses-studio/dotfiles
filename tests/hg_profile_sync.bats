@@ -18,7 +18,7 @@ setup() {
     git config --global user.name "Codex Test"
     git config --global user.email "codex@example.com"
 
-    install_surfacekit_stubs
+    install_codexkit_stubs
 }
 
 teardown() {
@@ -78,8 +78,8 @@ write_parity_objectives() {
     printf '%s\n' "${json}" > "${TEST_ROOT}/docs/${relpath}"
 }
 
-install_surfacekit_stubs() {
-    mkdir -p "${TEST_ROOT}/surfacekit/scripts" "${TEST_ROOT}/codexkit/scripts"
+install_codexkit_stubs() {
+    mkdir -p "${TEST_ROOT}/codexkit/scripts"
 
     cat > "${TEST_ROOT}/codexkit/scripts/provider-settings-sync.sh" <<'EOF'
 #!/usr/bin/env bash
@@ -229,7 +229,7 @@ fi
 EOF
     chmod +x "${TEST_ROOT}/codexkit/scripts/provider-settings-sync.sh"
 
-    cat > "${TEST_ROOT}/surfacekit/scripts/codex-mcp-sync.sh" <<'EOF'
+    cat > "${TEST_ROOT}/codexkit/scripts/codex-mcp-sync.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -288,9 +288,46 @@ else:
 path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
 PY
 EOF
-    chmod +x "${TEST_ROOT}/surfacekit/scripts/codex-mcp-sync.sh"
+    chmod +x "${TEST_ROOT}/codexkit/scripts/codex-mcp-sync.sh"
 
-    cat > "${TEST_ROOT}/surfacekit/scripts/agent-parity-audit.sh" <<'EOF'
+    cat > "${TEST_ROOT}/codexkit/scripts/skill-surface-sync.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_PATH="${1:?repo path required}"
+shift || true
+CHECK=false
+if [[ "${1:-}" == "--check" ]]; then
+  CHECK=true
+fi
+
+if $CHECK && [[ ! -f "${REPO_PATH}/.agents/skills/surface.yaml" ]]; then
+  echo "missing surface manifest" >&2
+  exit 1
+fi
+
+if [[ -f "${REPO_PATH}/.agents/skills/surface.yaml" ]]; then
+  python3 - "${REPO_PATH}" <<'PY'
+import json
+import pathlib
+import sys
+
+repo = pathlib.Path(sys.argv[1])
+manifest = json.loads((repo / ".agents/skills/surface.yaml").read_text(encoding="utf-8"))
+for skill in manifest.get("skills", []):
+    name = skill["name"]
+    source = repo / ".agents" / "skills" / name / "SKILL.md"
+    if not source.exists():
+        continue
+    target = repo / ".claude" / "skills" / name / "SKILL.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+PY
+fi
+EOF
+    chmod +x "${TEST_ROOT}/codexkit/scripts/skill-surface-sync.sh"
+
+    cat > "${TEST_ROOT}/codexkit/scripts/agent-parity-audit.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -304,7 +341,7 @@ fi
 echo "stub audit" >&2
 exit 0
 EOF
-    chmod +x "${TEST_ROOT}/surfacekit/scripts/agent-parity-audit.sh"
+    chmod +x "${TEST_ROOT}/codexkit/scripts/agent-parity-audit.sh"
 }
 
 @test "hg-repo-profile-sync: sync creates Gemini project settings baseline" {
@@ -455,6 +492,30 @@ EOF
     assert_success
 }
 
+@test "hg-codex-bootstrap: initializes default skill surface without surfacekit" {
+    write_manifest "demo"
+    init_repo "demo"
+    write_agents "demo"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/hg-codex-bootstrap.sh" "${TEST_ROOT}/demo" --repo-name demo --allow-dirty --default-skill-name demo_ops --default-skill-description "Demo repo ops"
+    assert_success
+
+    run test -f "${TEST_ROOT}/demo/.agents/skills/surface.yaml"
+    assert_success
+
+    run test -f "${TEST_ROOT}/demo/.agents/skills/demo_ops/SKILL.md"
+    assert_success
+
+    run test -f "${TEST_ROOT}/demo/.codex/config.toml"
+    assert_success
+
+    run test -f "${TEST_ROOT}/demo/.claude/settings.json"
+    assert_success
+
+    run test -f "${TEST_ROOT}/demo/.gemini/settings.json"
+    assert_success
+}
+
 @test "hg-repo-profile-sync: sync skips dirty generated agent docs until allow-dirty is set" {
     write_manifest "demo"
     init_repo "demo"
@@ -553,19 +614,19 @@ PY
     assert_output --partial "Usage: hg-agent-parity-audit.sh"
 }
 
-@test "surfacekit wrappers derive and export studio root from script location" {
+@test "codexkit wrappers derive and export studio root from script location" {
     local alt_root="${BATS_TEST_TMPDIR}/derived-root"
-    mkdir -p "${alt_root}/dotfiles/scripts/lib" "${alt_root}/surfacekit/scripts"
+    mkdir -p "${alt_root}/dotfiles/scripts/lib" "${alt_root}/codexkit/scripts"
     cp "${DOTFILES_DIR}/AGENTS.md" "${alt_root}/dotfiles/AGENTS.md"
     cp "${SCRIPTS_REAL}/lib/hg-core.sh" "${alt_root}/dotfiles/scripts/lib/hg-core.sh"
     cp "${SCRIPTS_REAL}/hg-agent-parity-audit.sh" "${alt_root}/dotfiles/scripts/hg-agent-parity-audit.sh"
 
-    cat > "${alt_root}/surfacekit/scripts/agent-parity-audit.sh" <<EOF
+    cat > "${alt_root}/codexkit/scripts/agent-parity-audit.sh" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
 printf '%s\n' "\${HG_STUDIO_ROOT:-}" > "${alt_root}/exported-studio-root.txt"
 EOF
-    chmod +x "${alt_root}/surfacekit/scripts/agent-parity-audit.sh" "${alt_root}/dotfiles/scripts/hg-agent-parity-audit.sh"
+    chmod +x "${alt_root}/codexkit/scripts/agent-parity-audit.sh" "${alt_root}/dotfiles/scripts/hg-agent-parity-audit.sh"
 
     run env -u HG_STUDIO_ROOT -u DOTFILES_DIR HOME="${HOME}" bash "${alt_root}/dotfiles/scripts/hg-agent-parity-audit.sh"
     assert_success

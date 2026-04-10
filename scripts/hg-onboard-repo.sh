@@ -14,10 +14,6 @@ hg_require jq
 STUDIO="$HG_STUDIO_ROOT"
 DOTFILES="$HG_DOTFILES"
 ORG_GITHUB="$STUDIO/.github"
-SURFACEKIT_ROOT="${SURFACEKIT_ROOT:-$STUDIO/surfacekit}"
-SURFACEKIT_RUN="$SURFACEKIT_ROOT/scripts/run-surfacekit.sh"
-
-[[ -f "$SURFACEKIT_RUN" ]] || hg_die "surfacekit launcher not found at $SURFACEKIT_RUN"
 
 workflow_source() {
   local wf="$1"
@@ -169,41 +165,16 @@ fi
 # ── Hosted automation ────────────────────────
 add_note "Hosted GitHub workflows and Dependabot config are not onboarded under the local-only automation policy"
 
-NEEDS_SURFACE_MIGRATE=false
-if [[ ! -f .agents/skills/surface.yaml ]]; then
-  while IFS= read -r skill_dir; do
-    [[ -f "$skill_dir/SKILL.md" ]] || continue
-    NEEDS_SURFACE_MIGRATE=true
-    break
-  done < <(find .agents/skills .claude/skills -mindepth 1 -maxdepth 1 -type d 2>/dev/null || true)
-fi
-
-if $NEEDS_SURFACE_MIGRATE; then
-  if $DRY_RUN; then
-    add_file "surfacekit skill-surface migration"
-  else
-    "$SURFACEKIT_RUN" migrate repo "$PWD" >/dev/null
-    add_file "surfacekit skill-surface migration"
-  fi
-elif [[ -d .claude/skills && ! -f .agents/skills/surface.yaml ]]; then
-  hg_warn "$REPO_NAME: found legacy .claude/skills but no canonical surface manifest"
-fi
-
+default_skill_name="${REPO_NAME//-/_}"
 if $DRY_RUN; then
-  add_file "surfacekit repo init"
+  add_file "codexkit repo bootstrap"
 else
-  "$SURFACEKIT_RUN" init repo "$PWD" --repo-name "$REPO_NAME" --allow-dirty >/dev/null
-  add_file "surfacekit repo init"
-fi
-
-# ── Derived agent docs ───────────────────────
-if { [[ -f CLAUDE.md ]] || [[ -f AGENTS.md ]]; } && { [[ ! -f CLAUDE.md ]] || [[ ! -f AGENTS.md ]] || [[ ! -f GEMINI.md ]] || [[ ! -f .github/copilot-instructions.md ]]; }; then
-  if $DRY_RUN; then
-    add_file "CLAUDE.md, AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
-  else
-    "$SCRIPT_DIR/hg-agent-docs.sh" "$PWD" >/dev/null
-    add_file "CLAUDE.md, AGENTS.md, GEMINI.md, and .github/copilot-instructions.md"
-  fi
+  "$SCRIPT_DIR/hg-codex-bootstrap.sh" "$PWD" \
+    --repo-name "$REPO_NAME" \
+    --allow-dirty \
+    --default-skill-name "$default_skill_name" \
+    --default-skill-description "Core build, test, release, and maintenance workflow for the $REPO_NAME repo." >/dev/null
+  add_file "codexkit repo bootstrap"
 fi
 
 # ── Pre-commit hooks ────────────────────────

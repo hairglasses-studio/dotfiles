@@ -10,8 +10,6 @@ source "$SCRIPT_DIR/lib/hg-workspace.sh"
 DOTFILES="$HG_DOTFILES"
 ORG_GITHUB="$HG_STUDIO_ROOT/.github"
 STUDIO="$HG_STUDIO_ROOT"
-SURFACEKIT_ROOT="${SURFACEKIT_ROOT:-$STUDIO/surfacekit}"
-SURFACEKIT_RUN="$SURFACEKIT_ROOT/scripts/run-surfacekit.sh"
 
 workflow_source() {
   local wf="$1"
@@ -28,8 +26,6 @@ LANG="${2:-go}"
 if [[ -z "$NAME" ]]; then
   hg_die "Usage: hg-new-repo.sh <name> [go|node|python]"
 fi
-
-[[ -f "$SURFACEKIT_RUN" ]] || hg_die "surfacekit launcher not found at $SURFACEKIT_RUN"
 
 REPO_DIR="$STUDIO/$NAME"
 
@@ -185,8 +181,8 @@ hg_ok "Created AGENTS.md skeleton"
 hg_ok "Generated CLAUDE.md, GEMINI.md, and .github/copilot-instructions.md"
 
 SKILL_NAME="${NAME//-/_}_ops"
-"$SURFACEKIT_RUN" init repo "$REPO_DIR" --repo-name "$NAME" --allow-dirty --default-skill-name "$SKILL_NAME" --default-skill-description "Core build, test, release, and maintenance workflow for the $NAME repo." >/dev/null
-hg_ok "Initialized provider settings, Codex config, and canonical skill surface via surfacekit"
+"$SCRIPT_DIR/hg-codex-bootstrap.sh" "$REPO_DIR" --repo-name "$NAME" --allow-dirty --default-skill-name "$SKILL_NAME" --default-skill-description "Core build, test, release, and maintenance workflow for the $NAME repo." >/dev/null
+hg_ok "Initialized provider settings, Codex config, and canonical skill surface via codexkit"
 
 if hg_workspace_repo_exists "$NAME"; then
   "$SCRIPT_DIR/hg-repo-profile-sync.sh" sync --allow-dirty --repos="$NAME" >/dev/null

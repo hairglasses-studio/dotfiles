@@ -5,10 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 
 export HG_STUDIO_ROOT HG_DOTFILES
-TARGET="$HG_STUDIO_ROOT/surfacekit/scripts/agent-parity-audit.sh"
+TARGET="$HG_STUDIO_ROOT/codexkit/scripts/agent-parity-audit.sh"
 
 [[ -f "$TARGET" ]] || {
-  echo "surfacekit audit entrypoint missing: $TARGET" >&2
+  echo "codexkit audit entrypoint missing: $TARGET" >&2
   exit 1
 }
 

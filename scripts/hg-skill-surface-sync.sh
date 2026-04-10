@@ -5,10 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 
 export HG_STUDIO_ROOT HG_DOTFILES
-TARGET="$HG_STUDIO_ROOT/surfacekit/scripts/skill-surface-sync.sh"
+TARGET="$HG_STUDIO_ROOT/codexkit/scripts/skill-surface-sync.sh"
 
 [[ -f "$TARGET" ]] || {
-  echo "surfacekit skill sync entrypoint missing: $TARGET" >&2
+  echo "codexkit skill sync entrypoint missing: $TARGET" >&2
   exit 1
 }
 
