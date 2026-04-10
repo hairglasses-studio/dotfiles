@@ -11,6 +11,9 @@ func TestBuildContractSnapshotBundle(t *testing.T) {
 	if bundle.Overview.TotalTools == 0 {
 		t.Fatal("expected non-zero tool count")
 	}
+	if bundle.Overview.TotalTools != len(bundle.Tools) {
+		t.Fatalf("overview total_tools = %d, want %d", bundle.Overview.TotalTools, len(bundle.Tools))
+	}
 	if bundle.Overview.ResourceCount == 0 {
 		t.Fatal("expected non-zero resource count")
 	}
@@ -96,6 +99,9 @@ func TestCanonicalWellKnownManifestParity(t *testing.T) {
 	}
 	if bundle.Manifest.ToolCount != bundle.Overview.TotalTools {
 		t.Fatalf("tool_count = %d, want %d", bundle.Manifest.ToolCount, bundle.Overview.TotalTools)
+	}
+	if bundle.Manifest.ToolCount != len(bundle.Tools) {
+		t.Fatalf("manifest tool_count = %d, want %d", bundle.Manifest.ToolCount, len(bundle.Tools))
 	}
 	if bundle.Manifest.ResourceCount != bundle.Overview.ResourceCount {
 		t.Fatalf("resource_count = %d, want %d", bundle.Manifest.ResourceCount, bundle.Overview.ResourceCount)

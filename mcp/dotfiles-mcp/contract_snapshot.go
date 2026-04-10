@@ -142,6 +142,7 @@ func BuildContractSnapshotBundle(profile string) (ContractSnapshotBundle, error)
 
 		toolDefs := reg.GetAllToolDefinitions()
 		sort.Slice(toolDefs, func(i, j int) bool { return toolDefs[i].Tool.Name < toolDefs[j].Tool.Name })
+		totalTools := len(toolDefs)
 		resourceDefs := resReg.GetAllResourceDefinitions()
 		sort.Slice(resourceDefs, func(i, j int) bool { return resourceDefs[i].Resource.URI < resourceDefs[j].Resource.URI })
 		templateDefs := resReg.GetAllTemplateDefinitions()
@@ -218,7 +219,7 @@ func BuildContractSnapshotBundle(profile string) (ContractSnapshotBundle, error)
 			Profile:         activeProfile,
 			CanonicalSource: canonicalSourceURL,
 			PublishMirror:   false,
-			TotalTools:      stats.TotalTools,
+			TotalTools:      totalTools,
 			ModuleCount:     stats.ModuleCount,
 			DeferredTools:   len(reg.ListDeferredTools()),
 			ResourceCount:   resourceCount,
@@ -252,7 +253,7 @@ func BuildContractSnapshotBundle(profile string) (ContractSnapshotBundle, error)
 			},
 			Tools:         manifestTools,
 			Tags:          []string{"linux", "desktop", "hyprland", "wayland", "bluetooth", "input", "github-org", "fleet-management", "canonical-source"},
-			ToolCount:     stats.TotalTools,
+			ToolCount:     totalTools,
 			ResourceCount: resourceCount,
 			PromptCount:   promptReg.PromptCount(),
 			Categories:    categories,
