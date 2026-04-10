@@ -46,7 +46,7 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 3. Bootstraps lazy.nvim for Neovim
 4. Installs TPM (Tmux Plugin Manager)
 5. Symlinks all 60+ configs to their expected locations
-6. Links managed `~/.local/bin` wrappers for Kitty visuals, the shell-first `kitty-shell-launch`, the explicit tmux `kitty-dev-launch`, launcher fallback, app switcher, the resumable Ollama pull helper, and the canonical Codex/Claude/Gemini launchers on Linux
+6. Links managed `~/.local/bin` wrappers for Kitty visuals, the shell-first `kitty-shell-launch`, the explicit tmux `kitty-dev-launch`, launcher fallback, app switcher, the resumable Ollama pull helper, the heavy-model verifier, and the canonical Codex/Claude/Gemini launchers on Linux
 7. Enables repo-managed systemd user services and packaged system services where applicable
 8. Syncs the shared shell theme into writable config targets and bootstraps Hyprland plugins via `hyprpm`
 9. Builds bat theme cache
@@ -69,6 +69,9 @@ hyprpm-bootstrap
 
 # Resume a long Ollama model pull across reconnects
 hg-ollama-pull-resume.sh qwen3-coder-next
+
+# Wait for the heavy lane, probe it, then run the strict heavy validation path
+hg-ollama-verify-heavy.sh
 ```
 
 ### Machine-specific config
