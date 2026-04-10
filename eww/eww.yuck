@@ -91,10 +91,10 @@
 
 (defwidget sidebar-tabs []
   (box :class "sidebar-tabs" :orientation "h" :spacing 8 :halign "center"
-    (button :class "sidebar-tab ${sidebar-page == 0 ? 'active' : ''}" :onclick "eww update sidebar-page=0" "")
-    (button :class "sidebar-tab ${sidebar-page == 1 ? 'active' : ''}" :onclick "eww update sidebar-page=1" "")
-    (button :class "sidebar-tab ${sidebar-page == 2 ? 'active' : ''}" :onclick "eww update sidebar-page=2" "↻")
-    (button :class "sidebar-tab ${sidebar-page == 3 ? 'active' : ''}" :onclick "eww update sidebar-page=3" "")))
+    (button :class "sidebar-tab ${sidebar-page == 0 ? 'active' : ''}" :onclick "eww update sidebar-page=0" "SYS")
+    (button :class "sidebar-tab ${sidebar-page == 1 ? 'active' : ''}" :onclick "eww update sidebar-page=1" "MEDIA")
+    (button :class "sidebar-tab ${sidebar-page == 2 ? 'active' : ''}" :onclick "eww update sidebar-page=2" "FLEET")
+    (button :class "sidebar-tab ${sidebar-page == 3 ? 'active' : ''}" :onclick "eww update sidebar-page=3" "CAL")))
 
 ; ── Page 1: Home (System Metrics) ────────────────
 
@@ -114,7 +114,7 @@
     (box :class "media-header" :halign "center"
       (label :class "media-header-text" :text "MEDIA CONTROL"))
     (box :class "media-art-placeholder" :halign "center" :valign "center"
-      (label :class "media-art-icon" :text {mpris_data.status == "Playing" ? "" : mpris_data.status == "Paused" ? "" : ""}))
+      (label :class "media-art-icon" :text {mpris_data.status == "Playing" ? "󰎈" : mpris_data.status == "Paused" ? "󰏤" : "󰝚"}))
     (box :class "media-info" :orientation "v" :space-evenly false :halign "center"
       (label :class "media-title" :text {mpris_data.title != "" ? mpris_data.title : "Nothing playing"} :limit-width 35)
       (label :class "media-artist" :text {mpris_data.artist != "" ? mpris_data.artist : "—"} :limit-width 35)
@@ -125,10 +125,10 @@
         (label :class "media-time" :text {mpris_data.position} :halign "start")
         (label :class "media-time" :text {mpris_data.length} :halign "end")))
     (box :class "media-controls" :orientation "h" :spacing 24 :halign "center"
-      (button :class "media-btn" :onclick "playerctl previous" "")
+      (button :class "media-btn" :onclick "playerctl previous" "󰒮")
       (button :class "media-btn media-btn-play" :onclick "playerctl play-pause"
-        {mpris_data.status == "Playing" ? "" : ""})
-      (button :class "media-btn" :onclick "playerctl next" ""))
+        {mpris_data.status == "Playing" ? "󰏤" : "󰐊"})
+      (button :class "media-btn" :onclick "playerctl next" "󰒭")))
     (box :class "media-volume" :orientation "h" :spacing 8 :halign "center"
       (label :class "media-vol-icon" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
       (scale :class "media-vol-slider" :min 0 :max 101 :value bar_vol
@@ -278,12 +278,12 @@
 
 (defwidget powermenu-content []
   (box :class "powermenu" :orientation "v" :space-evenly false :valign "center" :halign "center"
-    (label :class "pm-header" :text "⟨ SESSION ⟩")
+    (label :class "pm-header" :text "⟨ EXIT NODE ⟩")
     (box :class "pm-buttons" :orientation "h" :spacing 24 :halign "center"
-      (powermenu-button :label "Lock" :icon "" :command "hyprlock" :color "cyan")
+      (powermenu-button :label "Lock" :icon "󰌾" :command "hyprlock" :color "cyan")
       (powermenu-button :label "Logout" :icon "󰍃" :command "hyprctl dispatch exit" :color "magenta")
       (powermenu-button :label "Suspend" :icon "󰒲" :command "systemctl suspend" :color "green")
-      (powermenu-button :label "Reboot" :icon "" :command "systemctl reboot" :color "yellow")
+      (powermenu-button :label "Reboot" :icon "󰜉" :command "systemctl reboot" :color "yellow")
       (powermenu-button :label "Shutdown" :icon "⏻" :command "systemctl poweroff" :color "red"))
     (label :class "pm-hint" :text "ESC to cancel")))
 

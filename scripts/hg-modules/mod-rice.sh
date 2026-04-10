@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 # mod-rice.sh — hg rice module
-# Rice status dashboard, service health, palette compliance
+# Rice status dashboard, service health, and theme pipeline verification
 
 source "$HG_DOTFILES/scripts/lib/compositor.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/config.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/kitty-config.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/tmux-persistence.sh" 2>/dev/null
-
-# Snazzy palette allowed hex values (lowercase, no #)
-_SNAZZY_ALLOWED="57c7ff|ff6ac1|5af78e|f3f99d|ff5c57|686868|9aedfe|eff0eb|f1f1f0|000000|1a1a1a|1a1b26"
 
 rice_description() {
   echo "Rice health — status, services, palette, reload-all"
@@ -102,40 +99,65 @@ _rice_services() {
 }
 
 _rice_palette() {
-  printf "\n %s%spalette scan%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
+  printf "\n %s%stheme scan%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
 
   local scan_dirs=(
     "$HG_DOTFILES/hyprland"
-    "$HG_DOTFILES/hyprshell"
-    "$HG_DOTFILES/hypr-dock"
     "$HG_DOTFILES/eww"
+    "$HG_DOTFILES/hyprshell"
     "$HG_DOTFILES/swaync"
     "$HG_DOTFILES/wofi"
     "$HG_DOTFILES/wlogout"
-    "$HG_DOTFILES/foot"
+    "$HG_DOTFILES/ghostty"
+    "$HG_DOTFILES/kitty"
+    "$HG_DOTFILES/fontconfig"
   )
 
-  local violations=0
-  for dir in "${scan_dirs[@]}"; do
-    [[ -d "$dir" ]] || continue
-    # Find hex colors, exclude allowed palette
-    while IFS=: read -r file line content; do
-      # Extract hex colors from the line
-      local colors
-      colors="$(echo "$content" | grep -oiE '#[0-9a-fA-F]{6}' | tr '[:upper:]' '[:lower:]' | sed 's/#//')"
-      for color in $colors; do
-        if ! echo "$color" | grep -qiE "^($_SNAZZY_ALLOWED)$"; then
-          printf "  %s%s%s:%s%s%s #%s%s%s\n" "$HG_DIM" "$(basename "$file")" "$HG_RESET" "$HG_DIM" "$line" "$HG_RESET" "$HG_RED" "$color" "$HG_RESET"
-          violations=$((violations + 1))
-        fi
-      done
-    done < <(grep -rnE '#[0-9a-fA-F]{6}' "$dir" 2>/dev/null || true)
+  local issues=0
+  local checks=(
+    "Hack Nerd Font|legacy UI font"
+    "Matcha-dark-sea|legacy GTK theme"
+    "JetBrains Mono|legacy font"
+  )
+
+  local entry pattern label dir
+  for entry in "${checks[@]}"; do
+    pattern="${entry%%|*}"
+    label="${entry#*|}"
+    for dir in "${scan_dirs[@]}"; do
+      [[ -e "$dir" ]] || continue
+      while IFS=: read -r file line _; do
+        [[ -n "$file" ]] || continue
+        printf "  %s%s%s:%s%s%s %s%s%s\n" "$HG_DIM" "$(basename "$file")" "$HG_RESET" "$HG_DIM" "$line" "$HG_RESET" "$HG_RED" "$label" "$HG_RESET"
+        issues=$((issues + 1))
+      done < <(rg -n \
+        --glob '*.conf' \
+        --glob '*.css' \
+        --glob '*.scss' \
+        --glob '*.yuck' \
+        --glob '*.ini' \
+        --glob '*.json' \
+        --glob '*.toml' \
+        "$pattern" "$dir" 2>/dev/null || true)
+    done
   done
 
-  if [[ $violations -eq 0 ]]; then
-    hg_ok "All colors are Snazzy-compliant"
+  if [[ $issues -eq 0 ]]; then
+    hg_ok "No legacy shell-theme references found"
   else
-    hg_warn "$violations non-Snazzy color(s) found"
+    hg_warn "$issues legacy theme reference(s) found"
+  fi
+
+  if [[ -f "$HG_DOTFILES/theme/palette.env" && -x "$HG_DOTFILES/scripts/theme-sync.sh" ]]; then
+    hg_ok "Theme sync pipeline is present"
+  else
+    hg_warn "Theme sync pipeline is incomplete"
+  fi
+
+  if [[ -x "$HG_DOTFILES/scripts/hyprpm-bootstrap.sh" ]]; then
+    hg_ok "Hyprland plugin bootstrap is present"
+  else
+    hg_warn "Hyprland plugin bootstrap is missing"
   fi
   printf "\n"
 }

@@ -72,9 +72,16 @@ packages = [
     { name = "shaderbg" },
 
     # GTK/Qt theming
-    { name = "gtk-cyberpunk-neon-theme-git" },
     { name = "gtk3-nocsd" },
     { name = "kvantum" },
+    { name = "breeze" },
+    { name = "breeze-gtk" },
+    { name = "breeze5" },
+    { name = "kde-gtk-config" },
+    { name = "plasma-integration" },
+    { name = "plasma5-integration" },
+    { name = "plasma-workspace" },
+    { name = "systemsettings" },
     { name = "qt5-wayland" },
     { name = "qt5ct" },
     { name = "qt6-wayland" },
@@ -82,6 +89,8 @@ packages = [
     { name = "qt6-imageformats" },
     { name = "papirus-icon-theme" },
     { name = "bibata-cursor-theme" },
+    { name = "xdg-desktop-portal-kde" },
+    { name = "xsettingsd" },
 
     # Polkit
     { name = "polkit-gnome" },

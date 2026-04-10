@@ -117,6 +117,8 @@ $DOTFILES_DIR/scripts/hg-claude-launch.sh|$HOME/.local/bin/hg-claude-launch.sh
 $DOTFILES_DIR/scripts/hg-gemini-launch.sh|$HOME/.local/bin/hg-gemini-launch.sh
 $DOTFILES_DIR/scripts/hg-codex-worktree-prune.sh|$HOME/.local/bin/hg-codex-worktree-prune.sh
 $DOTFILES_DIR/scripts/hg-agent-home-sync.sh|$HOME/.local/bin/hg-agent-home-sync.sh
+$DOTFILES_DIR/scripts/theme-sync.sh|$HOME/.local/bin/theme-sync
+$DOTFILES_DIR/scripts/hyprpm-bootstrap.sh|$HOME/.local/bin/hyprpm-bootstrap
 EOF
 }
 
@@ -135,7 +137,8 @@ print_linux_link_specs() {
     cat <<EOF
 $DOTFILES_DIR/swaync/config.json|$HOME/.config/swaync/config.json
 $DOTFILES_DIR/swaync/style.css|$HOME/.config/swaync/style.css
-$DOTFILES_DIR/hyprshell|$HOME/.config/hyprshell
+$DOTFILES_DIR/hyprshell/config.toml|$HOME/.config/hyprshell/config.toml
+$DOTFILES_DIR/hyprshell/styles.css|$HOME/.config/hyprshell/styles.css
 $DOTFILES_DIR/hypr-dock|$HOME/.config/hypr-dock
 $DOTFILES_DIR/hyprdynamicmonitors|$HOME/.config/hyprdynamicmonitors
 $DOTFILES_DIR/hyprland-autoname-workspaces|$HOME/.config/hyprland-autoname-workspaces
@@ -143,13 +146,20 @@ $DOTFILES_DIR/wofi/config|$HOME/.config/wofi/config
 $DOTFILES_DIR/wofi/style.css|$HOME/.config/wofi/style.css
 $DOTFILES_DIR/hyprland|$HOME/.config/hypr
 $DOTFILES_DIR/pypr/config.toml|$HOME/.config/pypr/config.toml
-$DOTFILES_DIR/eww|$HOME/.config/eww
+$DOTFILES_DIR/eww/eww.scss|$HOME/.config/eww/eww.scss
+$DOTFILES_DIR/eww/eww.yuck|$HOME/.config/eww/eww.yuck
 $DOTFILES_DIR/helix/config.toml|$HOME/.config/helix/config.toml
 $DOTFILES_DIR/makima|$HOME/.config/makima
+$DOTFILES_DIR/environment.d/theme.conf|$HOME/.config/environment.d/theme.conf
 $DOTFILES_DIR/environment.d/ralphglasses.conf|$HOME/.config/environment.d/ralphglasses.conf
 $DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf|$HOME/.config/fontconfig/conf.d/51-monospace.conf
 $DOTFILES_DIR/metapac|$HOME/.config/metapac
 $DOTFILES_DIR/paru/paru.conf|$HOME/.config/paru/paru.conf
+$DOTFILES_DIR/qt5ct/qt5ct.conf|$HOME/.config/qt5ct/qt5ct.conf
+$DOTFILES_DIR/qt6ct/qt6ct.conf|$HOME/.config/qt6ct/qt6ct.conf
+$DOTFILES_DIR/Kvantum/kvantum.kvconfig|$HOME/.config/Kvantum/kvantum.kvconfig
+$DOTFILES_DIR/kdeglobals|$HOME/.config/kdeglobals
+$DOTFILES_DIR/kcminputrc|$HOME/.config/kcminputrc
 $DOTFILES_DIR/topgrade/topgrade.toml|$HOME/.config/topgrade.toml
 $DOTFILES_DIR/wlogout/layout|$HOME/.config/wlogout/layout
 $DOTFILES_DIR/wlogout/style.css|$HOME/.config/wlogout/style.css
@@ -411,6 +421,48 @@ install_juhradial_stack() {
     fi
 }
 
+normalize_writable_config_dir() {
+    local dir="$1"
+    if [[ -L "$dir" ]]; then
+        backup_file "$dir"
+    fi
+    mkdir -p "$dir"
+}
+
+sync_visual_theme() {
+    if [[ "$OS" != "Linux" ]]; then
+        return 0
+    fi
+    local script="$DOTFILES_DIR/scripts/theme-sync.sh"
+    if [[ ! -x "$script" ]]; then
+        log_warn "Skipping theme sync — missing executable: $script"
+        return 0
+    fi
+    log_info "Syncing generated theme assets..."
+    if "$script" --quiet; then
+        log_success "Theme assets synced"
+    else
+        log_warn "Theme sync reported an error — rerun: $script"
+    fi
+}
+
+bootstrap_hyprland_plugins() {
+    if [[ "$OS" != "Linux" ]]; then
+        return 0
+    fi
+    local script="$DOTFILES_DIR/scripts/hyprpm-bootstrap.sh"
+    if [[ ! -x "$script" ]]; then
+        log_warn "Skipping hyprpm bootstrap — missing executable: $script"
+        return 0
+    fi
+    log_info "Bootstrapping Hyprland plugins..."
+    if "$script" --quiet; then
+        log_success "Hyprland plugins bootstrapped"
+    else
+        log_warn "Hyprland plugin bootstrap reported an error — rerun: $script"
+    fi
+}
+
 # ── Tmux Plugin Manager ──────────────────────
 install_tpm() {
     local tpm_dir="$HOME/.tmux/plugins/tpm"
@@ -427,6 +479,8 @@ create_symlinks() {
     log_info "Creating symlinks..."
     if [[ "$OS" == "Linux" ]]; then
         mkdir -p "$HOME/.config/systemd/user"
+        normalize_writable_config_dir "$HOME/.config/eww"
+        normalize_writable_config_dir "$HOME/.config/hyprshell"
     fi
 
     local src dst
@@ -627,6 +681,8 @@ main() {
 
     log_phase "SYMLINK CONFIGURATION"
     create_symlinks
+    sync_visual_theme
+    bootstrap_hyprland_plugins
     setup_tattoy_shaders
     install_juhradial_stack
 

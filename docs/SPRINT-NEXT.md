@@ -19,7 +19,7 @@
 - wlogout power menu (5 neon-colored buttons with per-button glow)
 - Mako notifications (tighter, bar-aware, urgency-colored)
 - Wofi launcher (hover accents, selection glow)
-- GTK/Qt system theming (Matcha-dark-sea + Papirus icons + Bibata cursor + JetBrains Mono)
+- GTK/Qt system theming (Adwaita/Breeze Dark + Papirus icons + Bibata cursor + Monaspace/Maple split)
 
 **Boot:**
 - rEFInd bootloader with Matrix cyberpunk theme (replaces GRUB)
@@ -59,7 +59,7 @@ Paste this into a new Claude Code session:
 ---
 
 ```
-You are continuing development on my cross-platform cyberpunk dotfiles rice at ~/hairglasses-studio/dotfiles. This is a 90-commit, 35-component Manjaro Linux + macOS setup with Hyprland (primary) and Sway (fallback) on Wayland, 132+ GLSL shaders, Snazzy-on-Black palette, and 4 Go MCP servers (27 tools total).
+You are continuing development on my cross-platform cyberpunk dotfiles rice at ~/hairglasses-studio/dotfiles. This is a 90-commit, 35-component Manjaro Linux + macOS setup with Hyprland (primary) and Sway (fallback) on Wayland, 132+ GLSL shaders, the Voltage After Dark shell palette, and 4 Go MCP servers (27 tools total).
 
 Read CLAUDE.md for architecture. Read docs/RESOURCES.md for community reference links. Read docs/SPRINT-NEXT.md for full session history and context.
 
@@ -104,4 +104,4 @@ Start by: pulling latest changes, taking a screenshot to assess the current visu
 - **Ghostty terminal**: Use `--gtk-single-instance=false` in all compositor keybinds
 - **GPG signing**: Currently disabled (`git -c commit.gpgsign=false`) due to key migration — re-enable when new key is configured
 - **MCP env vars**: Servers need `WAYLAND_DISPLAY` and `HYPRLAND_INSTANCE_SIGNATURE` injected via .mcp.json bash wrappers
-- **Snazzy palette**: #57c7ff cyan, #ff6ac1 magenta, #5af78e green, #f3f99d yellow, #ff5c57 red, #686868 gray, #f1f1f0 fg, #000000 bg
+- **Voltage After Dark shell palette**: deep graphite surfaces, Maple shell UI, Monaspace terminals, and cyan/magenta/green accents with optional wallpaper-derived overlays

@@ -1,14 +1,29 @@
-// Cyberpunk Snazzy Eww theme
+// Voltage After Dark Eww theme
+@import "theme-colors.scss";
 
-$bg: rgba(0, 0, 0, 0.88);
-$bg-dark: rgba(26, 26, 26, 0.95);
-$fg: #f1f1f0;
-$dim: #686868;
-$cyan: #57c7ff;
-$magenta: #ff6ac1;
-$green: #5af78e;
-$yellow: #f3f99d;
-$red: #ff5c57;
+$ui-font: "Maple Mono NF CN" !default;
+$code-font: "Monaspace Neon" !default;
+$icon-font: "Symbols Nerd Font Mono" !default;
+$ui-font-stack: "Maple Mono NF CN", "Symbols Nerd Font Mono", monospace !default;
+$code-font-stack: "Monaspace Neon", "Symbols Nerd Font Mono", monospace !default;
+$bg: rgba(6, 7, 10, 0.92) !default;
+$bg-dark: rgba(13, 16, 24, 0.97) !default;
+$bg-elevated: rgba(20, 26, 39, 0.96) !default;
+$surface: #0f1117 !default;
+$surface-alt: #151925 !default;
+$fg: #eef3ff !default;
+$dim: #7b86a8 !default;
+$cyan: #6ae4ff !default;
+$magenta: #ff6ad5 !default;
+$green: #86ffb2 !default;
+$yellow: #ffd36e !default;
+$red: #ff6b82 !default;
+$border-soft: rgba(42, 50, 70, 0.75) !default;
+$border-strong: rgba(70, 80, 109, 0.95) !default;
+$radius-sm: 10px !default;
+$radius-md: 16px !default;
+$radius-lg: 24px !default;
+$shadow-panel: 0 24px 80px rgba(6, 7, 10, 0.65) !default;
 
 // ══════════════════════════════════════════════════
 // ── STATUS BAR ──────────────────────────────────
@@ -18,7 +33,7 @@ $red: #ff5c57;
   background-color: $bg-dark;
   border-bottom: 1px solid rgba(87, 199, 255, 0.3);
   padding: 0 12px;
-  font-family: "Hack Nerd Font", monospace;
+  font-family: $ui-font-stack;
   font-size: 12px;
   color: $fg;
 }
@@ -445,7 +460,7 @@ $red: #ff5c57;
   animation: scanline 8s linear infinite, border-breathe 6s ease-in-out infinite;
   border-left: 2px solid $cyan;
   padding: 10px;
-  font-family: "Hack Nerd Font", monospace;
+  font-family: $ui-font-stack;
   color: $fg;
   transition: all 300ms ease;
 }
@@ -840,7 +855,7 @@ $red: #ff5c57;
 }
 
 .fleet-sparkline {
-  font-family: "Hack Nerd Font";
+  font-family: $ui-font-stack;
   font-size: 14px;
   color: $cyan;
   letter-spacing: 1px;
@@ -1050,7 +1065,192 @@ $red: #ff5c57;
 // ── WS5: DYNAMIC THEMING ────────────────────────
 // ══════════════════════════════════════════════════
 
-// Theme overrides are loaded from theme-colors.scss when generated
-// by eww-theme-gen.sh after wallpaper changes. If the file doesn't
-// exist, Snazzy palette defaults above are used.
-// Usage: $theme-primary, $theme-secondary, $theme-tertiary
+* {
+  font-family: $ui-font-stack;
+}
+
+.bar-container {
+  background: linear-gradient(90deg, rgba($bg-dark, 0.98), rgba($bg-elevated, 0.98));
+  border-bottom: 1px solid $border-soft;
+  box-shadow: $shadow-panel;
+  padding: 2px 14px;
+}
+
+.bar-ws,
+.sidebar-tab,
+.pm-button,
+.media-btn,
+.fleet-section,
+.cal-event,
+.calendar-popup {
+  border-radius: $radius-md;
+}
+
+.bar-ws {
+  padding: 6px 12px;
+  margin: 0 2px;
+  border: 1px solid transparent;
+}
+
+.bar-ws-active {
+  color: $fg;
+  background: linear-gradient(135deg, rgba($cyan, 0.22), rgba($magenta, 0.18));
+  border: 1px solid rgba($cyan, 0.46);
+  border-bottom-color: rgba($magenta, 0.72);
+  box-shadow: 0 10px 28px rgba($cyan, 0.18);
+}
+
+.bar-clock,
+.bar-shader,
+.bar-sys,
+.bar-fleet {
+  padding: 4px 10px;
+  border-radius: $radius-md;
+  background: rgba($surface-alt, 0.55);
+  border: 1px solid rgba($border-soft, 0.8);
+}
+
+.calendar-popup,
+.powermenu,
+.sidebar,
+.fleet-section,
+.media-progress,
+.cal-events {
+  background: linear-gradient(180deg, rgba($bg-dark, 0.98), rgba($bg-elevated, 0.98));
+  border: 1px solid $border-soft;
+  box-shadow: $shadow-panel;
+}
+
+.powermenu {
+  padding: 36px 42px;
+}
+
+.pm-button {
+  background: linear-gradient(180deg, rgba($surface, 0.88), rgba($surface-alt, 0.92));
+  border-width: 1px;
+  min-width: 124px;
+  min-height: 124px;
+}
+
+.pm-label {
+  color: rgba($fg, 0.78);
+  font-size: 12px;
+  letter-spacing: 1.2px;
+}
+
+.sidebar {
+  background-image:
+    linear-gradient(135deg, rgba($cyan, 0.05), transparent 35%),
+    linear-gradient(180deg, rgba($bg-dark, 0.98), rgba($bg-elevated, 0.98)),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba($cyan, 0.03) 2px, rgba($cyan, 0.03) 4px);
+  border: 1px solid $border-soft;
+  border-right: none;
+  padding: 14px;
+}
+
+.sidebar-tabs {
+  padding: 0 0 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba($cyan, 0.16);
+}
+
+.sidebar-tab {
+  min-width: 70px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.sidebar-tab.active {
+  color: $fg;
+  background: linear-gradient(135deg, rgba($cyan, 0.22), rgba($magenta, 0.18));
+  border-color: rgba($cyan, 0.42);
+}
+
+.header,
+.fleet-header,
+.cal-header,
+.media-header {
+  margin-bottom: 10px;
+}
+
+.header-text,
+.fleet-header-text,
+.cal-header-text,
+.media-header-text,
+.pm-header {
+  color: $fg;
+  letter-spacing: 2px;
+}
+
+.clock-box,
+.system-metrics,
+.network,
+.now-playing,
+.footer,
+.media-info,
+.fleet-section,
+.cal-events {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: $radius-lg;
+  background: rgba($surface-alt, 0.58);
+  border: 1px solid rgba($border-soft, 0.82);
+}
+
+.media-art-placeholder {
+  min-height: 132px;
+  min-width: 132px;
+  margin: 4px auto 0;
+  padding: 18px;
+  border-radius: $radius-lg;
+  border: 1px solid rgba($magenta, 0.28);
+  background: linear-gradient(135deg, rgba($cyan, 0.12), rgba($magenta, 0.12));
+  box-shadow: inset 0 1px 0 rgba($fg, 0.05), 0 12px 28px rgba($bg, 0.38);
+}
+
+.media-art-icon,
+.pm-icon {
+  font-size: 30px;
+}
+
+.media-btn {
+  min-width: 54px;
+  min-height: 54px;
+  padding: 8px 16px;
+  border: 1px solid rgba($border-soft, 0.9);
+  background: rgba($surface, 0.88);
+}
+
+.media-btn-play {
+  border-color: rgba($cyan, 0.5);
+  background: linear-gradient(135deg, rgba($cyan, 0.16), rgba($magenta, 0.18));
+}
+
+.fleet-section-title,
+.cal-events-header {
+  margin-bottom: 8px;
+}
+
+.fleet-section-label,
+.cal-events-header {
+  color: $cyan;
+  letter-spacing: 1.5px;
+}
+
+.fleet-row,
+.cal-event {
+  padding: 8px 10px;
+  background: rgba($surface, 0.62);
+  border: 1px solid rgba($border-soft, 0.68);
+  border-radius: $radius-md;
+}
+
+.fleet-sparkline {
+  font-family: $code-font-stack;
+}
+
+.calendar-popup {
+  padding: 14px;
+}

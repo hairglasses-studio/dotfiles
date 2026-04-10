@@ -31,6 +31,10 @@ _set_wallpaper() {
 
   echo "$img" > "$STATE_FILE"
 
+  if [[ -x "$(dirname "$0")/theme-sync.sh" ]]; then
+    "$(dirname "$0")/theme-sync.sh" --quiet || true
+  fi
+
   if command -v tte &>/dev/null && [[ -t 1 ]]; then
     echo "WALLPAPER // $(basename "$img")" | tte slide \
       --movement-speed 2.0 --grouping row \

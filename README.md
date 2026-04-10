@@ -9,13 +9,14 @@
 [![Lint](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml)
 [![Scorecard](https://api.securityscorecards.dev/projects/github.com/hairglasses-studio/dotfiles/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hairglasses-studio/dotfiles)
 
-Full-stack development environment for Manjaro Linux. Combines Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
+Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware `Voltage After Dark` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
-![Desktop — Hyprland + eww sidebar + tiled terminals (Snazzy palette)](.github/assets/desktop.png)
+![Desktop — Hyprland + eww sidebar + tiled terminals (Voltage After Dark)](.github/assets/desktop.png)
 
 ### Technical Highlights
 
 - **GPU Shaders**: 131 CRTty-ready GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
+- **Theme System**: shared token pipeline for `eww`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`
 - **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, the kitty-first terminal visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
@@ -44,7 +45,8 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 5. Symlinks all 60+ configs to their expected locations
 6. Links managed `~/.local/bin` wrappers for Kitty, launcher fallback, app switcher, and the canonical Codex/Claude/Gemini launchers on Linux
 7. Enables repo-managed systemd user services and packaged system services where applicable
-8. Builds bat theme cache
+8. Syncs the shared shell theme into writable config targets and bootstraps Hyprland plugins via `hyprpm`
+9. Builds bat theme cache
 
 ### Post-install
 
@@ -58,8 +60,9 @@ nvim --headless "+Lazy! sync" +qa
 # Install tmux plugins — open tmux, press C-a then Shift-I
 tmux new-session
 
-# Load Hyprland plugins
-hyprpm reload -n
+# Sync the shared shell theme and Hyprland plugins
+theme-sync
+hyprpm-bootstrap
 ```
 
 ### Machine-specific config
@@ -79,9 +82,9 @@ hyprpm reload -n
 | `hypr-dock/` | Bottom dock with pinned apps, indicators, and window previews |
 | `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |
 | `hyprland-autoname-workspaces/` | Workspace naming and icon rules for cleaner shell surfaces |
-| `swaync/` | Notification center — Snazzy themed, visibility filtering |
+| `swaync/` | Notification center + control surface themed from the shared token pipeline |
 | `wofi/` | Responsive fallback launcher/switcher styling and emoji picker |
-| `wlogout/` | Power menu overlay |
+| `wlogout/` | Power menu overlay aligned with the shell token system |
 | `kitty/` | GPU terminal write target with CRTty shaders, theme playlists, shuffled visuals, and watcher-driven retheming |
 | `ghostty/` | State-aware companion terminal config and shader compatibility surface for the shared desktop pipeline |
 | `foot/` | Lightweight terminal (dropdown/fallback) |
@@ -163,21 +166,20 @@ Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PAR
 
 **Shaders don't animate:** Check shader configuration in kitty config and verify CRTty/Hypr-DarkWindow transpilation.
 
-**Powerlevel10k prompt looks broken:** Ensure Maple Mono NF CN is installed (`sudo pacman -S maplemono-nf-cn`) and set as your terminal font.
+**Powerlevel10k prompt looks broken:** Ensure `Maple Mono NF CN` is installed for shell UI and `Monaspace` is installed for terminal surfaces.
 
 **Symlinks point to wrong place:** Run `bash install.sh --check` to validate.
 
 **tmux plugins not loading:** Inside tmux, press `C-a` then `shift-I` to trigger TPM install.
 
-**Hyprland plugins not working:** Run the clean plugin cycle:
+**Hyprland plugins not working:** Re-run the repo-managed bootstrap:
 ```bash
-for so in /var/cache/hyprpm/hg/*/*.so; do hyprctl plugin unload "$so"; done
-sleep 2 && hyprpm reload -n
+hyprpm-bootstrap
 ```
 
 ## Font
 
-[Maple Mono NF CN](https://github.com/subframe7536/maple-font) — the standard monospace font across all configs. Install via `sudo pacman -S maplemono-nf-cn`.
+[Maple Mono NF CN](https://github.com/subframe7536/maple-font) drives shell UI and window chrome. [Monaspace](https://monaspace.githubnext.com/) drives terminal/code surfaces. Install via `sudo pacman -S maplemono-nf-cn otf-monaspace otf-monaspace-nerd`.
 
 ## License
 

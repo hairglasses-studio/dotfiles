@@ -1,23 +1,27 @@
-/* Cyberpunk Snazzy wlogout theme — Nerd Font icons */
+@import url("theme.generated.css");
 
 window {
-    background-color: rgba(0, 0, 0, 0.85);
-    font-family: "Hack Nerd Font", monospace;
-    color: #f1f1f0;
+    background: rgba(var(--theme-bg-rgb), 0.86);
+    font-family: var(--ui-font), var(--icon-font), monospace;
+    color: var(--theme-fg);
 }
 
 button {
-    background-color: #1a1a1a;
-    border: 2px solid #686868;
-    border-radius: 12px;
-    color: #f1f1f0;
-    font-size: 48px;
-    margin: 12px;
-    padding: 24px 48px;
-    transition: all 0.3s ease;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 0;
+    min-width: 172px;
+    min-height: 172px;
+    margin: 14px;
+    padding: 24px;
+    border: 1px solid rgba(var(--theme-border-rgb), 0.92);
+    border-radius: var(--radius-lg);
+    background:
+        linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.08), transparent 36%),
+        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
+    color: var(--theme-fg);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    box-shadow: var(--shadow-panel);
+    transition: all 0.22s ease;
 }
 
 button:focus {
@@ -25,74 +29,62 @@ button:focus {
 }
 
 button:hover {
-    border-width: 3px;
+    transform: translateY(-4px);
+    border-color: rgba(var(--theme-primary-rgb), 0.55);
+    box-shadow: 0 28px 56px rgba(var(--theme-bg-rgb), 0.42);
 }
 
 button:active {
-    opacity: 0.8;
+    opacity: 0.92;
+    transform: translateY(-1px);
 }
 
-/* --- Lock: Cyan --- */
 #lock {
-    color: #57c7ff;
+    border-color: rgba(var(--theme-primary-rgb), 0.40);
 }
+
 #lock:hover {
-    border-color: #57c7ff;
-    background-color: rgba(87, 199, 255, 0.08);
-    box-shadow: 0 0 24px rgba(87, 199, 255, 0.4),
-                0 0 48px rgba(87, 199, 255, 0.15),
-                inset 0 0 12px rgba(87, 199, 255, 0.05);
-    text-shadow: 0 0 12px rgba(87, 199, 255, 0.6);
+    background:
+        linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.22), transparent 45%),
+        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
 }
 
-/* --- Logout: Magenta --- */
 #logout {
-    color: #ff6ac1;
+    border-color: rgba(var(--theme-secondary-rgb), 0.40);
 }
+
 #logout:hover {
-    border-color: #ff6ac1;
-    background-color: rgba(255, 106, 193, 0.08);
-    box-shadow: 0 0 24px rgba(255, 106, 193, 0.4),
-                0 0 48px rgba(255, 106, 193, 0.15),
-                inset 0 0 12px rgba(255, 106, 193, 0.05);
-    text-shadow: 0 0 12px rgba(255, 106, 193, 0.6);
+    background:
+        linear-gradient(135deg, rgba(var(--theme-secondary-rgb), 0.22), transparent 45%),
+        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
 }
 
-/* --- Suspend: Yellow --- */
 #suspend {
-    color: #f3f99d;
+    border-color: rgba(var(--theme-tertiary-rgb), 0.40);
 }
+
 #suspend:hover {
-    border-color: #f3f99d;
-    background-color: rgba(243, 249, 157, 0.08);
-    box-shadow: 0 0 24px rgba(243, 249, 157, 0.4),
-                0 0 48px rgba(243, 249, 157, 0.15),
-                inset 0 0 12px rgba(243, 249, 157, 0.05);
-    text-shadow: 0 0 12px rgba(243, 249, 157, 0.6);
+    background:
+        linear-gradient(135deg, rgba(var(--theme-tertiary-rgb), 0.20), transparent 45%),
+        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
 }
 
-/* --- Reboot: Green --- */
 #reboot {
-    color: #5af78e;
-}
-#reboot:hover {
-    border-color: #5af78e;
-    background-color: rgba(90, 247, 142, 0.08);
-    box-shadow: 0 0 24px rgba(90, 247, 142, 0.4),
-                0 0 48px rgba(90, 247, 142, 0.15),
-                inset 0 0 12px rgba(90, 247, 142, 0.05);
-    text-shadow: 0 0 12px rgba(90, 247, 142, 0.6);
+    border-color: rgba(var(--theme-warning-rgb), 0.45);
 }
 
-/* --- Shutdown: Red --- */
-#shutdown {
-    color: #ff5c57;
+#reboot:hover {
+    background:
+        linear-gradient(135deg, rgba(var(--theme-warning-rgb), 0.20), transparent 45%),
+        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
 }
+
+#shutdown {
+    border-color: rgba(var(--theme-danger-rgb), 0.45);
+}
+
 #shutdown:hover {
-    border-color: #ff5c57;
-    background-color: rgba(255, 92, 87, 0.08);
-    box-shadow: 0 0 24px rgba(255, 92, 87, 0.4),
-                0 0 48px rgba(255, 92, 87, 0.15),
-                inset 0 0 12px rgba(255, 92, 87, 0.05);
-    text-shadow: 0 0 12px rgba(255, 92, 87, 0.6);
+    background:
+        linear-gradient(135deg, rgba(var(--theme-danger-rgb), 0.22), transparent 45%),
+        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
 }

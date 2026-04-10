@@ -87,6 +87,16 @@ playerctl
 pipewire
 wireplumber
 pavucontrol
+breeze
+breeze-gtk
+breeze5
+kde-gtk-config
+plasma-integration
+plasma5-integration
+plasma-workspace
+systemsettings
+xdg-desktop-portal-kde
+xsettingsd
 
 # File manager + preview deps
 yazi
@@ -112,6 +122,8 @@ onefetch
 
 # Fonts (AUR)
 ttf-jetbrains-mono-nerd
+otf-monaspace
+otf-monaspace-nerd
 maplemono-nf-cn
 
 # Logitech / Input
