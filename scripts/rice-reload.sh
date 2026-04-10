@@ -30,8 +30,7 @@ fi
 
 # Eww (config + widgets)
 if eww reload 2>/dev/null; then
-  eww open bar >/dev/null 2>&1 || true
-  eww open bar-secondary >/dev/null 2>&1 || true
+  eww open sidebar >/dev/null 2>&1 || true
   reloaded="${reloaded} eww"
 else
   failed="${failed} eww"
