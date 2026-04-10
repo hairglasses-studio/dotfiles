@@ -20,6 +20,14 @@ EOF
 #!/usr/bin/env bash
 echo host-smoke
 EOF
+    cat > "${TEST_STANDALONE}/README.md" <<'EOF'
+# canonical
+EOF
+    mkdir -p "${TEST_STANDALONE}/scripts"
+    cat > "${TEST_STANDALONE}/scripts/host-smoke.sh" <<'EOF'
+#!/usr/bin/env bash
+echo standalone-host-smoke
+EOF
     cat > "${TEST_CANONICAL}/alpha.go" <<'EOF'
 package main
 
@@ -51,6 +59,8 @@ teardown() {
     run bash "${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh" check --canonical "${TEST_CANONICAL}" --standalone "${TEST_STANDALONE}"
     assert_success
     assert_output --partial "status              projection_needed"
+    assert_output --partial "drifted           1"
+    assert_output --partial "scripts/host-smoke.sh"
     assert_output --partial "alpha.go"
     assert_output --partial "beta.go"
     assert_output --partial "cmd"
@@ -58,9 +68,10 @@ teardown() {
 }
 
 @test "hg-dotfiles-mcp-projection emits machine-readable JSON" {
-    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.status, .go_projection.canonical_only[0], .standalone_owned.root_entries[0]'"
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.status, .direct_copy.drifted[0], .go_projection.canonical_only[0], .standalone_owned.root_entries[0]'"
     assert_success
     assert_line --index 0 "projection_needed"
-    assert_line --index 1 "alpha.go"
-    assert_line --index 2 "cmd"
+    assert_line --index 1 "scripts/host-smoke.sh"
+    assert_line --index 2 "alpha.go"
+    assert_line --index 3 "cmd"
 }

@@ -108,9 +108,15 @@ resolve_standalone_inspect_root() {
   local root="$1"
   if git -C "$root" rev-parse --is-bare-repository >/dev/null 2>&1; then
     if [[ "$(git -C "$root" rev-parse --is-bare-repository)" == "true" ]]; then
+      local inspect_ref="HEAD"
+      if git -C "$root" rev-parse --verify refs/remotes/origin/main >/dev/null 2>&1; then
+        inspect_ref="refs/remotes/origin/main"
+      elif git -C "$root" rev-parse --verify refs/heads/main >/dev/null 2>&1; then
+        inspect_ref="refs/heads/main"
+      fi
       TEMP_BASE="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-mcp-projection.XXXXXX")"
       TEMP_WORKTREE="${TEMP_BASE}/worktree"
-      git -C "$root" worktree add --quiet --detach "$TEMP_WORKTREE" >/dev/null
+      git -C "$root" worktree add --quiet --detach "$TEMP_WORKTREE" "$inspect_ref" >/dev/null
       STANDALONE_INSPECT_ROOT="$TEMP_WORKTREE"
       return 0
     fi
@@ -157,7 +163,9 @@ GO_DRIFTED_LIST="$(temp_file)"
 GO_CANONICAL_ONLY_LIST="$(temp_file)"
 GO_TARGET_ONLY_LIST="$(temp_file)"
 COPY_ALLOWLIST_PRESENT_LIST="$(temp_file)"
-COPY_READY_LIST="$(temp_file)"
+COPY_PRESENT_LIST="$(temp_file)"
+COPY_IDENTICAL_LIST="$(temp_file)"
+COPY_DRIFTED_LIST="$(temp_file)"
 COPY_MISSING_LIST="$(temp_file)"
 STANDALONE_ROOT_ONLY_LIST="$(temp_file)"
 STANDALONE_INTERNAL_ONLY_LIST="$(temp_file)"
@@ -212,7 +220,12 @@ for rel in "${copy_allowlist[@]}"; do
   if [[ -f "$CANONICAL_PATH/$rel" ]]; then
     printf '%s\n' "$rel" >>"$COPY_ALLOWLIST_PRESENT_LIST"
     if [[ -f "$STANDALONE_INSPECT_ROOT/$rel" ]]; then
-      printf '%s\n' "$rel" >>"$COPY_READY_LIST"
+      printf '%s\n' "$rel" >>"$COPY_PRESENT_LIST"
+      if cmp -s "$CANONICAL_PATH/$rel" "$STANDALONE_INSPECT_ROOT/$rel"; then
+        printf '%s\n' "$rel" >>"$COPY_IDENTICAL_LIST"
+      else
+        printf '%s\n' "$rel" >>"$COPY_DRIFTED_LIST"
+      fi
     else
       printf '%s\n' "$rel" >>"$COPY_MISSING_LIST"
     fi
@@ -230,7 +243,7 @@ if [[ -d "$STANDALONE_INSPECT_ROOT/internal" ]]; then
 fi
 
 plan_status="in_sync"
-if [[ "$(count_lines "$GO_CANONICAL_ONLY_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_LIST")" -gt 0 ]]; then
+if [[ "$(count_lines "$GO_CANONICAL_ONLY_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_LIST")" -gt 0 ]]; then
   plan_status="projection_needed"
 fi
 
@@ -256,10 +269,14 @@ if $JSON_MODE; then
     --argjson canonical_only_count "$(count_lines "$GO_CANONICAL_ONLY_LIST")" \
     --argjson target_only_count "$(count_lines "$GO_TARGET_ONLY_LIST")" \
     --argjson copy_candidate_count "$(count_lines "$COPY_ALLOWLIST_PRESENT_LIST")" \
-    --argjson copy_ready_count "$(count_lines "$COPY_READY_LIST")" \
+    --argjson copy_present_count "$(count_lines "$COPY_PRESENT_LIST")" \
+    --argjson copy_identical_count "$(count_lines "$COPY_IDENTICAL_LIST")" \
+    --argjson copy_drifted_count "$(count_lines "$COPY_DRIFTED_LIST")" \
     --argjson copy_missing_count "$(count_lines "$COPY_MISSING_LIST")" \
     --argjson copy_candidates "$(json_array_file "$COPY_ALLOWLIST_PRESENT_LIST")" \
-    --argjson copy_ready "$(json_array_file "$COPY_READY_LIST")" \
+    --argjson copy_present "$(json_array_file "$COPY_PRESENT_LIST")" \
+    --argjson copy_identical "$(json_array_file "$COPY_IDENTICAL_LIST")" \
+    --argjson copy_drifted "$(json_array_file "$COPY_DRIFTED_LIST")" \
     --argjson copy_missing "$(json_array_file "$COPY_MISSING_LIST")" \
     --argjson go_identical "$(json_array_file "$GO_IDENTICAL_LIST")" \
     --argjson go_drifted "$(json_array_file "$GO_DRIFTED_LIST")" \
@@ -277,10 +294,14 @@ if $JSON_MODE; then
       target_package_dir: $target_package_dir,
       direct_copy: {
         candidate_count: $copy_candidate_count,
-        ready_count: $copy_ready_count,
+        present_count: $copy_present_count,
+        identical_count: $copy_identical_count,
+        drifted_count: $copy_drifted_count,
         missing_count: $copy_missing_count,
         candidates: $copy_candidates,
-        ready: $copy_ready,
+        present: $copy_present,
+        identical: $copy_identical,
+        drifted: $copy_drifted,
         missing: $copy_missing
       },
       go_projection: {
@@ -319,8 +340,14 @@ printf '\n'
 
 printf 'direct-copy candidates\n'
 printf '  candidates        %s\n' "$(count_lines "$COPY_ALLOWLIST_PRESENT_LIST")"
-printf '  ready             %s\n' "$(count_lines "$COPY_READY_LIST")"
+printf '  present           %s\n' "$(count_lines "$COPY_PRESENT_LIST")"
+printf '  identical         %s\n' "$(count_lines "$COPY_IDENTICAL_LIST")"
+printf '  drifted           %s\n' "$(count_lines "$COPY_DRIFTED_LIST")"
 printf '  missing           %s\n' "$(count_lines "$COPY_MISSING_LIST")"
+if [[ -s "$COPY_DRIFTED_LIST" ]]; then
+  printf '  direct-copy candidates that already drift from canonical content\n'
+  sed 's/^/    - /' "$COPY_DRIFTED_LIST"
+fi
 if [[ -s "$COPY_MISSING_LIST" ]]; then
   sed 's/^/    - /' "$COPY_MISSING_LIST"
 fi
