@@ -397,13 +397,19 @@ while IFS= read -r file; do
 done < <(comm -12 "$CANONICAL_GO_LIST" "$TARGET_GO_LIST")
 
 intentional_go_drift=(
+  "context.go"
+  "contract_profile_surface_test.go"
   "contract_snapshot.go"
   "contract_snapshot_test.go"
+  "discovery_test.go"
   "main.go"
   "mod_claude_session.go"
   "mod_claude_session_helpers_test.go"
   "mod_clipboard.go"
   "mod_desktop_interact.go"
+  "mod_desktop_semantic_session_test.go"
+  "mod_desktop_session.go"
+  "mod_expansion_test.go"
   "mod_github_test.go"
   "mod_hyprland_helpers_test.go"
   "mod_input_simulate.go"
@@ -417,19 +423,12 @@ intentional_go_drift=(
   "mod_tmux.go"
   "oss.go"
   "oss_test.go"
+  "workflow_catalog.go"
 )
 
 review_go_drift=(
-  "context.go"
-  "contract_profile_surface_test.go"
-  "discovery_test.go"
   "discovery_workstation_diagnostics.go"
   "discovery_workstation_diagnostics_test.go"
-  "mod_desktop_semantic.go"
-  "mod_desktop_semantic_session_test.go"
-  "mod_desktop_session.go"
-  "mod_expansion_test.go"
-  "workflow_catalog.go"
 )
 
 for file in "${intentional_go_drift[@]}"; do
@@ -439,7 +438,7 @@ for file in "${intentional_go_drift[@]}"; do
 done
 
 for file in "${review_go_drift[@]}"; do
-  if grep -Fxq "$file" "$GO_DRIFTED_LIST"; then
+  if grep -Fxq "$file" "$GO_DRIFTED_LIST" && ! grep -Fxq "$file" "$GO_DRIFTED_INTENTIONAL_LIST"; then
     printf '%s\n' "$file" >>"$GO_DRIFTED_REVIEW_LIST"
   fi
 done
