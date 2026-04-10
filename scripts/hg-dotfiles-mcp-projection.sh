@@ -161,6 +161,8 @@ TARGET_GO_LIST="$(temp_file)"
 GO_IDENTICAL_LIST="$(temp_file)"
 GO_DRIFTED_LIST="$(temp_file)"
 GO_CANONICAL_ONLY_LIST="$(temp_file)"
+GO_CANONICAL_ONLY_REQUIRED_LIST="$(temp_file)"
+GO_CANONICAL_ONLY_INTENTIONAL_LIST="$(temp_file)"
 GO_TARGET_ONLY_LIST="$(temp_file)"
 COPY_ALLOWLIST_PRESENT_LIST="$(temp_file)"
 COPY_PRESENT_LIST="$(temp_file)"
@@ -175,6 +177,24 @@ find "$TARGET_PACKAGE_DIR" -maxdepth 1 -name '*.go' -printf '%f\n' | sort >"$TAR
 
 comm -23 "$CANONICAL_GO_LIST" "$TARGET_GO_LIST" >"$GO_CANONICAL_ONLY_LIST"
 comm -13 "$CANONICAL_GO_LIST" "$TARGET_GO_LIST" >"$GO_TARGET_ONLY_LIST"
+
+intentional_canonical_only=(
+  "contract_snapshot_cli.go"
+  "workflow_surface_test.go"
+)
+
+for file in "${intentional_canonical_only[@]}"; do
+  if grep -Fxq "$file" "$GO_CANONICAL_ONLY_LIST"; then
+    printf '%s\n' "$file" >>"$GO_CANONICAL_ONLY_INTENTIONAL_LIST"
+  fi
+done
+
+while IFS= read -r file; do
+  [[ -n "$file" ]] || continue
+  if ! grep -Fxq "$file" "$GO_CANONICAL_ONLY_INTENTIONAL_LIST"; then
+    printf '%s\n' "$file" >>"$GO_CANONICAL_ONLY_REQUIRED_LIST"
+  fi
+done <"$GO_CANONICAL_ONLY_LIST"
 
 while IFS= read -r file; do
   [[ -n "$file" ]] || continue
@@ -243,7 +263,7 @@ if [[ -d "$STANDALONE_INSPECT_ROOT/internal" ]]; then
 fi
 
 plan_status="in_sync"
-if [[ "$(count_lines "$GO_CANONICAL_ONLY_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_LIST")" -gt 0 ]]; then
+if [[ "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_LIST")" -gt 0 ]]; then
   plan_status="projection_needed"
 fi
 
@@ -267,6 +287,8 @@ if $JSON_MODE; then
     --argjson identical_count "$(count_lines "$GO_IDENTICAL_LIST")" \
     --argjson drifted_count "$(count_lines "$GO_DRIFTED_LIST")" \
     --argjson canonical_only_count "$(count_lines "$GO_CANONICAL_ONLY_LIST")" \
+    --argjson projection_required_count "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" \
+    --argjson intentional_canonical_only_count "$(count_lines "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")" \
     --argjson target_only_count "$(count_lines "$GO_TARGET_ONLY_LIST")" \
     --argjson copy_candidate_count "$(count_lines "$COPY_ALLOWLIST_PRESENT_LIST")" \
     --argjson copy_present_count "$(count_lines "$COPY_PRESENT_LIST")" \
@@ -281,6 +303,8 @@ if $JSON_MODE; then
     --argjson go_identical "$(json_array_file "$GO_IDENTICAL_LIST")" \
     --argjson go_drifted "$(json_array_file "$GO_DRIFTED_LIST")" \
     --argjson go_canonical_only "$(json_array_file "$GO_CANONICAL_ONLY_LIST")" \
+    --argjson go_projection_required "$(json_array_file "$GO_CANONICAL_ONLY_REQUIRED_LIST")" \
+    --argjson go_intentional_canonical_only "$(json_array_file "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")" \
     --argjson go_target_only "$(json_array_file "$GO_TARGET_ONLY_LIST")" \
     --argjson standalone_root_only "$(json_array_file "$STANDALONE_ROOT_ONLY_LIST")" \
     --argjson standalone_internal_only "$(json_array_file "$STANDALONE_INTERNAL_ONLY_LIST")" \
@@ -310,10 +334,14 @@ if $JSON_MODE; then
         identical_count: $identical_count,
         drifted_count: $drifted_count,
         canonical_only_count: $canonical_only_count,
+        projection_required_count: $projection_required_count,
+        intentional_canonical_only_count: $intentional_canonical_only_count,
         target_only_count: $target_only_count,
         identical: $go_identical,
         drifted: $go_drifted,
         canonical_only: $go_canonical_only,
+        projection_required: $go_projection_required,
+        intentional_canonical_only: $go_intentional_canonical_only,
         target_only: $go_target_only
       },
       standalone_owned: {
@@ -359,10 +387,16 @@ printf '  target package    %s\n' "$(count_lines "$TARGET_GO_LIST")"
 printf '  identical         %s\n' "$(count_lines "$GO_IDENTICAL_LIST")"
 printf '  drifted overlap   %s\n' "$(count_lines "$GO_DRIFTED_LIST")"
 printf '  canonical only    %s\n' "$(count_lines "$GO_CANONICAL_ONLY_LIST")"
+printf '  projection needed %s\n' "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")"
+printf '  intentional diff  %s\n' "$(count_lines "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")"
 printf '  target only       %s\n' "$(count_lines "$GO_TARGET_ONLY_LIST")"
-if [[ -s "$GO_CANONICAL_ONLY_LIST" ]]; then
+if [[ -s "$GO_CANONICAL_ONLY_REQUIRED_LIST" ]]; then
   printf '  canonical-only additions requiring projection\n'
-  sed 's/^/    - /' "$GO_CANONICAL_ONLY_LIST"
+  sed 's/^/    - /' "$GO_CANONICAL_ONLY_REQUIRED_LIST"
+fi
+if [[ -s "$GO_CANONICAL_ONLY_INTENTIONAL_LIST" ]]; then
+  printf '  intentional canonical-only differences\n'
+  sed 's/^/    - /' "$GO_CANONICAL_ONLY_INTENTIONAL_LIST"
 fi
 if [[ -s "$GO_DRIFTED_LIST" ]]; then
   printf '  overlapping files that already drift from the bundled source\n'

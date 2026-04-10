@@ -47,7 +47,10 @@ to `dotfiles/mcp/dotfiles-mcp`. The dedicated planner reports:
 
 - root assets that still move 1:1 into the standalone repo
 - bundled root Go files that map into `internal/dotfiles/*.go`
-- canonical-only additions and overlapping files that already drift
+- canonical-only additions that still require projection, plus intentional
+  canonical-only differences such as `contract_snapshot_cli.go` and
+  `workflow_surface_test.go`
+- overlapping files that already drift
 - standalone-owned surfaces such as `cmd/*`, `internal/githubstars`, and contract snapshots
 
 The checker validates:

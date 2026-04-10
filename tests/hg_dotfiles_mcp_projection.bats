@@ -68,10 +68,31 @@ teardown() {
 }
 
 @test "hg-dotfiles-mcp-projection emits machine-readable JSON" {
-    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.status, .direct_copy.drifted[0], .go_projection.canonical_only[0], .standalone_owned.root_entries[0]'"
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.status, .direct_copy.drifted[0], .go_projection.projection_required[0], .standalone_owned.root_entries[0]'"
     assert_success
     assert_line --index 0 "projection_needed"
     assert_line --index 1 "scripts/host-smoke.sh"
     assert_line --index 2 "alpha.go"
     assert_line --index 3 "cmd"
+}
+
+@test "hg-dotfiles-mcp-projection classifies intentional canonical-only differences separately" {
+    cat > "${TEST_CANONICAL}/contract_snapshot_cli.go" <<'EOF'
+package main
+
+func contractOnly() {}
+EOF
+    cat > "${TEST_CANONICAL}/workflow_surface_test.go" <<'EOF'
+package main
+
+func workflowSurfaceOnly() {}
+EOF
+
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.go_projection.canonical_only_count, .go_projection.projection_required_count, .go_projection.intentional_canonical_only_count, .go_projection.intentional_canonical_only[0], .go_projection.intentional_canonical_only[1]'"
+    assert_success
+    assert_line --index 0 "3"
+    assert_line --index 1 "1"
+    assert_line --index 2 "2"
+    assert_line --index 3 "contract_snapshot_cli.go"
+    assert_line --index 4 "workflow_surface_test.go"
 }
