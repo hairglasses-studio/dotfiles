@@ -33,5 +33,5 @@ Cross-project research lives at `~/hairglasses-studio/docs/` (git: hairglasses-s
 ## Explicit Skill Surface
 
 - `.agents/skills/` is the canonical workflow-skill surface for this repo.
-- Generated compatibility mirrors under `.claude/skills/` must come from `scripts/hg-skill-surface-sync.sh`.
+- Generated compatibility mirrors under `.claude/skills/` must come from `codexkit skills sync <repo_path>` or a repo-local wrapper around that command such as `scripts/hg-skill-surface-sync.sh <repo_path>`.
 - `.codex/agents/*.toml` remains the Codex delegation-role surface, separate from workflow skills.

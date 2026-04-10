@@ -99,7 +99,7 @@ for repo in "$ROOT"/*/; do
       if repo_has_dirty_tracked_changes "$repo"; then
         mismatch_severity="warn"
       fi
-      report_issue "$mismatch_severity" "$name: skill surface out of sync (run hg-skill-surface-sync.sh)"
+      report_issue "$mismatch_severity" "$name: skill surface out of sync (run codexkit skills sync \"$repo\" or hg-skill-surface-sync.sh \"$repo\")"
     fi
   fi
 

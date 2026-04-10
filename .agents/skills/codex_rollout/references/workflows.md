@@ -10,7 +10,7 @@
 ## Skill Surface
 
 - When `.claude/skills` exists, add `.agents/skills/surface.yaml` and a compressed canonical skill.
-- Generate `.claude/skills/*` compatibility outputs with `hg-skill-surface-sync.sh`.
+- Generate `.claude/skills/*` compatibility outputs with `codexkit skills sync <repo_path>`. Use `hg-skill-surface-sync.sh <repo_path>` only when you intentionally want the repo-local compatibility wrapper.
 - Do not keep hand-authored `.claude/skills` files in managed repos.
 
 ## MCP And Agents

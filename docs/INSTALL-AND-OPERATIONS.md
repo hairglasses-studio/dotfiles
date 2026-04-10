@@ -50,7 +50,8 @@ For the MX Master 4 stack specifically:
 Use the repo scripts instead of editing compatibility mirrors by hand.
 
 - `scripts/hg-agent-docs.sh --source auto .`: regenerate `CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md` from the canonical source file
-- `scripts/hg-skill-surface-sync.sh`: refresh generated skill mirrors from `.agents/skills/`
+- `codexkit skills sync|check|diff <repo_path>`: primary skill-surface engine for `.agents/skills/` to `.claude/skills/` and plugin mirrors
+- `scripts/hg-skill-surface-sync.sh <repo_path>`: dotfiles convenience wrapper around the `codexkit skills` engine
 - `scripts/hg-agent-home-sync.sh`: seed missing `/home/hg` and `/root` provider home docs, then align managed skill mirrors and workspace-global overlays
 
 The rule is simple:
