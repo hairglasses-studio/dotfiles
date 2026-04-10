@@ -9,9 +9,9 @@ This project supports development with **Claude Code**, **Gemini CLI**, and **Op
 ```bash
 git clone https://github.com/hairglasses-studio/dotfiles-mcp
 cd dotfiles-mcp
-go build ./...
-go vet ./...
-go test ./... -count=1
+GOWORK=off go build ./...
+GOWORK=off go vet ./...
+GOWORK=off go test ./... -count=1
 ```
 
 ### 2. Verify
@@ -42,7 +42,7 @@ All tools are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) us
 
 1. Create a branch: `git checkout -b feat/my-change`
 2. Make your changes
-3. Run the pipeline: `go build ./... && go vet ./... && go test ./... -count=1`
+3. Run the pipeline: `GOWORK=off go build ./... && GOWORK=off go vet ./... && GOWORK=off go test ./... -count=1`
 4. Commit with a descriptive message
 5. Push and open a PR
 

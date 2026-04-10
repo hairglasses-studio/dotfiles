@@ -53,4 +53,4 @@ fi
 export DOTFILES_DIR="${DOTFILES_DIR:-$REPO_ROOT}"
 
 cd "$REPO_ROOT/mcp/dotfiles-mcp"
-exec go run .
+exec env GOWORK=off go run .

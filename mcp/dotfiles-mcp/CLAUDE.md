@@ -4,10 +4,10 @@ MCP server for dotfiles configuration management, GitHub org lifecycle, fleet au
 
 ## Build & Test
 ```bash
-go build ./...
-go vet ./...
-go test ./... -count=1
-go install .
+GOWORK=off go build ./...
+GOWORK=off go vet ./...
+GOWORK=off go test ./... -count=1
+GOWORK=off go install .
 ```
 
 ## Tools (100)
