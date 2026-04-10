@@ -17,6 +17,7 @@ Full-stack development environment for Manjaro Linux. Combines Kitty-native visu
 
 - **GPU Shaders**: 131 CRTty-ready GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
 - **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
@@ -93,8 +94,7 @@ hyprpm reload -n
 | `lazygit/` | Git TUI with Snazzy theme |
 | `bat/` | Cat replacement with Snazzy syntax theme |
 | `makima/` | Gamepad-to-keyboard remapper with per-app profiles |
-| `logiops/` | Repo-managed `logid` config for MX Master 4 button/gesture handling |
-| `solaar/` | Logitech MX Master 4 wireless device manager |
+| `juhradial/` | Seed `config.json` + `profiles.json` for MX Master 4 via juhradial-mx |
 | `metapac/` | Declarative package management — 12 groups, paru backend |
 | `topgrade/` | System update orchestration |
 | `pypr/` | Hyprland scratchpads (terminal, volume, files) |
@@ -122,9 +122,8 @@ dotfiles/
 ├── yazi/           → ~/.config/yazi (file manager)
 ├── k9s/            → ~/.config/k9s (kubernetes)
 ├── lazygit/        → ~/.config/lazygit (git TUI)
-├── logiops/        → deployed to /etc/logid.cfg (Logitech HID++ config)
+├── juhradial/      → copied to ~/.config/juhradial (MX Master 4 seed config)
 ├── makima/         → ~/.config/makima (gamepad mapping)
-├── solaar/         → ~/.config/solaar (Logitech devices)
 ├── pypr/           → ~/.config/pypr (scratchpads)
 ├── metapac/        → ~/.config/metapac (package groups)
 ├── topgrade/       → ~/.config/topgrade (system updates)

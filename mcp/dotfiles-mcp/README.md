@@ -63,6 +63,20 @@ claude mcp read dotfiles dotfiles://catalog/workflows
 claude mcp call dotfiles dotfiles_rice_check '{}'
 ```
 
+GitHub Stars workflow examples:
+
+```bash
+# Summarize managed GitHub Stars coverage
+claude mcp call dotfiles dotfiles_gh_stars_summary '{"managed_list_prefix":"MCP / "}'
+
+# List current GitHub star folders with items
+claude mcp call dotfiles dotfiles_gh_star_lists_list '{"include_items":true}'
+
+# Audit and bootstrap the MCP stars taxonomy
+bash ./scripts/hg-github-stars.sh audit-taxonomy --managed-prefix 'MCP / ' --bootstrap-defaults
+bash ./scripts/hg-github-stars.sh bootstrap --install-codex-mcp --execute
+```
+
 ## Loading Profiles
 
 Control how many tools load at startup via `DOTFILES_MCP_PROFILE`:
@@ -98,7 +112,7 @@ Set in your MCP config:
 | Desktop Services | 6 | Cascade reload, rice check, eww bar management |
 | Shader Pipeline | 13 | GLSL shader lifecycle for Ghostty and wallpapers -- list, set, cycle, test, build |
 | Bluetooth | 9 | Device discovery, pairing (BLE-safe), connect/disconnect, battery, trust |
-| Input Devices | 13 | Logitech mouse config, gamepad profiles (makima), Solaar settings |
+| Input Devices | 14 | juhradial-mx config, MX battery, and gamepad profiles (makima) |
 | MIDI | 4 | USB MIDI controller detection and mapping config |
 | Composed Workflows | 3 | Multi-step automations: BT discover-and-connect, controller auto-setup, repo git hygiene |
 | Open-Source Readiness | 2 | Score repos 0-100 across 8 categories with actionable suggestions |
@@ -107,6 +121,7 @@ Set in your MCP config:
 
 - All batch tools use **dry-run by default** -- pass `execute: true` for live mode
 - Composed "tool-of-tools" (`full_sync`, `fleet_audit`, `cascade_reload`, `rice_check`, `bulk_pipeline`) eliminate multi-step token waste
+- GitHub Stars helpers prefer `GITHUB_PAT` from `~/.env`, then existing shell env, then `gh auth token`
 - `clean_stale` checks for uncommitted/unpushed work before deletion
 - `pull_all` detects dirty repos and detached HEAD, skips safely
 
@@ -122,7 +137,7 @@ Runtime tools vary by category. Missing tools are detected gracefully -- unused 
 | Hyprland | `hyprctl`, `ydotool`, `wtype` |
 | Bluetooth | `bluetoothctl` |
 | Shaders | `glslangValidator` (optional, for compile-testing) |
-| Input / Mouse | `logiops` (logid), `solaar`, `makima` |
+| Input / Mouse | `juhradial-mx`, `ydotool`, `makima` |
 | Desktop | `eww`, `makoctl`, `pgrep` |
 | GitHub Org | `gh` (GitHub CLI) |
 | MIDI | ALSA (`aconnect`, `amidi`) |
