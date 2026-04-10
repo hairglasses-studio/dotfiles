@@ -23,7 +23,7 @@ Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
-- **Terminal Launch Policy**: Hyprshell defaults to `kitty-shell-launch` for plain shell windows, fresh instances, and no startup-session restore; `kitty-dev-launch` remains the explicit tmux-backed dev-session entrypoint
+- **Terminal Launch Policy**: Hyprshell defaults to `kitty-shell-launch` for plain shell windows, fresh instances, and no startup-session restore; `kitty-visual-launch` enforces unique top-level Kitty windows for raw launch surfaces; `kitty-dev-launch` remains the explicit tmux-backed dev-session entrypoint
 
 The managed workstation alias `studio_desktop` now projects the desktop-focused `dotfiles-mcp` profile into Codex, Claude, and Gemini through the existing home-sync path.
 
@@ -47,7 +47,7 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 4. Installs TPM (Tmux Plugin Manager)
 5. Symlinks all 60+ configs to their expected locations
 6. Links managed `~/.local/bin` wrappers for Kitty visuals, the shell-first `kitty-shell-launch`, the explicit tmux `kitty-dev-launch`, launcher fallback, app switcher, the resumable Ollama pull helper, the heavy-model verifier, and the canonical Codex/Claude/Gemini launchers on Linux
-7. Enables repo-managed systemd user services and packaged system services where applicable
+7. Enables repo-managed systemd user services and packaged system services where applicable, while leaving the optional Kitty save-session timer disabled unless you explicitly opt in later
 8. Syncs the shared shell theme into writable config targets and bootstraps Hyprland plugins via `hyprpm`
 9. Builds bat theme cache
 
@@ -179,7 +179,7 @@ Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PAR
 
 **tmux plugins not loading:** Inside tmux, press `C-a` then `shift-I` to trigger TPM install.
 
-**New terminals still attach to tmux:** Check that `hyprshell/config.toml` still points `default_terminal` at `kitty-shell-launch`. Reserve `kitty-dev-launch` for the persistent tmux session on purpose.
+**New terminals still attach to tmux or reopen an old session:** Check that `hyprshell/config.toml` still points `default_terminal` at `kitty-shell-launch`, `kitty/kitty.conf` still sets `startup_session none`, and any local save-session timer remains an explicit opt-in. Reserve `kitty-dev-launch` for the persistent tmux session on purpose.
 
 **Hyprland plugins not working:** Re-run the repo-managed bootstrap:
 ```bash

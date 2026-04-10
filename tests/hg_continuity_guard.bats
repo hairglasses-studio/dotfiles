@@ -84,6 +84,16 @@ _run_hg_module() {
     assert_output --partial "--user restart dotfiles-hyprshell.service"
 }
 
+@test "hg config check reports the shell-first kitty policy" {
+    run _run_hg_module config check
+    assert_success
+    assert_output --partial "TERMINAL POLICY"
+    assert_output --partial "default terminal"
+    assert_output --partial "kitty-shell-launch"
+    assert_output --partial "startup_session none"
+    assert_output --partial "opt-in only"
+}
+
 @test "hg rice restart-ui blocks when tmux persistence health fails" {
     run _run_hg_module rice restart-ui
     assert_failure

@@ -6,12 +6,30 @@ on:
     paths:
       - 'tests/**'
       - 'scripts/**'
+      - 'kitty/**'
+      - 'hyprshell/**'
+      - 'hyprland/**'
+      - 'pypr/**'
+      - 'install.sh'
+      - 'manjaro/install.sh'
+      - 'juhradial/**'
+      - 'ironbar/**'
+      - 'makima/**'
       - '.github/workflows/ci-bats.yml'
   pull_request:
     branches: [main]
     paths:
       - 'tests/**'
       - 'scripts/**'
+      - 'kitty/**'
+      - 'hyprshell/**'
+      - 'hyprland/**'
+      - 'pypr/**'
+      - 'install.sh'
+      - 'manjaro/install.sh'
+      - 'juhradial/**'
+      - 'ironbar/**'
+      - 'makima/**'
       - '.github/workflows/ci-bats.yml'
 
 permissions:
@@ -38,3 +56,6 @@ jobs:
 
       - name: Run script tests
         run: bats tests/hg_*.bats tests/rice_selftest.bats
+
+      - name: Run launcher and shell policy tests
+        run: bats tests/tmux_session.bats tests/shell_env.bats tests/app_launcher.bats

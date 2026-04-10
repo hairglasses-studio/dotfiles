@@ -1,5 +1,6 @@
 [Unit]
 Description=dotfiles kitty session save timer
+# Shipped for manual opt-in only; install.sh does not enable this timer.
 
 [Timer]
 OnActiveSec=2m

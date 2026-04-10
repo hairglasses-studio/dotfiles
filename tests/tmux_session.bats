@@ -29,38 +29,59 @@ teardown() {
 }
 
 @test "kitty-dev-launch routes terminals through the persistent tmux main session" {
-    cat > "${TEST_BIN}/kitty-launcher" <<'EOF'
+    cat > "${TEST_BIN}/kitty-spawner" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/launcher.log"
 EOF
-    chmod +x "${TEST_BIN}/kitty-launcher"
+    chmod +x "${TEST_BIN}/kitty-spawner"
 
-    run env KITTY_DEV_LAUNCHER="${TEST_BIN}/kitty-launcher" bash "${SCRIPTS_DIR}/kitty-dev-launch.sh" --class=dev-terminal
+    run env KITTY_VISUAL_SPAWNER="${TEST_BIN}/kitty-spawner" bash "${SCRIPTS_DIR}/kitty-dev-launch.sh" --class=dev-terminal
     assert_success
 
     run cat "${BATS_TEST_TMPDIR}/launcher.log"
     assert_success
+    assert_output --partial "spawn ambient -- --single-instance=no --start-as=normal"
     assert_output --partial "--class=dev-terminal"
     assert_output --partial "-e ${REAL_SCRIPTS_DIR}/tmux-main-session.sh"
+    refute_output --partial "--session=none"
 }
 
 @test "kitty-shell-launch keeps default terminals shell-first and in a fresh window" {
-    cat > "${TEST_BIN}/kitty-launcher" <<'EOF'
+    cat > "${TEST_BIN}/kitty-spawner" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/launcher.log"
 EOF
-    chmod +x "${TEST_BIN}/kitty-launcher"
+    chmod +x "${TEST_BIN}/kitty-spawner"
 
-    run env KITTY_SHELL_LAUNCHER="${TEST_BIN}/kitty-launcher" bash "${SCRIPTS_DIR}/kitty-shell-launch.sh" --class=shell-terminal
+    run env KITTY_VISUAL_SPAWNER="${TEST_BIN}/kitty-spawner" bash "${SCRIPTS_DIR}/kitty-shell-launch.sh" --class=shell-terminal
     assert_success
 
     run cat "${BATS_TEST_TMPDIR}/launcher.log"
     assert_success
+    assert_output --partial "spawn ambient --"
     assert_output --partial "--single-instance=no"
     assert_output --partial "--session=none"
     assert_output --partial "--start-as=normal"
     assert_output --partial "--class=shell-terminal"
     refute_output --partial "tmux-main-session.sh"
+}
+
+@test "kitty-visual-launch forces unique top-level windows without breaking -e entrypoints" {
+    cat > "${TEST_BIN}/kitty-spawner" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/launcher.log"
+EOF
+    chmod +x "${TEST_BIN}/kitty-spawner"
+
+    run env KITTY_VISUAL_SPAWNER="${TEST_BIN}/kitty-spawner" bash "${SCRIPTS_DIR}/kitty-visual-launch.sh" --class=raw-terminal -e /bin/echo hi
+    assert_success
+
+    run cat "${BATS_TEST_TMPDIR}/launcher.log"
+    assert_success
+    assert_output --partial "spawn ambient -- --single-instance=no --start-as=normal"
+    assert_output --partial "--class=raw-terminal"
+    assert_output --partial "-e /bin/echo hi"
+    refute_output --partial "--session=none"
 }
 
 @test "tmux-main-session attaches to the persistent main session when it already exists" {
@@ -119,11 +140,11 @@ EOF
 @test "dropdown-terminal launches the persistent dropdown session helper without killing tmux state" {
     export HYPRLAND_INSTANCE_SIGNATURE="test-session"
 
-    cat > "${TEST_BIN}/kitty-launcher" <<'EOF'
+    cat > "${TEST_BIN}/kitty-spawner" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/launcher.log"
 EOF
-    chmod +x "${TEST_BIN}/kitty-launcher"
+    chmod +x "${TEST_BIN}/kitty-spawner"
 
     cat > "${TEST_BIN}/hyprctl" <<'EOF'
 #!/usr/bin/env bash
@@ -138,13 +159,15 @@ esac
 EOF
     chmod +x "${TEST_BIN}/hyprctl"
 
-    run env KITTY_DROPDOWN_LAUNCHER="${TEST_BIN}/kitty-launcher" bash "${SCRIPTS_DIR}/dropdown-terminal.sh"
+    run env KITTY_VISUAL_SPAWNER="${TEST_BIN}/kitty-spawner" bash "${SCRIPTS_DIR}/dropdown-terminal.sh"
     assert_success
 
     run cat "${BATS_TEST_TMPDIR}/launcher.log"
     assert_success
+    assert_output --partial "spawn ambient -- --single-instance=no --start-as=normal"
     assert_output --partial "--class=dropdown-cyber"
     assert_output --partial "-e ${REAL_SCRIPTS_DIR}/dropdown-session.sh"
+    refute_output --partial "--session=none"
     refute_output --partial "kill-session"
 
     run cat "${BATS_TEST_TMPDIR}/hyprctl.log"
@@ -155,5 +178,10 @@ EOF
 
 @test "hyprshell defaults terminal launches to kitty-shell-launch" {
     run grep -F 'default_terminal = "$HOME/.local/bin/kitty-shell-launch"' "${DOTFILES_DIR}/hyprshell/config.toml"
+    assert_success
+}
+
+@test "kitty config disables startup session restore by default" {
+    run grep -E '^startup_session[[:space:]]+none$' "${DOTFILES_DIR}/kitty/kitty.conf"
     assert_success
 }

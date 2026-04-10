@@ -1,5 +1,7 @@
 [Unit]
 Description=dotfiles kitty session saver
+# Optional helper for explicit kitty-save-session users. The default Kitty
+# launch policy still comes from kitty.conf (startup_session none).
 PartOf=graphical-session.target
 After=graphical-session.target
 ConditionPathExists=%h/.config/kitty/extras/kitty-save-session/kitty-save-session-all.sh
