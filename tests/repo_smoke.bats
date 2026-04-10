@@ -21,6 +21,7 @@ teardown() {
     assert_success
     assert_output --partial "${DOTFILES_DIR}/ghostty|${HOME}/.config/ghostty"
     assert_output --partial "${DOTFILES_DIR}/kitty|${HOME}/.config/kitty"
+    assert_output --partial "${DOTFILES_DIR}/scripts/kitty-shell-launch.sh|${HOME}/.local/bin/kitty-shell-launch"
     assert_output --partial "${DOTFILES_DIR}/scripts/app-launcher.sh|${HOME}/.local/bin/app-launcher"
     assert_output --partial "${DOTFILES_DIR}/scripts/app-switcher.sh|${HOME}/.local/bin/app-switcher"
 }

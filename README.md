@@ -22,6 +22,7 @@ Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
+- **Terminal Launch Policy**: Hyprshell defaults to `kitty-shell-launch` for plain shell windows, fresh instances, and no startup-session restore; `kitty-dev-launch` remains the explicit tmux-backed dev-session entrypoint
 
 The managed workstation alias `studio_desktop` now projects the desktop-focused `dotfiles-mcp` profile into Codex, Claude, and Gemini through the existing home-sync path.
 
@@ -44,7 +45,7 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 3. Bootstraps lazy.nvim for Neovim
 4. Installs TPM (Tmux Plugin Manager)
 5. Symlinks all 60+ configs to their expected locations
-6. Links managed `~/.local/bin` wrappers for Kitty, launcher fallback, app switcher, and the canonical Codex/Claude/Gemini launchers on Linux
+6. Links managed `~/.local/bin` wrappers for Kitty visuals, the shell-first `kitty-shell-launch`, the explicit tmux `kitty-dev-launch`, launcher fallback, app switcher, and the canonical Codex/Claude/Gemini launchers on Linux
 7. Enables repo-managed systemd user services and packaged system services where applicable
 8. Syncs the shared shell theme into writable config targets and bootstraps Hyprland plugins via `hyprpm`
 9. Builds bat theme cache
@@ -79,7 +80,7 @@ hyprpm-bootstrap
 |--------|-------------|
 | `hyprland/` | Tiling WM — 113 keybinds, custom animations, plugin-based layout, wallpaper mode orchestration |
 | `eww/` | Status bar widgets, calendar, sidebar, powermenu, dashboard |
-| `hyprshell/` | Primary launcher, overview, and app switcher for `Super+D` / `Alt+Tab` |
+| `hyprshell/` | Primary launcher, overview, and app switcher for `Super+D` / `Alt+Tab`, with `default_terminal` pinned to the shell-first Kitty launcher |
 | `hypr-dock/` | Bottom dock with pinned apps, indicators, and window previews |
 | `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |
 | `hyprland-autoname-workspaces/` | Workspace naming and icon rules for cleaner shell surfaces |
@@ -159,8 +160,6 @@ All MCP tools are consolidated under `mcp/` (7 Go modules + 3 JS servers via `go
 | `mapping` | 20+ | Input mapping profiles |
 
 All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
-Mirror-managed MCP modules and the repo-local parity checker are documented in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
-
 Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
 
 ## Troubleshooting
@@ -172,6 +171,8 @@ Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PAR
 **Symlinks point to wrong place:** Run `bash install.sh --check` to validate.
 
 **tmux plugins not loading:** Inside tmux, press `C-a` then `shift-I` to trigger TPM install.
+
+**New terminals still attach to tmux:** Check that `hyprshell/config.toml` still points `default_terminal` at `kitty-shell-launch`. Reserve `kitty-dev-launch` for the persistent tmux session on purpose.
 
 **Hyprland plugins not working:** Re-run the repo-managed bootstrap:
 ```bash
