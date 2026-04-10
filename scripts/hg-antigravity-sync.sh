@@ -75,6 +75,39 @@ Options:
 EOF
 }
 
+antigravity_env_bridge_allowed_keys() {
+  cat <<'EOF'
+OPENAI_API_KEY
+ANTHROPIC_API_KEY
+GOOGLE_API_KEY
+GEMINI_API_KEY
+OLLAMA_BASE_URL
+OLLAMA_HOST
+OLLAMA_PORT
+OLLAMA_API_KEY
+OLLAMA_KEEP_ALIVE
+OLLAMA_CHAT_MODEL
+OLLAMA_FAST_MODEL
+OLLAMA_CODE_MODEL
+OLLAMA_HEAVY_CODE_MODEL
+OLLAMA_HIGH_CONTEXT_CODE_MODEL
+OLLAMA_CLOUD_CODE_MODEL
+OLLAMA_CLOUD_VERIFIED_CODE_MODEL
+OLLAMA_MULTILINGUAL_CODE_MODEL
+OLLAMA_THINKING_CODE_MODEL
+OLLAMA_EMBED_MODEL
+EOF
+}
+
+antigravity_env_bridge_required_keys() {
+  cat <<'EOF'
+OPENAI_API_KEY
+ANTHROPIC_API_KEY
+GOOGLE_API_KEY
+GEMINI_API_KEY
+EOF
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --root)
@@ -545,7 +578,7 @@ render_home_gemini_doc() {
     printf -- '- Prefer workspace-local skills in `%s/` before global skills.\n' "$WORKSPACE_SKILLS_DIR"
     printf -- '- Prefer workspace-local workflows in `%s/` before global workflows.\n' "$WORKSPACE_WORKFLOWS_DIR"
     printf -- '- Honor repo-local `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` as the first repo-specific instruction layer.\n'
-    printf -- '- Use the managed launcher so OpenAI, Anthropic, Google, and Gemini provider keys are runtime-resolved from local `.env` files.\n'
+    printf -- '- Use the managed launcher so OpenAI, Anthropic, Google, Gemini, and shared `OLLAMA_*` settings are runtime-resolved from local `.env` files plus workstation defaults.\n'
   } >"$legacy_doc"
 
   {
@@ -749,7 +782,7 @@ parse_env_file() {
         value="${raw%%[[:space:]]#*}"
       fi
       case "$key" in
-        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY)
+        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY|OLLAMA_BASE_URL|OLLAMA_HOST|OLLAMA_PORT|OLLAMA_API_KEY|OLLAMA_KEEP_ALIVE|OLLAMA_CHAT_MODEL|OLLAMA_FAST_MODEL|OLLAMA_CODE_MODEL|OLLAMA_HEAVY_CODE_MODEL|OLLAMA_HIGH_CONTEXT_CODE_MODEL|OLLAMA_CLOUD_CODE_MODEL|OLLAMA_CLOUD_VERIFIED_CODE_MODEL|OLLAMA_MULTILINGUAL_CODE_MODEL|OLLAMA_THINKING_CODE_MODEL|OLLAMA_EMBED_MODEL)
           if [[ -z "${imported_env_values[$key]:-}" && -n "$value" ]]; then
             imported_env_values["$key"]="$value"
             imported_env_sources["$key"]="$env_file"
@@ -762,7 +795,9 @@ parse_env_file() {
 
 build_env_bridge_manifest() {
   local source_file="$tmpdir/env-sources.txt"
+  local allowed_keys_file="$tmpdir/env-allowed-keys.txt"
   : >"$source_file"
+  antigravity_env_bridge_allowed_keys >"$allowed_keys_file"
 
   if [[ -f "$WORKSPACE_ROOT/.env" ]]; then
     printf '%s\n' "$WORKSPACE_ROOT/.env" >>"$source_file"
@@ -781,15 +816,16 @@ build_env_bridge_manifest() {
     printf '  "generator": "dotfiles/scripts/hg-antigravity-sync.sh",\n'
     printf '  "workspace_root": %s,\n' "$(jq -Rn --arg v "$WORKSPACE_ROOT" '$v')"
     printf '  "mode": "runtime-resolved",\n'
-    printf '  "allowed_keys": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY"],\n'
+    printf '  "allowed_keys": %s,\n' "$(json_string_array_from_lines "$allowed_keys_file")"
     printf '  "ordered_sources": %s\n' "$(json_string_array_from_lines "$source_file")"
     printf '}\n'
   } >"$tmpdir/env-sources.json"
 
   local key
-  for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY; do
+  while IFS= read -r key; do
+    [[ -n "$key" ]] || continue
     [[ -n "${imported_env_values[$key]:-}" ]] || missing_env_vars=$((missing_env_vars + 1))
-  done
+  done < <(antigravity_env_bridge_required_keys)
 
   sync_rendered_file "$ANTIGRAVITY_ENV_MANIFEST_PATH" "$tmpdir/env-sources.json" "Synced Antigravity env source manifest"
   remove_managed_path "$ANTIGRAVITY_LEGACY_ENV_PATH" "legacy Antigravity env bridge"
@@ -850,7 +886,7 @@ build_launcher_wrapper() {
     printf '        value="${raw%%%%[[:space:]]#*}"\n'
     printf '      fi\n'
     printf '      case "$key" in\n'
-    printf '        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY)\n'
+    printf '        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY|OLLAMA_BASE_URL|OLLAMA_HOST|OLLAMA_PORT|OLLAMA_API_KEY|OLLAMA_KEEP_ALIVE|OLLAMA_CHAT_MODEL|OLLAMA_FAST_MODEL|OLLAMA_CODE_MODEL|OLLAMA_HEAVY_CODE_MODEL|OLLAMA_HIGH_CONTEXT_CODE_MODEL|OLLAMA_CLOUD_CODE_MODEL|OLLAMA_CLOUD_VERIFIED_CODE_MODEL|OLLAMA_MULTILINGUAL_CODE_MODEL|OLLAMA_THINKING_CODE_MODEL|OLLAMA_EMBED_MODEL)\n'
     printf '          if [[ -z "${!key:-}" && -n "$value" ]]; then\n'
     printf '            export "$key=$value"\n'
     printf '          fi\n'
@@ -864,6 +900,12 @@ build_launcher_wrapper() {
     printf '    [[ -n "$env_file" ]] || continue\n'
     printf '    parse_runtime_env_file "$env_file"\n'
     printf "  done < <(jq -r '.ordered_sources[]?' %q)\n" "$ANTIGRAVITY_ENV_MANIFEST_PATH"
+    printf 'fi\n\n'
+    printf 'local_llm_lib=%q\n' "$WORKSPACE_ROOT/dotfiles/scripts/lib/hg-local-llm.sh"
+    printf 'if [[ -f "$local_llm_lib" ]]; then\n'
+    printf '  # shellcheck disable=SC1090\n'
+    printf '  source "$local_llm_lib"\n'
+    printf '  hg_local_llm_export_env\n'
     printf 'fi\n\n'
     printf 'if [[ "$#" -eq 0 && -f "$default_workspace" ]]; then\n'
     printf '  set -- "$default_workspace"\n'
@@ -1017,13 +1059,18 @@ write_metadata() {
   printf '%s\n' "${!managed_workspace_workflow_set[@]}" | sort -u >"$workspace_workflow_file"
 
   local key
-  for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY; do
+  while IFS= read -r key; do
+    [[ -n "$key" ]] || continue
     if [[ -n "${imported_env_values[$key]:-}" ]]; then
       printf '%s\n' "$key" >>"$imported_vars_file"
-    else
+    fi
+  done < <(printf '%s\n' "${!imported_env_values[@]}" | sort)
+  while IFS= read -r key; do
+    [[ -n "$key" ]] || continue
+    if [[ -z "${imported_env_values[$key]:-}" ]]; then
       printf '%s\n' "$key" >>"$missing_vars_file"
     fi
-  done
+  done < <(antigravity_env_bridge_required_keys)
 
   local ecosystem_global_workflows=0
   local ecosystem_global_skills=0
@@ -1071,7 +1118,7 @@ write_metadata() {
     printf '  "global_gemini_md_present": %s,\n' "$( [[ -f "$ANTIGRAVITY_HOME_DOC_PATH" ]] && printf 'true' || printf 'false' )"
     printf '  "imported_env_sources": {\n'
     local first=1
-    for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY; do
+    for key in $(printf '%s\n' "${!imported_env_sources[@]}" | sort); do
       [[ -n "${imported_env_sources[$key]:-}" ]] || continue
       [[ "$first" -eq 1 ]] || printf ',\n'
       first=0
