@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # sync-standalone-mcp-repos.sh — Mirror canonical dotfiles MCP modules into standalone publish repos.
-# Usage: sync-standalone-mcp-repos.sh [bootstrap|sync|check] [--repos=a,b] [--allow-dirty]
+# Usage: sync-standalone-mcp-repos.sh [bootstrap|sync|check|hygiene] [--repos=a,b] [--allow-dirty] [--repair-bare-main]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,19 +10,27 @@ source "$SCRIPT_DIR/lib/hg-workspace.sh"
 MODE="sync"
 REPO_FILTER=""
 ALLOW_DIRTY=false
+REPAIR_BARE_MAIN=false
 
 usage() {
   cat <<'EOF'
-Usage: sync-standalone-mcp-repos.sh [bootstrap|sync|check] [--repos=a,b] [--allow-dirty]
+Usage: sync-standalone-mcp-repos.sh [bootstrap|sync|check|hygiene] [--repos=a,b] [--allow-dirty] [--repair-bare-main]
 
 Mirror canonical MCP source trees from dotfiles/mcp/* into standalone publish repos
 declared as lifecycle=mirror in workspace/manifest.json.
+
+Modes:
+  bootstrap  Initialize tree-sync mirrors
+  sync       Update tree-sync mirrors
+  check      Verify tree-sync mirrors and run manual-projection planners
+  hygiene    Inspect bare mirror repo branch hygiene; use --repair-bare-main to
+             align stale local refs/heads/main to refs/remotes/origin/main
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    bootstrap|sync|check)
+    bootstrap|sync|check|hygiene)
       MODE="$1"
       shift
       ;;
@@ -32,6 +40,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --allow-dirty)
       ALLOW_DIRTY=true
+      shift
+      ;;
+    --repair-bare-main)
+      REPAIR_BARE_MAIN=true
       shift
       ;;
     -h|--help)
@@ -126,6 +138,103 @@ repo_names() {
 
 UPDATED=0
 SKIPPED=0
+ISSUES=0
+REPAIRED=0
+
+git_ref_value() {
+  local repo_path="$1"
+  local ref="$2"
+  git -C "$repo_path" rev-parse --verify -q "$ref" 2>/dev/null || true
+}
+
+short_sha() {
+  local value="${1:-}"
+  if [[ -z "$value" ]]; then
+    printf '%s\n' "-"
+  else
+    printf '%.12s\n' "$value"
+  fi
+}
+
+hygiene_check_repo() {
+  local repo="$1"
+  local repo_path="$2"
+
+  if ! git -C "$repo_path" rev-parse --git-dir >/dev/null 2>&1; then
+    hg_warn "$repo: hygiene skipped because path is not a git repo: $repo_path"
+    SKIPPED=$((SKIPPED + 1))
+    return 0
+  fi
+
+  local is_bare
+  is_bare="$(git -C "$repo_path" rev-parse --is-bare-repository 2>/dev/null || printf 'false')"
+  if [[ "$is_bare" != "true" ]]; then
+    hg_info "$repo: hygiene skipped because repo is not bare"
+    SKIPPED=$((SKIPPED + 1))
+    return 0
+  fi
+
+  if $REPAIR_BARE_MAIN; then
+    git -C "$repo_path" fetch --prune origin >/dev/null 2>&1 || true
+  fi
+
+  local head_ref local_main remote_main status
+  head_ref="$(git -C "$repo_path" symbolic-ref -q HEAD 2>/dev/null || true)"
+  local_main="$(git_ref_value "$repo_path" refs/heads/main)"
+  remote_main="$(git_ref_value "$repo_path" refs/remotes/origin/main)"
+
+  status="unknown"
+  if [[ -z "$remote_main" ]]; then
+    status="missing_origin_main"
+  elif [[ -z "$local_main" ]]; then
+    status="missing_local_main"
+  elif [[ "$local_main" == "$remote_main" ]]; then
+    status="in_sync"
+  elif git -C "$repo_path" merge-base --is-ancestor "$local_main" "$remote_main" >/dev/null 2>&1; then
+    status="stale_local_main"
+  else
+    status="divergent_local_main"
+  fi
+
+  if $REPAIR_BARE_MAIN && [[ -n "$remote_main" ]] && ([[ "$status" == "missing_local_main" ]] || [[ "$status" == "stale_local_main" ]]); then
+    git -C "$repo_path" update-ref refs/heads/main "$remote_main"
+    if [[ "$head_ref" != "refs/heads/main" ]]; then
+      git -C "$repo_path" symbolic-ref HEAD refs/heads/main >/dev/null 2>&1 || true
+    fi
+    local_main="$remote_main"
+    status="in_sync"
+    REPAIRED=$((REPAIRED + 1))
+  fi
+
+  case "$status" in
+    in_sync)
+      hg_ok "$repo: bare main in sync (local=$(short_sha "$local_main") origin=$(short_sha "$remote_main"))"
+      ;;
+    stale_local_main)
+      hg_warn "$repo: bare main stale (local=$(short_sha "$local_main") origin=$(short_sha "$remote_main")); rerun with hygiene --repair-bare-main"
+      ISSUES=$((ISSUES + 1))
+      ;;
+    missing_local_main)
+      hg_warn "$repo: bare repo missing refs/heads/main while origin/main=$(short_sha "$remote_main"); rerun with hygiene --repair-bare-main"
+      ISSUES=$((ISSUES + 1))
+      ;;
+    divergent_local_main)
+      hg_warn "$repo: bare main diverged (local=$(short_sha "$local_main") origin=$(short_sha "$remote_main")); inspect manually before repair"
+      ISSUES=$((ISSUES + 1))
+      ;;
+    missing_origin_main)
+      hg_warn "$repo: bare repo missing refs/remotes/origin/main; fetch/configure origin first"
+      ISSUES=$((ISSUES + 1))
+      ;;
+    *)
+      hg_warn "$repo: bare hygiene status unknown"
+      ISSUES=$((ISSUES + 1))
+      ;;
+  esac
+
+  UPDATED=$((UPDATED + 1))
+  return 0
+}
 
 while IFS= read -r repo; do
   [[ -n "$repo" ]] || continue
@@ -135,6 +244,12 @@ while IFS= read -r repo; do
 
   mirror_path="$(hg_workspace_repo_path "$repo")"
   canonical_path="$HG_STUDIO_ROOT/$canonical_rel"
+
+  if [[ "$MODE" == "hygiene" ]]; then
+    [[ -e "$mirror_path" ]] || hg_die "mirror repo missing: $mirror_path"
+    hygiene_check_repo "$repo" "$mirror_path"
+    continue
+  fi
 
   [[ -e "$mirror_path/.git" ]] || hg_die "mirror repo missing: $mirror_path"
   [[ -d "$canonical_path" ]] || hg_die "canonical path missing: $canonical_path"
@@ -174,4 +289,12 @@ done < <(repo_names)
 hg_info "$UPDATED mirror repos processed"
 if [[ "$SKIPPED" -gt 0 ]]; then
   hg_info "$SKIPPED mirror repos skipped due to non-tree sync strategy"
+fi
+if [[ "$MODE" == "hygiene" ]]; then
+  if $REPAIR_BARE_MAIN; then
+    hg_info "$REPAIRED bare mirror repos repaired"
+  fi
+  if [[ "$ISSUES" -gt 0 ]]; then
+    exit 1
+  fi
 fi
