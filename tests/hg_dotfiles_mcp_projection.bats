@@ -208,15 +208,15 @@ package dotfiles
 
 func beta() string { return "beta" }
 EOF
-    cat > "${TEST_CANONICAL}/context.go" <<'EOF'
+    cat > "${TEST_CANONICAL}/discovery_workstation_diagnostics.go" <<'EOF'
 package main
 
-func contextValue() string { return "canonical" }
+func diagnosticsValue() string { return "canonical" }
 EOF
-    cat > "${TEST_STANDALONE}/internal/dotfiles/context.go" <<'EOF'
+    cat > "${TEST_STANDALONE}/internal/dotfiles/discovery_workstation_diagnostics.go" <<'EOF'
 package dotfiles
 
-func contextValue() string { return "standalone" }
+func diagnosticsValue() string { return "standalone" }
 EOF
 
     run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.status, .go_projection.required_drift_count, .go_projection.review_drift_count, .go_projection.review_drift[0]'"
@@ -224,7 +224,7 @@ EOF
     assert_line --index 0 "parity_review_needed"
     assert_line --index 1 "0"
     assert_line --index 2 "1"
-    assert_line --index 3 "context.go"
+    assert_line --index 3 "discovery_workstation_diagnostics.go"
 }
 
 @test "hg-dotfiles-mcp-projection tracks workflow drift as required direct-copy projection" {
