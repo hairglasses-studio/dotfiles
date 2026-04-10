@@ -34,6 +34,12 @@ HOME_CONTEXT_END_MARKER="<!-- END GENERATED WORKSPACE GLOBAL: hg-workspace-globa
 SKILL_OWNER_FILE=".hg-workspace-global-sync.json"
 CLAUDE_PREFIX="studio_"
 
+workspace_global_exported_skill_name() {
+  local repo_name="$1"
+  local skill_name="$2"
+  printf '%s-%s' "$repo_name" "$skill_name"
+}
+
 usage() {
   cat <<'EOF'
 Usage: hg-workspace-global-sync.sh [options]
@@ -871,8 +877,9 @@ sync_managed_workspace_skills() {
     fi
 
     description="$(extract_frontmatter_scalar "$source_skill" "description")"
-    if ! hg_gemini_name_is_builtin "$global_name"; then
-      printf '%s\t%s\t%s\t%s\t%s\n' "$global_name" "${description:-Compatibility mirror for $canonical_name.}" "$kind" "$repo_name" "$canonical_name" >>"$tmpdir/gemini-skill-catalog.tsv"
+    exported_gemini_name="$(workspace_global_exported_skill_name "$repo_name" "$global_name")"
+    if ! hg_gemini_name_is_builtin "$exported_gemini_name"; then
+      printf '%s\t%s\t%s\t%s\t%s\n' "$exported_gemini_name" "${description:-Compatibility mirror for $canonical_name.}" "$kind" "$repo_name" "$canonical_name" >>"$tmpdir/gemini-skill-catalog.tsv"
     fi
 
     rm -rf "$staged_dir"
@@ -1214,6 +1221,7 @@ sync_gemini_home_context() {
     printf -- '- Use repo-local `GEMINI.md`, `AGENTS.md`, and `CLAUDE.md` first for repo-specific instructions.\n'
     printf -- '- Shared research repo: `%s/docs`\n' "$WORKSPACE_ROOT"
     printf -- '- Shared root `.mcp.json` remains intentionally small: `systemd`, `tmux`, `process`.\n'
+    printf -- '- Workspace-managed repo skills are exported globally with a `<repo>-...` prefix so they do not collide with repo-local canonical names.\n'
     printf '\n'
 
     if [[ -s "$tmpdir/gemini-skill-catalog.tsv" ]]; then

@@ -155,6 +155,34 @@ strip_mcp_tools() {
   done < "$file"
 }
 
+workspace_managed_export_name() {
+  local skill_dir="$1"
+  local owner_file="$skill_dir/.hg-workspace-global-sync.json"
+  [[ -f "$owner_file" ]] || return 1
+
+  local repo_name source_name
+  repo_name="$(jq -r '.repo // empty' "$owner_file" 2>/dev/null)"
+  source_name="$(jq -r '.name // empty' "$owner_file" 2>/dev/null)"
+  [[ -n "$repo_name" && -n "$source_name" ]] || return 1
+
+  printf '%s-%s' "$repo_name" "$source_name"
+}
+
+rewrite_skill_frontmatter_name() {
+  local file="$1"
+  local exported_name="$2"
+  awk -v exported_name="$exported_name" '
+    BEGIN { frontmatter = 0; renamed = 0 }
+    /^---$/ { frontmatter++; print; next }
+    frontmatter == 1 && renamed == 0 && /^name:[[:space:]]*/ {
+      print "name: " exported_name
+      renamed = 1
+      next
+    }
+    { print }
+  ' "$file"
+}
+
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
@@ -287,13 +315,20 @@ if [[ -d "$CLAUDE_SKILLS" ]]; then
     [[ -f "$skill_src" ]] || continue
 
     name="$(basename "$skill_dir")"
-    snake_name="$(to_skill_name "$name")"
+    exported_name="$name"
+    if workspace_exported_name="$(workspace_managed_export_name "$skill_dir")"; then
+      exported_name="$workspace_exported_name"
+    fi
+    snake_name="$(to_skill_name "$exported_name")"
     skills_synced=$((skills_synced + 1))
-    desired_codex_dirs["$name"]=1
+    desired_codex_dirs["$exported_name"]=1
 
     # Stage stripped version
     staged_stripped="$tmpdir/skill_stripped_${name}.md"
     strip_mcp_tools "$skill_src" > "$staged_stripped"
+
+    staged_named="$tmpdir/skill_named_${name}.md"
+    rewrite_skill_frontmatter_name "$staged_stripped" "$exported_name" > "$staged_named"
 
     # Insert generation marker after frontmatter closing ---
     staged_codex="$tmpdir/skill_codex_${name}.md"
@@ -301,13 +336,13 @@ if [[ -d "$CLAUDE_SKILLS" ]]; then
       BEGIN { fm=0 }
       /^---$/ { fm++; print; if (fm==2) print "\n" marker; next }
       { print }
-    ' "$staged_stripped" > "$staged_codex"
+    ' "$staged_named" > "$staged_codex"
 
     # Codex gets kebab-case dir name
-    sync_file "$staged_codex" "$CODEX_SKILLS/$name/SKILL.md" "Synced skill→codex"
+    sync_file "$staged_codex" "$CODEX_SKILLS/$exported_name/SKILL.md" "Synced skill→codex"
 
     # Agents get only names that do not collide with Gemini built-in slash commands.
-    if hg_gemini_name_is_builtin "$name" || hg_gemini_name_is_builtin "$snake_name"; then
+    if hg_gemini_name_is_builtin "$exported_name" || hg_gemini_name_is_builtin "$snake_name"; then
       gemini_builtin_name_skips=$((gemini_builtin_name_skips + 1))
     else
       desired_agents_dirs["$snake_name"]=1
