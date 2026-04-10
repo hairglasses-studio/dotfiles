@@ -13,6 +13,14 @@ source "$SCRIPT_DIR/lib/notify.sh"
 reloaded=""
 failed=""
 
+if [[ -x "$SCRIPT_DIR/theme-sync.sh" ]]; then
+  if "$SCRIPT_DIR/theme-sync.sh" --quiet 2>/dev/null; then
+    reloaded="${reloaded} theme"
+  else
+    failed="${failed} theme"
+  fi
+fi
+
 # Hyprland config
 if compositor_reload 2>/dev/null; then
   reloaded="${reloaded} hyprland"

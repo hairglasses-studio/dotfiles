@@ -49,16 +49,55 @@
   "widgets": [
     "title",
     "dnd",
+    "mpris",
+    "buttons-grid#quick",
+    "volume",
     "notifications"
   ],
   "widget-config": {
     "title": {
-      "text": "NOTIFICATIONS",
+      "text": "CONTROL SURFACE",
       "clear-all-button": true,
-      "button-text": "CLEAR"
+      "button-text": "PURGE"
     },
     "dnd": {
-      "text": "DO NOT DISTURB"
+      "text": "QUIET MODE"
+    },
+    "mpris": {
+      "show-album-art": "when-available",
+      "autohide": true,
+      "loop-carousel": true
+    },
+    "buttons-grid#quick": {
+      "buttons-per-row": 2,
+      "actions": [
+        {
+          "label": "RELOAD",
+          "command": "bash -lc '$HOME/hairglasses-studio/dotfiles/scripts/rice-reload.sh'"
+        },
+        {
+          "label": "THEME",
+          "command": "bash -lc \"$HOME/.local/bin/theme-sync\""
+        },
+        {
+          "label": "WALL",
+          "command": "bash -lc '$HOME/hairglasses-studio/dotfiles/scripts/wallpaper-cycle.sh random'"
+        },
+        {
+          "label": "NIGHT",
+          "command": "bash -lc 'pkill hyprsunset || hyprsunset --temperature 3500'",
+          "type": "toggle",
+          "update-command": "bash -lc 'pgrep -x hyprsunset >/dev/null && echo true || echo false'"
+        }
+      ]
+    },
+    "volume": {
+      "label": "OUTPUT",
+      "show-per-app": true,
+      "show-per-app-label": true,
+      "expand-per-app": false,
+      "expand-button-label": "DETAIL",
+      "collapse-button-label": "HIDE"
     }
   }
 }

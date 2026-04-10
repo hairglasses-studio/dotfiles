@@ -5,15 +5,15 @@
 # quick-terminal-animation-duration = 0.12
 
 # ── Font ────────────────────────────────────────
-font-family = Hack Nerd Font
-font-family-bold = Hack Nerd Font
-font-family-italic = Hack Nerd Font
-font-family-bold-italic = Hack Nerd Font
+font-family = Monaspace Neon
+font-family-bold = Monaspace Neon
+font-family-italic = Monaspace Neon
+font-family-bold-italic = Monaspace Neon
 font-style = Regular
 font-style-bold = Bold
 font-style-italic = Italic
 font-style-bold-italic = Bold Italic
-font-size = 12
+font-size = 11
 font-feature = calt
 font-feature = liga
 font-feature = ss01
@@ -56,14 +56,14 @@ palette = 14=#9aedfe
 palette = 15=#eff0eb
 
 # ── Window ──────────────────────────────────────
-background-opacity = 1
+background-opacity = 0.96
 window-decoration = false
 window-subtitle = working-directory
-window-padding-x = 4
-window-padding-y = 2
+window-padding-x = 14
+window-padding-y = 10
 window-padding-balance = true
 # macos-titlebar-style = hidden  # macOS-only
-window-theme = ghostty
+window-theme = dark
 
 # ── Shader ──────────────────────────────────────
 custom-shader = shaders/film-grain-pro.glsl

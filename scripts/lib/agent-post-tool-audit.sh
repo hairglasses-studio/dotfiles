@@ -105,23 +105,19 @@ case "$file_path" in
     ;;
 esac
 
-# ── Phase 3: Palette check (non-blocking, warnings only) ──
+# ── Phase 3: Theme check (non-blocking, warnings only) ──
 palette_warnings=()
 case "$file_path" in
-  *.conf | *.toml | *.scss | *.yuck | *.ini)
+  *.conf | *.toml | *.scss | *.yuck | *.ini | *.css | *.json)
     if [[ -f "$file_path" ]]; then
-      snazzy_palette="000000 1a1a1a 1a1b26 ff5c57 5af78e f3f99d 57c7ff ff6ac1 9aedfe f1f1f0 686868 eff0eb d4d4d4 264f78 ffffff f8f8f2 282a36"
-      hex_colors="$(grep -oiE '#[0-9a-fA-F]{6}' "$file_path" 2>/dev/null | sed 's/#//' | tr '[:upper:]' '[:lower:]' | sort -u || true)"
-      for color in $hex_colors; do
-        match=false
-        for ok in $snazzy_palette; do
-          if [[ "$color" == "$ok" ]]; then
-            match=true
-            break
-          fi
-        done
-        if [[ "$match" == false ]]; then
-          palette_warnings+=("[palette] non-Snazzy color #$color in $file_path")
+      for ref in \
+        "Hack Nerd Font|legacy UI font" \
+        "Matcha-dark-sea|legacy GTK theme" \
+        "JetBrains Mono|legacy font"
+      ; do
+        IFS='|' read -r pattern label <<<"$ref"
+        if grep -qi "$pattern" "$file_path" 2>/dev/null; then
+          palette_warnings+=("[theme] ${label} reference in $file_path")
         fi
       done
     fi

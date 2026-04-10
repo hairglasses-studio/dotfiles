@@ -214,28 +214,55 @@ test_symlinks() {
 
 # ── Section: Palette ───────────────────────────────
 test_palette() {
-  echo "── Palette Compliance ──" >&2
-  local violations=0
-  # Check for known non-Snazzy colors in tracked config files
-  for color in "#d4d4d4" "#282a36" "#f8f8f2" "#264f78"; do
-    local count
-    count="$(grep -rl "$color" --include="*.conf" --include="*.toml" --include="*.css" --include="*.scss" --include="*.ini" --include="*.yml" --include="*.yaml" --include="*.theme" --include="*.rasi" "$SCRIPT_DIR/.." 2>/dev/null | grep -v ".git" | wc -l || true)"
-    if [[ $count -gt 0 ]]; then
-      add_result palette "non_snazzy_$color" fail "$count files"
-      violations=$((violations + count))
-    fi
-  done
-  if [[ $violations -eq 0 ]]; then
-    add_result palette "snazzy_compliance" pass "zero non-Snazzy colors"
+  echo "── Theme Surface ──" >&2
+
+  local scan_paths=(
+    "$SCRIPT_DIR/../eww"
+    "$SCRIPT_DIR/../hyprshell"
+    "$SCRIPT_DIR/../swaync"
+    "$SCRIPT_DIR/../wofi"
+    "$SCRIPT_DIR/../wlogout"
+    "$SCRIPT_DIR/../hyprland"
+    "$SCRIPT_DIR/../ghostty/config"
+    "$SCRIPT_DIR/../kitty/kitty.conf"
+    "$SCRIPT_DIR/../fontconfig/conf.d/51-monospace.conf"
+    "$SCRIPT_DIR/../README.md"
+    "$SCRIPT_DIR/../docs/SPRINT-NEXT.md"
+  )
+
+  local hack_count matcha_count jetbrains_count
+  hack_count="$(rg -l 'Hack Nerd Font' "${scan_paths[@]}" 2>/dev/null | wc -l || true)"
+  matcha_count="$(rg -li 'Matcha-dark-sea' "${scan_paths[@]}" 2>/dev/null | wc -l || true)"
+  jetbrains_count="$(rg -li 'JetBrains Mono' "${scan_paths[@]}" 2>/dev/null | wc -l || true)"
+
+  if [[ $hack_count -gt 0 ]]; then
+    add_result palette "legacy_hack_refs" fail "$hack_count files still reference Hack Nerd Font"
+  else
+    add_result palette "legacy_hack_refs" pass "zero references"
   fi
 
-  # Check for JetBrains font refs
-  local jb_count
-  jb_count="$(grep -ril "jetbrains" --include="*.conf" --include="*.toml" --include="*.css" --include="*.scss" --include="*.ini" --include="*.yml" --include="*.rasi" "$SCRIPT_DIR/.." 2>/dev/null | grep -v ".git" | grep -v "metapac/" | grep -v "Pacfile" | wc -l || true)"
-  if [[ $jb_count -gt 0 ]]; then
-    add_result palette "jetbrains_font_refs" warn "$jb_count files"
+  if [[ $matcha_count -gt 0 ]]; then
+    add_result palette "legacy_matcha_refs" warn "$matcha_count files still reference Matcha-dark-sea"
   else
-    add_result palette "jetbrains_font_refs" pass "zero references"
+    add_result palette "legacy_matcha_refs" pass "zero references"
+  fi
+
+  if [[ $jetbrains_count -gt 0 ]]; then
+    add_result palette "legacy_jetbrains_refs" warn "$jetbrains_count files still reference JetBrains Mono"
+  else
+    add_result palette "legacy_jetbrains_refs" pass "zero references"
+  fi
+
+  if [[ -f "$SCRIPT_DIR/../theme/palette.env" ]] && [[ -x "$SCRIPT_DIR/theme-sync.sh" ]]; then
+    add_result palette "theme_sync_pipeline" pass "palette + sync script present"
+  else
+    add_result palette "theme_sync_pipeline" fail "missing theme/palette.env or scripts/theme-sync.sh"
+  fi
+
+  if [[ -x "$SCRIPT_DIR/hyprpm-bootstrap.sh" ]]; then
+    add_result palette "hyprpm_bootstrap" pass "repo-managed plugin bootstrap present"
+  else
+    add_result palette "hyprpm_bootstrap" warn "scripts/hyprpm-bootstrap.sh missing or not executable"
   fi
 }
 
