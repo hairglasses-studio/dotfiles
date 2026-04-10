@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: hg-mcp local Ollama regression suite
+
+prompts:
+  - '{{tool_name}}'
+
+providers:
+  - id: file://provider.cjs
+    label: hg-mcp-ollama-eval
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://assert.js:validateOllamaOutput
+
+tests:
+  - description: structured output adheres to schema
+    vars:
+      tool_name: aftrs_ollama_structured
+      args:
+        prompt: "Respond with status: OK"
+        schema:
+          type: "object"
+          required: ["status"]
+          properties:
+            status:
+              type: "string"
+
+  - description: tool chat correctly infers tool call
+    vars:
+      tool_name: aftrs_ollama_tool_chat
+      args:
+        message: "Call the test_tool with param=test"
+        tools:
+          - type: "function"
+            function:
+              name: "test_tool"
+              description: "A test tool"
+              parameters:
+                type: "object"
+                required: ["param"]
+                properties:
+                  param:
+                    type: "string"
