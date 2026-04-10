@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"go.opentelemetry.io/otel"
@@ -131,6 +132,47 @@ func TestGetReadinessReportsMissingAlias(t *testing.T) {
 	}
 	if readiness.AliasChecks[2].Status != "missing_alias" {
 		t.Fatalf("code-primary alias status = %q, want missing_alias", readiness.AliasChecks[2].Status)
+	}
+}
+
+func TestGetHealthUsesSingleStatusSnapshot(t *testing.T) {
+	var mu sync.Mutex
+	requests := map[string]int{}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		requests[r.URL.Path]++
+		mu.Unlock()
+
+		switch r.URL.Path {
+		case "/api/version":
+			_, _ = w.Write([]byte(`{"version":"0.20.4"}`))
+		case "/api/tags":
+			_, _ = w.Write([]byte(`{"models":[{"name":"code-primary"},{"name":"code-fast"},{"name":"nomic-embed-text:v1.5"}]}`))
+		case "/api/ps":
+			t.Fatalf("GetHealth() should not fetch /api/ps")
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+
+	client := &OllamaClient{baseURL: srv.URL, httpClient: srv.Client()}
+	health, err := client.GetHealth(context.Background())
+	if err != nil {
+		t.Fatalf("GetHealth() error = %v", err)
+	}
+	if health == nil || health.Version != "0.20.4" {
+		t.Fatalf("GetHealth() = %#v, want version 0.20.4", health)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if requests["/api/version"] != 1 {
+		t.Fatalf("version requests = %d, want 1", requests["/api/version"])
+	}
+	if requests["/api/tags"] != 1 {
+		t.Fatalf("tags requests = %d, want 1", requests["/api/tags"])
 	}
 }
 
