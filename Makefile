@@ -1,6 +1,14 @@
-.PHONY: test test-lib test-scripts test-verbose sync clean unmanaged packages
+.PHONY: test test-lib test-scripts test-verbose sync clean unmanaged packages lint
 
 test: test-lib test-scripts
+
+lint:
+	@echo "=== Shell Syntax Checks ==="
+	bash -n scripts/*.sh scripts/lib/*.sh
+	@echo "=== Shellcheck ==="
+	shellcheck scripts/*.sh scripts/lib/*.sh || true
+	@echo "=== JSON Validation ==="
+	find . -maxdepth 2 -name "*.json" -not -path "*/node_modules/*" -exec jq . {} + >/dev/null
 
 test-lib:
 	@echo "=== Library tests ==="
