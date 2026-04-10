@@ -6,12 +6,12 @@ dotfiles-mcp is now a discovery-first workstation MCP surface with committed con
 
 The server remains stdio-first, built on mcpkit, and defaults to deferred loading outside the discovery surface. Batch workflows still default to dry-run where live mutation would be risky.
 
+Publish guard and release automation now emit contract-diff summaries into CI artifacts and step summaries, and the standalone mirror release flow appends the same diff into the GitHub release body so public surface changes stay visible at publish time.
+
 ## Planned
 
 ### Phase 1 — Publish And Mirror Hygiene
 - Automate canonical-to-standalone carry-forward for the embedded `dotfiles/mcp/dotfiles-mcp` module so publish-mirror updates stop depending on manual drift cleanup
-- Publish contract diff summaries into release notes and docs whenever `snapshots/contract/` changes
-- Promote the committed `publish-check`, `host-smoke`, and release-parity workflows into the standalone mirror so GitHub releases enforce the same gate set
 
 ### Phase 2 — Surface Quality And Verification
 - Add targeted integration tests for Bluetooth, juhradial-mx, and desktop-control readiness paths that currently depend on workstation state

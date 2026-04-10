@@ -134,3 +134,18 @@ EOF
     assert_line --index 3 "contract_snapshot_cli.go"
     assert_line --index 4 "workflow_surface_test.go"
 }
+
+@test "hg-dotfiles-mcp-projection tracks workflow drift as required direct-copy projection" {
+    mkdir -p "${TEST_CANONICAL}/.github/workflows" "${TEST_STANDALONE}/.github/workflows"
+    cat > "${TEST_CANONICAL}/.github/workflows/release.yml" <<'EOF'
+name: Release
+EOF
+    cat > "${TEST_STANDALONE}/.github/workflows/release.yml" <<'EOF'
+name: Mirror Release
+EOF
+
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.direct_copy.required_drift_count, .direct_copy.required_drift[0]'"
+    assert_success
+    assert_line --index 0 "1"
+    assert_line --index 1 ".github/workflows/release.yml"
+}

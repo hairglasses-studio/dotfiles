@@ -1,4 +1,5 @@
 name: Validate Server Card
+
 on:
   push:
     paths:
@@ -28,9 +29,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.26.1"
-
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Validate canonical publish surface
+      - name: Validate publish surface
         run: make publish-check

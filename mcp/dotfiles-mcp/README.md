@@ -124,6 +124,7 @@ The canonical source treats the committed snapshot bundle as the public surface 
 - `make contract-check` verifies the checked-in artifacts match the live registry
 - `make contract-diff` summarizes surface deltas against a base ref
 - `make publish-check` runs vet, tests, contract validation, and release-parity checks together
+- The publish-guard and release workflows emit `make contract-diff` summaries into CI step summaries and uploaded artifacts; the standalone mirror release also appends the diff into the GitHub release body
 
 Exact per-tool counts should come from the snapshot bundle rather than prose. The current surface domains include:
 
