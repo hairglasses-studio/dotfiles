@@ -34,7 +34,7 @@
   },
   "device_mode": "auto",
   "buttons": {
-    "gesture": "virtual_desktops",
+    "gesture": "radial_menu",
     "thumb": "radial_menu",
     "middle": "middle_click",
     "shift_wheel": "smartshift",
@@ -42,74 +42,78 @@
     "back": "back",
     "horizontal_scroll": "scroll_left_right"
   },
+  "radial_menu_assignments": {
+    "gesture": "clipboard",
+    "thumb": "launcher"
+  },
   "radial": {
     "minimal_mode": false
   },
   "radial_menu": {
     "slices": [
       {
-        "label": "Play/Pause",
-        "action_id": "play_pause",
+        "label": "Overview",
+        "action_id": "overview",
         "type": "exec",
-        "command": "playerctl play-pause",
+        "command": "/home/hg/.local/bin/juhradial-hyprshell-trigger overview",
         "color": "green",
-        "icon": "media-playback-start-symbolic"
+        "icon": "view-grid-symbolic"
       },
       {
-        "label": "Next Track",
-        "action_id": "next_track",
+        "label": "Switcher",
+        "action_id": "switcher",
         "type": "exec",
-        "command": "playerctl next",
-        "color": "green",
-        "icon": "media-skip-forward-symbolic"
+        "command": "/home/hg/.local/bin/juhradial-hyprshell-trigger switch",
+        "color": "teal",
+        "icon": "window-new-symbolic"
       },
       {
-        "label": "Previous Track",
-        "action_id": "prev_track",
+        "label": "Codex",
+        "action_id": "launch_codex",
         "type": "exec",
-        "command": "playerctl previous",
-        "color": "green",
-        "icon": "media-skip-backward-symbolic"
-      },
-      {
-        "label": "Lock",
-        "action_id": "lock",
-        "type": "exec",
-        "command": "loginctl lock-session",
-        "color": "red",
-        "icon": "system-lock-screen-symbolic"
-      },
-      {
-        "label": "Settings",
-        "action_id": "settings",
-        "type": "exec",
-        "command": "juhradial-settings",
+        "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh",
         "color": "blue",
-        "icon": "preferences-system-symbolic"
+        "icon": "utilities-terminal-symbolic"
       },
       {
-        "label": "Disabled",
-        "action_id": "none",
-        "type": "none",
-        "command": "",
-        "color": "gray",
-        "icon": "action-unavailable-symbolic"
+        "label": "Claude",
+        "action_id": "launch_claude",
+        "type": "exec",
+        "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-claude-launch.sh",
+        "color": "blue",
+        "icon": "utilities-terminal-symbolic"
       },
       {
-        "label": "Disabled",
-        "action_id": "none",
-        "type": "none",
-        "command": "",
-        "color": "gray",
-        "icon": "action-unavailable-symbolic"
+        "label": "Gemini",
+        "action_id": "launch_gemini",
+        "type": "exec",
+        "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-gemini-launch.sh",
+        "color": "blue",
+        "icon": "utilities-terminal-symbolic"
       },
       {
-        "label": "Disabled",
-        "action_id": "none",
-        "type": "none",
-        "command": "",
-        "color": "gray",
-        "icon": "action-unavailable-symbolic"
+        "label": "WS Left",
+        "action_id": "workspace_left",
+        "type": "exec",
+        "command": "hyprctl dispatch workspace e-1",
+        "color": "purple",
+        "icon": "go-previous-symbolic"
+      },
+      {
+        "label": "WS Right",
+        "action_id": "workspace_right",
+        "type": "exec",
+        "command": "hyprctl dispatch workspace e+1",
+        "color": "purple",
+        "icon": "go-next-symbolic"
+      },
+      {
+        "label": "Float",
+        "action_id": "toggle_floating",
+        "type": "exec",
+        "command": "hyprctl dispatch togglefloating",
+        "color": "orange",
+        "icon": "view-restore-symbolic"
       }
     ],
     "easy_switch_shortcuts": false,
@@ -118,5 +122,165 @@
       "unknown",
       "unknown"
     ]
+  },
+  "radial_menus": {
+    "launcher": {
+      "slices": [
+        {
+          "label": "Overview",
+          "action_id": "overview",
+          "type": "exec",
+          "command": "/home/hg/.local/bin/juhradial-hyprshell-trigger overview",
+          "color": "green",
+          "icon": "view-grid-symbolic"
+        },
+        {
+          "label": "Switcher",
+          "action_id": "switcher",
+          "type": "exec",
+          "command": "/home/hg/.local/bin/juhradial-hyprshell-trigger switch",
+          "color": "teal",
+          "icon": "window-new-symbolic"
+        },
+        {
+          "label": "Codex",
+          "action_id": "launch_codex",
+          "type": "exec",
+          "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh",
+          "color": "blue",
+          "icon": "utilities-terminal-symbolic"
+        },
+        {
+          "label": "Claude",
+          "action_id": "launch_claude",
+          "type": "exec",
+          "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-claude-launch.sh",
+          "color": "blue",
+          "icon": "utilities-terminal-symbolic"
+        },
+        {
+          "label": "Gemini",
+          "action_id": "launch_gemini",
+          "type": "exec",
+          "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-gemini-launch.sh",
+          "color": "blue",
+          "icon": "utilities-terminal-symbolic"
+        },
+        {
+          "label": "WS Left",
+          "action_id": "workspace_left",
+          "type": "exec",
+          "command": "hyprctl dispatch workspace e-1",
+          "color": "purple",
+          "icon": "go-previous-symbolic"
+        },
+        {
+          "label": "WS Right",
+          "action_id": "workspace_right",
+          "type": "exec",
+          "command": "hyprctl dispatch workspace e+1",
+          "color": "purple",
+          "icon": "go-next-symbolic"
+        },
+        {
+          "label": "Float",
+          "action_id": "toggle_floating",
+          "type": "exec",
+          "command": "hyprctl dispatch togglefloating",
+          "color": "orange",
+          "icon": "view-restore-symbolic"
+        }
+      ],
+      "easy_switch_shortcuts": false,
+      "easy_switch_host_os": [
+        "linux",
+        "unknown",
+        "unknown"
+      ]
+    },
+    "clipboard": {
+      "slices": [
+        {
+          "label": "Copy",
+          "action_id": "copy",
+          "type": "exec",
+          "command": "/home/hg/.local/bin/juhradial-kitty-clipboard copy",
+          "color": "blue",
+          "icon": "edit-copy-symbolic"
+        },
+        {
+          "label": "Paste",
+          "action_id": "paste",
+          "type": "exec",
+          "command": "/home/hg/.local/bin/juhradial-kitty-clipboard paste",
+          "color": "teal",
+          "icon": "edit-paste-symbolic"
+        },
+        {
+          "label": "Paste Selection",
+          "action_id": "paste_selection",
+          "type": "exec",
+          "command": "/home/hg/.local/bin/juhradial-kitty-clipboard paste-selection",
+          "color": "green",
+          "icon": "edit-paste-symbolic"
+        },
+        {
+          "label": "Empty",
+          "action_id": "none",
+          "type": "none",
+          "command": "",
+          "color": "gray",
+          "icon": "action-unavailable-symbolic"
+        },
+        {
+          "label": "Empty",
+          "action_id": "none",
+          "type": "none",
+          "command": "",
+          "color": "gray",
+          "icon": "action-unavailable-symbolic"
+        },
+        {
+          "label": "Empty",
+          "action_id": "none",
+          "type": "none",
+          "command": "",
+          "color": "gray",
+          "icon": "action-unavailable-symbolic"
+        },
+        {
+          "label": "Empty",
+          "action_id": "none",
+          "type": "none",
+          "command": "",
+          "color": "gray",
+          "icon": "action-unavailable-symbolic"
+        },
+        {
+          "label": "Empty",
+          "action_id": "none",
+          "type": "none",
+          "command": "",
+          "color": "gray",
+          "icon": "action-unavailable-symbolic"
+        }
+      ],
+      "easy_switch_shortcuts": false,
+      "easy_switch_host_os": [
+        "linux",
+        "unknown",
+        "unknown"
+      ]
+    }
+  },
+  "thumbwheel": {
+    "mode": "kitty_font_size",
+    "target_window_classes": [
+      "kitty"
+    ],
+    "step": 0.5,
+    "min_font_size": 6.0,
+    "max_font_size": 12.0,
+    "pass_through_unmatched": true
   }
 }

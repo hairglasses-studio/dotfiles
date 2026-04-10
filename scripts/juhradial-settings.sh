@@ -2,7 +2,7 @@
 # juhradial-settings.sh — launch the installed juhradial settings dashboard
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 source "$SCRIPT_DIR/lib/juhradial.sh"
 
 settings_script="$(juhradial_settings_script)"
@@ -12,4 +12,5 @@ if [[ ! -f "$settings_script" ]]; then
   exit 1
 fi
 
+juhradial_export_graphical_env
 exec python3 "$settings_script" "$@"

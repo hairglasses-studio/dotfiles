@@ -14,6 +14,7 @@ settings	Open the juhradial settings dashboard
 sync	Copy repo-owned juhradial seed config into ~/.config/juhradial
 restart	Restart juhradial, ydotool, and the overlay
 wheel-fix	Reapply compatible MX wheel hardware settings
+verify	Run the MX runtime and patch-layer verification workflow
 battery	Show MX Master 4 battery from juhradial D-Bus
 devices	List Logitech hidraw devices and paired MX devices
 CMDS
@@ -30,12 +31,18 @@ _input_status() {
   local live_config="$live_dir/config.json"
   local live_profiles="$live_dir/profiles.json"
   local live_macros="$live_dir/macros"
-  local status
+  local status transport
 
   if juhradial_systemctl is-active juhradialmx-daemon.service &>/dev/null; then
     printf "  %s%-12s%s %sactive%s\n" "$HG_DIM" "juhradial" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
     printf "  %s%-12s%s %sinactive%s\n" "$HG_DIM" "juhradial" "$HG_RESET" "$HG_RED" "$HG_RESET"
+  fi
+
+  if juhradial_patch_applied; then
+    printf "  %s%-12s%s %sapplied%s\n" "$HG_DIM" "patched" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+  else
+    printf "  %s%-12s%s %smissing%s\n" "$HG_DIM" "patched" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
   fi
 
   if juhradial_overlay_running; then
@@ -55,6 +62,24 @@ _input_status() {
   else
     printf "  %s%-12s%s %sinactive%s\n" "$HG_DIM" "makima" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
   fi
+
+  printf "  %s%-12s%s %s\n" "$HG_DIM" "solaar" "$HG_RESET" "$(juhradial_solaar_policy)"
+
+  transport="$(juhradial_transport_state)"
+  case "$transport" in
+    bolt)
+      printf "  %s%-12s%s %sbolt%s\n" "$HG_DIM" "transport" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+      ;;
+    bluetooth)
+      printf "  %s%-12s%s %sbluetooth%s\n" "$HG_DIM" "transport" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+      ;;
+    split-brain)
+      printf "  %s%-12s%s %ssplit-brain%s\n" "$HG_DIM" "transport" "$HG_RESET" "$HG_RED" "$HG_RESET"
+      ;;
+    *)
+      printf "  %s%-12s%s %s%s%s\n" "$HG_DIM" "transport" "$HG_RESET" "$HG_YELLOW" "$transport" "$HG_RESET"
+      ;;
+  esac
 
   if [[ -f "$tracked_config" && -f "$live_config" ]]; then
     if diff -q "$tracked_config" "$live_config" &>/dev/null; then
@@ -99,6 +124,14 @@ _input_status() {
     printf "  %s%-12s%s %s\n" "$HG_DIM" "charging" "$HG_RESET" "$charging"
   fi
 
+  local thumb_ring gesture_ring thumbwheel_mode
+  thumb_ring="$(juhradial_config_value '.radial_menu_assignments.thumb // "launcher"')"
+  gesture_ring="$(juhradial_config_value '.radial_menu_assignments.gesture // "clipboard"')"
+  thumbwheel_mode="$(juhradial_config_value '.thumbwheel.mode // "disabled"')"
+  [[ -n "$thumb_ring" ]] && printf "  %s%-12s%s %s\n" "$HG_DIM" "thumb ring" "$HG_RESET" "$thumb_ring"
+  [[ -n "$gesture_ring" ]] && printf "  %s%-12s%s %s\n" "$HG_DIM" "gesture ring" "$HG_RESET" "$gesture_ring"
+  [[ -n "$thumbwheel_mode" ]] && printf "  %s%-12s%s %s\n" "$HG_DIM" "thumbwheel" "$HG_RESET" "$thumbwheel_mode"
+
   printf "\n"
 }
 
@@ -121,10 +154,15 @@ _input_settings() {
 _input_sync() {
   local script="$HG_DOTFILES/scripts/juhradial-sync.sh"
   local wheel_script="$HG_DOTFILES/scripts/juhradial-wheel-apply.sh"
+  local install_script="$HG_DOTFILES/scripts/juhradial-install.sh"
   if [[ ! -x "$script" ]]; then
     hg_die "Sync script not found: $script"
   fi
   "$script"
+  if ! juhradial_patch_applied && [[ -x "$install_script" ]]; then
+    hg_info "Rebuilding patched juhradial runtime..."
+    JUHRADIAL_INSTALL_SKIP_SYNC=1 "$install_script" --quiet
+  fi
   juhradial_systemctl restart juhradialmx-daemon.service >/dev/null
   [[ -x "$wheel_script" ]] && "$wheel_script" --quiet || true
   hg_ok "Synced juhradial seed config"
@@ -147,10 +185,31 @@ _input_wheel_fix() {
   "$script"
 }
 
+_input_verify() {
+  local script="$HG_DOTFILES/scripts/juhradial-verify.sh"
+  if [[ ! -x "$script" ]]; then
+    hg_die "Verify script not found: $script"
+  fi
+  "$script"
+}
+
 _input_battery() {
   local status battery charging
   if ! status="$(juhradial_battery_status 2>/dev/null)"; then
-    hg_die "Battery unavailable — juhradial daemon is not reporting yet"
+    case "$(juhradial_transport_state)" in
+      split-brain)
+        hg_die "Battery unavailable — MX transport split-brain detected; disconnect Bluetooth or move the mouse fully onto Bolt"
+        ;;
+      bluetooth)
+        hg_die "Battery unavailable — juhradial is not reporting battery on the active Bluetooth path"
+        ;;
+      disconnected)
+        hg_die "Battery unavailable — MX Master 4 is not connected on Bolt or Bluetooth"
+        ;;
+      *)
+        hg_die "Battery unavailable — juhradial daemon is not reporting yet"
+        ;;
+    esac
   fi
 
   read -r battery charging <<<"$status"
@@ -159,6 +218,13 @@ _input_battery() {
 
 _input_devices() {
   printf "\n %s%sjuhradial devices%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
+  printf "  %s%-12s%s %s\n" "$HG_DIM" "transport" "$HG_RESET" "$(juhradial_transport_state)"
+  if juhradial_bolt_receiver_present; then
+    printf "  %s%-12s%s present\n" "$HG_DIM" "bolt" "$HG_RESET"
+  else
+    printf "  %s%-12s%s missing\n" "$HG_DIM" "bolt" "$HG_RESET"
+  fi
+  printf "  %s%-12s%s %s\n" "$HG_DIM" "solaar" "$HG_RESET" "$(juhradial_solaar_policy)"
 
   local found=false
   local dev props model
@@ -199,6 +265,7 @@ input_run() {
     sync)         _input_sync ;;
     restart)      _input_restart ;;
     wheel-fix)    _input_wheel_fix ;;
+    verify)       _input_verify ;;
     battery)      _input_battery ;;
     devices)      _input_devices ;;
     *)            hg_die "Unknown input command: $cmd. Run 'hg input --help'." ;;

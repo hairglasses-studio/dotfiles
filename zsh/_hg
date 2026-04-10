@@ -103,6 +103,7 @@ _hg() {
           'sync:Copy repo-owned juhradial seed config into ~/.config/juhradial'
           'restart:Restart juhradial, ydotool, and the overlay'
           'wheel-fix:Reapply compatible MX wheel hardware settings'
+          'verify:Run the MX runtime and patch-layer verification workflow'
           'battery:Show MX Master 4 battery via juhradial D-Bus'
           'devices:List Logitech hidraw devices and paired MX devices'
         ) ;;

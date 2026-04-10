@@ -6,8 +6,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/juhradial.sh"
 
-DEVICE_MAC="${BT_MX_MASTER:-D2:8E:C5:DE:9F:CC}"
-
 info()  { printf '\033[0;36m:: %s\033[0m\n' "$*"; }
 ok()    { printf '\033[0;32m   %s\033[0m\n' "$*"; }
 warn()  { printf '\033[0;33m   %s\033[0m\n' "$*"; }
@@ -35,23 +33,29 @@ info "Restarting juhradial overlay..."
 "$SCRIPT_DIR/juhradial-mx.sh" --restart --quiet
 ok "overlay restarted"
 
-# Step 4: Full BT reconnect (only with --full)
+# Step 4: Extra receiver reapply (only with --full)
 if $full; then
-    info "Full BT reconnect..."
-    bluetoothctl disconnect "$DEVICE_MAC" 2>/dev/null || true
-    sleep 2
-    bluetoothctl connect "$DEVICE_MAC" 2>/dev/null && ok "BT reconnected" || fail "BT connect failed — power cycle the mouse"
-    sleep 2
+    info "Reapplying wheel state after full reset..."
+    "$SCRIPT_DIR/juhradial-wheel-apply.sh" --quiet || true
     juhradial_systemctl restart juhradialmx-daemon.service >/dev/null || true
     "$SCRIPT_DIR/juhradial-mx.sh" --restart --quiet || true
+    ok "full receiver reset complete"
 fi
 
 # Step 5: Verify
 info "Verifying..."
+transport="$(juhradial_transport_state)"
+case "$transport" in
+    bolt) ok "Transport: Bolt receiver" ;;
+    bluetooth) warn "Transport: Bluetooth (expected Bolt receiver)" ;;
+    split-brain) fail "Transport: split-brain (Bluetooth + receiver both visible)" ;;
+    *) warn "Transport: ${transport}" ;;
+esac
+
 if status="$(juhradial_battery_status 2>/dev/null)"; then
     read -r battery charging <<<"$status"
     ok "Battery: ${battery}% (charging: ${charging})"
 else
     warn "Battery unavailable — daemon not reporting yet"
 fi
-ok "Done — test thumb button, wheel mode, and radial menu now"
+ok "Done — test thumb button, wheel direction, and radial menu now"

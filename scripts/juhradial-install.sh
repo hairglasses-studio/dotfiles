@@ -6,8 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$SCRIPT_DIR/lib/juhradial.sh"
 
-REPO_URL="https://github.com/JuhLabs/juhradial-mx.git"
-PINNED_COMMIT="db83da0a0117fd63081c557d0f1da4d384b1d255"
+REPO_URL="$(juhradial_repo_url)"
+PINNED_COMMIT="$(juhradial_pinned_commit)"
 
 quiet=false
 
@@ -48,6 +48,23 @@ sync_tree() {
   cp -a "$src" "$dst"
 }
 
+apply_repo_patches() {
+  local patch_dir patch
+  patch_dir="$(juhradial_patch_dir)"
+  [[ -d "$patch_dir" ]] || return 0
+
+  while IFS= read -r patch; do
+    [[ -n "$patch" ]] || continue
+    if git -C "$src_dir" apply --reverse --check "$patch" >/dev/null 2>&1; then
+      log "Patch already applied: $(basename "$patch")"
+      continue
+    fi
+
+    log "Applying patch $(basename "$patch")"
+    git -C "$src_dir" apply "$patch"
+  done < <(find "$patch_dir" -maxdepth 1 -type f -name '*.patch' | sort)
+}
+
 require_cmd git
 require_cmd cargo
 require_cmd python3
@@ -69,17 +86,25 @@ else
 fi
 
 git -C "$src_dir" checkout --detach "$PINNED_COMMIT" >/dev/null
+apply_repo_patches
 
 log "Building juhradiald from $PINNED_COMMIT"
 cargo build --manifest-path "$src_dir/daemon/Cargo.toml" --release >/dev/null
 
 install -Dm755 "$src_dir/daemon/target/release/juhradiald" "$bin_dir/juhradiald"
 ln -sf "$DOTFILES_DIR/scripts/juhradial-mx.sh" "$bin_dir/juhradial-mx"
+ln -sf "$DOTFILES_DIR/scripts/juhradial-verify.sh" "$bin_dir/juhradial-verify"
+ln -sf "$DOTFILES_DIR/scripts/juhradial-patch-guard.sh" "$bin_dir/juhradial-patch-guard"
 ln -sf "$DOTFILES_DIR/scripts/juhradial-settings.sh" "$bin_dir/juhradial-settings"
+ln -sf "$DOTFILES_DIR/scripts/hyprshell-trigger.sh" "$bin_dir/juhradial-hyprshell-trigger"
+ln -sf "$DOTFILES_DIR/scripts/kitty-clipboard-action.sh" "$bin_dir/juhradial-kitty-clipboard"
+ln -sf "$DOTFILES_DIR/scripts/kitty-font-wheel.sh" "$bin_dir/juhradial-kitty-font-wheel"
 sync_tree "$src_dir/overlay" "$install_dir/overlay"
 sync_tree "$src_dir/assets" "$install_dir/assets"
 
-"$SCRIPT_DIR/juhradial-sync.sh" --quiet
+if [[ "${JUHRADIAL_INSTALL_SKIP_SYNC:-0}" != "1" ]]; then
+  "$SCRIPT_DIR/juhradial-sync.sh" --quiet
+fi
 
 install -Dm644 \
   "$DOTFILES_DIR/systemd/juhradialmx-daemon.service" \

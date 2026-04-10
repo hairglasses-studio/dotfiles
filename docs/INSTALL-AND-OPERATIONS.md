@@ -33,6 +33,12 @@ Use the dedicated deploy scripts when the target is machine-global instead of us
 
 These are the right entrypoints when the change belongs under `/etc`, bootloader state, or another machine-global surface.
 
+For the MX Master 4 stack specifically:
+
+- `scripts/hg input status`: fast runtime status for juhradial, ydotool, transport, and config drift
+- `scripts/hg input verify`: live runtime + patch-layer verification workflow
+- `scripts/juhradial-wheel-apply.sh`: recovery-only wheel-state bridge; Solaar is intentionally limited to this repair path until juhradial restores the full HID++ wheel state itself
+
 ## Documentation parity helpers
 
 Use the repo scripts instead of editing compatibility mirrors by hand.
@@ -134,6 +140,13 @@ bash ./install.sh --check
 
 ```bash
 bash ./scripts/hg-codex-audit.sh --write-workspace-cache --write-wiki-docs --write-json
+```
+
+### MX input stack
+
+```bash
+bash ./scripts/hg input status
+bash ./scripts/hg input verify
 ```
 
 ## When to use `scripts/hg`
