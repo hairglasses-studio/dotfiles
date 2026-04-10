@@ -7,6 +7,8 @@ source "$SCRIPT_DIR/lib/hg-core.sh"
 
 MODE="plan"
 JSON_MODE=false
+DIFF_PREVIEW=false
+DIFF_PREVIEW_LINES=20
 CANONICAL_PATH="${HG_DOTFILES}/mcp/dotfiles-mcp"
 STANDALONE_PATH="${HG_STUDIO_ROOT}/dotfiles-mcp"
 TEMP_WORKTREE=""
@@ -15,7 +17,7 @@ STANDALONE_INSPECT_ROOT=""
 
 usage() {
   cat <<'EOF'
-Usage: hg-dotfiles-mcp-projection.sh [plan|check] [--canonical PATH] [--standalone PATH] [--json]
+Usage: hg-dotfiles-mcp-projection.sh [plan|check] [--canonical PATH] [--standalone PATH] [--json] [--diff-preview] [--diff-lines N]
 
 Inspect the bundled dotfiles MCP module and the standalone dotfiles-mcp publish
 repo, then emit the current manual-projection plan and drift summary.
@@ -28,6 +30,8 @@ Options:
   --canonical PATH   Override the bundled canonical module path
   --standalone PATH  Override the standalone repo path (bare or non-bare)
   --json             Emit machine-readable JSON
+  --diff-preview     Include drift previews for overlap and direct-copy drift
+  --diff-lines N     Limit each drift preview to N lines (default: 20)
   -h, --help         Show this help text
 EOF
 }
@@ -59,6 +63,15 @@ while [[ $# -gt 0 ]]; do
       JSON_MODE=true
       shift
       ;;
+    --diff-preview)
+      DIFF_PREVIEW=true
+      shift
+      ;;
+    --diff-lines)
+      DIFF_PREVIEW=true
+      DIFF_PREVIEW_LINES="$2"
+      shift 2
+      ;;
     -h|--help)
       usage
       exit 0
@@ -69,7 +82,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-hg_require git jq perl
+hg_require diff git jq perl
 
 resolve_path_candidate() {
   local candidate="${1:-}"
@@ -103,6 +116,7 @@ CANONICAL_PATH="$(resolve_path_candidate "$CANONICAL_PATH")" || hg_die "Canonica
 STANDALONE_PATH="$(resolve_standalone_repo_path "$STANDALONE_PATH" "$CANONICAL_PATH")"
 
 [[ -f "$CANONICAL_PATH/go.mod" ]] || hg_die "Canonical module missing go.mod: $CANONICAL_PATH"
+[[ "$DIFF_PREVIEW_LINES" =~ ^[1-9][0-9]*$ ]] || hg_die "--diff-lines must be a positive integer"
 
 resolve_standalone_inspect_root() {
   local root="$1"
@@ -153,6 +167,63 @@ json_array_file() {
   jq -Rsc 'split("\n") | map(select(length > 0))' "$1"
 }
 
+json_objects_file() {
+  if [[ -s "$1" ]]; then
+    jq -cs '.' "$1"
+  else
+    printf '[]\n'
+  fi
+}
+
+append_diff_preview() {
+  local rel="$1"
+  local left="$2"
+  local right="$3"
+  local kind="$4"
+  local outfile="$5"
+  local preview
+  local numstat
+  local added="0"
+  local deleted="0"
+
+  $DIFF_PREVIEW || return 0
+
+  preview="$(
+    diff -u \
+      --label "canonical/$rel" \
+      --label "standalone/$rel" \
+      "$left" \
+      "$right" 2>/dev/null | awk -v limit="$DIFF_PREVIEW_LINES" '
+        NR <= 2 { print; next }
+        /^@@ / { in_hunk = 1 }
+        {
+          if (!in_hunk) {
+            next
+          }
+          if (body_lines < limit) {
+            print
+            body_lines++
+          }
+        }
+      ' || true
+  )"
+  numstat="$(git --no-pager diff --no-index --numstat -- "$left" "$right" 2>/dev/null || true)"
+
+  if [[ -n "$numstat" ]]; then
+    added="$(awk 'NR==1 {print ($1 == "-" ? 0 : $1)}' <<<"$numstat")"
+    deleted="$(awk 'NR==1 {print ($2 == "-" ? 0 : $2)}' <<<"$numstat")"
+  fi
+
+  jq -cn \
+    --arg path "$rel" \
+    --arg kind "$kind" \
+    --arg preview "$preview" \
+    --argjson added "${added:-0}" \
+    --argjson deleted "${deleted:-0}" \
+    '{path: $path, kind: $kind, added: $added, deleted: $deleted, preview: $preview}' >>"$outfile"
+  printf '\n' >>"$outfile"
+}
+
 resolve_standalone_inspect_root "$STANDALONE_PATH"
 TARGET_PACKAGE_DIR="${STANDALONE_INSPECT_ROOT}/internal/dotfiles"
 
@@ -169,8 +240,10 @@ COPY_PRESENT_LIST="$(temp_file)"
 COPY_IDENTICAL_LIST="$(temp_file)"
 COPY_DRIFTED_LIST="$(temp_file)"
 COPY_MISSING_LIST="$(temp_file)"
+COPY_DRIFT_PREVIEW_JSON="$(temp_file)"
 STANDALONE_ROOT_ONLY_LIST="$(temp_file)"
 STANDALONE_INTERNAL_ONLY_LIST="$(temp_file)"
+GO_DRIFT_PREVIEW_JSON="$(temp_file)"
 
 find "$CANONICAL_PATH" -maxdepth 1 -name '*.go' -printf '%f\n' | sort >"$CANONICAL_GO_LIST"
 find "$TARGET_PACKAGE_DIR" -maxdepth 1 -name '*.go' -printf '%f\n' | sort >"$TARGET_GO_LIST"
@@ -204,6 +277,7 @@ while IFS= read -r file; do
     printf '%s\n' "$file" >>"$GO_IDENTICAL_LIST"
   else
     printf '%s\n' "$file" >>"$GO_DRIFTED_LIST"
+    append_diff_preview "$file" "$tmp_rewritten" "$TARGET_PACKAGE_DIR/$file" "go_overlap" "$GO_DRIFT_PREVIEW_JSON"
   fi
   rm -f "$tmp_rewritten"
 done < <(comm -12 "$CANONICAL_GO_LIST" "$TARGET_GO_LIST")
@@ -245,6 +319,7 @@ for rel in "${copy_allowlist[@]}"; do
         printf '%s\n' "$rel" >>"$COPY_IDENTICAL_LIST"
       else
         printf '%s\n' "$rel" >>"$COPY_DRIFTED_LIST"
+        append_diff_preview "$rel" "$CANONICAL_PATH/$rel" "$STANDALONE_INSPECT_ROOT/$rel" "direct_copy" "$COPY_DRIFT_PREVIEW_JSON"
       fi
     else
       printf '%s\n' "$rel" >>"$COPY_MISSING_LIST"
@@ -282,6 +357,8 @@ if $JSON_MODE; then
     --arg inspect_mode "$inspect_mode" \
     --arg target_package_dir "$TARGET_PACKAGE_DIR" \
     --arg main_projection_note "Project bundled root Go files into internal/dotfiles with package main rewritten to package dotfiles; preserve standalone cmd/* entrypoints and the Setup-based bootstrap in internal/dotfiles/main.go." \
+    --argjson diff_preview_enabled "$DIFF_PREVIEW" \
+    --argjson diff_preview_lines "$DIFF_PREVIEW_LINES" \
     --argjson canonical_go_count "$(count_lines "$CANONICAL_GO_LIST")" \
     --argjson target_go_count "$(count_lines "$TARGET_GO_LIST")" \
     --argjson identical_count "$(count_lines "$GO_IDENTICAL_LIST")" \
@@ -300,12 +377,14 @@ if $JSON_MODE; then
     --argjson copy_identical "$(json_array_file "$COPY_IDENTICAL_LIST")" \
     --argjson copy_drifted "$(json_array_file "$COPY_DRIFTED_LIST")" \
     --argjson copy_missing "$(json_array_file "$COPY_MISSING_LIST")" \
+    --argjson copy_drift_previews "$(json_objects_file "$COPY_DRIFT_PREVIEW_JSON")" \
     --argjson go_identical "$(json_array_file "$GO_IDENTICAL_LIST")" \
     --argjson go_drifted "$(json_array_file "$GO_DRIFTED_LIST")" \
     --argjson go_canonical_only "$(json_array_file "$GO_CANONICAL_ONLY_LIST")" \
     --argjson go_projection_required "$(json_array_file "$GO_CANONICAL_ONLY_REQUIRED_LIST")" \
     --argjson go_intentional_canonical_only "$(json_array_file "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")" \
     --argjson go_target_only "$(json_array_file "$GO_TARGET_ONLY_LIST")" \
+    --argjson go_drift_previews "$(json_objects_file "$GO_DRIFT_PREVIEW_JSON")" \
     --argjson standalone_root_only "$(json_array_file "$STANDALONE_ROOT_ONLY_LIST")" \
     --argjson standalone_internal_only "$(json_array_file "$STANDALONE_INTERNAL_ONLY_LIST")" \
     '{
@@ -318,6 +397,8 @@ if $JSON_MODE; then
       target_package_dir: $target_package_dir,
       direct_copy: {
         candidate_count: $copy_candidate_count,
+        drift_preview_enabled: $diff_preview_enabled,
+        drift_preview_lines: $diff_preview_lines,
         present_count: $copy_present_count,
         identical_count: $copy_identical_count,
         drifted_count: $copy_drifted_count,
@@ -326,11 +407,14 @@ if $JSON_MODE; then
         present: $copy_present,
         identical: $copy_identical,
         drifted: $copy_drifted,
-        missing: $copy_missing
+        missing: $copy_missing,
+        drift_previews: $copy_drift_previews
       },
       go_projection: {
         canonical_count: $canonical_go_count,
         target_count: $target_go_count,
+        drift_preview_enabled: $diff_preview_enabled,
+        drift_preview_lines: $diff_preview_lines,
         identical_count: $identical_count,
         drifted_count: $drifted_count,
         canonical_only_count: $canonical_only_count,
@@ -342,7 +426,8 @@ if $JSON_MODE; then
         canonical_only: $go_canonical_only,
         projection_required: $go_projection_required,
         intentional_canonical_only: $go_intentional_canonical_only,
-        target_only: $go_target_only
+        target_only: $go_target_only,
+        drift_previews: $go_drift_previews
       },
       standalone_owned: {
         root_entries: $standalone_root_only,
@@ -376,6 +461,10 @@ if [[ -s "$COPY_DRIFTED_LIST" ]]; then
   printf '  direct-copy candidates that already drift from canonical content\n'
   sed 's/^/    - /' "$COPY_DRIFTED_LIST"
 fi
+if $DIFF_PREVIEW && [[ -s "$COPY_DRIFT_PREVIEW_JSON" ]]; then
+  printf '  direct-copy diff previews (first %s lines per file)\n' "$DIFF_PREVIEW_LINES"
+  jq -sr '.[] | "    - " + .path + " (+" + (.added|tostring) + " / -" + (.deleted|tostring) + ")\n" + (.preview | split("\n") | map(select(length > 0) | "      " + .) | join("\n"))' "$COPY_DRIFT_PREVIEW_JSON"
+fi
 if [[ -s "$COPY_MISSING_LIST" ]]; then
   sed 's/^/    - /' "$COPY_MISSING_LIST"
 fi
@@ -401,6 +490,10 @@ fi
 if [[ -s "$GO_DRIFTED_LIST" ]]; then
   printf '  overlapping files that already drift from the bundled source\n'
   sed 's/^/    - /' "$GO_DRIFTED_LIST"
+fi
+if $DIFF_PREVIEW && [[ -s "$GO_DRIFT_PREVIEW_JSON" ]]; then
+  printf '  overlapping drift previews (first %s lines per file)\n' "$DIFF_PREVIEW_LINES"
+  jq -sr '.[] | "    - " + .path + " (+" + (.added|tostring) + " / -" + (.deleted|tostring) + ")\n" + (.preview | split("\n") | map(select(length > 0) | "      " + .) | join("\n"))' "$GO_DRIFT_PREVIEW_JSON"
 fi
 if [[ -s "$GO_TARGET_ONLY_LIST" ]]; then
   printf '  standalone-only package files\n'

@@ -76,6 +76,26 @@ teardown() {
     assert_line --index 3 "cmd"
 }
 
+@test "hg-dotfiles-mcp-projection emits diff previews when requested" {
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json --diff-preview --diff-lines 6 | jq -r '.direct_copy.drift_preview_enabled, .direct_copy.drift_preview_lines, .direct_copy.drift_previews[0].path, (.direct_copy.drift_previews[0].preview | contains(\"standalone-host-smoke\")), .go_projection.drift_previews[0].path, (.go_projection.drift_previews[0].preview | contains(\"stale beta\"))'"
+    assert_success
+    assert_line --index 0 "true"
+    assert_line --index 1 "6"
+    assert_line --index 2 "scripts/host-smoke.sh"
+    assert_line --index 3 "true"
+    assert_line --index 4 "beta.go"
+    assert_line --index 5 "true"
+}
+
+@test "hg-dotfiles-mcp-projection prints diff previews in text mode when requested" {
+    run bash "${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh" check --canonical "${TEST_CANONICAL}" --standalone "${TEST_STANDALONE}" --diff-preview --diff-lines 5
+    assert_success
+    assert_output --partial "direct-copy diff previews (first 5 lines per file)"
+    assert_output --partial "overlapping drift previews (first 5 lines per file)"
+    assert_output --partial "standalone-host-smoke"
+    assert_output --partial "stale beta"
+}
+
 @test "hg-dotfiles-mcp-projection classifies intentional canonical-only differences separately" {
     cat > "${TEST_CANONICAL}/contract_snapshot_cli.go" <<'EOF'
 package main
