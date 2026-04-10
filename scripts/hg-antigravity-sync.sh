@@ -18,13 +18,22 @@ ANTIGRAVITY_LEGACY_ENV_PATH="${HG_ANTIGRAVITY_LEGACY_ENV_PATH:-$HOME/.config/ant
 ANTIGRAVITY_WRAPPER_PATH="${HG_ANTIGRAVITY_WRAPPER_PATH:-$HOME/.local/bin/antigravity-managed}"
 ANTIGRAVITY_DESKTOP_PATH="${HG_ANTIGRAVITY_DESKTOP_PATH:-$HOME/.local/share/applications/antigravity.desktop}"
 ANTIGRAVITY_WORKSPACE_FILE_PATH="${HG_ANTIGRAVITY_WORKSPACE_FILE_PATH:-$WORKSPACE_ROOT/hairglasses-studio.code-workspace}"
-ANTIGRAVITY_HOME_DOC_PATH="${HG_ANTIGRAVITY_HOME_DOC_PATH:-$HOME/.gemini/GEMINI.md}"
+ANTIGRAVITY_HOME_DOC_PATH="${HG_ANTIGRAVITY_HOME_DOC_PATH:-$ANTIGRAVITY_DIR/GEMINI.md}"
 WORKSPACE_RULE_PATH="${HG_ANTIGRAVITY_RULE_PATH:-$WORKSPACE_ROOT/.agents/rules/antigravity-workspace.md}"
 WORKSPACE_SKILLS_DIR="${HG_ANTIGRAVITY_WORKSPACE_SKILLS_DIR:-$WORKSPACE_ROOT/.agents/skills}"
 WORKSPACE_WORKFLOWS_DIR="${HG_ANTIGRAVITY_WORKSPACE_WORKFLOWS_DIR:-$WORKSPACE_ROOT/.agents/workflows}"
 PERMISSION_PRESET_SOURCE="${HG_ANTIGRAVITY_PERMISSION_PRESET_SOURCE:-$HG_DOTFILES/config/antigravity/permission-presets.md}"
 PERMISSION_PRESET_TARGET="${HG_ANTIGRAVITY_PERMISSION_PRESET_TARGET:-$ANTIGRAVITY_DIR/permission-presets.md}"
 ECOSYSTEM_SYNC_SCRIPT="${HG_ANTIGRAVITY_ECOSYSTEM_SYNC_SCRIPT:-$SCRIPT_DIR/hg-antigravity-ecosystem-sync.sh}"
+DEFAULT_OLLAMA_BASE_URL="${DEFAULT_OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
+DEFAULT_OLLAMA_CHAT_MODEL="${DEFAULT_OLLAMA_CHAT_MODEL:-qwen3:8b}"
+DEFAULT_OLLAMA_FAST_MODEL="${DEFAULT_OLLAMA_FAST_MODEL:-qwen3:4b}"
+DEFAULT_OLLAMA_CODE_MODEL="${DEFAULT_OLLAMA_CODE_MODEL:-qwen2.5-coder:7b}"
+DEFAULT_OLLAMA_EMBED_MODEL="${DEFAULT_OLLAMA_EMBED_MODEL:-nomic-embed-text:v1.5}"
+DEFAULT_OLLAMA_API_KEY="${DEFAULT_OLLAMA_API_KEY:-ollama}"
+ANTIGRAVITY_HOME_START_MARKER="<!-- BEGIN GENERATED ANTIGRAVITY HOME: hg-antigravity-sync -->"
+ANTIGRAVITY_HOME_END_MARKER="<!-- END GENERATED ANTIGRAVITY HOME: hg-antigravity-sync -->"
+WORKSPACE_HOME_START_MARKER="<!-- BEGIN GENERATED WORKSPACE GLOBAL: hg-workspace-global-sync -->"
 
 pending=0
 managed_workspace_skill_updates=0
@@ -61,6 +70,7 @@ Options:
   --antigravity-mcp <path>         Antigravity MCP config path
   --antigravity-settings <path>    Antigravity user settings path
   --antigravity-env <path>         Runtime env manifest path
+  --antigravity-home-doc <path>    Antigravity home GEMINI.md path
   --antigravity-wrapper <path>     Managed Antigravity launcher wrapper path
   --antigravity-desktop <path>     User-local Antigravity desktop entry path
   --antigravity-workspace <path>   Managed default Antigravity workspace file path
@@ -101,6 +111,11 @@ while [[ $# -gt 0 ]]; do
     --antigravity-env)
       [[ $# -ge 2 ]] || hg_die "--antigravity-env requires a path"
       ANTIGRAVITY_ENV_MANIFEST_PATH="$2"
+      shift 2
+      ;;
+    --antigravity-home-doc)
+      [[ $# -ge 2 ]] || hg_die "--antigravity-home-doc requires a path"
+      ANTIGRAVITY_HOME_DOC_PATH="$2"
       shift 2
       ;;
     --antigravity-wrapper)
@@ -268,6 +283,83 @@ sync_rendered_file() {
       hg_warn "Out of date $label: $target"
       ;;
   esac
+}
+
+replace_marked_region() {
+  local file="$1"
+  local block_file="$2"
+  local start_marker="$3"
+  local end_marker="$4"
+  local tmp
+  tmp="$(mktemp)"
+
+  awk -v start="$start_marker" -v end="$end_marker" -v block="$block_file" '
+    BEGIN {
+      while ((getline line < block) > 0) {
+        generated = generated line "\n"
+      }
+      close(block)
+      replaced = 0
+      skipping = 0
+    }
+    $0 == start {
+      printf "%s", generated
+      replaced = 1
+      skipping = 1
+      next
+    }
+    $0 == end {
+      skipping = 0
+      next
+    }
+    !skipping { print }
+    END {
+      if (skipping) {
+        exit 43
+      }
+      if (!replaced) {
+        exit 42
+      }
+    }
+  ' "$file" >"$tmp" || {
+    local status=$?
+    rm -f "$tmp"
+    case "$status" in
+      42)
+        hg_die "Generated block markers not found in $file"
+        ;;
+      43)
+        hg_die "Generated block start marker in $file is missing a matching end marker"
+        ;;
+      *)
+        return "$status"
+        ;;
+    esac
+  }
+
+  cat "$tmp"
+  rm -f "$tmp"
+}
+
+replace_legacy_prefix() {
+  local target="$1"
+  local legacy_file="$2"
+  local block_file="$3"
+  local legacy_lines
+  legacy_lines="$(wc -l <"$legacy_file" | tr -d ' ')"
+
+  if cmp -s "$target" "$legacy_file"; then
+    cat "$block_file"
+    return 0
+  fi
+
+  if cmp -s <(head -n "$legacy_lines" "$target") "$legacy_file"; then
+    cat "$block_file"
+    tail -n "+$((legacy_lines + 1))" "$target"
+    return 0
+  fi
+
+  return 1
 }
 
 remove_managed_path() {
@@ -448,6 +540,10 @@ render_workspace_rule_file() {
 }
 
 render_home_gemini_doc() {
+  local legacy_doc="$tmpdir/GEMINI-legacy.md"
+  local block_doc="$tmpdir/GEMINI-block.md"
+  local merged_doc="$tmpdir/GEMINI.md"
+
   {
     printf '# Antigravity Home Rule\n\n'
     printf 'Apply these defaults when working in `/home/hg/hairglasses-studio`.\n\n'
@@ -456,9 +552,45 @@ render_home_gemini_doc() {
     printf -- '- Prefer workspace-local workflows in `%s/` before global workflows.\n' "$WORKSPACE_WORKFLOWS_DIR"
     printf -- '- Honor repo-local `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` as the first repo-specific instruction layer.\n'
     printf -- '- Use the managed launcher so OpenAI, Anthropic, Google, and Gemini provider keys are runtime-resolved from local `.env` files.\n'
-  } >"$tmpdir/GEMINI.md"
-  validate_markdown_budget "$tmpdir/GEMINI.md" "Antigravity home rule"
-  sync_rendered_file "$ANTIGRAVITY_HOME_DOC_PATH" "$tmpdir/GEMINI.md" "Synced Antigravity home GEMINI.md"
+    printf -- '- Local Ollama-compatible tools may target `OLLAMA_BASE_URL` with `OLLAMA_API_KEY`; managed defaults keep the local endpoint on `127.0.0.1:11434` unless a repo opts out.\n'
+  } >"$legacy_doc"
+
+  {
+    printf '%s\n' "$ANTIGRAVITY_HOME_START_MARKER"
+    cat "$legacy_doc"
+    printf '\n%s\n' "$ANTIGRAVITY_HOME_END_MARKER"
+  } >"$block_doc"
+
+  if [[ -f "$ANTIGRAVITY_HOME_DOC_PATH" ]]; then
+    if grep -Fqx "$ANTIGRAVITY_HOME_START_MARKER" "$ANTIGRAVITY_HOME_DOC_PATH"; then
+      replace_marked_region \
+        "$ANTIGRAVITY_HOME_DOC_PATH" \
+        "$block_doc" \
+        "$ANTIGRAVITY_HOME_START_MARKER" \
+        "$ANTIGRAVITY_HOME_END_MARKER" >"$merged_doc"
+    elif replace_legacy_prefix "$ANTIGRAVITY_HOME_DOC_PATH" "$legacy_doc" "$block_doc" >"$merged_doc"; then
+      :
+    elif grep -Fqx "$WORKSPACE_HOME_START_MARKER" "$ANTIGRAVITY_HOME_DOC_PATH"; then
+      {
+        cat "$block_doc"
+        printf '\n'
+        cat "$ANTIGRAVITY_HOME_DOC_PATH"
+      } >"$merged_doc"
+    else
+      {
+        cat "$ANTIGRAVITY_HOME_DOC_PATH"
+        if [[ -s "$ANTIGRAVITY_HOME_DOC_PATH" ]]; then
+          printf '\n\n'
+        fi
+        cat "$block_doc"
+      } >"$merged_doc"
+    fi
+  else
+    cp "$block_doc" "$merged_doc"
+  fi
+
+  validate_markdown_budget "$merged_doc" "Antigravity home rule"
+  sync_rendered_file "$ANTIGRAVITY_HOME_DOC_PATH" "$merged_doc" "Synced Antigravity home GEMINI.md"
 }
 
 build_workspace_skill_links() {
@@ -624,7 +756,7 @@ parse_env_file() {
         value="${raw%%[[:space:]]#*}"
       fi
       case "$key" in
-        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY)
+        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY|OLLAMA_BASE_URL|OLLAMA_CHAT_MODEL|OLLAMA_FAST_MODEL|OLLAMA_CODE_MODEL|OLLAMA_EMBED_MODEL|OLLAMA_API_KEY)
           if [[ -z "${imported_env_values[$key]:-}" && -n "$value" ]]; then
             imported_env_values["$key"]="$value"
             imported_env_sources["$key"]="$env_file"
@@ -651,18 +783,31 @@ build_env_bridge_manifest() {
     fi
   done < <(list_workspace_member_repos)
 
+  imported_env_values["OLLAMA_BASE_URL"]="${imported_env_values["OLLAMA_BASE_URL"]:-$DEFAULT_OLLAMA_BASE_URL}"
+  imported_env_sources["OLLAMA_BASE_URL"]="${imported_env_sources["OLLAMA_BASE_URL"]:-managed-default}"
+  imported_env_values["OLLAMA_CHAT_MODEL"]="${imported_env_values["OLLAMA_CHAT_MODEL"]:-$DEFAULT_OLLAMA_CHAT_MODEL}"
+  imported_env_sources["OLLAMA_CHAT_MODEL"]="${imported_env_sources["OLLAMA_CHAT_MODEL"]:-managed-default}"
+  imported_env_values["OLLAMA_FAST_MODEL"]="${imported_env_values["OLLAMA_FAST_MODEL"]:-$DEFAULT_OLLAMA_FAST_MODEL}"
+  imported_env_sources["OLLAMA_FAST_MODEL"]="${imported_env_sources["OLLAMA_FAST_MODEL"]:-managed-default}"
+  imported_env_values["OLLAMA_CODE_MODEL"]="${imported_env_values["OLLAMA_CODE_MODEL"]:-$DEFAULT_OLLAMA_CODE_MODEL}"
+  imported_env_sources["OLLAMA_CODE_MODEL"]="${imported_env_sources["OLLAMA_CODE_MODEL"]:-managed-default}"
+  imported_env_values["OLLAMA_EMBED_MODEL"]="${imported_env_values["OLLAMA_EMBED_MODEL"]:-$DEFAULT_OLLAMA_EMBED_MODEL}"
+  imported_env_sources["OLLAMA_EMBED_MODEL"]="${imported_env_sources["OLLAMA_EMBED_MODEL"]:-managed-default}"
+  imported_env_values["OLLAMA_API_KEY"]="${imported_env_values["OLLAMA_API_KEY"]:-$DEFAULT_OLLAMA_API_KEY}"
+  imported_env_sources["OLLAMA_API_KEY"]="${imported_env_sources["OLLAMA_API_KEY"]:-managed-default}"
+
   {
     printf '{\n'
     printf '  "generator": "dotfiles/scripts/hg-antigravity-sync.sh",\n'
     printf '  "workspace_root": %s,\n' "$(jq -Rn --arg v "$WORKSPACE_ROOT" '$v')"
     printf '  "mode": "runtime-resolved",\n'
-    printf '  "allowed_keys": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY"],\n'
+    printf '  "allowed_keys": ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY", "OLLAMA_BASE_URL", "OLLAMA_CHAT_MODEL", "OLLAMA_FAST_MODEL", "OLLAMA_CODE_MODEL", "OLLAMA_EMBED_MODEL", "OLLAMA_API_KEY"],\n'
     printf '  "ordered_sources": %s\n' "$(json_string_array_from_lines "$source_file")"
     printf '}\n'
   } >"$tmpdir/env-sources.json"
 
   local key
-  for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY; do
+  for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY OLLAMA_BASE_URL OLLAMA_CHAT_MODEL OLLAMA_FAST_MODEL OLLAMA_CODE_MODEL OLLAMA_EMBED_MODEL OLLAMA_API_KEY; do
     [[ -n "${imported_env_values[$key]:-}" ]] || missing_env_vars=$((missing_env_vars + 1))
   done
 
@@ -725,7 +870,7 @@ build_launcher_wrapper() {
     printf '        value="${raw%%%%[[:space:]]#*}"\n'
     printf '      fi\n'
     printf '      case "$key" in\n'
-    printf '        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY)\n'
+    printf '        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY|OLLAMA_BASE_URL|OLLAMA_CHAT_MODEL|OLLAMA_FAST_MODEL|OLLAMA_CODE_MODEL|OLLAMA_EMBED_MODEL|OLLAMA_API_KEY)\n'
     printf '          if [[ -z "${!key:-}" && -n "$value" ]]; then\n'
     printf '            export "$key=$value"\n'
     printf '          fi\n'
@@ -740,6 +885,12 @@ build_launcher_wrapper() {
     printf '    parse_runtime_env_file "$env_file"\n'
     printf "  done < <(jq -r '.ordered_sources[]?' %q)\n" "$ANTIGRAVITY_ENV_MANIFEST_PATH"
     printf 'fi\n\n'
+    printf ': "${OLLAMA_BASE_URL:=%s}"\n' "$DEFAULT_OLLAMA_BASE_URL"
+    printf ': "${OLLAMA_CHAT_MODEL:=%s}"\n' "$DEFAULT_OLLAMA_CHAT_MODEL"
+    printf ': "${OLLAMA_FAST_MODEL:=%s}"\n' "$DEFAULT_OLLAMA_FAST_MODEL"
+    printf ': "${OLLAMA_CODE_MODEL:=%s}"\n' "$DEFAULT_OLLAMA_CODE_MODEL"
+    printf ': "${OLLAMA_EMBED_MODEL:=%s}"\n' "$DEFAULT_OLLAMA_EMBED_MODEL"
+    printf ': "${OLLAMA_API_KEY:=%s}"\n\n' "$DEFAULT_OLLAMA_API_KEY"
     printf 'if [[ "$#" -eq 0 && -f "$default_workspace" ]]; then\n'
     printf '  set -- "$default_workspace"\n'
     printf 'fi\n\n'
@@ -892,7 +1043,7 @@ write_metadata() {
   printf '%s\n' "${!managed_workspace_workflow_set[@]}" | sort -u >"$workspace_workflow_file"
 
   local key
-  for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY; do
+  for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY OLLAMA_BASE_URL OLLAMA_CHAT_MODEL OLLAMA_FAST_MODEL OLLAMA_CODE_MODEL OLLAMA_EMBED_MODEL OLLAMA_API_KEY; do
     if [[ -n "${imported_env_values[$key]:-}" ]]; then
       printf '%s\n' "$key" >>"$imported_vars_file"
     else
@@ -946,7 +1097,7 @@ write_metadata() {
     printf '  "global_gemini_md_present": %s,\n' "$( [[ -f "$ANTIGRAVITY_HOME_DOC_PATH" ]] && printf 'true' || printf 'false' )"
     printf '  "imported_env_sources": {\n'
     local first=1
-    for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY; do
+    for key in OPENAI_API_KEY ANTHROPIC_API_KEY GOOGLE_API_KEY GEMINI_API_KEY OLLAMA_BASE_URL OLLAMA_CHAT_MODEL OLLAMA_FAST_MODEL OLLAMA_CODE_MODEL OLLAMA_EMBED_MODEL OLLAMA_API_KEY; do
       [[ -n "${imported_env_sources[$key]:-}" ]] || continue
       [[ "$first" -eq 1 ]] || printf ',\n'
       first=0

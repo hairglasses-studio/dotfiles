@@ -78,21 +78,23 @@ sync_directory_tree() {
   local source_dir="$1"
   local target_dir="$2"
   local label="$3"
+  local -a cmp_args=(-rlcni --delete)
+  local -a sync_args=(-rlptD --delete)
   mkdir -p "$target_dir"
   case "$MODE" in
     dry-run)
-      if rsync -ani --delete "$source_dir/" "$target_dir/" | grep -q .; then
+      if rsync "${cmp_args[@]}" "$source_dir/" "$target_dir/" | grep -q .; then
         hg_warn "Would sync $label: $target_dir"
       fi
       ;;
     check)
-      if rsync -ani --delete "$source_dir/" "$target_dir/" | grep -q .; then
+      if rsync "${cmp_args[@]}" "$source_dir/" "$target_dir/" | grep -q .; then
         hg_warn "Out of date $label: $target_dir"
         FAILED=1
       fi
       ;;
     write)
-      rsync -a --delete "$source_dir/" "$target_dir/"
+      rsync "${sync_args[@]}" "$source_dir/" "$target_dir/"
       hg_ok "Synced $label: $target_dir"
       ;;
   esac
@@ -196,7 +198,7 @@ run_workspace_sync() {
     dry-run) mode_args=(--dry-run) ;;
     check) mode_args=(--check) ;;
   esac
-  if ! HOME="$USER_HOME_DIR" HG_STUDIO_ROOT="$WORKSPACE_ROOT" \
+  if ! HOME="$home_dir" HG_STUDIO_ROOT="$WORKSPACE_ROOT" \
     bash "$HG_DOTFILES/scripts/hg-workspace-global-sync.sh" \
     "${mode_args[@]}" \
     --root "$WORKSPACE_ROOT" \

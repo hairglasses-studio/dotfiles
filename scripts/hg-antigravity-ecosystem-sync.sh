@@ -61,7 +61,7 @@ for arg in "$@"; do
   esac
 done
 
-hg_require jq git mktemp diff cmp curl awk sed find node npm /usr/bin/antigravity
+hg_require jq git mktemp diff cmp curl awk sed find node npm getent runuser /usr/bin/antigravity
 
 WORKSPACE_ROOT="$(cd "$WORKSPACE_ROOT" && pwd)"
 [[ -d "$WORKSPACE_ROOT" ]] || hg_die "Workspace root not found: $WORKSPACE_ROOT"
@@ -180,6 +180,34 @@ validate_markdown_budget() {
   if [[ "$length" -gt 12000 ]]; then
     hg_die "$label exceeds Antigravity 12,000 character limit: $path ($length chars)"
   fi
+}
+
+antigravity_target_owner() {
+  if [[ -e "$ANTIGRAVITY_DIR" ]]; then
+    stat -c '%U' "$ANTIGRAVITY_DIR"
+    return 0
+  fi
+  stat -c '%U' "$(dirname "$ANTIGRAVITY_DIR")"
+}
+
+antigravity_target_home() {
+  local owner="$1"
+  getent passwd "$owner" | cut -d: -f6
+}
+
+run_antigravity_cli() {
+  local owner owner_home
+  owner="$(antigravity_target_owner)"
+  [[ "$owner" != "root" ]] || return 125
+  owner_home="$(antigravity_target_home "$owner")"
+  [[ -n "$owner_home" ]] || hg_die "Failed to resolve home directory for Antigravity owner: $owner"
+
+  if [[ "$(id -un)" == "$owner" ]]; then
+    HOME="$owner_home" /opt/Antigravity/bin/antigravity "$@"
+    return 0
+  fi
+
+  runuser -u "$owner" -- env HOME="$owner_home" /opt/Antigravity/bin/antigravity "$@"
 }
 
 ensure_repo_checkout() {
@@ -372,30 +400,36 @@ sync_global_skills_and_workflows() {
 }
 
 sync_cached_extensions_and_sidecars() {
-  local panel_url panel_vsix_path panel_ext panel_version
+  local panel_url panel_vsix_path panel_ext panel_version antigravity_owner
   panel_ext="$(jq -r '.extensions[] | select(.id == "n2ns.antigravity-panel") | .id' "$SOURCES_MANIFEST")"
   panel_version="$(jq -r '.extensions[] | select(.id == "n2ns.antigravity-panel") | .version' "$SOURCES_MANIFEST")"
   panel_url="$(jq -r '.extensions[] | select(.id == "n2ns.antigravity-panel") | .vsix_url' "$SOURCES_MANIFEST")"
   panel_vsix_path="$TOOL_CACHE_DIR/${panel_ext}-${panel_version}.vsix"
+  antigravity_owner="$(antigravity_target_owner)"
   download_asset "$panel_url" "$panel_vsix_path" "Antigravity Panel VSIX"
   managed_tool_set["$panel_vsix_path"]=1
 
-  local installed_panel=""
-  installed_panel="$(/opt/Antigravity/bin/antigravity --list-extensions --show-versions 2>/dev/null | awk '$0 ~ /^n2ns\.antigravity-panel@/ {print $0; exit}')"
-  if [[ "$installed_panel" != "n2ns.antigravity-panel@$panel_version" ]]; then
-    pending=1
-    case "$MODE" in
-      write)
-        /opt/Antigravity/bin/antigravity --install-extension "$panel_vsix_path" >/dev/null
-        hg_ok "Installed Antigravity extension: n2ns.antigravity-panel@$panel_version"
-        ;;
-      dry-run)
-        hg_warn "Would install Antigravity extension: n2ns.antigravity-panel@$panel_version"
-        ;;
-      check)
-        hg_warn "Missing Antigravity extension: n2ns.antigravity-panel@$panel_version"
-        ;;
-    esac
+  if [[ "$antigravity_owner" != "root" ]]; then
+    local installed_panel=""
+    installed_panel="$(
+      { run_antigravity_cli --list-extensions --show-versions 2>/dev/null || true; } \
+        | awk '$0 ~ /^n2ns\.antigravity-panel@/ {print $0; exit}'
+    )"
+    if [[ "$installed_panel" != "n2ns.antigravity-panel@$panel_version" ]]; then
+      pending=1
+      case "$MODE" in
+        write)
+          run_antigravity_cli --install-extension "$panel_vsix_path" >/dev/null
+          hg_ok "Installed Antigravity extension: n2ns.antigravity-panel@$panel_version"
+          ;;
+        dry-run)
+          hg_warn "Would install Antigravity extension: n2ns.antigravity-panel@$panel_version"
+          ;;
+        check)
+          hg_warn "Missing Antigravity extension: n2ns.antigravity-panel@$panel_version"
+          ;;
+      esac
+    fi
   fi
 
   local manager_asset_name manager_asset_url manager_appimage
@@ -531,7 +565,14 @@ write_metadata() {
 
   live_global_skill_count="$(wc -l <"$managed_skills_file" | tr -d ' ')"
   global_workflow_count="$(wc -l <"$managed_workflows_file" | tr -d ' ')"
-  installed_extensions="$(/opt/Antigravity/bin/antigravity --list-extensions --show-versions 2>/dev/null | awk '$0 ~ /^[A-Za-z0-9._-]+@/ {print}')"
+  if [[ "$(antigravity_target_owner)" == "root" ]]; then
+    installed_extensions=""
+  else
+    installed_extensions="$(
+      { run_antigravity_cli --list-extensions --show-versions 2>/dev/null || true; } \
+        | awk '$0 ~ /^[A-Za-z0-9._-]+@/ {print}'
+    )"
+  fi
   installed_extension_count="$(printf '%s\n' "$installed_extensions" | sed '/^$/d' | wc -l | tr -d ' ')"
   sickn33_ref="$(jq -r '.libraries.skills[] | select(.id == "sickn33-antigravity-awesome-skills") | .ref' "$SOURCES_MANIFEST")"
   webzler_ref="$(jq -r '.libraries.skills[] | select(.id == "webzler-agentmemory") | .ref' "$SOURCES_MANIFEST")"
