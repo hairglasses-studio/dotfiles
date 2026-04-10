@@ -367,7 +367,9 @@ setup_runtime_wrappers() {
 
     if command -v ollama &>/dev/null || [[ -x "$DOTFILES/scripts/hg-ollama-pull-resume.sh" ]]; then
         chmod +x "$DOTFILES/scripts/hg-ollama-pull-resume.sh" 2>/dev/null || true
+        chmod +x "$DOTFILES/scripts/hg-ollama-verify-heavy.sh" 2>/dev/null || true
         link_file "$DOTFILES/scripts/hg-ollama-pull-resume.sh" "$HOME/.local/bin/hg-ollama-pull-resume.sh"
+        link_file "$DOTFILES/scripts/hg-ollama-verify-heavy.sh" "$HOME/.local/bin/hg-ollama-verify-heavy.sh"
         info "  Ollama pull helper ready"
     fi
 }
@@ -423,6 +425,7 @@ check_install() {
     check_link "$DOTFILES/scripts/app-launcher.sh" "$HOME/.local/bin/app-launcher"
     check_link "$DOTFILES/scripts/app-switcher.sh" "$HOME/.local/bin/app-switcher"
     check_link "$DOTFILES/scripts/hg-ollama-pull-resume.sh" "$HOME/.local/bin/hg-ollama-pull-resume.sh"
+    check_link "$DOTFILES/scripts/hg-ollama-verify-heavy.sh" "$HOME/.local/bin/hg-ollama-verify-heavy.sh"
     check_link "$DOTFILES/scripts/juhradial-mx.sh" "$HOME/.local/bin/juhradial-mx"
     check_link "$DOTFILES/scripts/juhradial-settings.sh" "$HOME/.local/bin/juhradial-settings"
 
