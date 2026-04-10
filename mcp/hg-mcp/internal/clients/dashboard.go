@@ -49,14 +49,15 @@ type SystemConfig struct {
 
 // SystemStatus represents the current status of a system.
 type SystemStatus struct {
-	Name        string        `json:"name"`
-	Category    string        `json:"category"`
-	Status      string        `json:"status"` // online, offline, degraded, unknown
-	Latency     time.Duration `json:"latency"`
-	LastCheck   time.Time     `json:"last_check"`
-	Message     string        `json:"message,omitempty"`
-	Critical    bool          `json:"critical"`
-	HealthScore int           `json:"health_score"` // 0-100
+	Name        string           `json:"name"`
+	Category    string           `json:"category"`
+	Status      string           `json:"status"` // online, offline, degraded, unknown
+	Latency     time.Duration    `json:"latency"`
+	LastCheck   time.Time        `json:"last_check"`
+	Message     string           `json:"message,omitempty"`
+	Critical    bool             `json:"critical"`
+	HealthScore int              `json:"health_score"` // 0-100
+	Readiness   *OllamaReadiness `json:"readiness,omitempty"`
 }
 
 // Alert represents a system alert.
@@ -250,16 +251,16 @@ func (c *DashboardClient) GetQuickStatus(ctx context.Context) string {
 
 	// Check all systems concurrently
 	var wg sync.WaitGroup
-	results := make(map[string]bool)
+	results := make(map[string]string)
 	var resultsMu sync.Mutex
 
 	for _, sys := range systems {
 		wg.Add(1)
 		go func(s *SystemConfig) {
 			defer wg.Done()
-			online := c.checkSystem(ctx, s)
+			current := c.checkSystemDetailed(ctx, s)
 			resultsMu.Lock()
-			results[s.Name] = online
+			results[s.Name] = current.Status
 			resultsMu.Unlock()
 		}(sys)
 	}
@@ -268,13 +269,18 @@ func (c *DashboardClient) GetQuickStatus(ctx context.Context) string {
 	// Build summary
 	online := 0
 	offline := 0
+	degraded := 0
 	var icons []string
 
 	for _, sys := range systems {
-		if results[sys.Name] {
+		switch results[sys.Name] {
+		case "online":
 			online++
 			icons = append(icons, fmt.Sprintf("✓%s", sys.Name))
-		} else {
+		case "degraded":
+			degraded++
+			icons = append(icons, fmt.Sprintf("⚠%s", sys.Name))
+		default:
 			offline++
 			if sys.Critical {
 				icons = append(icons, fmt.Sprintf("✗%s!", sys.Name))
@@ -284,7 +290,14 @@ func (c *DashboardClient) GetQuickStatus(ctx context.Context) string {
 		}
 	}
 
-	return fmt.Sprintf("%d/%d online | %s", online, len(systems), formatIcons(icons))
+	summary := fmt.Sprintf("%d/%d online", online, len(systems))
+	if degraded > 0 {
+		summary = fmt.Sprintf("%s | %d degraded", summary, degraded)
+	}
+	if offline > 0 {
+		summary = fmt.Sprintf("%s | %d offline", summary, offline)
+	}
+	return fmt.Sprintf("%s | %s", summary, formatIcons(icons))
 }
 
 // formatIcons limits and formats the icon string
@@ -424,6 +437,10 @@ func (c *DashboardClient) checkSystemDetailed(ctx context.Context, sys *SystemCo
 		Critical:  sys.Critical,
 	}
 
+	if sys.Name == "ollama" {
+		return c.checkOllamaDetailed(ctx, status)
+	}
+
 	addr := net.JoinHostPort(sys.Host, strconv.Itoa(sys.Port))
 	start := time.Now()
 
@@ -490,6 +507,42 @@ func (c *DashboardClient) checkSystemDetailed(ctx context.Context, sys *SystemCo
 		status.HealthScore = calculateHealthScore(status.Latency)
 	}
 
+	return status
+}
+
+func (c *DashboardClient) checkOllamaDetailed(ctx context.Context, status SystemStatus) SystemStatus {
+	start := time.Now()
+	ollamaClient, err := NewOllamaClient()
+	if err != nil {
+		status.Status = "offline"
+		status.Message = err.Error()
+		status.HealthScore = 0
+		return status
+	}
+
+	readiness, err := ollamaClient.GetReadiness(ctx, false)
+	status.Latency = time.Since(start)
+	if err != nil {
+		status.Status = "offline"
+		status.Message = err.Error()
+		status.HealthScore = 0
+		return status
+	}
+	status.Readiness = readiness
+	switch {
+	case !readiness.Reachable:
+		status.Status = "offline"
+		status.Message = readiness.Error
+		status.HealthScore = 0
+	case readiness.Ready:
+		status.Status = "online"
+		status.Message = fmt.Sprintf("ready %d/%d required models; aliases clean", len(readiness.ReadyModels), len(readiness.RequiredModels))
+		status.HealthScore = calculateHealthScore(status.Latency)
+	default:
+		status.Status = "degraded"
+		status.Message = readiness.Error
+		status.HealthScore = 60
+	}
 	return status
 }
 
