@@ -40,6 +40,13 @@ teardown() {
     assert_output --partial "config"
 }
 
+@test "hg input help exposes the verify workflow" {
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_DIR}/hg" input --help
+    assert_success
+    assert_output --partial "verify"
+    assert_output --partial "wheel-fix"
+}
+
 @test "hg workflow sync help stays informational" {
     run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_DIR}/hg-workflow-sync.sh" --help
     assert_success
