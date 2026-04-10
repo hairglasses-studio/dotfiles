@@ -27,6 +27,7 @@ For `dotfiles-mcp`, also refresh the dedicated projection plan:
 
 ```bash
 bash ./scripts/hg-dotfiles-mcp-projection.sh check
+bash ./scripts/hg-dotfiles-mcp-projection.sh check --diff-preview --diff-lines 12
 ```
 
 If a local standalone mirror is managed through a bare repo and its local
