@@ -1,0 +1,96 @@
+[
+  {
+    "name": "dotfiles_audit_fleet",
+    "description": "Run a bounded fleet audit and sync analysis before changing repos",
+    "category": "workflow",
+    "tags": [
+      "fleet",
+      "audit",
+      "sync"
+    ]
+  },
+  {
+    "name": "dotfiles_cleanup_repo_hygiene",
+    "description": "Scan or clean repo branch and worktree drift with a dry-run-first workflow",
+    "category": "workflow",
+    "tags": [
+      "repo",
+      "git",
+      "cleanup",
+      "worktree"
+    ]
+  },
+  {
+    "name": "dotfiles_control_desktop",
+    "description": "Drive a desktop automation task with capability checks, OCR-assisted targeting, and the smallest write action",
+    "category": "workflow",
+    "tags": [
+      "desktop",
+      "control",
+      "ocr",
+      "hyprland"
+    ]
+  },
+  {
+    "name": "dotfiles_diagnose_workstation",
+    "description": "Investigate a workstation symptom with read-first machine health tools",
+    "category": "workflow",
+    "tags": [
+      "workstation",
+      "health",
+      "diagnose"
+    ]
+  },
+  {
+    "name": "dotfiles_onboard_repository",
+    "description": "Onboard an existing repo or create a new one with the standard studio baseline",
+    "category": "workflow",
+    "tags": [
+      "repo",
+      "onboarding",
+      "workflow"
+    ]
+  },
+  {
+    "name": "dotfiles_recover_sessions",
+    "description": "Investigate dead or degraded Claude Code sessions before attempting recovery",
+    "category": "workflow",
+    "tags": [
+      "claude",
+      "sessions",
+      "recovery"
+    ]
+  },
+  {
+    "name": "dotfiles_repair_config",
+    "description": "Inspect and repair one config surface before reloading services",
+    "category": "workflow",
+    "tags": [
+      "config",
+      "repair",
+      "validate",
+      "reload"
+    ]
+  },
+  {
+    "name": "dotfiles_triage_desktop",
+    "description": "Investigate a desktop symptom with read-first tools before reloads",
+    "category": "workflow",
+    "tags": [
+      "desktop",
+      "triage",
+      "hyprland",
+      "eww"
+    ]
+  },
+  {
+    "name": "dotfiles_validate_repository",
+    "description": "Validate repo readiness, build behavior, and baseline drift before making repo-wide changes",
+    "category": "workflow",
+    "tags": [
+      "repo",
+      "validate",
+      "pipeline"
+    ]
+  }
+]

@@ -1,0 +1,218 @@
+[
+  {
+    "uri": "dotfiles://catalog/priorities",
+    "name": "Workflow Priorities",
+    "description": "Front-door coverage summary for canonical dotfiles workflows",
+    "mime_type": "application/json",
+    "category": "catalog",
+    "tags": [
+      "catalog",
+      "priorities",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://catalog/skills",
+    "name": "Skill Catalog",
+    "description": "Canonical skill-to-workflow routing map for dotfiles operator work",
+    "mime_type": "application/json",
+    "category": "catalog",
+    "tags": [
+      "catalog",
+      "skills",
+      "dotfiles"
+    ]
+  },
+  {
+    "uri": "dotfiles://catalog/workflows",
+    "name": "Workflow Catalog",
+    "description": "Canonical workflow catalog for the highest-value dotfiles operator entrypoints",
+    "mime_type": "application/json",
+    "category": "catalog",
+    "tags": [
+      "catalog",
+      "workflow",
+      "dotfiles"
+    ]
+  },
+  {
+    "uri": "dotfiles://config/ghostty",
+    "name": "Ghostty Config",
+    "description": "Current Ghostty terminal configuration",
+    "mime_type": "text/plain",
+    "category": "config",
+    "tags": [
+      "ghostty",
+      "terminal",
+      "config"
+    ]
+  },
+  {
+    "uri": "dotfiles://config/hyprland",
+    "name": "Hyprland Config",
+    "description": "Current Hyprland window manager configuration",
+    "mime_type": "text/plain",
+    "category": "config",
+    "tags": [
+      "hyprland",
+      "wm",
+      "config"
+    ]
+  },
+  {
+    "uri": "dotfiles://palette/snazzy",
+    "name": "Snazzy Color Palette",
+    "description": "Snazzy terminal color palette as JSON",
+    "mime_type": "application/json",
+    "category": "config",
+    "tags": [
+      "palette",
+      "colors",
+      "snazzy"
+    ]
+  },
+  {
+    "uri": "dotfiles://server/overview",
+    "name": "dotfiles-mcp Overview",
+    "description": "Server card covering profile shape, discovery-first usage, and highest-value workflows",
+    "mime_type": "text/markdown",
+    "category": "overview",
+    "tags": [
+      "dotfiles",
+      "desktop",
+      "fleet",
+      "overview"
+    ]
+  },
+  {
+    "uri": "dotfiles://shader/current",
+    "name": "Active Shader",
+    "description": "Currently active Ghostty shader name and path",
+    "mime_type": "application/json",
+    "category": "config",
+    "tags": [
+      "shader",
+      "ghostty",
+      "glsl"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/config-repair",
+    "name": "Config Repair Workflow",
+    "description": "Compact read-first workflow for config inspection, validation, and smallest-safe reloads",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "config",
+      "validate",
+      "reload",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/desktop-control",
+    "name": "Desktop Control Workflow",
+    "description": "Compact workflow for desktop capability checks, OCR-assisted targeting, input actions, and the smallest safe reload",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "desktop",
+      "automation",
+      "ocr",
+      "hyprland",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/desktop-triage",
+    "name": "Desktop Triage Workflow",
+    "description": "Compact read-first workflow for compositor, bar, shader, and service issues",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "desktop",
+      "hyprland",
+      "eww",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/fleet-maintenance",
+    "name": "Fleet Maintenance Workflow",
+    "description": "Compact workflow for org sync, dependency drift, and fleet auditing",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "fleet",
+      "sync",
+      "audit",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/repo-hygiene",
+    "name": "Repo Hygiene Workflow",
+    "description": "Compact workflow for dry-run-first branch, worktree, and managed worktree cleanup",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "repo",
+      "git",
+      "worktree",
+      "cleanup",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/repo-onboarding",
+    "name": "Repo Onboarding Workflow",
+    "description": "Compact workflow for creating or onboarding repos into the shared studio baseline",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "repo",
+      "onboarding",
+      "baseline",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/repo-validate",
+    "name": "Repo Validate Workflow",
+    "description": "Compact workflow for repo readiness, build validation, and baseline drift checks",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "repo",
+      "validate",
+      "pipeline",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/session-recovery",
+    "name": "Claude Session Recovery Workflow",
+    "description": "Compact workflow for dead-session triage and recovery planning",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "claude",
+      "session",
+      "recovery",
+      "workflow"
+    ]
+  },
+  {
+    "uri": "dotfiles://workflows/workstation-diagnose",
+    "name": "Workstation Diagnose Workflow",
+    "description": "Compact read-first workflow for machine health, services, and local workstation failures",
+    "mime_type": "text/markdown",
+    "category": "workflow",
+    "tags": [
+      "workstation",
+      "health",
+      "services",
+      "workflow"
+    ]
+  }
+]

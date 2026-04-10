@@ -47,6 +47,13 @@ The server also exposes read-first workflow resources and prompt entrypoints for
 - Workflow priorities: `dotfiles://catalog/priorities`
 - Prompt workflows: desktop control, fleet audit, config repair, desktop triage, workstation diagnosis, repo validation, repo hygiene, repo onboarding, and session recovery
 
+The canonical module now commits public contract snapshots under [`snapshots/contract`](./snapshots/contract) and regenerates the public server card at [`.well-known/mcp.json`](./.well-known/mcp.json). Current canonical snapshot counts:
+
+- `291` tools
+- `33` registered modules
+- `17` resources
+- `9` prompts
+
 ## Quick Start
 
 After installing, try the discovery tools to explore what's available:
@@ -89,12 +96,12 @@ bash ./scripts/hg-github-stars.sh bootstrap --install-codex-mcp --execute
 
 Control how many tools load at startup via `DOTFILES_MCP_PROFILE`:
 
-| Profile | Behavior | Context Cost |
-|---------|----------|-------------|
-| `default` | Discovery tools loaded, rest deferred on demand | ~2K tokens |
-| `desktop` | Desktop-control subset eager: Hyprland, screenshot/OCR, input, shader, clipboard, notifications, and rice status | ~12K tokens |
-| `ops` | Operational subset (config, desktop, fleet) loaded eagerly | ~15K tokens |
-| `full` | All tools loaded immediately | ~40K tokens |
+| Profile | Behavior | Approx. Prompt Footprint |
+|---------|----------|--------------------------|
+| `default` | Discovery tools loaded, rest deferred on demand | ~2-4K tokens |
+| `desktop` | Desktop-control subset eager: Hyprland, screenshot/OCR, input, shader, clipboard, notifications, and rice status | ~12-18K tokens |
+| `ops` | Operational subset (config, desktop, fleet) loaded eagerly | ~15-22K tokens |
+| `full` | All tools loaded immediately | ~40K+ tokens |
 
 Set in your MCP config:
 
@@ -109,23 +116,25 @@ Set in your MCP config:
 }
 ```
 
-## Tool Categories
+## Contract Snapshots
 
-| Category | Tools | Description |
-|----------|------:|-------------|
-| Config Management | 4 | Dotfiles symlink health, config validation, service reloads |
-| GitHub Org Lifecycle | 12 | Repo transfers, fork squashing, bulk clone/pull/archive, fleet sync |
-| GitHub Stars | 14 | Starred repo inventory, GitHub star folders, taxonomy audit/sync, bootstrap, and Codex MCP install helpers |
-| Fleet Auditing & CI | 4 | Per-repo health dashboard, dependency skew, workflow sync |
-| Build & Sync | 5 | Multi-language build pipeline, Go version sync, repo scaffolding |
-| Hyprland Desktop | 12 | Window/workspace management, screenshots, monitor config, input simulation |
-| Desktop Services | 6 | Cascade reload, rice check, eww bar management |
-| Shader Pipeline | 13 | GLSL shader lifecycle for the kitty write-target pipeline, with Ghostty kept as the state-aware companion surface |
-| Bluetooth | 9 | Device discovery, pairing (BLE-safe), connect/disconnect, battery, trust |
-| Input Devices | 14 | juhradial-mx config, MX battery, and gamepad profiles (makima) |
-| MIDI | 4 | USB MIDI controller detection and mapping config |
-| Composed Workflows | 3 | Multi-step automations: BT discover-and-connect, controller auto-setup, repo git hygiene |
-| Open-Source Readiness | 2 | Score repos 0-100 across 8 categories with actionable suggestions |
+The canonical source treats the committed snapshot bundle as the public surface contract:
+
+- `make contract-snapshot` regenerates [`.well-known/mcp.json`](./.well-known/mcp.json) and the JSON bundle in [`snapshots/contract`](./snapshots/contract)
+- `make contract-check` verifies the checked-in artifacts match the live registry
+- `make contract-diff` summarizes surface deltas against a base ref
+- `make publish-check` runs vet, tests, contract validation, and release-parity checks together
+
+Exact per-tool counts should come from the snapshot bundle rather than prose. The current surface domains include:
+
+| Domain | Description |
+|--------|-------------|
+| Discovery | Search, schema, catalog, stats, and health entrypoints for the deferred surface |
+| Desktop Control | Hyprland, screenshot/OCR, clipboard, notifications, shaders, audio, and Wayland input workflows |
+| Workstation Ops | Systemd, process, tmux, sandbox, fleet audit, repo hygiene, and SDLC loops |
+| GitHub Workflows | Org lifecycle, GitHub Stars, and repo sync helpers |
+| Input & Devices | Bluetooth, juhradial-mx, controller mapping, MIDI, and mouse/controller diagnostics |
+| Research & Recovery | Claude session recovery, prompt registry, roadmap, and cross-repo forensic tooling |
 
 ## Key Patterns
 

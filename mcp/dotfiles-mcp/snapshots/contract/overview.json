@@ -1,0 +1,34 @@
+{
+  "version": "2.2.0",
+  "profile": "default",
+  "canonical_source": "https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp",
+  "publish_mirror": false,
+  "total_tools": 291,
+  "module_count": 33,
+  "deferred_tools": 285,
+  "resource_count": 17,
+  "template_count": 0,
+  "prompt_count": 9,
+  "by_category": {
+    "": 246,
+    "desktop": 1,
+    "desktop_interact": 4,
+    "discovery": 6,
+    "github": 12,
+    "hyprland": 1,
+    "input_simulate": 6,
+    "systemd": 11,
+    "workflow": 4
+  },
+  "by_runtime_group": {
+    "unassigned": 291
+  },
+  "discovery_tools": [
+    "dotfiles_tool_search",
+    "dotfiles_tool_schema",
+    "dotfiles_tool_catalog",
+    "dotfiles_tool_stats",
+    "dotfiles_server_health",
+    "dotfiles_desktop_status"
+  ]
+}

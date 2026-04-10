@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - GitHub Stars workflow module for listing stars, managing GitHub star folders, auditing taxonomy drift, syncing list membership, and installing the global Codex MCP entries
 - `cmd/github-starsctl` CLI wrapper for the GitHub Stars workflow
 - `scripts/hg-github-stars.sh` and `scripts/hg-github-official-mcp.sh` operator entrypoints with `~/.env` `GITHUB_PAT` preference
+- Canonical contract snapshot generation for `.well-known/mcp.json` and `snapshots/contract/*`
+- `make contract-snapshot`, `contract-check`, `contract-diff`, `host-smoke`, `release-parity`, and `publish-check`
+- `scripts/contract-diff-summary.sh`, `scripts/host-smoke.sh`, and `scripts/release-parity.sh` for publish-surface validation
 
 ## [v0.1.0] - 2026-04-03
 
