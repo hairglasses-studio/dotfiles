@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 
 MODE="write"
+SYNC_WORKSPACE_MANAGED_TO_PORTABLE="${HG_SYNC_WORKSPACE_MANAGED_TO_PORTABLE:-false}"
 
 for arg in "$@"; do
   case "$arg" in
@@ -168,6 +169,11 @@ workspace_managed_export_name() {
   printf '%s-%s' "$repo_name" "$source_name"
 }
 
+is_workspace_managed_skill_dir() {
+  local skill_dir="$1"
+  [[ -f "$skill_dir/.hg-workspace-global-sync.json" ]]
+}
+
 rewrite_skill_frontmatter_name() {
   local file="$1"
   local exported_name="$2"
@@ -193,6 +199,7 @@ unexpected_agents_count=0
 unexpected_codex_count=0
 gemini_builtin_name_skips=0
 commands_shadowed_by_skills=0
+workspace_managed_skipped=0
 declare -A desired_agents_dirs=()
 declare -A desired_codex_dirs=()
 declare -A claude_skill_names=()
@@ -314,6 +321,14 @@ if [[ -d "$CLAUDE_SKILLS" ]]; then
     skill_src="$skill_dir/SKILL.md"
     [[ -f "$skill_src" ]] || continue
 
+    if is_workspace_managed_skill_dir "$skill_dir" && [[ "$SYNC_WORKSPACE_MANAGED_TO_PORTABLE" != "true" ]]; then
+      # Repo-owned workspace skills already appear through repo-local surfaces and
+      # the Claude global source layer. Mirroring them into portable Codex/Agents
+      # directories duplicates whole repo catalogs into every live session.
+      workspace_managed_skipped=$((workspace_managed_skipped + 1))
+      continue
+    fi
+
     name="$(basename "$skill_dir")"
     exported_name="$name"
     if workspace_exported_name="$(workspace_managed_export_name "$skill_dir")"; then
@@ -421,19 +436,19 @@ fi
 case "$MODE" in
   write)
     if [[ "$pending_changes" -eq 0 ]]; then
-      hg_ok "All skills synchronized (${commands_portable} commands + ${skills_synced} skills → agents+codex, ${commands_skipped} Claude-only skipped, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
+      hg_ok "All skills synchronized (${commands_portable} commands + ${skills_synced} portable global skills → agents+codex, ${workspace_managed_skipped} workspace-owned repo skills kept in Claude source only, ${commands_skipped} Claude-only skipped, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
     else
-      hg_info "Synchronized ${commands_portable} commands + ${skills_synced} skills → agents+codex (${commands_skipped} Claude-only skipped, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
+      hg_info "Synchronized ${commands_portable} commands + ${skills_synced} portable global skills → agents+codex (${workspace_managed_skipped} workspace-owned repo skills kept in Claude source only, ${commands_skipped} Claude-only skipped, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
     fi
     ;;
   dry-run)
     if [[ "$pending_changes" -eq 0 ]]; then
-      hg_ok "No changes needed (${commands_portable} commands + ${skills_synced} skills, ${commands_skipped} Claude-only, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
+      hg_ok "No changes needed (${commands_portable} commands + ${skills_synced} portable global skills, ${workspace_managed_skipped} workspace-owned repo skills kept in Claude source only, ${commands_skipped} Claude-only, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
     fi
     ;;
   check)
     if [[ "$pending_changes" -eq 0 ]]; then
-      hg_ok "All skills up to date (${commands_portable} commands + ${skills_synced} skills, ${commands_skipped} Claude-only, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
+      hg_ok "All skills up to date (${commands_portable} commands + ${skills_synced} portable global skills, ${workspace_managed_skipped} workspace-owned repo skills kept in Claude source only, ${commands_skipped} Claude-only, ${commands_shadowed_by_skills} shadowed by full skills, ${gemini_builtin_name_skips} Gemini-reserved names skipped for agents)"
     else
       exit 1
     fi
