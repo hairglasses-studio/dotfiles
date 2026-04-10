@@ -502,6 +502,19 @@ create_symlinks() {
         fi
         mkdir -p "$HOME/.local/state/kitty/sessions"
 
+        local desktop_units=(
+            dotfiles-hyprshell.service
+            dotfiles-hypr-dock.service
+            dotfiles-hyprdynamicmonitors.service
+            dotfiles-hyprland-autoname-workspaces.service
+            dotfiles-notification-history.service
+        )
+        if systemctl --user enable "${desktop_units[@]}" >/dev/null 2>&1; then
+            log_success "Enabled desktop systemd user units"
+        else
+            log_warn "Failed to enable one or more desktop user units; rerun 'systemctl --user enable ${desktop_units[*]}' inside your desktop session"
+        fi
+
         # Validate cross-repo symlinks (warn if sibling repos are missing)
         local cross_repo_links=(
             "$DOTFILES_DIR/scripts/rg-status-bar.sh"

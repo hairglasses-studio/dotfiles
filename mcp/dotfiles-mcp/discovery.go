@@ -129,9 +129,12 @@ type dotfilesDesktopStatusOutput struct {
 	Status          string                    `json:"status"`
 	Runtime         dotfilesDesktopRuntime    `json:"runtime"`
 	Hyprland        dotfilesDesktopCapability `json:"hyprland"`
+	Shell           dotfilesDesktopCapability `json:"shell"`
 	Screenshot      dotfilesDesktopCapability `json:"screenshot"`
 	OCR             dotfilesDesktopCapability `json:"ocr"`
 	Input           dotfilesDesktopCapability `json:"input"`
+	Eww             dotfilesDesktopCapability `json:"eww"`
+	Notifications   dotfilesDesktopCapability `json:"notifications"`
 	Terminal        dotfilesDesktopCapability `json:"terminal"`
 	Shader          dotfilesDesktopCapability `json:"shader"`
 	MissingCommands []string                  `json:"missing_commands,omitempty"`
@@ -370,6 +373,38 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 				hyprlandDetails = append(hyprlandDetails, "Hyprland socket dir "+hyprSocketDir)
 			}
 
+			shellMissing := make([]string, 0)
+			shellDetails := make([]string, 0)
+			for _, cmd := range []string{"hyprshell", "hypr-dock", "hyprdynamicmonitors", "hyprland-autoname-workspaces"} {
+				if hasCmd(cmd) {
+					shellDetails = append(shellDetails, cmd+" available")
+				} else {
+					shellMissing = append(shellMissing, cmd)
+					missingCommands = append(missingCommands, cmd)
+				}
+			}
+			for _, component := range []struct {
+				name    string
+				running bool
+			}{
+				{name: "hyprshell", running: processRunningExact("hyprshell")},
+				{name: "hypr-dock", running: processRunningExact("hypr-dock")},
+				{name: "hyprdynamicmonitors", running: processRunningExact("hyprdynamicmonitors")},
+				{name: "hyprland-autoname-workspaces", running: processRunningExact("hyprland-autoname-workspaces")},
+			} {
+				if component.running {
+					shellDetails = append(shellDetails, component.name+" running")
+				} else {
+					shellDetails = append(shellDetails, component.name+" not running")
+				}
+			}
+			monitorInclude := desktopMonitorIncludePath()
+			if pathExists(monitorInclude) {
+				shellDetails = append(shellDetails, "dynamic monitor include present at "+monitorInclude)
+			} else {
+				shellMissing = append(shellMissing, "monitors.dynamic.conf")
+			}
+
 			screenshotMissing := make([]string, 0)
 			screenshotDetails := make([]string, 0)
 			if hasCmd("wayshot") {
@@ -421,6 +456,63 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 			} else {
 				inputMissing = append(inputMissing, "wtype")
 				missingCommands = append(missingCommands, "wtype")
+			}
+
+			ewwStatus := currentEwwStatus()
+			ewwMissing := make([]string, 0)
+			ewwDetails := make([]string, 0)
+			if hasCmd("eww") {
+				ewwDetails = append(ewwDetails, "eww available")
+			} else {
+				ewwMissing = append(ewwMissing, "eww")
+				missingCommands = append(missingCommands, "eww")
+			}
+			ewwConfig := dotfilesEwwConfigDir()
+			if pathExists(ewwConfig) {
+				ewwDetails = append(ewwDetails, "config rooted at "+ewwConfig)
+			} else {
+				ewwMissing = append(ewwMissing, "eww config")
+			}
+			if ewwStatus.DaemonRunning {
+				ewwDetails = append(ewwDetails, fmt.Sprintf("daemon running (%d processes)", ewwStatus.DaemonCount))
+			} else {
+				ewwMissing = append(ewwMissing, "eww daemon")
+			}
+			ewwDetails = append(ewwDetails, fmt.Sprintf("%d active windows", len(ewwStatus.Windows)))
+			ewwDetails = append(ewwDetails, fmt.Sprintf("%d defined windows", len(ewwStatus.DefinedWindows)))
+
+			notificationMissing := make([]string, 0)
+			notificationDetails := make([]string, 0)
+			if hasCmd("swaync-client") {
+				notificationDetails = append(notificationDetails, "swaync-client available")
+			} else {
+				notificationMissing = append(notificationMissing, "swaync-client")
+				missingCommands = append(missingCommands, "swaync-client")
+			}
+			if hasCmd("dbus-monitor") {
+				notificationDetails = append(notificationDetails, "dbus-monitor available")
+			} else {
+				notificationMissing = append(notificationMissing, "dbus-monitor")
+				missingCommands = append(missingCommands, "dbus-monitor")
+			}
+			if hasCmd("python3") {
+				notificationDetails = append(notificationDetails, "python3 available for notification history listener")
+			} else {
+				notificationMissing = append(notificationMissing, "python3")
+				missingCommands = append(missingCommands, "python3")
+			}
+			listenerPath := dotfilesNotificationHistoryListenerPath()
+			if pathExists(listenerPath) {
+				notificationDetails = append(notificationDetails, "history listener script present at "+listenerPath)
+			} else {
+				notificationMissing = append(notificationMissing, "notification-history-listener.py")
+			}
+			historyEntries, _ := readNotificationHistoryEntries()
+			notificationDetails = append(notificationDetails, fmt.Sprintf("%d tracked notification entries", len(historyEntries)))
+			if notificationHistoryListenerRunning() {
+				notificationDetails = append(notificationDetails, "notification history listener running")
+			} else {
+				notificationDetails = append(notificationDetails, "notification history listener not running")
 			}
 
 			kittyConfigPath := filepath.Join(dotfilesDir(), "kitty", "kitty.conf")
@@ -485,6 +577,11 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 					Details: hyprlandDetails,
 					Missing: uniqueSortedStrings(hyprlandMissing),
 				},
+				Shell: dotfilesDesktopCapability{
+					Ready:   len(shellMissing) == 0,
+					Details: shellDetails,
+					Missing: uniqueSortedStrings(shellMissing),
+				},
 				Screenshot: dotfilesDesktopCapability{
 					Ready:   len(screenshotMissing) == 0,
 					Details: screenshotDetails,
@@ -500,6 +597,16 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 					Details: inputDetails,
 					Missing: uniqueSortedStrings(inputMissing),
 				},
+				Eww: dotfilesDesktopCapability{
+					Ready:   len(ewwMissing) == 0,
+					Details: ewwDetails,
+					Missing: uniqueSortedStrings(ewwMissing),
+				},
+				Notifications: dotfilesDesktopCapability{
+					Ready:   len(notificationMissing) == 0,
+					Details: notificationDetails,
+					Missing: uniqueSortedStrings(notificationMissing),
+				},
 				Terminal: dotfilesDesktopCapability{
 					Ready:   kittyInstalled || ghosttyInstalled,
 					Details: terminalDetails,
@@ -512,7 +619,7 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 				},
 				MissingCommands: uniqueSortedStrings(missingCommands),
 			}
-			if !(output.Hyprland.Ready && output.Screenshot.Ready && output.OCR.Ready && output.Input.Ready && output.Terminal.Ready && output.Shader.Ready) {
+			if !(output.Hyprland.Ready && output.Shell.Ready && output.Screenshot.Ready && output.OCR.Ready && output.Input.Ready && output.Eww.Ready && output.Notifications.Ready && output.Terminal.Ready && output.Shader.Ready) {
 				output.Status = "degraded"
 			}
 			return output, nil
@@ -523,9 +630,15 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 		"desktop status",
 		"desktop readiness",
 		"hyprland status",
+		"hyprshell",
+		"hypr-dock",
+		"hyprdynamicmonitors",
+		"autoname",
 		"wayland env",
 		"ocr readiness",
 		"click automation",
+		"eww",
+		"notification history",
 		"kitty",
 		"ghostty",
 		"terminal shader",
@@ -589,6 +702,7 @@ func dotfilesModules() []registry.ToolModule {
 		&ClipboardModule{},
 		&NotifyModule{},
 		&NotificationModule{},
+		&EwwDesktopModule{},
 		&InputSimulateModule{},
 		&DesktopInteractModule{},
 		&ClaudeSessionModule{},
@@ -666,7 +780,9 @@ func isDesktopProfileTool(name string) bool {
 		"dotfiles_rice_check",
 		"dotfiles_eww_status",
 		"dotfiles_eww_get",
-		"dotfiles_eww_restart":
+		"dotfiles_eww_restart",
+		"dotfiles_eww_inspect",
+		"dotfiles_eww_reload":
 		return true
 	default:
 		return false

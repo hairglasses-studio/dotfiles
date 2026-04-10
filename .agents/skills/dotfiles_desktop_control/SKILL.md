@@ -10,9 +10,18 @@ allowed-tools:
   - mcp__dotfiles__dotfiles_rice_check
   - mcp__dotfiles__hypr_list_windows
   - mcp__dotfiles__hypr_get_monitors
+  - mcp__dotfiles__hypr_monitor_preset_list
+  - mcp__dotfiles__hypr_monitor_preset_restore
+  - mcp__dotfiles__hypr_layout_list
+  - mcp__dotfiles__hypr_layout_restore
+  - mcp__dotfiles__desktop_project_open
   - mcp__dotfiles__screen_screenshot
   - mcp__dotfiles__desktop_screenshot_ocr
   - mcp__dotfiles__desktop_find_text
+  - mcp__dotfiles__dotfiles_eww_status
+  - mcp__dotfiles__dotfiles_eww_inspect
+  - mcp__dotfiles__dotfiles_eww_reload
+  - mcp__dotfiles__notify_history_entries
   - mcp__dotfiles__input_type_text
   - mcp__dotfiles__desktop_click_text
   - mcp__dotfiles__hypr_reload_config
@@ -26,11 +35,12 @@ Use this skill when the task is direct desktop interaction rather than static co
 
 ## Default loop
 
-1. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm that Wayland, Hyprland, OCR, input injection, and the terminal shader pipeline are actually ready.
+1. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm that Wayland, Hyprland, the shell stack, Eww, notification history, OCR, input injection, and the terminal shader pipeline are actually ready.
 2. Use `hypr_list_windows` or `hypr_get_monitors` to identify the exact surface before taking screenshots or sending input.
 3. Use `screen_screenshot`, `desktop_screenshot_ocr`, or `desktop_find_text` to prove the visible state before acting.
-4. Prefer narrow write tools such as `input_type_text`, `desktop_click_text`, `hypr_click`, and `hypr_focus_window` over broad reloads.
-5. If a reload is required, use `dotfiles_reload_service` or `hypr_reload_config` before escalating to `dotfiles_cascade_reload`.
+4. Use `hypr_monitor_preset_list`, `hypr_layout_list`, `hypr_monitor_preset_restore`, `hypr_layout_restore`, or `desktop_project_open` when the task is a whole-scene shift rather than one widget interaction.
+5. Prefer narrow write tools such as `input_type_text`, `desktop_click_text`, `hypr_click`, and `hypr_focus_window` over broad reloads.
+6. If a reload is required, use `dotfiles_eww_reload`, `dotfiles_reload_service`, or `hypr_reload_config` before escalating to `dotfiles_cascade_reload`.
 
 ## Related surfaces
 

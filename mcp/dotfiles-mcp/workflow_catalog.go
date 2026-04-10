@@ -59,7 +59,7 @@ func dotfilesWorkflowCatalog() []dotfilesWorkflowCatalogEntry {
 			PrimarySkill: "dotfiles_ui",
 			ResourceURI:  "dotfiles://workflows/desktop-triage",
 			PromptName:   "dotfiles_triage_desktop",
-			KeyTools:     []string{"dotfiles_rice_check", "system_health_check", "dotfiles_eww_status", "hypr_list_windows", "hypr_get_monitors", "dotfiles_cascade_reload"},
+			KeyTools:     []string{"dotfiles_rice_check", "system_health_check", "dotfiles_eww_status", "dotfiles_eww_inspect", "notify_history_entries", "hypr_list_windows", "hypr_get_monitors", "dotfiles_cascade_reload"},
 		},
 		{
 			Name:         "desktop_control",
@@ -68,7 +68,7 @@ func dotfilesWorkflowCatalog() []dotfilesWorkflowCatalogEntry {
 			PrimarySkill: "dotfiles_desktop_control",
 			ResourceURI:  "dotfiles://workflows/desktop-control",
 			PromptName:   "dotfiles_control_desktop",
-			KeyTools:     []string{"dotfiles_desktop_status", "dotfiles_rice_check", "hypr_list_windows", "hypr_get_monitors", "desktop_screenshot_ocr", "desktop_find_text", "input_type_text", "desktop_click_text", "dotfiles_reload_service", "dotfiles_cascade_reload"},
+			KeyTools:     []string{"dotfiles_desktop_status", "dotfiles_rice_check", "hypr_list_windows", "hypr_get_monitors", "hypr_monitor_preset_list", "hypr_layout_list", "desktop_project_open", "desktop_screenshot_ocr", "desktop_find_text", "input_type_text", "desktop_click_text", "dotfiles_eww_reload", "dotfiles_reload_service", "dotfiles_cascade_reload"},
 		},
 		{
 			Name:         "config_repair",

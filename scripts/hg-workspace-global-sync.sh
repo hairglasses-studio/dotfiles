@@ -922,20 +922,35 @@ sync_managed_workspace_tools() {
   : >"$tmpdir/codex-mcp.ndjson"
   : >"$tmpdir/gemini-mcp.ndjson"
 
-  local foundational_name foundation_server
+  local foundational_name foundation_server foundation_server_resolved
   for foundational_name in systemd tmux process; do
     foundation_server="$(jq -c --arg name "$foundational_name" '.mcpServers[$name]' "$ROOT_MCP_PATH")"
     [[ "$foundation_server" != "null" ]] || hg_die "Shared root .mcp.json missing foundational server: $foundational_name"
 
-    append_claude_entry "$foundational_name" "$foundation_server"
-    append_gemini_entry "$foundational_name" "$foundation_server" "$WORKSPACE_ROOT"
+    foundation_server_resolved="$(
+      jq -cn \
+        --argjson server "$foundation_server" \
+        --arg workspace_root "$WORKSPACE_ROOT" '
+          $server
+          | if ((.cwd // "") | startswith("${HOME}/hairglasses-studio")) then
+              .cwd = ($workspace_root + ((.cwd // "") | sub("^\\$\\{HOME\\}/hairglasses-studio"; "")))
+            elif ((.cwd // "") | startswith("$HOME/hairglasses-studio")) then
+              .cwd = ($workspace_root + ((.cwd // "") | sub("^\\$HOME/hairglasses-studio"; "")))
+            else
+              .
+            end
+        '
+    )"
+
+    append_claude_entry "$foundational_name" "$foundation_server_resolved"
+    append_gemini_entry "$foundational_name" "$foundation_server_resolved" "$WORKSPACE_ROOT"
     append_codex_entry \
       "$foundational_name" \
       "shared root .mcp.json:$foundational_name" \
-      "$(jq -r '.command' <<<"$foundation_server")" \
-      "$(jq -c '.args // []' <<<"$foundation_server")" \
-      "$(jq -r '.cwd // ""' <<<"$foundation_server")" \
-      "$(jq -c '.env // {}' <<<"$foundation_server")" \
+      "$(jq -r '.command' <<<"$foundation_server_resolved")" \
+      "$(jq -c '.args // []' <<<"$foundation_server_resolved")" \
+      "$(normalize_codex_cwd "$WORKSPACE_ROOT" "$(jq -r '.cwd // ""' <<<"$foundation_server_resolved")")" \
+      "$(normalize_codex_env_json "$(jq -c '.env // {}' <<<"$foundation_server_resolved")")" \
       '[]'
     claude_foundational_count=$((claude_foundational_count + 1))
   done

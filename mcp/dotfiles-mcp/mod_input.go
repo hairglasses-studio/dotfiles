@@ -1402,7 +1402,7 @@ func (m *BluetoothModule) Tools() []registry.ToolDefinition {
 					return BTListOutput{}, fmt.Errorf("bluetoothctl: %w", err)
 				}
 
-				var devices []btDevice
+				devices := make([]btDevice, 0)
 				for _, line := range strings.Split(out, "\n") {
 					m := deviceRe.FindStringSubmatch(strings.TrimSpace(line))
 					if m == nil {
