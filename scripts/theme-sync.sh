@@ -143,6 +143,43 @@ do
 EOF
 done
 
+apply_runtime_theme_preferences() {
+  export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-qt6ct}"
+  export QT_QUICK_CONTROLS_MATERIAL_THEME="${QT_QUICK_CONTROLS_MATERIAL_THEME:-Dark}"
+  export QT_QUICK_CONTROLS_UNIVERSAL_THEME="${QT_QUICK_CONTROLS_UNIVERSAL_THEME:-Dark}"
+  unset QT_STYLE_OVERRIDE || true
+
+  if command -v gsettings >/dev/null 2>&1; then
+    gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark" >/dev/null 2>&1 || true
+    gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark" >/dev/null 2>&1 || true
+    gsettings set org.gnome.desktop.interface cursor-theme "Bibata-Modern-Classic" >/dev/null 2>&1 || true
+    gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" >/dev/null 2>&1 || true
+  fi
+
+  if command -v xfconf-query >/dev/null 2>&1; then
+    xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s "Adwaita-dark" >/dev/null 2>&1 || true
+    xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "Papirus-Dark" >/dev/null 2>&1 || true
+    xfconf-query -c xsettings -p /Gtk/CursorThemeName -n -t string -s "Bibata-Modern-Classic" >/dev/null 2>&1 || true
+  fi
+
+  if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+    plasma-apply-colorscheme BreezeDark >/dev/null 2>&1 || true
+  fi
+  if command -v plasma-apply-desktoptheme >/dev/null 2>&1; then
+    plasma-apply-desktoptheme breeze-dark >/dev/null 2>&1 || true
+  fi
+
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl --user unset-environment QT_STYLE_OVERRIDE >/dev/null 2>&1 || true
+    systemctl --user import-environment DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP QT_QPA_PLATFORMTHEME QT_QUICK_CONTROLS_MATERIAL_THEME QT_QUICK_CONTROLS_UNIVERSAL_THEME >/dev/null 2>&1 || true
+  fi
+  if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+    dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP QT_QPA_PLATFORMTHEME QT_QUICK_CONTROLS_MATERIAL_THEME QT_QUICK_CONTROLS_UNIVERSAL_THEME >/dev/null 2>&1 || true
+  fi
+}
+
+apply_runtime_theme_preferences
+
 if ! $QUIET; then
   hg_ok "Theme synced: ${THEME_NAME}"
 fi
