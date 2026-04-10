@@ -10,13 +10,13 @@ MCP server for dotfiles configuration management. Provides validated config edit
 
 ## Build & Run
 ```bash
-go build -o dotfiles-mcp .
+GOWORK=off go build -o dotfiles-mcp .
 DOTFILES_DIR=$HOME/hairglasses-studio/dotfiles ./dotfiles-mcp
 ```
 
 ## Test
 ```bash
-go test ./...
+GOWORK=off go test ./...
 ```
 
 ## Architecture

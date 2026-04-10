@@ -14,6 +14,8 @@ Canonical development lives in [`hairglasses-studio/dotfiles`](https://github.co
 go install github.com/hairglasses-studio/dotfiles-mcp@latest
 ```
 
+When developing from the monorepo mirror under `dotfiles/mcp/dotfiles-mcp`, use `GOWORK=off` for direct module commands so the shared `mcp/go.work` does not inherit sibling repo-local replaces from other MCP modules.
+
 ## Configure
 
 Add to your MCP client config (e.g. Claude Code `.mcp.json`):
@@ -50,6 +52,9 @@ The server also exposes read-first workflow resources and prompt entrypoints for
 After installing, try the discovery tools to explore what's available:
 
 ```bash
+GOWORK=off go build ./...
+GOWORK=off go test ./... -count=1
+
 # Search tools by keyword
 claude mcp call dotfiles dotfiles_tool_search '{"query": "bluetooth"}'
 

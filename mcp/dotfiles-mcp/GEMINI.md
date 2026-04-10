@@ -5,8 +5,8 @@ Go MCP server for dotfiles management — config editing, symlink checks, servic
 
 ## Build & Test
 ```bash
-go build -o dotfiles-mcp .
-go test ./...
+GOWORK=off go build -o dotfiles-mcp .
+GOWORK=off go test ./...
 ```
 
 ## Key Details

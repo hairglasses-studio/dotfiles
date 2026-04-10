@@ -1,12 +1,15 @@
 .PHONY: build test vet
 
+GO ?= go
+GO_RUN := env GOWORK=off $(GO)
+
 build:
-	go build -o dotfiles-mcp ./...
+	$(GO_RUN) build -o dotfiles-mcp .
 
 test:
-	go test ./... -count=1
+	$(GO_RUN) test ./... -count=1
 
 vet:
-	go vet ./...
+	$(GO_RUN) vet ./...
 
 -include $(HOME)/hairglasses-studio/dotfiles/make/pipeline.mk
