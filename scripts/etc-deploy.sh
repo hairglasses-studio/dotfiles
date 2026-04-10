@@ -36,4 +36,22 @@ if [[ -f "$DOTFILES/etc/bluetooth/main.conf" ]]; then
     echo "  Deployed bluetooth/main.conf"
 fi
 
+systemd_root="$DOTFILES/etc/systemd/system"
+if [[ -d "$systemd_root" ]]; then
+    deployed_systemd=0
+    while IFS= read -r -d '' f; do
+        rel="${f#"$systemd_root/"}"
+        target="/etc/systemd/system/$rel"
+        sudo install -d "$(dirname "$target")"
+        sudo install -m644 "$f" "$target"
+        echo "  Deployed systemd/$rel"
+        deployed_systemd=1
+    done < <(find "$systemd_root" -type f -print0 | sort -z)
+
+    if [[ "$deployed_systemd" -eq 1 ]]; then
+        sudo systemctl daemon-reload
+        echo "  Reloaded systemd daemon"
+    fi
+fi
+
 echo "/etc/ configs deployed."

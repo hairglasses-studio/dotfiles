@@ -1903,7 +1903,6 @@ func TrimMarkdownAudit(audit MarkdownAudit, maxItems int) MarkdownAudit {
 	}
 	return audit
 }
-
 func BuildExactListRequests(currentLists []UserList, assignments []TaxonomyAssignment, targetLists []EnsureListSpec, starMissing, createMissing bool) []RepoListMutationRequest {
 	targetListNames := make([]string, 0, len(targetLists))
 	for _, spec := range targetLists {

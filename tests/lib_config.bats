@@ -155,6 +155,46 @@ EOF
     assert_failure
 }
 
+@test "config_reload_service: hyprshell watched-file reload works through repo symlinks" {
+    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
+    local repo_root="${BATS_TEST_TMPDIR}/repo"
+    local live_dir="${HOME}/.config/hyprshell"
+    mkdir -p "${repo_root}/hyprshell" "${live_dir}"
+    printf 'version = 3\n' > "${repo_root}/hyprshell/config.toml"
+    printf 'window {}\n' > "${repo_root}/hyprshell/styles.css"
+    ln -s "${repo_root}/hyprshell/config.toml" "${live_dir}/config.toml"
+    ln -s "${repo_root}/hyprshell/styles.css" "${live_dir}/styles.css"
+
+    local config_before styles_before
+    config_before="$(stat -c %Y "${repo_root}/hyprshell/config.toml")"
+    styles_before="$(stat -c %Y "${repo_root}/hyprshell/styles.css")"
+    sleep 1
+
+    cat > "${BATS_TEST_TMPDIR}/pgrep" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/pgrep"
+
+    cat > "${BATS_TEST_TMPDIR}/systemctl" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/systemctl.log"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/systemctl"
+
+    run config_reload_service hyprshell --quiet
+    assert_success
+
+    local config_after styles_after
+    config_after="$(stat -c %Y "${repo_root}/hyprshell/config.toml")"
+    styles_after="$(stat -c %Y "${repo_root}/hyprshell/styles.css")"
+    [[ "${config_after}" -gt "${config_before}" ]]
+    [[ "${styles_after}" -gt "${styles_before}" ]]
+
+    run test -f "${BATS_TEST_TMPDIR}/systemctl.log"
+    assert_failure
+}
+
 @test "config_reload_service: hyprshell fails cleanly when the process is not running" {
     export PATH="${BATS_TEST_TMPDIR}:${PATH}"
     cat > "${BATS_TEST_TMPDIR}/pgrep" <<'EOF'

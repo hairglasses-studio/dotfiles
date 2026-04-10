@@ -286,7 +286,6 @@ func runAuditMarkdown(ctx context.Context, args []string) {
 		"audit":  audit,
 	})
 }
-
 func runSyncMarkdown(ctx context.Context, args []string) {
 	fs := flag.NewFlagSet("sync-markdown", flag.ExitOnError)
 	sourceDir := fs.String("source-dir", "", "directory containing markdown source files")
@@ -410,6 +409,14 @@ func trimAuditForCLI(audit githubstars.TaxonomyAudit, limit int) githubstars.Tax
 	return audit
 }
 
+func defaultMarkdownSourceDir() string {
+	candidate := "/home/hg/github-reference-repos/index-files"
+	if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+		return candidate
+	}
+	return ""
+}
+
 func printJSON(v any) {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
@@ -421,12 +428,4 @@ func fatalIf(err error) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-}
-
-func defaultMarkdownSourceDir() string {
-	candidate := "/home/hg/github-reference-repos/index-files"
-	if info, err := os.Stat(candidate); err == nil && info.IsDir() {
-		return candidate
-	}
-	return ""
 }
