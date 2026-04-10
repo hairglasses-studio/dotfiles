@@ -69,7 +69,7 @@ func defaultLLMModel(baseURL string) string {
 		if model := strings.TrimSpace(os.Getenv("OLLAMA_CHAT_MODEL")); model != "" {
 			return model
 		}
-		return "qwen3:8b"
+		return "code-primary"
 	}
 	return "claude-sonnet-4-6"
 }
