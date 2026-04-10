@@ -281,6 +281,15 @@ apply_projected_go_file() {
   gofmt -w "$target"
 }
 
+apply_internal_package_dir() {
+  local pkg="$1"
+  local source="$CANONICAL_PATH/internal/$pkg"
+  local target="$STANDALONE_INSPECT_ROOT/internal/$pkg"
+  rm -rf "$target"
+  mkdir -p "$(dirname "$target")"
+  cp -a "$source" "$target"
+}
+
 resolve_standalone_inspect_root "$STANDALONE_PATH"
 TARGET_PACKAGE_DIR="${STANDALONE_INSPECT_ROOT}/internal/dotfiles"
 
@@ -294,6 +303,15 @@ GO_CANONICAL_ONLY_LIST="$(temp_file)"
 GO_CANONICAL_ONLY_REQUIRED_LIST="$(temp_file)"
 GO_CANONICAL_ONLY_INTENTIONAL_LIST="$(temp_file)"
 GO_TARGET_ONLY_LIST="$(temp_file)"
+INTERNAL_IMPORT_LIST="$(temp_file)"
+INTERNAL_PRESENT_LIST="$(temp_file)"
+INTERNAL_IDENTICAL_LIST="$(temp_file)"
+INTERNAL_DRIFTED_LIST="$(temp_file)"
+INTERNAL_DRIFTED_REQUIRED_LIST="$(temp_file)"
+INTERNAL_DRIFTED_INTENTIONAL_LIST="$(temp_file)"
+INTERNAL_MISSING_LIST="$(temp_file)"
+INTERNAL_MISSING_REQUIRED_LIST="$(temp_file)"
+INTERNAL_MISSING_INTENTIONAL_LIST="$(temp_file)"
 COPY_ALLOWLIST_PRESENT_LIST="$(temp_file)"
 COPY_PRESENT_LIST="$(temp_file)"
 COPY_IDENTICAL_LIST="$(temp_file)"
@@ -310,6 +328,9 @@ GO_DRIFT_PREVIEW_JSON="$(temp_file)"
 
 find "$CANONICAL_PATH" -maxdepth 1 -name '*.go' -printf '%f\n' | sort >"$CANONICAL_GO_LIST"
 find "$TARGET_PACKAGE_DIR" -maxdepth 1 -name '*.go' -printf '%f\n' | sort >"$TARGET_GO_LIST"
+grep -rhoE 'github.com/hairglasses-studio/dotfiles-mcp/internal/[A-Za-z0-9_]+' "$CANONICAL_PATH"/*.go "$CANONICAL_PATH"/*_test.go \
+  | sed 's#.*internal/##' \
+  | sort -u >"$INTERNAL_IMPORT_LIST"
 
 comm -23 "$CANONICAL_GO_LIST" "$TARGET_GO_LIST" >"$GO_CANONICAL_ONLY_LIST"
 comm -13 "$CANONICAL_GO_LIST" "$TARGET_GO_LIST" >"$GO_TARGET_ONLY_LIST"
@@ -346,6 +367,8 @@ while IFS= read -r file; do
 done < <(comm -12 "$CANONICAL_GO_LIST" "$TARGET_GO_LIST")
 
 intentional_go_drift=(
+  "contract_snapshot.go"
+  "contract_snapshot_test.go"
   "main.go"
   "mod_claude_session.go"
   "mod_claude_session_helpers_test.go"
@@ -357,6 +380,7 @@ intentional_go_drift=(
   "mod_learn.go"
   "mod_mapping_daemon.go"
   "mod_ops.go"
+  "mod_ops_test.go"
   "mod_process.go"
   "mod_screen.go"
   "mod_system.go"
@@ -377,6 +401,53 @@ while IFS= read -r file; do
     printf '%s\n' "$file" >>"$GO_DRIFTED_REQUIRED_LIST"
   fi
 done <"$GO_DRIFTED_LIST"
+
+intentional_internal_packages=(
+  "githubstars"
+  "mapping"
+  "tracing"
+)
+
+while IFS= read -r pkg; do
+  [[ -n "$pkg" ]] || continue
+  canonical_dir="$CANONICAL_PATH/internal/$pkg"
+  target_dir="$STANDALONE_INSPECT_ROOT/internal/$pkg"
+  [[ -d "$canonical_dir" ]] || continue
+
+  if [[ -d "$target_dir" ]]; then
+    printf '%s\n' "$pkg" >>"$INTERNAL_PRESENT_LIST"
+    if diff -qr "$canonical_dir" "$target_dir" >/dev/null 2>&1; then
+      printf '%s\n' "$pkg" >>"$INTERNAL_IDENTICAL_LIST"
+    else
+      printf '%s\n' "$pkg" >>"$INTERNAL_DRIFTED_LIST"
+    fi
+  else
+    printf '%s\n' "$pkg" >>"$INTERNAL_MISSING_LIST"
+  fi
+done <"$INTERNAL_IMPORT_LIST"
+
+for pkg in "${intentional_internal_packages[@]}"; do
+  if grep -Fxq "$pkg" "$INTERNAL_DRIFTED_LIST"; then
+    printf '%s\n' "$pkg" >>"$INTERNAL_DRIFTED_INTENTIONAL_LIST"
+  fi
+  if grep -Fxq "$pkg" "$INTERNAL_MISSING_LIST"; then
+    printf '%s\n' "$pkg" >>"$INTERNAL_MISSING_INTENTIONAL_LIST"
+  fi
+done
+
+while IFS= read -r pkg; do
+  [[ -n "$pkg" ]] || continue
+  if ! grep -Fxq "$pkg" "$INTERNAL_DRIFTED_INTENTIONAL_LIST"; then
+    printf '%s\n' "$pkg" >>"$INTERNAL_DRIFTED_REQUIRED_LIST"
+  fi
+done <"$INTERNAL_DRIFTED_LIST"
+
+while IFS= read -r pkg; do
+  [[ -n "$pkg" ]] || continue
+  if ! grep -Fxq "$pkg" "$INTERNAL_MISSING_INTENTIONAL_LIST"; then
+    printf '%s\n' "$pkg" >>"$INTERNAL_MISSING_REQUIRED_LIST"
+  fi
+done <"$INTERNAL_MISSING_LIST"
 
 copy_allowlist=(
   ".github/PULL_REQUEST_TEMPLATE.md"
@@ -486,7 +557,7 @@ if [[ -d "$STANDALONE_INSPECT_ROOT/internal" ]]; then
 fi
 
 plan_status="in_sync"
-if [[ "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_REQUIRED_LIST")" -gt 0 ]]; then
+if [[ "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_REQUIRED_LIST")" -gt 0 || "$(count_lines "$INTERNAL_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$INTERNAL_MISSING_REQUIRED_LIST")" -gt 0 ]]; then
   plan_status="projection_needed"
 fi
 
@@ -507,6 +578,14 @@ if [[ "$MODE" == "apply" ]]; then
     printf 'project %s\n' "$file" >>"$APPLIED_LOG"
   done < <(
     cat "$GO_DRIFTED_REQUIRED_LIST" "$GO_CANONICAL_ONLY_REQUIRED_LIST" 2>/dev/null | awk 'NF {print}' | sort -u
+  )
+
+  while IFS= read -r pkg; do
+    [[ -n "$pkg" ]] || continue
+    apply_internal_package_dir "$pkg"
+    printf 'package %s\n' "$pkg" >>"$APPLIED_LOG"
+  done < <(
+    cat "$INTERNAL_DRIFTED_REQUIRED_LIST" "$INTERNAL_MISSING_REQUIRED_LIST" 2>/dev/null | awk 'NF {print}' | sort -u
   )
 
   if ! $JSON_MODE; then
@@ -562,6 +641,15 @@ if $JSON_MODE; then
     --argjson projection_required_count "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" \
     --argjson intentional_canonical_only_count "$(count_lines "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")" \
     --argjson target_only_count "$(count_lines "$GO_TARGET_ONLY_LIST")" \
+    --argjson internal_import_count "$(count_lines "$INTERNAL_IMPORT_LIST")" \
+    --argjson internal_present_count "$(count_lines "$INTERNAL_PRESENT_LIST")" \
+    --argjson internal_identical_count "$(count_lines "$INTERNAL_IDENTICAL_LIST")" \
+    --argjson internal_drifted_count "$(count_lines "$INTERNAL_DRIFTED_LIST")" \
+    --argjson internal_required_drift_count "$(count_lines "$INTERNAL_DRIFTED_REQUIRED_LIST")" \
+    --argjson internal_intentional_drift_count "$(count_lines "$INTERNAL_DRIFTED_INTENTIONAL_LIST")" \
+    --argjson internal_missing_count "$(count_lines "$INTERNAL_MISSING_LIST")" \
+    --argjson internal_required_missing_count "$(count_lines "$INTERNAL_MISSING_REQUIRED_LIST")" \
+    --argjson internal_intentional_missing_count "$(count_lines "$INTERNAL_MISSING_INTENTIONAL_LIST")" \
     --argjson copy_candidate_count "$(count_lines "$COPY_ALLOWLIST_PRESENT_LIST")" \
     --argjson copy_present_count "$(count_lines "$COPY_PRESENT_LIST")" \
     --argjson copy_identical_count "$(count_lines "$COPY_IDENTICAL_LIST")" \
@@ -590,6 +678,15 @@ if $JSON_MODE; then
     --argjson go_intentional_canonical_only "$(json_array_file "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")" \
     --argjson go_target_only "$(json_array_file "$GO_TARGET_ONLY_LIST")" \
     --argjson go_drift_previews "$(json_objects_file "$GO_DRIFT_PREVIEW_JSON")" \
+    --argjson internal_imports "$(json_array_file "$INTERNAL_IMPORT_LIST")" \
+    --argjson internal_present "$(json_array_file "$INTERNAL_PRESENT_LIST")" \
+    --argjson internal_identical "$(json_array_file "$INTERNAL_IDENTICAL_LIST")" \
+    --argjson internal_drifted "$(json_array_file "$INTERNAL_DRIFTED_LIST")" \
+    --argjson internal_required_drift "$(json_array_file "$INTERNAL_DRIFTED_REQUIRED_LIST")" \
+    --argjson internal_intentional_drift "$(json_array_file "$INTERNAL_DRIFTED_INTENTIONAL_LIST")" \
+    --argjson internal_missing "$(json_array_file "$INTERNAL_MISSING_LIST")" \
+    --argjson internal_required_missing "$(json_array_file "$INTERNAL_MISSING_REQUIRED_LIST")" \
+    --argjson internal_intentional_missing "$(json_array_file "$INTERNAL_MISSING_INTENTIONAL_LIST")" \
     --argjson standalone_root_only "$(json_array_file "$STANDALONE_ROOT_ONLY_LIST")" \
     --argjson standalone_internal_only "$(json_array_file "$STANDALONE_INTERNAL_ONLY_LIST")" \
     '{
@@ -645,6 +742,26 @@ if $JSON_MODE; then
         intentional_canonical_only: $go_intentional_canonical_only,
         target_only: $go_target_only,
         drift_previews: $go_drift_previews
+      },
+      internal_dependencies: {
+        import_count: $internal_import_count,
+        present_count: $internal_present_count,
+        identical_count: $internal_identical_count,
+        drifted_count: $internal_drifted_count,
+        required_drift_count: $internal_required_drift_count,
+        intentional_drift_count: $internal_intentional_drift_count,
+        missing_count: $internal_missing_count,
+        required_missing_count: $internal_required_missing_count,
+        intentional_missing_count: $internal_intentional_missing_count,
+        imports: $internal_imports,
+        present: $internal_present,
+        identical: $internal_identical,
+        drifted: $internal_drifted,
+        required_drift: $internal_required_drift,
+        intentional_drift: $internal_intentional_drift,
+        missing: $internal_missing,
+        required_missing: $internal_required_missing,
+        intentional_missing: $internal_intentional_missing
       },
       standalone_owned: {
         root_entries: $standalone_root_only,
@@ -734,6 +851,34 @@ fi
 if [[ -s "$GO_TARGET_ONLY_LIST" ]]; then
   printf '  standalone-only package files\n'
   sed 's/^/    - /' "$GO_TARGET_ONLY_LIST"
+fi
+printf '\n'
+
+printf 'internal dependencies\n'
+printf '  imported         %s\n' "$(count_lines "$INTERNAL_IMPORT_LIST")"
+printf '  present          %s\n' "$(count_lines "$INTERNAL_PRESENT_LIST")"
+printf '  identical        %s\n' "$(count_lines "$INTERNAL_IDENTICAL_LIST")"
+printf '  drifted          %s\n' "$(count_lines "$INTERNAL_DRIFTED_LIST")"
+printf '  drifted required %s\n' "$(count_lines "$INTERNAL_DRIFTED_REQUIRED_LIST")"
+printf '  drifted intent.  %s\n' "$(count_lines "$INTERNAL_DRIFTED_INTENTIONAL_LIST")"
+printf '  missing          %s\n' "$(count_lines "$INTERNAL_MISSING_LIST")"
+printf '  missing required %s\n' "$(count_lines "$INTERNAL_MISSING_REQUIRED_LIST")"
+printf '  missing intent.  %s\n' "$(count_lines "$INTERNAL_MISSING_INTENTIONAL_LIST")"
+if [[ -s "$INTERNAL_DRIFTED_REQUIRED_LIST" ]]; then
+  printf '  internal packages requiring projection alignment\n'
+  sed 's/^/    - /' "$INTERNAL_DRIFTED_REQUIRED_LIST"
+fi
+if [[ -s "$INTERNAL_DRIFTED_INTENTIONAL_LIST" ]]; then
+  printf '  intentional standalone-owned internal package drift\n'
+  sed 's/^/    - /' "$INTERNAL_DRIFTED_INTENTIONAL_LIST"
+fi
+if [[ -s "$INTERNAL_MISSING_REQUIRED_LIST" ]]; then
+  printf '  missing internal packages requiring projection\n'
+  sed 's/^/    - /' "$INTERNAL_MISSING_REQUIRED_LIST"
+fi
+if [[ -s "$INTERNAL_MISSING_INTENTIONAL_LIST" ]]; then
+  printf '  intentional standalone-owned missing internal packages\n'
+  sed 's/^/    - /' "$INTERNAL_MISSING_INTENTIONAL_LIST"
 fi
 printf '\n'
 

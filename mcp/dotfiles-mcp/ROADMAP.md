@@ -12,7 +12,7 @@ Host smoke now covers Hyprland, semantic AT-SPI import readiness, session clipbo
 
 Fixture-driven verification now covers `dotfiles_desktop_status`, Bluetooth and juhradial battery/service flows, semantic/session host preflights, and higher-signal `desktop`/`ops` defer-boundary checks without depending on a live workstation session.
 
-Canonical-to-standalone carry-forward for the embedded `dotfiles/mcp/dotfiles-mcp` module now has a dedicated projection helper with apply mode, editable-worktree targeting for bare mirrors, and wrapper integration in `sync-standalone-mcp-repos.sh` so required mirror drift can be cleared mechanically instead of by hand.
+Canonical-to-standalone carry-forward for the embedded `dotfiles/mcp/dotfiles-mcp` module now has a dedicated projection helper with apply mode, editable-worktree targeting for bare mirrors, imported internal-package dependency checks, and wrapper integration in `sync-standalone-mcp-repos.sh` so required mirror drift can be cleared mechanically instead of by hand.
 
 ## Planned
 
