@@ -4,6 +4,14 @@ All notable changes to dotfiles-mcp will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- GitHub Stars workflow module for listing stars, managing GitHub star folders, auditing taxonomy drift, syncing list membership, and installing the global Codex MCP entries
+- `cmd/github-starsctl` CLI wrapper for the GitHub Stars workflow
+- `scripts/hg-github-stars.sh` and `scripts/hg-github-official-mcp.sh` operator entrypoints with `~/.env` `GITHUB_PAT` preference
+
 ## [v0.1.0] - 2026-04-03
 
 ### Added
@@ -17,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Desktop services: cascade reload, rice check, eww bar management
 - Shader pipeline: GLSL shader lifecycle for Ghostty and wallpapers
 - Bluetooth: BLE-safe pairing, connect/disconnect, battery, trust
-- Input devices: Logitech mouse config (logiops), gamepad profiles (makima), Solaar settings
+- Input devices: juhradial-mx config and battery, gamepad profiles (makima)
 - MIDI: USB controller detection and mapping config
 - Composed workflows: bt_discover_and_connect, input_auto_setup_controller
 - Open-source readiness scoring (0-100) across 8 categories
