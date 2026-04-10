@@ -12,4 +12,5 @@ if [[ ! -f "$settings_script" ]]; then
   exit 1
 fi
 
+juhradial_export_graphical_env
 exec python3 "$settings_script" "$@"

@@ -48,68 +48,68 @@
   "radial_menu": {
     "slices": [
       {
-        "label": "Play/Pause",
-        "action_id": "play_pause",
+        "label": "Codex",
+        "action_id": "launch_codex",
         "type": "exec",
-        "command": "playerctl play-pause",
-        "color": "green",
-        "icon": "media-playback-start-symbolic"
+        "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh",
+        "color": "blue",
+        "icon": "utilities-terminal-symbolic"
       },
       {
-        "label": "Next Track",
-        "action_id": "next_track",
+        "label": "Claude",
+        "action_id": "launch_claude",
         "type": "exec",
-        "command": "playerctl next",
-        "color": "green",
-        "icon": "media-skip-forward-symbolic"
+        "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-claude-launch.sh",
+        "color": "blue",
+        "icon": "utilities-terminal-symbolic"
       },
       {
-        "label": "Previous Track",
-        "action_id": "prev_track",
+        "label": "Gemini",
+        "action_id": "launch_gemini",
         "type": "exec",
-        "command": "playerctl previous",
+        "command": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-gemini-launch.sh",
+        "color": "blue",
+        "icon": "utilities-terminal-symbolic"
+      },
+      {
+        "label": "Launcher",
+        "action_id": "app_launcher",
+        "type": "exec",
+        "command": "/home/hg/hairglasses-studio/dotfiles/scripts/app-launcher.sh",
         "color": "green",
-        "icon": "media-skip-backward-symbolic"
+        "icon": "system-run-symbolic"
+      },
+      {
+        "label": "WS Left",
+        "action_id": "workspace_left",
+        "type": "exec",
+        "command": "hyprctl dispatch workspace e-1",
+        "color": "purple",
+        "icon": "go-previous-symbolic"
+      },
+      {
+        "label": "WS Right",
+        "action_id": "workspace_right",
+        "type": "exec",
+        "command": "hyprctl dispatch workspace e+1",
+        "color": "purple",
+        "icon": "go-next-symbolic"
+      },
+      {
+        "label": "Float",
+        "action_id": "toggle_floating",
+        "type": "exec",
+        "command": "hyprctl dispatch togglefloating",
+        "color": "orange",
+        "icon": "view-restore-symbolic"
       },
       {
         "label": "Lock",
-        "action_id": "lock",
+        "action_id": "lock_screen",
         "type": "exec",
         "command": "loginctl lock-session",
         "color": "red",
         "icon": "system-lock-screen-symbolic"
-      },
-      {
-        "label": "Settings",
-        "action_id": "settings",
-        "type": "exec",
-        "command": "juhradial-settings",
-        "color": "blue",
-        "icon": "preferences-system-symbolic"
-      },
-      {
-        "label": "Disabled",
-        "action_id": "none",
-        "type": "none",
-        "command": "",
-        "color": "gray",
-        "icon": "action-unavailable-symbolic"
-      },
-      {
-        "label": "Disabled",
-        "action_id": "none",
-        "type": "none",
-        "command": "",
-        "color": "gray",
-        "icon": "action-unavailable-symbolic"
-      },
-      {
-        "label": "Disabled",
-        "action_id": "none",
-        "type": "none",
-        "command": "",
-        "color": "gray",
-        "icon": "action-unavailable-symbolic"
       }
     ],
     "easy_switch_shortcuts": false,

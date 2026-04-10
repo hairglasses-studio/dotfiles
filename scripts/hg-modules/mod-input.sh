@@ -30,7 +30,7 @@ _input_status() {
   local live_config="$live_dir/config.json"
   local live_profiles="$live_dir/profiles.json"
   local live_macros="$live_dir/macros"
-  local status
+  local status transport
 
   if juhradial_systemctl is-active juhradialmx-daemon.service &>/dev/null; then
     printf "  %s%-12s%s %sactive%s\n" "$HG_DIM" "juhradial" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
@@ -55,6 +55,22 @@ _input_status() {
   else
     printf "  %s%-12s%s %sinactive%s\n" "$HG_DIM" "makima" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
   fi
+
+  transport="$(juhradial_transport_state)"
+  case "$transport" in
+    bolt)
+      printf "  %s%-12s%s %sbolt%s\n" "$HG_DIM" "transport" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+      ;;
+    bluetooth)
+      printf "  %s%-12s%s %sbluetooth%s\n" "$HG_DIM" "transport" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+      ;;
+    split-brain)
+      printf "  %s%-12s%s %ssplit-brain%s\n" "$HG_DIM" "transport" "$HG_RESET" "$HG_RED" "$HG_RESET"
+      ;;
+    *)
+      printf "  %s%-12s%s %s%s%s\n" "$HG_DIM" "transport" "$HG_RESET" "$HG_YELLOW" "$transport" "$HG_RESET"
+      ;;
+  esac
 
   if [[ -f "$tracked_config" && -f "$live_config" ]]; then
     if diff -q "$tracked_config" "$live_config" &>/dev/null; then
@@ -159,6 +175,7 @@ _input_battery() {
 
 _input_devices() {
   printf "\n %s%sjuhradial devices%s\n\n" "$HG_BOLD" "$HG_CYAN" "$HG_RESET"
+  printf "  %s%-12s%s %s\n" "$HG_DIM" "transport" "$HG_RESET" "$(juhradial_transport_state)"
 
   local found=false
   local dev props model
@@ -183,6 +200,26 @@ _input_devices() {
       [[ -n "$line" ]] || continue
       printf "    %s\n" "$line"
     done <<<"$bt"
+  fi
+
+  local solaar_show
+  solaar_show="$(juhradial_solaar_timeout "${JUHRADIAL_SOLAAR_TIMEOUT:-8s}" show all 2>/dev/null | tr -d '\000' || true)"
+  if [[ -n "$solaar_show" ]]; then
+    printf "\n  %ssolaar%s\n" "$HG_DIM" "$HG_RESET"
+    while IFS= read -r line; do
+      case "$line" in
+        "Bolt Receiver"|\
+        "MX Master 4"|\
+        "  Device path  :"*|\
+        "  Has "*|\
+        "  1: MX Master 4"|\
+        "  2: MX Master 4"|\
+        "  3: MX Master 4"|\
+        "     Battery:"*)
+          printf "    %s\n" "$line"
+          ;;
+      esac
+    done <<<"$solaar_show"
   fi
 
   printf "\n"

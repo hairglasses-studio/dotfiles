@@ -6,51 +6,54 @@
       "slices": [
         {
           "type": "command",
-          "value": "playerctl play-pause",
-          "label": "Play/Pause",
-          "icon": "media-playback-start-symbolic"
+          "value": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh",
+          "label": "Codex",
+          "icon": "utilities-terminal-symbolic"
         },
         {
           "type": "command",
-          "value": "playerctl next",
-          "label": "Next Track",
-          "icon": "media-skip-forward-symbolic"
+          "value": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-claude-launch.sh",
+          "label": "Claude",
+          "icon": "utilities-terminal-symbolic"
         },
         {
           "type": "command",
-          "value": "playerctl previous",
-          "label": "Previous Track",
-          "icon": "media-skip-backward-symbolic"
+          "value": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-gemini-launch.sh",
+          "label": "Gemini",
+          "icon": "utilities-terminal-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "/home/hg/hairglasses-studio/dotfiles/scripts/app-launcher.sh",
+          "label": "Launcher",
+          "icon": "system-run-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "hyprctl dispatch workspace e-1",
+          "label": "WS Left",
+          "icon": "go-previous-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "hyprctl dispatch workspace e+1",
+          "label": "WS Right",
+          "icon": "go-next-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "hyprctl dispatch togglefloating",
+          "label": "Float",
+          "icon": "view-restore-symbolic"
         },
         {
           "type": "command",
           "value": "loginctl lock-session",
           "label": "Lock",
           "icon": "system-lock-screen-symbolic"
-        },
-        {
-          "type": "command",
-          "value": "juhradial-settings",
-          "label": "Settings",
-          "icon": "preferences-system-symbolic"
-        },
-        {
-          "type": "none",
-          "label": "Disabled",
-          "icon": "action-unavailable-symbolic"
-        },
-        {
-          "type": "none",
-          "label": "Disabled",
-          "icon": "action-unavailable-symbolic"
-        },
-        {
-          "type": "none",
-          "label": "Disabled",
-          "icon": "action-unavailable-symbolic"
         }
       ],
-      "description": "Repo-managed default profile for Hyprland"
+      "description": "Repo-managed Bolt-first profile for Hyprland and AI launchers"
     }
   ]
 }
