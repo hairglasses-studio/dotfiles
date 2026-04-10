@@ -144,7 +144,7 @@ All MCP tools are consolidated under `mcp/` (7 Go modules + 3 JS servers via `go
 
 | Server | Tools | Description |
 |--------|-------|-------------|
-| `dotfiles-mcp` | 82 | Desktop config management, Hyprland control, Kitty visual pipeline, input devices |
+| `dotfiles-mcp` | 100+ | Desktop config management, Hyprland control, GitHub Stars taxonomy, Kitty visual pipeline, input devices |
 | `hg-mcp` | 200+ | SDLC ops, fleet management, repo analysis, prompt pipeline |
 | `systemd-mcp` | 10 | Systemd unit management |
 | `tmux-mcp` | 11 | Tmux session management |
