@@ -2,7 +2,7 @@
 
 ## Current State
 
-dotfiles-mcp is now a discovery-first workstation MCP surface with committed contract artifacts. The canonical snapshot currently exposes `370` tools across `37` registered modules, plus `24` resources and `12` prompts. Public release metadata is regenerated into `.well-known/mcp.json`, and the JSON bundle in `snapshots/contract/` is treated as the checked-in contract for publish parity.
+dotfiles-mcp is now a discovery-first workstation MCP surface with committed contract artifacts. The canonical snapshot currently exposes `372` tools across `37` registered modules, plus `24` resources and `12` prompts. Public release metadata is regenerated into `.well-known/mcp.json`, and the JSON bundle in `snapshots/contract/` is treated as the checked-in contract for publish parity.
 
 The server remains stdio-first, built on mcpkit, and defaults to deferred loading outside the discovery surface. Batch workflows still default to dry-run where live mutation would be risky.
 
@@ -24,7 +24,7 @@ The server remains stdio-first, built on mcpkit, and defaults to deferred loadin
 - `dotfiles_pipeline_status` — aggregate CI status across all repos in one view
 - `dotfiles_changelog_gen` — generate changelogs from conventional commits
 - `dotfiles_release` — orchestrate go-releaser across repos
-- Broader semantic desktop compatibility for Electron/Chromium-heavy apps, richer multi-match semantic queries, and more resilient KWin virtual-session introspection
+- Broader semantic desktop compatibility for Electron/Chromium-heavy apps and more resilient KWin virtual-session introspection
 - Deeper workspace scene tooling around layout capture, window restoration, and publishable workstation diagnostics
 
 ## Future Considerations
