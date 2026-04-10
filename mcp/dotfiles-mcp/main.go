@@ -578,11 +578,14 @@ type PaletteViolation struct {
 }
 
 type RiceCheckOutput struct {
-	Compositor        string                `json:"compositor"`
-	Shader            string                `json:"shader"`
-	Wallpaper         string                `json:"wallpaper"`
-	Services          []ServiceReloadStatus `json:"services"`
-	PaletteViolations []PaletteViolation    `json:"palette_violations,omitempty"`
+	Compositor            string                `json:"compositor"`
+	Shader                string                `json:"shader"`
+	Wallpaper             string                `json:"wallpaper"`
+	Services              []ServiceReloadStatus `json:"services"`
+	ShellServices         []ServiceReloadStatus `json:"shell_services,omitempty"`
+	MonitorIncludePath    string                `json:"monitor_include_path,omitempty"`
+	MonitorIncludePresent bool                  `json:"monitor_include_present,omitempty"`
+	PaletteViolations     []PaletteViolation    `json:"palette_violations,omitempty"`
 }
 
 // Tool 21: dotfiles_bulk_pipeline
@@ -631,12 +634,13 @@ type EwwLayerInfo struct {
 }
 
 type EwwStatusOutput struct {
-	DaemonRunning bool              `json:"daemon_running"`
-	DaemonCount   int               `json:"daemon_count"`
-	WaybarRunning bool              `json:"waybar_running"`
-	Windows       []string          `json:"windows"`
-	Layers        []EwwLayerInfo    `json:"layers"`
-	Variables     map[string]string `json:"variables,omitempty"`
+	DaemonRunning  bool              `json:"daemon_running"`
+	DaemonCount    int               `json:"daemon_count"`
+	WaybarRunning  bool              `json:"waybar_running"`
+	Windows        []string          `json:"windows"`
+	DefinedWindows []string          `json:"defined_windows,omitempty"`
+	Layers         []EwwLayerInfo    `json:"layers"`
+	Variables      map[string]string `json:"variables,omitempty"`
 }
 
 // Tool 10: dotfiles_eww_get
@@ -1138,62 +1142,7 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 			"dotfiles_eww_restart",
 			"Kill all eww and waybar processes, restart eww daemon, and open both bars (bar and bar-secondary). Use after editing eww config files.",
 			func(_ context.Context, _ EwwRestartInput) (EwwRestartOutput, error) {
-				r := EwwRestartOutput{}
-
-				waybar := exec.Command("killall", "waybar")
-				if waybar.Run() == nil {
-					r.WaybarOff = true
-				}
-
-				countCmd := exec.Command("pgrep", "-c", "eww")
-				var countOut bytes.Buffer
-				countCmd.Stdout = &countOut
-				if countCmd.Run() == nil {
-					fmt.Sscanf(strings.TrimSpace(countOut.String()), "%d", &r.Killed)
-				}
-
-				exec.Command("killall", "-9", "eww").Run()
-				exec.Command("sleep", "1").Run()
-
-				home := homeDir()
-				sockets, _ := filepath.Glob(filepath.Join("/run/user/1000", "eww-server_*"))
-				for _, s := range sockets {
-					os.Remove(s)
-				}
-
-				daemon := exec.Command("eww", "daemon", "--restart")
-				daemon.Dir = home
-				if err := daemon.Start(); err != nil {
-					r.Error = fmt.Sprintf("daemon start failed: %v", err)
-					return r, nil
-				}
-
-				exec.Command("sleep", "3").Run()
-
-				ping := exec.Command("eww", "ping")
-				var pingOut bytes.Buffer
-				ping.Stdout = &pingOut
-				if err := ping.Run(); err != nil {
-					r.Error = "daemon started but not responding to ping"
-					return r, nil
-				}
-
-				pidCmd := exec.Command("pgrep", "-o", "eww")
-				var pidOut bytes.Buffer
-				pidCmd.Stdout = &pidOut
-				if pidCmd.Run() == nil {
-					r.DaemonPID = strings.TrimSpace(pidOut.String())
-				}
-
-				bars := []string{"bar", "bar-secondary"}
-				for _, bar := range bars {
-					openCmd := exec.Command("eww", "open", bar)
-					if err := openCmd.Run(); err == nil {
-						r.BarsOpen = append(r.BarsOpen, bar)
-					}
-				}
-
-				return r, nil
+				return restartEwwBars(), nil
 			},
 		),
 
@@ -1202,78 +1151,7 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 			"dotfiles_eww_status",
 			"Show eww bar status: daemon health, open windows, layer surfaces, key variable values, and whether waybar is incorrectly running.",
 			func(_ context.Context, _ EwwStatusInput) (EwwStatusOutput, error) {
-				st := EwwStatusOutput{
-					Variables: make(map[string]string),
-				}
-
-				countCmd := exec.Command("pgrep", "-c", "eww")
-				var countOut bytes.Buffer
-				countCmd.Stdout = &countOut
-				if countCmd.Run() == nil {
-					fmt.Sscanf(strings.TrimSpace(countOut.String()), "%d", &st.DaemonCount)
-					st.DaemonRunning = st.DaemonCount > 0
-				}
-
-				waybarCmd := exec.Command("pgrep", "-x", "waybar")
-				st.WaybarRunning = waybarCmd.Run() == nil
-
-				winCmd := exec.Command("eww", "active-windows")
-				var winOut bytes.Buffer
-				winCmd.Stdout = &winOut
-				if winCmd.Run() == nil {
-					for _, line := range strings.Split(strings.TrimSpace(winOut.String()), "\n") {
-						line = strings.TrimSpace(line)
-						if line == "" {
-							continue
-						}
-						if parts := strings.SplitN(line, ":", 2); len(parts) > 0 {
-							st.Windows = append(st.Windows, strings.TrimSpace(parts[0]))
-						}
-					}
-				}
-
-				layerCmd := exec.Command("hyprctl", "layers")
-				var layerOut bytes.Buffer
-				layerCmd.Stdout = &layerOut
-				if layerCmd.Run() == nil {
-					var currentMonitor string
-					for _, line := range strings.Split(layerOut.String(), "\n") {
-						line = strings.TrimSpace(line)
-						if strings.HasPrefix(line, "Monitor ") {
-							currentMonitor = strings.TrimSuffix(strings.TrimPrefix(line, "Monitor "), ":")
-						}
-						if strings.Contains(line, "namespace:") {
-							parts := strings.Split(line, "namespace: ")
-							if len(parts) == 2 {
-								ns := strings.Split(parts[1], ",")[0]
-								xywh := ""
-								if xywhIdx := strings.Index(line, "xywh: "); xywhIdx >= 0 {
-									xywh = strings.Split(line[xywhIdx+6:], ",")[0]
-								}
-								st.Layers = append(st.Layers, EwwLayerInfo{
-									Monitor:   currentMonitor,
-									Namespace: ns,
-									Position:  xywh,
-								})
-							}
-						}
-					}
-				}
-
-				varsToCheck := []string{
-					"bar_workspaces_dp1", "bar_workspaces_dp2",
-					"bar_cpu", "bar_mem", "bar_vol", "bar_shader",
-				}
-				for _, v := range varsToCheck {
-					getCmd := exec.Command("eww", "get", v)
-					var getOut bytes.Buffer
-					getCmd.Stdout = &getOut
-					if getCmd.Run() == nil {
-						st.Variables[v] = strings.TrimSpace(getOut.String())
-					}
-				}
-
-				return st, nil
+				return currentEwwStatus(), nil
 			},
 		),
 
@@ -1286,16 +1164,10 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					return EwwGetOutput{}, fmt.Errorf("[%s] variable name is required", handler.ErrInvalidParam)
 				}
 
-				cmd := exec.Command("eww", "get", input.Variable)
-				var stdout, stderr bytes.Buffer
-				cmd.Stdout = &stdout
-				cmd.Stderr = &stderr
-
-				if err := cmd.Run(); err != nil {
-					return EwwGetOutput{}, fmt.Errorf("eww get %s failed: %v: %s", input.Variable, err, strings.TrimSpace(stderr.String()))
+				value, err := runEww("get", input.Variable)
+				if err != nil {
+					return EwwGetOutput{}, err
 				}
-
-				value := strings.TrimSpace(stdout.String())
 
 				var parsed any
 				if json.Unmarshal([]byte(value), &parsed) == nil {
@@ -2528,6 +2400,30 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					}
 					result.Services = append(result.Services, ServiceReloadStatus{Service: svc, Action: action})
 				}
+
+				// Hyprland shell stack status.
+				for _, component := range []struct {
+					name    string
+					running bool
+				}{
+					{name: "hyprshell", running: processRunningExact("hyprshell")},
+					{name: "hypr-dock", running: processRunningExact("hypr-dock")},
+					{name: "hyprdynamicmonitors", running: processRunningExact("hyprdynamicmonitors")},
+					{name: "autoname", running: processRunningExact("hyprland-autoname-workspaces")},
+					{name: "swaync", running: processRunningExact("swaync")},
+					{name: "notification-history", running: notificationHistoryListenerRunning()},
+				} {
+					action := "stopped"
+					if component.running {
+						action = "running"
+					}
+					result.ShellServices = append(result.ShellServices, ServiceReloadStatus{
+						Service: component.name,
+						Action:  action,
+					})
+				}
+				result.MonitorIncludePath = desktopMonitorIncludePath()
+				result.MonitorIncludePresent = pathExists(result.MonitorIncludePath)
 
 				// Palette scan (full mode only).
 				if level == "full" {

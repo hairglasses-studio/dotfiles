@@ -1,0 +1,14 @@
+[Unit]
+Description=dotfiles notification history listener
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/env python3 %h/hairglasses-studio/dotfiles/scripts/notification-history-listener.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

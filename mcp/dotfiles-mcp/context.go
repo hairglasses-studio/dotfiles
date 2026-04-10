@@ -160,7 +160,7 @@ func (m *dotfilesResourceModule) Resources() []resources.ResourceDefinition {
 						Text: strings.Join([]string{
 							"1. Start with `dotfiles_rice_check` for compositor, shader, wallpaper, and service state.",
 							"2. Use `system_health_check` if the symptom may be machine-wide rather than desktop-specific.",
-							"3. Use `dotfiles_eww_status`, `hypr_list_windows`, or `hypr_get_monitors` to narrow the failing surface.",
+							"3. Use `dotfiles_eww_status`, `dotfiles_eww_inspect`, `notify_history_entries`, `hypr_list_windows`, or `hypr_get_monitors` to narrow the failing surface.",
 							"4. Only run `dotfiles_cascade_reload` or `dotfiles_reload_service` after the read path explains which layer is stale.",
 						}, "\n"),
 					},
@@ -182,11 +182,12 @@ func (m *dotfilesResourceModule) Resources() []resources.ResourceDefinition {
 						URI:      "dotfiles://workflows/desktop-control",
 						MIMEType: "text/markdown",
 						Text: strings.Join([]string{
-							"1. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm Wayland, Hyprland, OCR, input, and shader readiness before trying UI writes.",
+							"1. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm Wayland, Hyprland, shell-stack, Eww, notification-history, OCR, input, and shader readiness before trying UI writes.",
 							"2. Use `hypr_list_windows` or `hypr_get_monitors` to identify the exact target surface before taking screenshots or sending input.",
 							"3. Use `screen_screenshot`, `desktop_screenshot_ocr`, or `desktop_find_text` to prove the visible state and coordinates you are about to act on.",
-							"4. Use `input_type_text`, `desktop_click_text`, `hypr_click`, or other narrow write tools only after the read path proves the target.",
-							"5. Prefer `dotfiles_reload_service` or `hypr_reload_config` for one stale layer; reserve `dotfiles_cascade_reload` for broader desktop refreshes.",
+							"4. Use `hypr_monitor_preset_list`, `hypr_layout_list`, `hypr_monitor_preset_restore`, `hypr_layout_restore`, or `desktop_project_open` when the task is a scene change rather than a single click.",
+							"5. Use `input_type_text`, `desktop_click_text`, `hypr_click`, or other narrow write tools only after the read path proves the target.",
+							"6. Prefer `dotfiles_eww_reload`, `dotfiles_reload_service`, or `hypr_reload_config` for one stale layer; reserve `dotfiles_cascade_reload` for broader desktop refreshes.",
 						}, "\n"),
 					},
 				}, nil
@@ -448,9 +449,9 @@ func (m *dotfilesResourceModule) overviewMarkdown() string {
 		"",
 		"Highest-value paths:",
 		"",
-		"- Desktop control: `dotfiles_desktop_status` -> `dotfiles_rice_check` -> `hypr_list_windows` / `hypr_get_monitors` -> `desktop_screenshot_ocr` / `desktop_find_text` -> narrow input or reload action.",
+		"- Desktop control: `dotfiles_desktop_status` -> `dotfiles_rice_check` -> `hypr_list_windows` / `hypr_get_monitors` / `hypr_monitor_preset_list` / `hypr_layout_list` -> `desktop_screenshot_ocr` / `desktop_find_text` -> narrow input or scene restore action.",
 		"- Fleet maintenance: `dotfiles_fleet_audit` -> `dotfiles_dep_audit` / `dotfiles_gh_local_sync_audit` -> `dotfiles_workflow_sync` or `dotfiles_gh_full_sync`.",
-		"- Desktop triage: `dotfiles_desktop_status` / `dotfiles_rice_check` -> `system_health_check` / targeted Hyprland or eww reads -> reload only the failing layer.",
+		"- Desktop triage: `dotfiles_desktop_status` / `dotfiles_rice_check` -> `system_health_check` / targeted Hyprland or eww reads / `notify_history_entries` -> reload only the failing layer.",
 		"- Config repair: `dotfiles_list_configs` / config resources -> `dotfiles_validate_config` -> smallest-safe reload.",
 		"- Workstation diagnosis: `system_health_check` -> subsystem reads -> `systemd_failed` before desktop-specific escalation.",
 		"- Repo validation: `dotfiles_oss_check` / `dotfiles_oss_score` -> `dotfiles_pipeline_run` -> `dotfiles_workflow_sync` in dry-run mode.",
@@ -524,7 +525,7 @@ func (m *dotfilesPromptModule) Prompts() []prompts.PromptDefinition {
 				symptom := req.Params.Arguments["symptom"]
 				return mcp.NewGetPromptResult("Triage desktop issue", []mcp.PromptMessage{
 					mcp.NewPromptMessage(mcp.RoleUser, mcp.NewTextContent(fmt.Sprintf(
-						"Triage this desktop issue: %q. Start with `dotfiles_rice_check`. Use `system_health_check` if the symptom might be machine-wide. Use `dotfiles_eww_status`, `hypr_list_windows`, or `hypr_get_monitors` to narrow the failing layer. Only use `dotfiles_cascade_reload` or `dotfiles_reload_service` after the read path shows which layer is stale.",
+						"Triage this desktop issue: %q. Start with `dotfiles_rice_check`. Use `system_health_check` if the symptom might be machine-wide. Use `dotfiles_eww_status`, `dotfiles_eww_inspect`, `notify_history_entries`, `hypr_list_windows`, or `hypr_get_monitors` to narrow the failing layer. Only use `dotfiles_cascade_reload` or `dotfiles_reload_service` after the read path shows which layer is stale.",
 						symptom,
 					))),
 				}), nil
@@ -542,7 +543,7 @@ func (m *dotfilesPromptModule) Prompts() []prompts.PromptDefinition {
 				objective := req.Params.Arguments["objective"]
 				return mcp.NewGetPromptResult("Control desktop surface", []mcp.PromptMessage{
 					mcp.NewPromptMessage(mcp.RoleUser, mcp.NewTextContent(fmt.Sprintf(
-						"Complete this desktop control task: %q. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm runtime readiness. Use `hypr_list_windows` or `hypr_get_monitors` to find the target, then use `screen_screenshot`, `desktop_screenshot_ocr`, or `desktop_find_text` to prove the visible state before any write. After the target is confirmed, prefer narrow actions such as `input_type_text`, `desktop_click_text`, `hypr_click`, or `hypr_focus_window`, and only use `dotfiles_reload_service`, `hypr_reload_config`, or `dotfiles_cascade_reload` when the failing layer is clear.",
+						"Complete this desktop control task: %q. Start with `dotfiles_desktop_status` and `dotfiles_rice_check` to confirm runtime readiness. Use `hypr_list_windows`, `hypr_get_monitors`, `hypr_monitor_preset_list`, or `hypr_layout_list` to find the target or scene, then use `screen_screenshot`, `desktop_screenshot_ocr`, or `desktop_find_text` to prove the visible state before any write. After the target is confirmed, prefer narrow actions such as `input_type_text`, `desktop_click_text`, `hypr_click`, `hypr_focus_window`, `hypr_monitor_preset_restore`, `hypr_layout_restore`, or `desktop_project_open`, and only use `dotfiles_eww_reload`, `dotfiles_reload_service`, `hypr_reload_config`, or `dotfiles_cascade_reload` when the failing layer is clear.",
 						objective,
 					))),
 				}), nil

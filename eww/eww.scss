@@ -493,6 +493,17 @@ $shadow-panel: 0 24px 80px rgba(6, 7, 10, 0.65) !default;
   }
 }
 
+.sidebar-tab-badge {
+  color: inherit;
+  font-size: 12px;
+  font-weight: bold;
+
+  &.hot {
+    color: $yellow;
+    text-shadow: 0 0 8px rgba(243, 249, 157, 0.6);
+  }
+}
+
 // ── Sidebar pages ─────────────────────────
 .sidebar-page {
   padding: 4px 0;
@@ -628,6 +639,25 @@ $shadow-panel: 0 24px 80px rgba(6, 7, 10, 0.65) !default;
   color: $dim;
   font-size: 10px;
   letter-spacing: 1px;
+}
+
+.notify-pill {
+  padding: 6px 10px;
+  border: 1px solid rgba(243, 249, 157, 0.4);
+  border-radius: 999px;
+  background-color: rgba(243, 249, 157, 0.08);
+}
+
+.notify-pill-label {
+  color: $yellow;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+
+.notify-pill-count {
+  color: $fg;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 // ══════════════════════════════════════════════════
@@ -982,6 +1012,81 @@ $shadow-panel: 0 24px 80px rgba(6, 7, 10, 0.65) !default;
 .cal-event-title {
   color: $fg;
   font-size: 11px;
+}
+
+.notify-header-text {
+  color: $yellow;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-shadow: 0 0 6px rgba(243, 249, 157, 0.4);
+}
+
+.notify-summary {
+  padding: 4px 0 8px;
+}
+
+.notify-summary-text {
+  color: $dim;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.notify-list {
+  padding: 6px 0;
+}
+
+.notify-entry {
+  padding: 8px;
+  border: 1px solid rgba(87, 199, 255, 0.14);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.notify-entry-head {
+  padding-bottom: 2px;
+}
+
+.notify-entry-app {
+  color: $cyan;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.notify-entry-time {
+  color: $dim;
+  font-size: 9px;
+}
+
+.notify-entry-summary {
+  color: $fg;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.notify-entry-body {
+  color: rgba(241, 241, 240, 0.75);
+  font-size: 10px;
+}
+
+.notify-empty {
+  color: $dim;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.notify-low {
+  color: $green;
+}
+
+.notify-normal {
+  color: $cyan;
+}
+
+.notify-critical {
+  color: $red;
+  text-shadow: 0 0 6px rgba(255, 92, 87, 0.5);
 }
 
 // ══════════════════════════════════════════════════

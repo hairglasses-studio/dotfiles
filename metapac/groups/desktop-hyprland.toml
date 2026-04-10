@@ -24,6 +24,7 @@ packages = [
     { name = "hypr-dock" },
 
     # Notifications
+    { name = "dbus" },
     { name = "swaync" },
     { name = "poweralertd" },
 
@@ -60,6 +61,7 @@ packages = [
     { name = "socat" },
     { name = "tesseract" },
     { name = "imagemagick" },
+    { name = "python" },
 
     # Clipboard
     { name = "cliphist" },
@@ -72,25 +74,17 @@ packages = [
     { name = "shaderbg" },
 
     # GTK/Qt theming
+    { name = "gtk-cyberpunk-neon-theme-git" },
     { name = "gtk3-nocsd" },
     { name = "kvantum" },
-    { name = "breeze" },
-    { name = "breeze-gtk" },
-    { name = "breeze5" },
-    { name = "kde-gtk-config" },
-    { name = "plasma-integration" },
-    { name = "plasma5-integration" },
-    { name = "plasma-workspace" },
-    { name = "systemsettings" },
     { name = "qt5-wayland" },
     { name = "qt5ct" },
     { name = "qt6-wayland" },
     { name = "qt6ct" },
     { name = "qt6-imageformats" },
+    { name = "python-pyqt6" },
     { name = "papirus-icon-theme" },
     { name = "bibata-cursor-theme" },
-    { name = "xdg-desktop-portal-kde" },
-    { name = "xsettingsd" },
 
     # Polkit
     { name = "polkit-gnome" },

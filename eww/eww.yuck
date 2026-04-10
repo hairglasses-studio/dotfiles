@@ -32,6 +32,9 @@
 (defpoll cal_events :interval "300s" :initial "[]"
   `$HOME/hairglasses-studio/dotfiles/scripts/eww-events.sh 2>/dev/null || echo '[]'`)
 
+(defpoll notify_history_data :interval "5s" :initial '{"count":0,"entry_count":0,"entries":[]}'
+  `python3 $HOME/hairglasses-studio/dotfiles/scripts/eww-notification-history.py 2>/dev/null || echo '{"count":0,"entry_count":0,"entries":[]}'`)
+
 ; ── Sidebar state variables ──────────────────────
 (defvar sidebar-page 0)
 
@@ -87,6 +90,11 @@
   (box :class "footer" :orientation "h" :space-evenly true
     (label :class "footer-text" :text "UPTIME: ${uptime_val}")))
 
+(defwidget notification-badge []
+  (box :class "notify-pill" :orientation "h" :spacing 8 :halign "center" :visible {notify_history_data.count > 0}
+    (label :class "notify-pill-label" :text "NOTIFY")
+    (label :class "notify-pill-count" :text {notify_history_data.count})))
+
 ; ── Sidebar tabs ─────────────────────────────────
 
 (defwidget sidebar-tabs []
@@ -94,7 +102,10 @@
     (button :class "sidebar-tab ${sidebar-page == 0 ? 'active' : ''}" :onclick "eww update sidebar-page=0" "SYS")
     (button :class "sidebar-tab ${sidebar-page == 1 ? 'active' : ''}" :onclick "eww update sidebar-page=1" "MEDIA")
     (button :class "sidebar-tab ${sidebar-page == 2 ? 'active' : ''}" :onclick "eww update sidebar-page=2" "FLEET")
-    (button :class "sidebar-tab ${sidebar-page == 3 ? 'active' : ''}" :onclick "eww update sidebar-page=3" "CAL")))
+    (button :class "sidebar-tab ${sidebar-page == 3 ? 'active' : ''}" :onclick "eww update sidebar-page=3" "CAL")
+    (button :class "sidebar-tab sidebar-tab-notify ${sidebar-page == 4 ? 'active' : ''}" :onclick "eww update sidebar-page=4"
+      (label :class "sidebar-tab-badge ${notify_history_data.count > 0 ? 'hot' : ''}"
+             :text {notify_history_data.count > 0 ? notify_history_data.count : "NOTIFY"}))))
 
 ; ── Page 1: Home (System Metrics) ────────────────
 
@@ -102,6 +113,7 @@
   (box :class "sidebar-page" :orientation "v" :spacing 8 :visible {sidebar-page == 0}
     (header)
     (clock-widget)
+    (notification-badge)
     (system-metrics)
     (network-stats)
     (now-playing-widget)
@@ -128,7 +140,7 @@
       (button :class "media-btn" :onclick "playerctl previous" "󰒮")
       (button :class "media-btn media-btn-play" :onclick "playerctl play-pause"
         {mpris_data.status == "Playing" ? "󰏤" : "󰐊"})
-      (button :class "media-btn" :onclick "playerctl next" "󰒭")))
+      (button :class "media-btn" :onclick "playerctl next" "󰒭"))
     (box :class "media-volume" :orientation "h" :spacing 8 :halign "center"
       (label :class "media-vol-icon" :text {bar_vol == 0 ? "󰝟" : bar_vol < 50 ? "󰖀" : "󰕾"})
       (scale :class "media-vol-slider" :min 0 :max 101 :value bar_vol
@@ -196,16 +208,34 @@
           (label :class "cal-event-time" :text {ev.time})
           (label :class "cal-event-title" :text {ev.title} :limit-width 30))))))
 
+(defwidget sidebar-notifications []
+  (box :class "sidebar-page sidebar-notifications" :orientation "v" :spacing 8 :visible {sidebar-page == 4}
+    (box :class "notify-header" :halign "center"
+      (label :class "notify-header-text" :text "NOTIFICATIONS"))
+    (box :class "notify-summary" :halign "center"
+      (label :class "notify-summary-text"
+             :text {notify_history_data.count > 0 ? "${notify_history_data.count} active in swaync" : "No active notifications"}))
+    (box :class "notify-list" :orientation "v" :spacing 6
+      (for entry in {notify_history_data.entries ?: "[]"}
+        (box :class "notify-entry" :orientation "v" :spacing 2
+          (box :class "notify-entry-head" :orientation "h" :spacing 8
+            (label :class "notify-entry-app notify-${entry.urgency}" :text {entry.app != "" ? entry.app : "notification"})
+            (label :class "notify-entry-time" :text {entry.time}))
+          (label :class "notify-entry-summary" :text {entry.summary != "" ? entry.summary : "Untitled notification"} :limit-width 32)
+          (label :class "notify-entry-body" :text {entry.body} :limit-width 34 :visible {entry.body != ""}))))
+    (label :class "notify-empty" :text "No logged notifications yet" :visible {notify_history_data.entry_count == 0})))
+
 ; ── Sidebar container ────────────────────────────
 
 (defwidget sidebar-content []
-  (eventbox :onscroll "[ '{}' = 'up' ] && eww update sidebar-page=$(( (${sidebar-page} + 3) % 4 )) || eww update sidebar-page=$(( (${sidebar-page} + 1) % 4 ))"
+  (eventbox :onscroll "[ '{}' = 'up' ] && eww update sidebar-page=$(( (${sidebar-page} + 4) % 5 )) || eww update sidebar-page=$(( (${sidebar-page} + 1) % 5 ))"
     (box :class "sidebar" :orientation "v" :spacing 8
       (sidebar-tabs)
       (sidebar-home)
       (sidebar-media)
       (sidebar-fleet)
-      (sidebar-calendar))))
+      (sidebar-calendar)
+      (sidebar-notifications))))
 
 ; ── Shared polling variables (used by sidebar) ──
 

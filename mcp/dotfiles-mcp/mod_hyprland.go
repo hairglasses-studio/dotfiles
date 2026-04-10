@@ -260,7 +260,7 @@ func (m *HyprlandModule) Name() string        { return "hyprland" }
 func (m *HyprlandModule) Description() string { return "Hyprland desktop control tools" }
 
 func (m *HyprlandModule) Tools() []registry.ToolDefinition {
-	return []registry.ToolDefinition{
+	tools := []registry.ToolDefinition{
 		// ── hypr_screenshot ────────────────────────────
 		// Raw handler because TypedHandler marshals output as JSON text,
 		// but screenshots need to return mcp.ImageContent directly.
@@ -972,6 +972,8 @@ func (m *HyprlandModule) Tools() []registry.ToolDefinition {
 			Category: "hyprland",
 		},
 	}
+	tools = append(tools, hyprPersistenceToolDefinitions()...)
+	return tools
 }
 
 // ---------- window manipulation handlers ----------

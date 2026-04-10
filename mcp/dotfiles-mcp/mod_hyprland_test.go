@@ -14,8 +14,8 @@ import (
 func TestHyprlandModuleRegistration(t *testing.T) {
 	m := &HyprlandModule{}
 	tools := m.Tools()
-	if len(tools) != 19 {
-		t.Fatalf("expected 19 hyprland tools, got %d", len(tools))
+	if len(tools) != 26 {
+		t.Fatalf("expected 26 hyprland tools, got %d", len(tools))
 	}
 
 	reg := registry.NewToolRegistry()
@@ -29,6 +29,8 @@ func TestHyprlandModuleRegistration(t *testing.T) {
 		"hypr_click", "hypr_type_text", "hypr_key", "hypr_set_monitor",
 		"hypr_move_window", "hypr_resize_window", "hypr_close_window",
 		"hypr_toggle_floating", "hypr_minimize_window", "hypr_fullscreen_window",
+		"hypr_monitor_preset_save", "hypr_monitor_preset_restore", "hypr_monitor_preset_list",
+		"hypr_layout_save", "hypr_layout_restore", "hypr_layout_list", "desktop_project_open",
 	} {
 		if !srv.HasTool(want) {
 			t.Errorf("missing tool: %s", want)
