@@ -492,6 +492,39 @@ EOF
     assert_success
 }
 
+@test "hg-codex-mcp-sync: relative repo path targets caller repo rather than codexkit root" {
+    write_manifest "demo"
+    init_repo "demo"
+    mkdir -p "${TEST_ROOT}/demo/.codex" "${TEST_ROOT}/demo/scripts/mcp"
+
+    cat > "${TEST_ROOT}/demo/.mcp.json" <<'EOF'
+{
+  "mcpServers": {
+    "demo": {
+      "command": "./scripts/mcp/demo-mcp.sh"
+    }
+  }
+}
+EOF
+
+    cat > "${TEST_ROOT}/demo/.codex/config.toml" <<'EOF'
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+EOF
+
+    cat > "${TEST_ROOT}/demo/scripts/mcp/demo-mcp.sh" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+    chmod +x "${TEST_ROOT}/demo/scripts/mcp/demo-mcp.sh"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash -lc "cd '${TEST_ROOT}/demo' && bash '${SCRIPTS_REAL}/hg-codex-mcp-sync.sh' ."
+    assert_success
+
+    run grep -F 'command = "./scripts/mcp/demo-mcp.sh"' "${TEST_ROOT}/demo/.codex/config.toml"
+    assert_success
+}
+
 @test "hg-codex-bootstrap: initializes default skill surface without surfacekit" {
     write_manifest "demo"
     init_repo "demo"
