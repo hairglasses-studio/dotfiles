@@ -447,7 +447,7 @@ func (c *OllamaClient) ListRunningModels(ctx context.Context) ([]OllamaRunningMo
 }
 
 // Generate generates text completion
-func (c *OllamaClient) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error) {
+func (c *OllamaClient) Generate(ctx context.Context, req *GenerateRequest) (result *GenerateResponse, err error) {
 	if req.Model == "" {
 		req.Model = DefaultOllamaChatModel()
 	}
@@ -455,6 +455,20 @@ func (c *OllamaClient) Generate(ctx context.Context, req *GenerateRequest) (*Gen
 	if req.KeepAlive == "" {
 		req.KeepAlive = DefaultOllamaKeepAlive()
 	}
+	ctx, span := startOllamaLLMSpan(ctx, "generate", req.Model, c.baseURL)
+	defer func() {
+		model := req.Model
+		inputTokens := 0
+		outputTokens := 0
+		if result != nil {
+			if result.Model != "" {
+				model = result.Model
+			}
+			inputTokens = result.PromptEvalCount
+			outputTokens = result.EvalCount
+		}
+		finishOllamaLLMSpan(span, model, inputTokens, outputTokens, err)
+	}()
 
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -478,16 +492,17 @@ func (c *OllamaClient) Generate(ctx context.Context, req *GenerateRequest) (*Gen
 		return nil, fmt.Errorf("Ollama API error: %s", string(respBody))
 	}
 
-	var result GenerateResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	var decoded GenerateResponse
+	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	return &result, nil
+	result = &decoded
+	return result, nil
 }
 
 // Chat performs a chat completion
-func (c *OllamaClient) Chat(ctx context.Context, req *ChatRequest) (*ChatResponse, error) {
+func (c *OllamaClient) Chat(ctx context.Context, req *ChatRequest) (result *ChatResponse, err error) {
 	if req.Model == "" {
 		req.Model = DefaultOllamaChatModel()
 	}
@@ -495,6 +510,20 @@ func (c *OllamaClient) Chat(ctx context.Context, req *ChatRequest) (*ChatRespons
 	if req.KeepAlive == "" {
 		req.KeepAlive = DefaultOllamaKeepAlive()
 	}
+	ctx, span := startOllamaLLMSpan(ctx, "chat", req.Model, c.baseURL)
+	defer func() {
+		model := req.Model
+		inputTokens := 0
+		outputTokens := 0
+		if result != nil {
+			if result.Model != "" {
+				model = result.Model
+			}
+			inputTokens = result.PromptEvalCount
+			outputTokens = result.EvalCount
+		}
+		finishOllamaLLMSpan(span, model, inputTokens, outputTokens, err)
+	}()
 
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -518,19 +547,24 @@ func (c *OllamaClient) Chat(ctx context.Context, req *ChatRequest) (*ChatRespons
 		return nil, fmt.Errorf("Ollama API error: %s", string(respBody))
 	}
 
-	var result ChatResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	var decoded ChatResponse
+	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	return &result, nil
+	result = &decoded
+	return result, nil
 }
 
 // Embed generates embeddings for text
-func (c *OllamaClient) Embed(ctx context.Context, model, prompt string) (*EmbeddingResponse, error) {
+func (c *OllamaClient) Embed(ctx context.Context, model, prompt string) (result *EmbeddingResponse, err error) {
 	if model == "" {
 		model = DefaultOllamaEmbedModel()
 	}
+	ctx, span := startOllamaLLMSpan(ctx, "embed", model, c.baseURL)
+	defer func() {
+		finishOllamaLLMSpan(span, model, 0, 0, err)
+	}()
 
 	req := EmbeddingRequest{
 		Model:  model,
@@ -559,12 +593,13 @@ func (c *OllamaClient) Embed(ctx context.Context, model, prompt string) (*Embedd
 		return nil, fmt.Errorf("Ollama API error: %s", string(respBody))
 	}
 
-	var result EmbeddingResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	var decoded EmbeddingResponse
+	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	return &result, nil
+	result = &decoded
+	return result, nil
 }
 
 // PullModel downloads a model
