@@ -171,7 +171,7 @@ Document project conventions here.
 ## Explicit Skill Surface
 
 - Canonical reusable workflow skills live under \`.agents/skills/\`.
-- Generated compatibility mirrors under \`.claude/skills/\` must come from \`dotfiles/scripts/hg-skill-surface-sync.sh\`.
+- Generated compatibility mirrors under \`.claude/skills/\` must come from \`codexkit skills sync <repo_path>\` or a repo-local wrapper around that command.
 - \`.codex/agents/*.toml\` is for Codex delegation roles, not the primary workflow-skill surface.
 AGEOF
 hg_ok "Created AGENTS.md skeleton"
