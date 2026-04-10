@@ -24,6 +24,7 @@ packages = [
     { name = "hypr-dock" },
 
     # Notifications
+    { name = "dbus" },
     { name = "swaync" },
     { name = "poweralertd" },
 
@@ -60,6 +61,7 @@ packages = [
     { name = "socat" },
     { name = "tesseract" },
     { name = "imagemagick" },
+    { name = "python" },
 
     # Clipboard
     { name = "cliphist" },

@@ -38,6 +38,12 @@ _input_status() {
     printf "  %s%-12s%s %sinactive%s\n" "$HG_DIM" "juhradial" "$HG_RESET" "$HG_RED" "$HG_RESET"
   fi
 
+  if juhradial_patch_applied; then
+    printf "  %s%-12s%s %sapplied%s\n" "$HG_DIM" "patched" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+  else
+    printf "  %s%-12s%s %smissing%s\n" "$HG_DIM" "patched" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+  fi
+
   if juhradial_overlay_running; then
     printf "  %s%-12s%s %srunning%s\n" "$HG_DIM" "overlay" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
@@ -115,6 +121,14 @@ _input_status() {
     printf "  %s%-12s%s %s\n" "$HG_DIM" "charging" "$HG_RESET" "$charging"
   fi
 
+  local thumb_ring gesture_ring thumbwheel_mode
+  thumb_ring="$(juhradial_config_value '.radial_menu_assignments.thumb // "launcher"')"
+  gesture_ring="$(juhradial_config_value '.radial_menu_assignments.gesture // "clipboard"')"
+  thumbwheel_mode="$(juhradial_config_value '.thumbwheel.mode // "disabled"')"
+  [[ -n "$thumb_ring" ]] && printf "  %s%-12s%s %s\n" "$HG_DIM" "thumb ring" "$HG_RESET" "$thumb_ring"
+  [[ -n "$gesture_ring" ]] && printf "  %s%-12s%s %s\n" "$HG_DIM" "gesture ring" "$HG_RESET" "$gesture_ring"
+  [[ -n "$thumbwheel_mode" ]] && printf "  %s%-12s%s %s\n" "$HG_DIM" "thumbwheel" "$HG_RESET" "$thumbwheel_mode"
+
   printf "\n"
 }
 
@@ -137,10 +151,15 @@ _input_settings() {
 _input_sync() {
   local script="$HG_DOTFILES/scripts/juhradial-sync.sh"
   local wheel_script="$HG_DOTFILES/scripts/juhradial-wheel-apply.sh"
+  local install_script="$HG_DOTFILES/scripts/juhradial-install.sh"
   if [[ ! -x "$script" ]]; then
     hg_die "Sync script not found: $script"
   fi
   "$script"
+  if ! juhradial_patch_applied && [[ -x "$install_script" ]]; then
+    hg_info "Rebuilding patched juhradial runtime..."
+    JUHRADIAL_INSTALL_SKIP_SYNC=1 "$install_script" --quiet
+  fi
   juhradial_systemctl restart juhradialmx-daemon.service >/dev/null
   [[ -x "$wheel_script" ]] && "$wheel_script" --quiet || true
   hg_ok "Synced juhradial seed config"

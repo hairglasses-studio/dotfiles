@@ -6,6 +6,18 @@
       "slices": [
         {
           "type": "command",
+          "value": "/home/hg/.local/bin/juhradial-hyprshell-trigger overview",
+          "label": "Overview",
+          "icon": "view-grid-symbolic"
+        },
+        {
+          "type": "command",
+          "value": "/home/hg/.local/bin/juhradial-hyprshell-trigger switch",
+          "label": "Switcher",
+          "icon": "window-new-symbolic"
+        },
+        {
+          "type": "command",
           "value": "/home/hg/.local/bin/kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh",
           "label": "Codex",
           "icon": "utilities-terminal-symbolic"
@@ -24,12 +36,6 @@
         },
         {
           "type": "command",
-          "value": "/home/hg/hairglasses-studio/dotfiles/scripts/app-launcher.sh",
-          "label": "Launcher",
-          "icon": "system-run-symbolic"
-        },
-        {
-          "type": "command",
           "value": "hyprctl dispatch workspace e-1",
           "label": "WS Left",
           "icon": "go-previous-symbolic"
@@ -45,15 +51,9 @@
           "value": "hyprctl dispatch togglefloating",
           "label": "Float",
           "icon": "view-restore-symbolic"
-        },
-        {
-          "type": "command",
-          "value": "loginctl lock-session",
-          "label": "Lock",
-          "icon": "system-lock-screen-symbolic"
         }
       ],
-      "description": "Repo-managed Bolt-first profile for Hyprland and AI launchers"
+      "description": "Repo-managed launcher ring for juhradial-mx on Hyprland"
     }
   ]
 }

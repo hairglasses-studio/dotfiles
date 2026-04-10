@@ -22,6 +22,10 @@ juhradial_seed_macros_dir() {
   printf '%s\n' "$(juhradial_seed_dir)/macros"
 }
 
+juhradial_patch_dir() {
+  printf '%s\n' "$(juhradial_seed_dir)/patches"
+}
+
 juhradial_install_dir() {
   printf '%s\n' "${JUHRADIAL_INSTALL_DIR:-$HOME/.local/share/juhradial-mx}"
 }
@@ -100,8 +104,37 @@ juhradial_settings_script() {
   printf '%s\n' "$(juhradial_install_dir)/overlay/settings_dashboard.py"
 }
 
+juhradial_config_file() {
+  printf '%s\n' "$(juhradial_config_dir)/config.json"
+}
+
 juhradial_overlay_running() {
   ps -u "$(id -un)" -o args= 2>/dev/null | grep -F 'juhradial-overlay.py' | grep -Fv 'grep -F' >/dev/null 2>&1
+}
+
+juhradial_patch_applied() {
+  local src_dir patch_dir patch
+  src_dir="$(juhradial_source_dir)"
+  patch_dir="$(juhradial_patch_dir)"
+
+  [[ -d "$src_dir/.git" && -d "$patch_dir" ]] || return 1
+
+  while IFS= read -r patch; do
+    [[ -n "$patch" ]] || continue
+    git -C "$src_dir" apply --reverse --check "$patch" >/dev/null 2>&1 || return 1
+  done < <(find "$patch_dir" -maxdepth 1 -type f -name '*.patch' | sort)
+
+  return 0
+}
+
+juhradial_config_value() {
+  local jq_expr="$1"
+  local config_file
+  config_file="$(juhradial_config_file)"
+
+  if [[ -f "$config_file" ]] && command -v jq >/dev/null 2>&1; then
+    jq -r "$jq_expr" "$config_file" 2>/dev/null
+  fi
 }
 
 juhradial_export_graphical_env() {
