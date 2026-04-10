@@ -24,6 +24,11 @@ hg_local_llm_resolve_base_url() {
   printf 'http://%s:%s\n' "$host" "$port"
 }
 
+hg_local_llm_v1_base_url() {
+  hg_local_llm_export_env
+  printf '%s/v1\n' "${OLLAMA_BASE_URL%/}"
+}
+
 hg_local_llm_export_env() {
   local host_port host port
 
@@ -53,6 +58,24 @@ hg_local_llm_export_env() {
 
   export OLLAMA_HOST="${OLLAMA_HOST:-$host}"
   export OLLAMA_PORT="${OLLAMA_PORT:-$port}"
+}
+
+hg_local_llm_export_anthropic_compat_env() {
+  hg_local_llm_export_env
+
+  export ANTHROPIC_BASE_URL="$(hg_local_llm_v1_base_url)"
+  export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-${ANTHROPIC_API_KEY:-$OLLAMA_API_KEY}}"
+}
+
+hg_local_llm_export_openai_compat_env() {
+  hg_local_llm_export_env
+
+  export OPENAI_BASE_URL="$(hg_local_llm_v1_base_url)"
+  export OPENAI_API_KEY="${OPENAI_API_KEY:-$OLLAMA_API_KEY}"
+}
+
+hg_local_llm_codex_env_instructions() {
+  printf '%s\n' 'source "$HOME/hairglasses-studio/dotfiles/scripts/lib/hg-local-llm.sh" && hg_local_llm_export_env'
 }
 
 hg_local_llm_smoke_models() {
