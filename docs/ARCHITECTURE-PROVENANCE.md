@@ -38,6 +38,7 @@ These paths are the reusable operator and tooling layer that other repos consume
 
 - `AGENTS.md` is the canonical instruction file. `CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md` are compatibility mirrors.
 - `.agents/skills/` is the source of truth for reusable workflow skills. `.claude/skills/` is generated compatibility output and should be refreshed by `codexkit skills sync <repo_path>`; `scripts/hg-skill-surface-sync.sh <repo_path>` is the dotfiles wrapper for that engine.
+- Workspace-owned repo skills staged under `~/.claude/skills/` are source artifacts for Claude and Antigravity routing. `scripts/hg-global-skill-sync.sh` intentionally keeps those repo-owned exports out of `~/.codex/skills/` and `~/.agents/skills/` by default so live portable sessions do not load every repo skill catalog globally.
 - `scripts/` and `scripts/lib/` should stay ahead of one-off shell fragments. If a flow is repeated, the reusable script is the canonical source.
 - `systemd/` is user-scoped unless a deployment helper explicitly installs into `/etc` or another machine-global location.
 - `mcp/` contains bundled modules that may also exist as standalone publish mirrors. Treat mirror parity as an explicit maintenance task, not an assumption.
