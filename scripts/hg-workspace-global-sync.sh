@@ -184,6 +184,18 @@ hg_require jq mktemp awk sort diff cmp
 WORKSPACE_ROOT="$(cd "$WORKSPACE_ROOT" && pwd)"
 MANIFEST_PATH="${MANIFEST_PATH:-$WORKSPACE_ROOT/workspace/manifest.json}"
 ROOT_MCP_PATH="${ROOT_MCP_PATH:-$WORKSPACE_ROOT/.mcp.json}"
+WORKSPACE_OWNER="${HG_WORKSPACE_OWNER:-$(hg_workspace_owner "$WORKSPACE_ROOT")}"
+WORKSPACE_HOME="${HG_WORKSPACE_HOME:-$(hg_workspace_owner_home "$WORKSPACE_OWNER" "$WORKSPACE_ROOT")}"
+[[ -n "${HG_CLAUDE_JSON_PATH:-}" ]] || CLAUDE_JSON_PATH="$WORKSPACE_HOME/.claude.json"
+[[ -n "${HG_CLAUDE_HOME_DOC_PATH:-}" ]] || CLAUDE_HOME_DOC_PATH="$WORKSPACE_HOME/.claude/CLAUDE.md"
+[[ -n "${HG_CLAUDE_SKILLS_DIR:-}" ]] || CLAUDE_SKILLS_DIR="$WORKSPACE_HOME/.claude/skills"
+[[ -n "${HG_CLAUDE_COMMANDS_DIR:-}" ]] || CLAUDE_COMMANDS_DIR="$WORKSPACE_HOME/.claude/commands"
+[[ -n "${HG_AGENTS_SKILLS_DIR:-}" ]] || AGENTS_SKILLS_DIR="$WORKSPACE_HOME/.agents/skills"
+[[ -n "${HG_CODEX_SKILLS_DIR:-}" ]] || CODEX_SKILLS_DIR="$WORKSPACE_HOME/.codex/skills"
+[[ -n "${HG_CODEX_CONFIG_PATH:-}" ]] || CODEX_CONFIG_PATH="$WORKSPACE_HOME/.codex/config.toml"
+[[ -n "${HG_GEMINI_HOME_DOC_PATH:-}" ]] || GEMINI_HOME_DOC_PATH="$WORKSPACE_HOME/.gemini/GEMINI.md"
+[[ -n "${HG_GEMINI_PROJECTS_PATH:-}" ]] || GEMINI_PROJECTS_PATH="$WORKSPACE_HOME/.gemini/projects.json"
+[[ -n "${HG_GEMINI_SETTINGS_PATH:-}" ]] || GEMINI_SETTINGS_PATH="$WORKSPACE_HOME/.gemini/settings.json"
 CLAUDE_PROJECT_KEY="${CLAUDE_PROJECT_KEY:-$WORKSPACE_ROOT}"
 
 [[ -d "$WORKSPACE_ROOT" ]] || hg_die "Workspace root not found: $WORKSPACE_ROOT"
@@ -527,14 +539,14 @@ emit_array_line() {
 
 expand_home_tokens() {
   local value="$1"
-  value="${value//\$\{HOME\}/$HOME}"
-  value="${value//\$HOME/$HOME}"
+  value="${value//\$\{HOME\}/$WORKSPACE_HOME}"
+  value="${value//\$HOME/$WORKSPACE_HOME}"
   printf '%s\n' "$value"
 }
 
 normalize_codex_env_json() {
   local env_json="$1"
-  jq -c --arg home "$HOME" '
+  jq -c --arg home "$WORKSPACE_HOME" '
     with_entries(
       .value |= if type == "string"
         then gsub("\\$\\{HOME\\}"; $home) | gsub("\\$HOME"; $home)
@@ -1382,7 +1394,7 @@ sync_antigravity_home_state() {
 
   [[ -f "$ANTIGRAVITY_SYNC_SCRIPT" ]] || hg_die "Antigravity sync script not found: $ANTIGRAVITY_SYNC_SCRIPT"
 
-  if "$ANTIGRAVITY_SYNC_SCRIPT" --root "$WORKSPACE_ROOT" "${MODE_ARGS[@]}"; then
+  if env HOME="$WORKSPACE_HOME" HG_WORKSPACE_OWNER="$WORKSPACE_OWNER" HG_WORKSPACE_HOME="$WORKSPACE_HOME" "$ANTIGRAVITY_SYNC_SCRIPT" --root "$WORKSPACE_ROOT" "${MODE_ARGS[@]}"; then
     return 0
   fi
 

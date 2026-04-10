@@ -64,6 +64,22 @@ done
 hg_require jq git mktemp diff cmp curl awk sed find node npm getent runuser /usr/bin/antigravity
 
 WORKSPACE_ROOT="$(cd "$WORKSPACE_ROOT" && pwd)"
+WORKSPACE_OWNER="${HG_WORKSPACE_OWNER:-$(hg_workspace_owner "$WORKSPACE_ROOT")}"
+WORKSPACE_HOME="${HG_WORKSPACE_HOME:-$(hg_workspace_owner_home "$WORKSPACE_OWNER" "$WORKSPACE_ROOT")}"
+[[ -n "${HG_ANTIGRAVITY_DIR:-}" ]] || ANTIGRAVITY_DIR="$WORKSPACE_HOME/.gemini/antigravity"
+[[ -n "${HG_ANTIGRAVITY_SKILLS_DIR:-}" ]] || GLOBAL_SKILLS_DIR="$ANTIGRAVITY_DIR/skills"
+[[ -n "${HG_ANTIGRAVITY_SKILLS_LIBRARY_DIR:-}" ]] || SKILLS_LIBRARY_DIR="$ANTIGRAVITY_DIR/skills_library"
+[[ -n "${HG_ANTIGRAVITY_WORKFLOW_LIBRARY_DIR:-}" ]] || WORKFLOW_LIBRARY_DIR="$ANTIGRAVITY_DIR/workflow_library"
+[[ -n "${HG_ANTIGRAVITY_GLOBAL_WORKFLOWS_DIR:-}" ]] || GLOBAL_WORKFLOWS_DIR="$ANTIGRAVITY_DIR/global_workflows"
+[[ -n "${HG_ANTIGRAVITY_TOOL_CACHE_DIR:-}" ]] || TOOL_CACHE_DIR="$ANTIGRAVITY_DIR/tool_cache"
+[[ -n "${HG_ANTIGRAVITY_MCP_TEMPLATE_DIR:-}" ]] || MCP_TEMPLATE_DIR="$ANTIGRAVITY_DIR/mcp_templates"
+[[ -n "${HG_ANTIGRAVITY_ECOSYSTEM_METADATA_PATH:-}" ]] || METADATA_PATH="$ANTIGRAVITY_DIR/.hg-antigravity-ecosystem.json"
+[[ -n "${HG_ANTIGRAVITY_MANAGER_DIR:-}" ]] || MANAGER_DIR="$WORKSPACE_HOME/.local/opt/AntigravityManager"
+[[ -n "${HG_ANTIGRAVITY_MANAGER_LAUNCHER_PATH:-}" ]] || MANAGER_LAUNCHER_PATH="$WORKSPACE_HOME/.local/bin/antigravity-manager-launch"
+[[ -n "${HG_ANTIGRAVITY_MANAGER_DESKTOP_PATH:-}" ]] || MANAGER_DESKTOP_PATH="$WORKSPACE_HOME/.local/share/applications/antigravity-manager.desktop"
+[[ -n "${HG_ANTIGRAVITY_SSH_PROXY_INSTALLER_PATH:-}" ]] || SSH_PROXY_INSTALLER_PATH="$WORKSPACE_HOME/.local/bin/antigravity-install-ssh-proxy"
+[[ -n "${HG_ANTIGRAVITY_AGENTMEMORY_INSTALLER_PATH:-}" ]] || AGENTMEMORY_INSTALLER_PATH="$WORKSPACE_HOME/.local/bin/antigravity-install-agentmemory"
+[[ -n "${HG_ANTIGRAVITY_AGENTMEMORY_TEMPLATE_PATH:-}" ]] || AGENTMEMORY_TEMPLATE_PATH="$MCP_TEMPLATE_DIR/agentmemory.disabled.json"
 [[ -d "$WORKSPACE_ROOT" ]] || hg_die "Workspace root not found: $WORKSPACE_ROOT"
 [[ -f "$SOURCES_MANIFEST" ]] || hg_die "Antigravity sources manifest not found: $SOURCES_MANIFEST"
 
@@ -147,11 +163,19 @@ sync_symlink() {
 }
 
 antigravity_target_owner() {
-  if [[ -e "$ANTIGRAVITY_DIR" ]]; then
-    stat -c '%U' "$ANTIGRAVITY_DIR"
+  if [[ -n "${HG_WORKSPACE_OWNER:-}" ]]; then
+    printf '%s\n' "$HG_WORKSPACE_OWNER"
     return 0
   fi
-  stat -c '%U' "$(dirname "$ANTIGRAVITY_DIR")"
+  if [[ -n "${HG_ANTIGRAVITY_DIR:-}" ]]; then
+    if [[ -e "$ANTIGRAVITY_DIR" ]]; then
+      stat -c '%U' "$ANTIGRAVITY_DIR"
+      return 0
+    fi
+    stat -c '%U' "$(dirname "$ANTIGRAVITY_DIR")"
+    return 0
+  fi
+  printf '%s\n' "$WORKSPACE_OWNER"
 }
 
 antigravity_target_home() {

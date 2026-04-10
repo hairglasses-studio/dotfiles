@@ -2,10 +2,10 @@
   "mcpServers": {
     "dotfiles": {
       "args": [
-        "/home/hg/hairglasses-studio/dotfiles/scripts/run-dotfiles-mcp.sh"
+        "-lc",
+        "exec ./scripts/run-dotfiles-mcp.sh"
       ],
-      "command": "bash",
-      "cwd": "."
+      "command": "bash"
     }
   }
 }
