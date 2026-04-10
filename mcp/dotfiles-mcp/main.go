@@ -1140,7 +1140,7 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 		// ── dotfiles_eww_restart ──────────────────────
 		handler.TypedHandler[EwwRestartInput, EwwRestartOutput](
 			"dotfiles_eww_restart",
-			"Kill all eww and waybar processes, restart eww daemon, and open both bars (bar and bar-secondary). Use after editing eww config files.",
+				"Kill all eww and waybar processes, restart eww daemon, and open the primary eww surface (sidebar). Use after editing eww config files.",
 			func(_ context.Context, _ EwwRestartInput) (EwwRestartOutput, error) {
 				return restartEwwBars(), nil
 			},

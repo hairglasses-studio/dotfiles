@@ -258,9 +258,9 @@ func restartEwwBars() EwwRestartOutput {
 		result.DaemonPID = strings.TrimSpace(string(pidOut))
 	}
 
-	for _, bar := range []string{"bar", "bar-secondary"} {
-		if _, err := runEww("open", bar); err == nil {
-			result.BarsOpen = append(result.BarsOpen, bar)
+	for _, window := range []string{"sidebar"} {
+		if _, err := runEww("open", window); err == nil {
+			result.BarsOpen = append(result.BarsOpen, window)
 		}
 	}
 	return result
