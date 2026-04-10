@@ -132,6 +132,25 @@ _config_cmd_check() {
     fi
   done
 
+  printf "\n %sTERMINAL POLICY%s\n" "$HG_BOLD" "$HG_RESET"
+  if grep -Fq 'default_terminal = "$HOME/.local/bin/kitty-shell-launch"' "$HG_DOTFILES/hyprshell/config.toml"; then
+    printf "  %s%-18s%s %skitty-shell-launch%s\n" "$HG_CYAN" "default terminal" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+  else
+    printf "  %s%-18s%s %sdrifted%s\n" "$HG_CYAN" "default terminal" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+  fi
+
+  if grep -Eq '^startup_session[[:space:]]+none$' "$HG_DOTFILES/kitty/kitty.conf"; then
+    printf "  %s%-18s%s %sstartup_session none%s\n" "$HG_CYAN" "kitty session" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+  else
+    printf "  %s%-18s%s %smissing startup_session none%s\n" "$HG_CYAN" "kitty session" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+  fi
+
+  if grep -Eq 'dotfiles-kitty-save-session\.(service|timer)' "$HG_DOTFILES/install.sh" "$HG_DOTFILES/manjaro/install.sh"; then
+    printf "  %s%-18s%s %sinstaller enables save-session%s\n" "$HG_CYAN" "kitty saver" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+  else
+    printf "  %s%-18s%s %sopt-in only%s\n" "$HG_CYAN" "kitty saver" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+  fi
+
   if [[ -f "$_CFG_TOML" ]]; then
     printf "\n %sFEATURE FLAGS%s\n" "$HG_BOLD" "$HG_RESET"
     grep -E '^\w+ *= *(true|false)' "$_CFG_TOML" 2>/dev/null | while IFS='=' read -r key val; do

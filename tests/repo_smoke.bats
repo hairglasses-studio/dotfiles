@@ -26,6 +26,16 @@ teardown() {
     assert_output --partial "${DOTFILES_DIR}/scripts/app-switcher.sh|${HOME}/.local/bin/app-switcher"
 }
 
+@test "installers keep kitty save-session helpers opt-in" {
+    run bash -lc "! grep -Eq 'dotfiles-kitty-save-session\\.(service|timer)' '${DOTFILES_DIR}/install.sh' '${DOTFILES_DIR}/manjaro/install.sh'"
+    assert_success
+}
+
+@test "repo config pins the shell-first kitty launch policy" {
+    run bash -lc "grep -F 'default_terminal = \"\$HOME/.local/bin/kitty-shell-launch\"' '${DOTFILES_DIR}/hyprshell/config.toml' && grep -Eq '^startup_session[[:space:]]+none$' '${DOTFILES_DIR}/kitty/kitty.conf'"
+    assert_success
+}
+
 @test "install.sh rejects unknown flags with exit code 2" {
     run bash "${DOTFILES_DIR}/install.sh" --definitely-not-a-real-flag
     assert_failure
