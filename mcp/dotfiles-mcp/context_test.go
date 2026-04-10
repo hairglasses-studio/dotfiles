@@ -14,8 +14,8 @@ import (
 
 func TestBuildDotfilesPromptRegistry(t *testing.T) {
 	promptReg := buildDotfilesPromptRegistry()
-	if promptReg.PromptCount() != 9 {
-		t.Fatalf("expected 9 prompts, got %d", promptReg.PromptCount())
+	if promptReg.PromptCount() != 12 {
+		t.Fatalf("expected 12 prompts, got %d", promptReg.PromptCount())
 	}
 	if _, ok := promptReg.GetPrompt("dotfiles_audit_fleet"); !ok {
 		t.Fatal("expected dotfiles_audit_fleet prompt to be registered")
@@ -29,14 +29,23 @@ func TestBuildDotfilesPromptRegistry(t *testing.T) {
 	if _, ok := promptReg.GetPrompt("dotfiles_cleanup_repo_hygiene"); !ok {
 		t.Fatal("expected dotfiles_cleanup_repo_hygiene prompt to be registered")
 	}
+	if _, ok := promptReg.GetPrompt("safe_system_update"); !ok {
+		t.Fatal("expected safe_system_update prompt to be registered")
+	}
+	if _, ok := promptReg.GetPrompt("audit_aur_package"); !ok {
+		t.Fatal("expected audit_aur_package prompt to be registered")
+	}
+	if _, ok := promptReg.GetPrompt("troubleshoot_issue"); !ok {
+		t.Fatal("expected troubleshoot_issue prompt to be registered")
+	}
 }
 
 func TestBuildDotfilesResourceRegistry(t *testing.T) {
 	reg := registry.NewToolRegistry()
 	promptReg := buildDotfilesPromptRegistry()
 	resReg := buildDotfilesResourceRegistry(reg, promptReg)
-	if resReg.ResourceCount() != 17 {
-		t.Fatalf("expected 17 resources, got %d", resReg.ResourceCount())
+	if resReg.ResourceCount() != 19 {
+		t.Fatalf("expected 19 resources, got %d", resReg.ResourceCount())
 	}
 	if _, ok := resReg.GetResource("dotfiles://server/overview"); !ok {
 		t.Fatal("expected dotfiles overview resource to be registered")
@@ -46,6 +55,18 @@ func TestBuildDotfilesResourceRegistry(t *testing.T) {
 	}
 	if _, ok := resReg.GetResource("dotfiles://catalog/workflows"); !ok {
 		t.Fatal("expected dotfiles workflow catalog resource to be registered")
+	}
+	if _, ok := resReg.GetResource("archnews://latest"); !ok {
+		t.Fatal("expected archnews://latest resource to be registered")
+	}
+	if _, ok := resReg.GetResource("archnews://critical"); !ok {
+		t.Fatal("expected archnews://critical resource to be registered")
+	}
+	if _, ok := resReg.GetTemplate("archwiki://search/{query}"); !ok {
+		t.Fatal("expected archwiki://search/{query} template to be registered")
+	}
+	if _, ok := resReg.GetTemplate("aur://package/{name}/pkgbuild"); !ok {
+		t.Fatal("expected aur://package/{name}/pkgbuild template to be registered")
 	}
 }
 

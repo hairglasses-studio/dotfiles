@@ -660,11 +660,13 @@ func (m *dotfilesPromptModule) Prompts() []prompts.PromptDefinition {
 func buildDotfilesResourceRegistry(reg *registry.ToolRegistry, promptReg *prompts.PromptRegistry) *resources.ResourceRegistry {
 	resReg := resources.NewResourceRegistry()
 	resReg.RegisterModule(&dotfilesResourceModule{reg: reg, promptReg: promptReg})
+	resReg.RegisterModule(&archResourceModule{})
 	return resReg
 }
 
 func buildDotfilesPromptRegistry() *prompts.PromptRegistry {
 	promptReg := prompts.NewPromptRegistry()
 	promptReg.RegisterModule(&dotfilesPromptModule{})
+	promptReg.RegisterModule(&archPromptModule{})
 	return promptReg
 }
