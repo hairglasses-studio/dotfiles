@@ -1,5 +1,29 @@
 [
   {
+    "uri": "archnews://critical",
+    "name": "Critical Arch News",
+    "description": "Critical or manual-intervention Arch news items",
+    "mime_type": "application/json",
+    "category": "arch",
+    "tags": [
+      "arch",
+      "news",
+      "critical"
+    ]
+  },
+  {
+    "uri": "archnews://latest",
+    "name": "Latest Arch News",
+    "description": "Latest Arch Linux news items from the official RSS feed",
+    "mime_type": "application/json",
+    "category": "arch",
+    "tags": [
+      "arch",
+      "news",
+      "updates"
+    ]
+  },
+  {
     "uri": "dotfiles://catalog/priorities",
     "name": "Workflow Priorities",
     "description": "Front-door coverage summary for canonical dotfiles workflows",
