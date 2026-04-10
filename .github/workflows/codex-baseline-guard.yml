@@ -14,6 +14,14 @@ jobs:
     runs-on: [self-hosted, archglasses, optimized]
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: mcp/go.work
+      - name: Install codexkit
+        shell: bash
+        run: |
+          set -euo pipefail
+          GOWORK=off go install github.com/hairglasses-studio/codexkit/cmd/codexkit@main
 
       - name: Validate Codex repo baseline
         shell: bash
@@ -137,6 +145,12 @@ jobs:
           fi
 
           if [[ -f .agents/skills/surface.yaml ]]; then
+            CODEXKIT_BIN="$(go env GOPATH)/bin/codexkit"
+            [[ -x "$CODEXKIT_BIN" ]] || fail "codexkit binary not installed at $CODEXKIT_BIN"
+            if ! skill_sync_output="$("$CODEXKIT_BIN" skills check . 2>&1)"; then
+              fail "Generated skill surface drift detected; run codexkit skills sync . or scripts/hg-skill-surface-sync.sh .: ${skill_sync_output}"
+            fi
+
             jq -e '.version == 1 and (.skills | type == "array")' .agents/skills/surface.yaml >/dev/null || \
               fail "Invalid .agents/skills/surface.yaml"
 
