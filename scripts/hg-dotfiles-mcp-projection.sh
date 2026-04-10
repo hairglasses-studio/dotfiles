@@ -14,17 +14,20 @@ STANDALONE_PATH="${HG_STUDIO_ROOT}/dotfiles-mcp"
 TEMP_WORKTREE=""
 TEMP_BASE=""
 STANDALONE_INSPECT_ROOT=""
+APPLY_WORKTREE_OVERRIDE="${HG_DOTFILES_MCP_APPLY_WORKTREE:-}"
 
 usage() {
   cat <<'EOF'
-Usage: hg-dotfiles-mcp-projection.sh [plan|check] [--canonical PATH] [--standalone PATH] [--json] [--diff-preview] [--diff-lines N]
+Usage: hg-dotfiles-mcp-projection.sh [plan|check|apply] [--canonical PATH] [--standalone PATH] [--json] [--diff-preview] [--diff-lines N]
 
 Inspect the bundled dotfiles MCP module and the standalone dotfiles-mcp publish
-repo, then emit the current manual-projection plan and drift summary.
+repo, then emit or apply the current projection plan and drift summary.
 
 Modes:
   plan    Print the projection plan (default)
   check   Validate that the projection plan can be resolved and inspected
+  apply   Apply required projection changes into an editable standalone checkout,
+          then re-run plan mode to confirm required drift is cleared
 
 Options:
   --canonical PATH   Override the bundled canonical module path
@@ -47,7 +50,7 @@ trap cleanup EXIT
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    plan|check)
+    plan|check|apply)
       MODE="$1"
       shift
       ;;
@@ -83,6 +86,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 hg_require diff git jq perl
+if [[ "$MODE" == "apply" ]]; then
+  hg_require gofmt
+fi
 
 resolve_path_candidate() {
   local candidate="${1:-}"
@@ -120,8 +126,45 @@ STANDALONE_PATH="$(resolve_standalone_repo_path "$STANDALONE_PATH" "$CANONICAL_P
 
 resolve_standalone_inspect_root() {
   local root="$1"
+  local worktree_path
+  local repo_name
+  local is_bare="false"
+
   if git -C "$root" rev-parse --is-bare-repository >/dev/null 2>&1; then
-    if [[ "$(git -C "$root" rev-parse --is-bare-repository)" == "true" ]]; then
+    is_bare="$(git -C "$root" rev-parse --is-bare-repository)"
+  fi
+
+  if [[ "$MODE" == "apply" ]]; then
+    if [[ "$is_bare" != "true" && -d "$root/internal/dotfiles" ]]; then
+      STANDALONE_INSPECT_ROOT="$root"
+      return 0
+    fi
+
+    if [[ -n "$APPLY_WORKTREE_OVERRIDE" && -d "$APPLY_WORKTREE_OVERRIDE/internal/dotfiles" ]]; then
+      STANDALONE_INSPECT_ROOT="$(cd "$APPLY_WORKTREE_OVERRIDE" && pwd)"
+      return 0
+    fi
+
+    if [[ "$is_bare" == "true" ]]; then
+      while IFS= read -r worktree_path; do
+        [[ -n "$worktree_path" ]] || continue
+        if [[ -d "$worktree_path/internal/dotfiles" ]]; then
+          STANDALONE_INSPECT_ROOT="$(cd "$worktree_path" && pwd)"
+          return 0
+        fi
+      done < <(git -C "$root" worktree list --porcelain 2>/dev/null | awk '/^worktree /{sub(/^worktree /, "", $0); print $0}')
+    fi
+
+    repo_name="$(basename "$root")"
+    if [[ -d "/tmp/${repo_name}-real/internal/dotfiles" ]]; then
+      STANDALONE_INSPECT_ROOT="$(cd "/tmp/${repo_name}-real" && pwd)"
+      return 0
+    fi
+
+    hg_die "Apply mode requires an editable standalone checkout with internal/dotfiles; pass --standalone CHECKOUT, set HG_DOTFILES_MCP_APPLY_WORKTREE, or create /tmp/${repo_name}-real"
+  fi
+
+  if [[ "$is_bare" == "true" ]]; then
       local inspect_ref="HEAD"
       if git -C "$root" rev-parse --verify refs/remotes/origin/main >/dev/null 2>&1; then
         inspect_ref="refs/remotes/origin/main"
@@ -133,7 +176,6 @@ resolve_standalone_inspect_root() {
       git -C "$root" worktree add --quiet --detach "$TEMP_WORKTREE" "$inspect_ref" >/dev/null
       STANDALONE_INSPECT_ROOT="$TEMP_WORKTREE"
       return 0
-    fi
   fi
 
   if [[ -d "$root/internal/dotfiles" ]]; then
@@ -224,6 +266,21 @@ append_diff_preview() {
   printf '\n' >>"$outfile"
 }
 
+apply_direct_copy_file() {
+  local rel="$1"
+  local target="$STANDALONE_INSPECT_ROOT/$rel"
+  mkdir -p "$(dirname "$target")"
+  cp "$CANONICAL_PATH/$rel" "$target"
+}
+
+apply_projected_go_file() {
+  local file="$1"
+  local target="$TARGET_PACKAGE_DIR/$file"
+  mkdir -p "$(dirname "$target")"
+  perl -0pe 's/^package main$/package dotfiles/m' "$CANONICAL_PATH/$file" >"$target"
+  gofmt -w "$target"
+}
+
 resolve_standalone_inspect_root "$STANDALONE_PATH"
 TARGET_PACKAGE_DIR="${STANDALONE_INSPECT_ROOT}/internal/dotfiles"
 
@@ -231,6 +288,8 @@ CANONICAL_GO_LIST="$(temp_file)"
 TARGET_GO_LIST="$(temp_file)"
 GO_IDENTICAL_LIST="$(temp_file)"
 GO_DRIFTED_LIST="$(temp_file)"
+GO_DRIFTED_REQUIRED_LIST="$(temp_file)"
+GO_DRIFTED_INTENTIONAL_LIST="$(temp_file)"
 GO_CANONICAL_ONLY_LIST="$(temp_file)"
 GO_CANONICAL_ONLY_REQUIRED_LIST="$(temp_file)"
 GO_CANONICAL_ONLY_INTENTIONAL_LIST="$(temp_file)"
@@ -285,6 +344,39 @@ while IFS= read -r file; do
   fi
   rm -f "$tmp_rewritten"
 done < <(comm -12 "$CANONICAL_GO_LIST" "$TARGET_GO_LIST")
+
+intentional_go_drift=(
+  "main.go"
+  "mod_claude_session.go"
+  "mod_claude_session_helpers_test.go"
+  "mod_clipboard.go"
+  "mod_desktop_interact.go"
+  "mod_github_test.go"
+  "mod_hyprland_helpers_test.go"
+  "mod_input_simulate.go"
+  "mod_learn.go"
+  "mod_mapping_daemon.go"
+  "mod_ops.go"
+  "mod_process.go"
+  "mod_screen.go"
+  "mod_system.go"
+  "mod_tmux.go"
+  "oss.go"
+  "oss_test.go"
+)
+
+for file in "${intentional_go_drift[@]}"; do
+  if grep -Fxq "$file" "$GO_DRIFTED_LIST"; then
+    printf '%s\n' "$file" >>"$GO_DRIFTED_INTENTIONAL_LIST"
+  fi
+done
+
+while IFS= read -r file; do
+  [[ -n "$file" ]] || continue
+  if ! grep -Fxq "$file" "$GO_DRIFTED_INTENTIONAL_LIST"; then
+    printf '%s\n' "$file" >>"$GO_DRIFTED_REQUIRED_LIST"
+  fi
+done <"$GO_DRIFTED_LIST"
 
 copy_allowlist=(
   ".github/PULL_REQUEST_TEMPLATE.md"
@@ -394,8 +486,53 @@ if [[ -d "$STANDALONE_INSPECT_ROOT/internal" ]]; then
 fi
 
 plan_status="in_sync"
-if [[ "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_REQUIRED_LIST")" -gt 0 ]]; then
+if [[ "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_REQUIRED_LIST")" -gt 0 ]]; then
   plan_status="projection_needed"
+fi
+
+if [[ "$MODE" == "apply" ]]; then
+  APPLIED_LOG="$(temp_file)"
+
+  while IFS= read -r rel; do
+    [[ -n "$rel" ]] || continue
+    apply_direct_copy_file "$rel"
+    printf 'copy %s\n' "$rel" >>"$APPLIED_LOG"
+  done < <(
+    cat "$COPY_DRIFTED_REQUIRED_LIST" "$COPY_MISSING_REQUIRED_LIST" 2>/dev/null | awk 'NF {print}' | sort -u
+  )
+
+  while IFS= read -r file; do
+    [[ -n "$file" ]] || continue
+    apply_projected_go_file "$file"
+    printf 'project %s\n' "$file" >>"$APPLIED_LOG"
+  done < <(
+    cat "$GO_DRIFTED_REQUIRED_LIST" "$GO_CANONICAL_ONLY_REQUIRED_LIST" 2>/dev/null | awk 'NF {print}' | sort -u
+  )
+
+  if ! $JSON_MODE; then
+    printf 'dotfiles-mcp projection apply\n'
+    printf 'standalone root     %s\n' "$STANDALONE_INSPECT_ROOT"
+    printf 'applied changes\n'
+    if [[ -s "$APPLIED_LOG" ]]; then
+      sed 's/^/  - /' "$APPLIED_LOG"
+    else
+      printf '  - none (already in sync)\n'
+    fi
+    printf '\n'
+  fi
+
+  reexec_args=(
+    plan
+    --canonical "$CANONICAL_PATH"
+    --standalone "$STANDALONE_INSPECT_ROOT"
+  )
+  if $JSON_MODE; then
+    reexec_args+=(--json)
+  fi
+  if $DIFF_PREVIEW; then
+    reexec_args+=(--diff-preview --diff-lines "$DIFF_PREVIEW_LINES")
+  fi
+  exec bash "$SCRIPT_PATH" "${reexec_args[@]}"
 fi
 
 inspect_mode="worktree"
@@ -419,6 +556,8 @@ if $JSON_MODE; then
     --argjson target_go_count "$(count_lines "$TARGET_GO_LIST")" \
     --argjson identical_count "$(count_lines "$GO_IDENTICAL_LIST")" \
     --argjson drifted_count "$(count_lines "$GO_DRIFTED_LIST")" \
+    --argjson drifted_required_count "$(count_lines "$GO_DRIFTED_REQUIRED_LIST")" \
+    --argjson drifted_intentional_count "$(count_lines "$GO_DRIFTED_INTENTIONAL_LIST")" \
     --argjson canonical_only_count "$(count_lines "$GO_CANONICAL_ONLY_LIST")" \
     --argjson projection_required_count "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" \
     --argjson intentional_canonical_only_count "$(count_lines "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")" \
@@ -444,6 +583,8 @@ if $JSON_MODE; then
     --argjson copy_drift_previews "$(json_objects_file "$COPY_DRIFT_PREVIEW_JSON")" \
     --argjson go_identical "$(json_array_file "$GO_IDENTICAL_LIST")" \
     --argjson go_drifted "$(json_array_file "$GO_DRIFTED_LIST")" \
+    --argjson go_drifted_required "$(json_array_file "$GO_DRIFTED_REQUIRED_LIST")" \
+    --argjson go_drifted_intentional "$(json_array_file "$GO_DRIFTED_INTENTIONAL_LIST")" \
     --argjson go_canonical_only "$(json_array_file "$GO_CANONICAL_ONLY_LIST")" \
     --argjson go_projection_required "$(json_array_file "$GO_CANONICAL_ONLY_REQUIRED_LIST")" \
     --argjson go_intentional_canonical_only "$(json_array_file "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")" \
@@ -489,12 +630,16 @@ if $JSON_MODE; then
         drift_preview_lines: $diff_preview_lines,
         identical_count: $identical_count,
         drifted_count: $drifted_count,
+        required_drift_count: $drifted_required_count,
+        intentional_drift_count: $drifted_intentional_count,
         canonical_only_count: $canonical_only_count,
         projection_required_count: $projection_required_count,
         intentional_canonical_only_count: $intentional_canonical_only_count,
         target_only_count: $target_only_count,
         identical: $go_identical,
         drifted: $go_drifted,
+        required_drift: $go_drifted_required,
+        intentional_drift: $go_drifted_intentional,
         canonical_only: $go_canonical_only,
         projection_required: $go_projection_required,
         intentional_canonical_only: $go_intentional_canonical_only,
@@ -560,10 +705,20 @@ printf '  canonical root    %s\n' "$(count_lines "$CANONICAL_GO_LIST")"
 printf '  target package    %s\n' "$(count_lines "$TARGET_GO_LIST")"
 printf '  identical         %s\n' "$(count_lines "$GO_IDENTICAL_LIST")"
 printf '  drifted overlap   %s\n' "$(count_lines "$GO_DRIFTED_LIST")"
+printf '  drifted required  %s\n' "$(count_lines "$GO_DRIFTED_REQUIRED_LIST")"
+printf '  drifted intent.   %s\n' "$(count_lines "$GO_DRIFTED_INTENTIONAL_LIST")"
 printf '  canonical only    %s\n' "$(count_lines "$GO_CANONICAL_ONLY_LIST")"
 printf '  projection needed %s\n' "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")"
 printf '  intentional diff  %s\n' "$(count_lines "$GO_CANONICAL_ONLY_INTENTIONAL_LIST")"
 printf '  target only       %s\n' "$(count_lines "$GO_TARGET_ONLY_LIST")"
+if [[ -s "$GO_DRIFTED_REQUIRED_LIST" ]]; then
+  printf '  overlapping files requiring projection alignment\n'
+  sed 's/^/    - /' "$GO_DRIFTED_REQUIRED_LIST"
+fi
+if [[ -s "$GO_DRIFTED_INTENTIONAL_LIST" ]]; then
+  printf '  intentional standalone-owned overlap drift\n'
+  sed 's/^/    - /' "$GO_DRIFTED_INTENTIONAL_LIST"
+fi
 if [[ -s "$GO_CANONICAL_ONLY_REQUIRED_LIST" ]]; then
   printf '  canonical-only additions requiring projection\n'
   sed 's/^/    - /' "$GO_CANONICAL_ONLY_REQUIRED_LIST"
@@ -571,10 +726,6 @@ fi
 if [[ -s "$GO_CANONICAL_ONLY_INTENTIONAL_LIST" ]]; then
   printf '  intentional canonical-only differences\n'
   sed 's/^/    - /' "$GO_CANONICAL_ONLY_INTENTIONAL_LIST"
-fi
-if [[ -s "$GO_DRIFTED_LIST" ]]; then
-  printf '  overlapping files that already drift from the bundled source\n'
-  sed 's/^/    - /' "$GO_DRIFTED_LIST"
 fi
 if $DIFF_PREVIEW && [[ -s "$GO_DRIFT_PREVIEW_JSON" ]]; then
   printf '  overlapping drift previews (first %s lines per file)\n' "$DIFF_PREVIEW_LINES"

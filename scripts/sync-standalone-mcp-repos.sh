@@ -266,13 +266,25 @@ while IFS= read -r repo; do
       helper_mode="plan"
       if [[ "$MODE" == "check" ]]; then
         helper_mode="check"
+      elif [[ "$MODE" == "sync" || "$MODE" == "bootstrap" ]]; then
+        helper_mode="apply"
       fi
-      bash "$helper" "$helper_mode" --canonical "$canonical_path" --standalone "$mirror_path"
-      hg_warn "$repo: generic $MODE skipped because sync_strategy=$sync_strategy uses repo-specific helper $(basename "$helper")"
+      if bash "$helper" "$helper_mode" --canonical "$canonical_path" --standalone "$mirror_path"; then
+        if [[ "$helper_mode" == "apply" ]]; then
+          hg_ok "$repo: $MODE complete via repo-specific helper $(basename "$helper")"
+          UPDATED=$((UPDATED + 1))
+        else
+          hg_warn "$repo: generic $MODE skipped because sync_strategy=$sync_strategy uses repo-specific helper $(basename "$helper")"
+          SKIPPED=$((SKIPPED + 1))
+        fi
+      else
+        hg_warn "$repo: $MODE skipped because repo-specific helper $(basename "$helper") could not apply projection"
+        SKIPPED=$((SKIPPED + 1))
+      fi
     else
       hg_warn "$repo: skipping $MODE because sync_strategy=$sync_strategy requires a dedicated projection workflow"
+      SKIPPED=$((SKIPPED + 1))
     fi
-    SKIPPED=$((SKIPPED + 1))
     continue
   fi
 
