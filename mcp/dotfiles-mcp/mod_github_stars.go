@@ -150,11 +150,22 @@ type githubStarsMarkdownSyncInput struct {
 }
 
 type githubStarsMarkdownSyncOutput struct {
-	Viewer     string                    `json:"viewer"`
-	Sources    []githubstars.MarkdownSource `json:"sources,omitempty"`
-	UniqueRepos int                      `json:"unique_repos"`
-	Overlaps   []githubstars.RepoOverlap `json:"overlaps,omitempty"`
-	Taxonomy   githubstars.TaxonomySyncResult `json:"taxonomy"`
+	Viewer      string                         `json:"viewer"`
+	Sources     []githubstars.MarkdownSource   `json:"sources,omitempty"`
+	UniqueRepos int                            `json:"unique_repos"`
+	Overlaps    []githubstars.RepoOverlap      `json:"overlaps,omitempty"`
+	Taxonomy    githubstars.TaxonomySyncResult `json:"taxonomy"`
+}
+
+type githubStarsMarkdownAuditInput struct {
+	SourceDir       string   `json:"source_dir,omitempty" jsonschema:"description=Directory containing markdown files to audit against GitHub star lists. Defaults to /home/hg/github-reference-repos/index-files when present."`
+	SourcePaths     []string `json:"source_paths,omitempty" jsonschema:"description=Optional explicit markdown file paths to include alongside or instead of source_dir"`
+	MaxItemsPerList int      `json:"max_items_per_list,omitempty" jsonschema:"description=Maximum missing or extra repos returned for each list. Default 100."`
+}
+
+type githubStarsMarkdownAuditOutput struct {
+	Viewer string                    `json:"viewer"`
+	Audit  githubstars.MarkdownAudit `json:"audit"`
 }
 
 type githubStarsBootstrapInput struct {
@@ -525,6 +536,40 @@ func (m *GitHubStarsModule) Tools() []registry.ToolDefinition {
 	syncTaxonomy.SearchTerms = []string{"sync github folders", "taxonomy sync", "reconcile star lists"}
 	syncTaxonomy.IsWrite = true
 
+	auditMarkdown := handler.TypedHandler[githubStarsMarkdownAuditInput, githubStarsMarkdownAuditOutput](
+		"gh_stars_audit_markdown",
+		"Audit markdown-derived GitHub repo lists against the matching live GitHub star folders without mutating anything.",
+		func(ctx context.Context, input githubStarsMarkdownAuditInput) (githubStarsMarkdownAuditOutput, error) {
+			sourceDir := strings.TrimSpace(input.SourceDir)
+			if sourceDir == "" {
+				sourceDir = defaultGitHubReferenceSourceDir()
+			}
+			sources, err := githubstars.ParseMarkdownSources(sourceDir, input.SourcePaths)
+			if err != nil {
+				return githubStarsMarkdownAuditOutput{}, err
+			}
+
+			client, err := githubstars.NewClientFromEnv(ctx)
+			if err != nil {
+				return githubStarsMarkdownAuditOutput{}, err
+			}
+			viewer, err := client.Viewer(ctx)
+			if err != nil {
+				return githubStarsMarkdownAuditOutput{}, err
+			}
+			lists, err := client.ListLists(ctx, true, 0)
+			if err != nil {
+				return githubStarsMarkdownAuditOutput{}, err
+			}
+			return githubStarsMarkdownAuditOutput{
+				Viewer: viewer.Login,
+				Audit:  githubstars.TrimMarkdownAudit(githubstars.BuildMarkdownAudit(sources, lists), input.MaxItemsPerList),
+			}, nil
+		},
+	)
+	auditMarkdown.Category = "workflow"
+	auditMarkdown.SearchTerms = []string{"audit markdown stars", "github-reference-repos audit", "star list drift from markdown", "check markdown star lists"}
+
 	syncMarkdown := handler.TypedHandler[githubStarsMarkdownSyncInput, githubStarsMarkdownSyncOutput](
 		"gh_stars_sync_markdown",
 		"Parse markdown GitHub links into per-file star lists, then exactly reconcile those target lists while preserving unrelated list memberships. Dry-run by default.",
@@ -607,6 +652,7 @@ func (m *GitHubStarsModule) Tools() []registry.ToolDefinition {
 		cleanupCandidates,
 		auditTaxonomy,
 		syncTaxonomy,
+		auditMarkdown,
 		syncMarkdown,
 		bootstrap,
 		installCodex,

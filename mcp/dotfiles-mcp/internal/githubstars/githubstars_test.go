@@ -239,6 +239,79 @@ func TestFindCleanupCandidates(t *testing.T) {
 	}
 }
 
+func TestBuildMarkdownAudit(t *testing.T) {
+	sources := []MarkdownSource{
+		{
+			Name:  "hyprland",
+			Path:  "/tmp/hyprland.md",
+			Repos: []string{"hyprwm/Hyprland", "WillPower3309/swayfx"},
+		},
+		{
+			Name:  "kitty",
+			Path:  "/tmp/kitty.md",
+			Repos: []string{"kovidgoyal/kitty"},
+		},
+	}
+	lists := []UserList{
+		{
+			Name: "Hyprland",
+			Items: []StarredListItem{
+				{NameWithOwner: "hyprwm/hyprland"},
+				{NameWithOwner: "WayfireWM/wayfire"},
+			},
+		},
+		{
+			Name: "kitty",
+			Items: []StarredListItem{
+				{NameWithOwner: "kovidgoyal/kitty"},
+			},
+		},
+	}
+
+	audit := BuildMarkdownAudit(sources, lists)
+	if audit.ExactMatch {
+		t.Fatal("expected audit drift")
+	}
+	if audit.UniqueRepos != 3 {
+		t.Fatalf("UniqueRepos = %d, want 3", audit.UniqueRepos)
+	}
+	if len(audit.Lists) != 2 {
+		t.Fatalf("expected 2 list audits, got %d", len(audit.Lists))
+	}
+	if audit.Lists[0].Name != "hyprland" {
+		t.Fatalf("expected hyprland first after sorting, got %q", audit.Lists[0].Name)
+	}
+	if !stringSlicesEqual(audit.Lists[0].Missing, []string{"WillPower3309/swayfx"}) {
+		t.Fatalf("unexpected missing repos: %v", audit.Lists[0].Missing)
+	}
+	if !stringSlicesEqual(audit.Lists[0].Extra, []string{"WayfireWM/wayfire"}) {
+		t.Fatalf("unexpected extra repos: %v", audit.Lists[0].Extra)
+	}
+	if len(audit.Lists[1].Missing) != 0 || len(audit.Lists[1].Extra) != 0 {
+		t.Fatalf("expected kitty to match exactly, got %+v", audit.Lists[1])
+	}
+}
+
+func TestTrimMarkdownAudit(t *testing.T) {
+	audit := MarkdownAudit{
+		Lists: []MarkdownListAudit{
+			{
+				Name:    "hyprland",
+				Missing: []string{"a", "b", "c"},
+				Extra:   []string{"x", "y", "z"},
+			},
+		},
+	}
+
+	trimmed := TrimMarkdownAudit(audit, 2)
+	if !stringSlicesEqual(trimmed.Lists[0].Missing, []string{"a", "b"}) {
+		t.Fatalf("unexpected trimmed missing repos: %v", trimmed.Lists[0].Missing)
+	}
+	if !stringSlicesEqual(trimmed.Lists[0].Extra, []string{"x", "y"}) {
+		t.Fatalf("unexpected trimmed extra repos: %v", trimmed.Lists[0].Extra)
+	}
+}
+
 func TestBuildTaxonomyAudit(t *testing.T) {
 	repos := []StarredRepository{
 		{
@@ -302,6 +375,10 @@ func TestParseMarkdownSources(t *testing.T) {
 		"https://github.com/kovidgoyal/kitty/blob/master/docs/remote-control.rst",
 		"https://github.com/hyprwm/hyprland-guiutils?ref=itsfoss.com",
 		"`https://github.com/WayfireWM/wayfire`",
+		"https://github.com/topics/wayland",
+		"https://github.com/orgs/lmstudio-ai",
+		"https://github.com/datvodinh/rag-chatbot.git",
+		"https://github.com/owner/repo/issues/123",
 	}, "\n")
 	if err := os.WriteFile(path, []byte(markdown), 0o644); err != nil {
 		t.Fatalf("write markdown: %v", err)
@@ -317,7 +394,7 @@ func TestParseMarkdownSources(t *testing.T) {
 	if sources[0].Name != "kitty" {
 		t.Fatalf("source name = %q, want kitty", sources[0].Name)
 	}
-	wantRepos := []string{"hyprwm/hyprland-guiutils", "kovidgoyal/kitty", "WayfireWM/wayfire"}
+	wantRepos := []string{"datvodinh/rag-chatbot", "hyprwm/hyprland-guiutils", "kovidgoyal/kitty", "owner/repo", "WayfireWM/wayfire"}
 	if !stringSlicesEqual(sources[0].Repos, wantRepos) {
 		t.Fatalf("repos = %v, want %v", sources[0].Repos, wantRepos)
 	}
