@@ -17,7 +17,8 @@ Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware
 
 - **GPU Shaders**: 131 CRTty-ready GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
 - **Theme System**: shared token pipeline for `eww`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`
-- **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, the kitty-first terminal visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
@@ -149,7 +150,7 @@ All MCP tools are consolidated under `mcp/` (7 Go modules + 3 JS servers via `go
 
 | Server | Tools | Description |
 |--------|-------|-------------|
-| `dotfiles-mcp` | 82 | Desktop config management, Hyprland control, Kitty visual pipeline, input devices |
+| `dotfiles-mcp` | 100+ | Desktop config management, Hyprland control, GitHub Stars taxonomy, Kitty visual pipeline, input devices |
 | `hg-mcp` | 200+ | SDLC ops, fleet management, repo analysis, prompt pipeline |
 | `systemd-mcp` | 10 | Systemd unit management |
 | `tmux-mcp` | 11 | Tmux session management |

@@ -67,6 +67,27 @@ Operational contract:
 
 Use these scripts from shell wrappers, tmux/bootstrap entrypoints, and automation instead of calling raw `codex`, `claude`, or `gemini` binaries directly.
 
+## GitHub Stars Workflow
+
+Use the repo-managed GitHub Stars entrypoints when the task is about starred repositories, GitHub star folders/lists, or installing the personal GitHub Stars MCP surface.
+
+- `scripts/hg-github-stars.sh`: shell wrapper for list inspection, taxonomy audit/sync, cleanup candidates, bootstrap, and Codex MCP install
+- `scripts/hg-github-official-mcp.sh`: wrapper for the official `github/github-mcp-server` image with token resolution that prefers `GITHUB_PAT` from `~/.env`
+
+Typical operator checks:
+
+```bash
+bash ./scripts/hg-github-stars.sh summary --managed-prefix 'MCP / '
+bash ./scripts/hg-github-stars.sh list-lists --include-items
+bash ./scripts/hg-github-stars.sh audit-taxonomy --managed-prefix 'MCP / ' --bootstrap-defaults
+```
+
+Typical first-time setup:
+
+```bash
+bash ./scripts/hg-github-stars.sh bootstrap --install-codex-mcp --execute
+```
+
 ## Workflow sync status
 
 `scripts/hg-workflow-sync.sh` is intentionally retired as a hosted workflow mutator.

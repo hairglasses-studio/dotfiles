@@ -66,6 +66,20 @@ claude mcp call dotfiles dotfiles_desktop_status '{}'
 claude mcp call dotfiles dotfiles_rice_check '{}'
 ```
 
+GitHub Stars workflow examples:
+
+```bash
+# Summarize managed GitHub Stars coverage
+claude mcp call dotfiles dotfiles_gh_stars_summary '{"managed_list_prefix":"MCP / "}'
+
+# List current GitHub star folders with items
+claude mcp call dotfiles dotfiles_gh_star_lists_list '{"include_items":true}'
+
+# Audit and bootstrap the MCP stars taxonomy
+bash ./scripts/hg-github-stars.sh audit-taxonomy --managed-prefix 'MCP / ' --bootstrap-defaults
+bash ./scripts/hg-github-stars.sh bootstrap --install-codex-mcp --execute
+```
+
 ## Loading Profiles
 
 Control how many tools load at startup via `DOTFILES_MCP_PROFILE`:
@@ -96,6 +110,7 @@ Set in your MCP config:
 |----------|------:|-------------|
 | Config Management | 4 | Dotfiles symlink health, config validation, service reloads |
 | GitHub Org Lifecycle | 12 | Repo transfers, fork squashing, bulk clone/pull/archive, fleet sync |
+| GitHub Stars | 14 | Starred repo inventory, GitHub star folders, taxonomy audit/sync, bootstrap, and Codex MCP install helpers |
 | Fleet Auditing & CI | 4 | Per-repo health dashboard, dependency skew, workflow sync |
 | Build & Sync | 5 | Multi-language build pipeline, Go version sync, repo scaffolding |
 | Hyprland Desktop | 12 | Window/workspace management, screenshots, monitor config, input simulation |
@@ -111,6 +126,7 @@ Set in your MCP config:
 
 - All batch tools use **dry-run by default** -- pass `execute: true` for live mode
 - Composed "tool-of-tools" (`full_sync`, `fleet_audit`, `cascade_reload`, `rice_check`, `bulk_pipeline`) eliminate multi-step token waste
+- GitHub Stars helpers prefer `GITHUB_PAT` from `~/.env`, then existing shell env, then `gh auth token`
 - `clean_stale` checks for uncommitted/unpushed work before deletion
 - `pull_all` detects dirty repos and detached HEAD, skips safely
 
