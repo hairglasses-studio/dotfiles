@@ -106,25 +106,25 @@ STANDALONE_PATH="$(resolve_standalone_repo_path "$STANDALONE_PATH" "$CANONICAL_P
 
 resolve_standalone_inspect_root() {
   local root="$1"
-  if [[ -d "$root/internal/dotfiles" ]]; then
-    printf '%s\n' "$root"
-    return 0
-  fi
-
   if git -C "$root" rev-parse --is-bare-repository >/dev/null 2>&1; then
     if [[ "$(git -C "$root" rev-parse --is-bare-repository)" == "true" ]]; then
       TEMP_BASE="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-mcp-projection.XXXXXX")"
       TEMP_WORKTREE="${TEMP_BASE}/worktree"
-      git -C "$root" worktree add --detach "$TEMP_WORKTREE" >/dev/null
-      printf '%s\n' "$TEMP_WORKTREE"
+      git -C "$root" worktree add --quiet --detach "$TEMP_WORKTREE" >/dev/null
+      STANDALONE_INSPECT_ROOT="$TEMP_WORKTREE"
       return 0
     fi
+  fi
+
+  if [[ -d "$root/internal/dotfiles" ]]; then
+    STANDALONE_INSPECT_ROOT="$root"
+    return 0
   fi
 
   local top
   top="$(git -C "$root" rev-parse --show-toplevel 2>/dev/null || true)"
   if [[ -n "$top" && -d "$top/internal/dotfiles" ]]; then
-    printf '%s\n' "$top"
+    STANDALONE_INSPECT_ROOT="$top"
     return 0
   fi
 
@@ -147,7 +147,7 @@ json_array_file() {
   jq -Rsc 'split("\n") | map(select(length > 0))' "$1"
 }
 
-STANDALONE_INSPECT_ROOT="$(resolve_standalone_inspect_root "$STANDALONE_PATH")"
+resolve_standalone_inspect_root "$STANDALONE_PATH"
 TARGET_PACKAGE_DIR="${STANDALONE_INSPECT_ROOT}/internal/dotfiles"
 
 CANONICAL_GO_LIST="$(temp_file)"
