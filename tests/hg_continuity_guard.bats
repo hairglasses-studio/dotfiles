@@ -91,6 +91,9 @@ _run_hg_module() {
     assert_output --partial "default terminal"
     assert_output --partial "kitty-shell-launch"
     assert_output --partial "startup_session none"
+    assert_output --partial "hypr surfaces"
+    assert_output --partial "aux launchers"
+    assert_output --partial "managed wrappers"
     assert_output --partial "opt-in only"
 }
 
