@@ -347,9 +347,11 @@ setup_runtime_wrappers() {
     if kitty_visuals_enabled && [[ -d "$DOTFILES/kitty/shaders/bin" ]]; then
         chmod +x "$DOTFILES/kitty/shaders/bin/"*.sh 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-shader-playlist.sh" 2>/dev/null || true
+        chmod +x "$DOTFILES/scripts/kitty-shell-launch.sh" 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-dev-launch.sh" 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/kitty-visual-launch.sh" 2>/dev/null || true
         link_file "$DOTFILES/scripts/kitty-shader-playlist.sh" "$HOME/.local/bin/kitty-shader-playlist"
+        link_file "$DOTFILES/scripts/kitty-shell-launch.sh" "$HOME/.local/bin/kitty-shell-launch"
         link_file "$DOTFILES/scripts/kitty-dev-launch.sh" "$HOME/.local/bin/kitty-dev-launch"
         link_file "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
         info "  Kitty shader scripts ready"
@@ -409,6 +411,8 @@ check_install() {
     check_link "$DOTFILES/tattoy/tattoy.toml" "$HOME/.config/tattoy/tattoy.toml"
     check_link "$DOTFILES/hyprshell" "$HOME/.config/hyprshell"
     check_link "$DOTFILES/scripts/kitty-shader-playlist.sh" "$HOME/.local/bin/kitty-shader-playlist"
+    check_link "$DOTFILES/scripts/kitty-shell-launch.sh" "$HOME/.local/bin/kitty-shell-launch"
+    check_link "$DOTFILES/scripts/kitty-dev-launch.sh" "$HOME/.local/bin/kitty-dev-launch"
     check_link "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
     check_link "$DOTFILES/scripts/app-launcher.sh" "$HOME/.local/bin/app-launcher"
     check_link "$DOTFILES/scripts/app-switcher.sh" "$HOME/.local/bin/app-switcher"

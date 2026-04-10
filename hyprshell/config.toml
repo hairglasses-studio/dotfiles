@@ -11,7 +11,9 @@ filter_by = ["current_workspace", "current_monitor"]
 exclude_special_workspaces = "dashboard"
 
 [windows.overview.launcher]
-default_terminal = "$HOME/.local/bin/kitty-dev-launch"
+# Keep the default terminal on a plain shell launcher. The tmux-backed
+# `kitty-dev-launch` entrypoint is opt-in for dedicated session workflows.
+default_terminal = "$HOME/.local/bin/kitty-shell-launch"
 launch_modifier = "super"
 width = 980
 max_items = 8

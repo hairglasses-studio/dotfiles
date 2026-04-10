@@ -44,6 +44,25 @@ EOF
     assert_output --partial "-e ${REAL_SCRIPTS_DIR}/tmux-main-session.sh"
 }
 
+@test "kitty-shell-launch keeps default terminals shell-first and in a fresh window" {
+    cat > "${TEST_BIN}/kitty-launcher" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${BATS_TEST_TMPDIR}/launcher.log"
+EOF
+    chmod +x "${TEST_BIN}/kitty-launcher"
+
+    run env KITTY_SHELL_LAUNCHER="${TEST_BIN}/kitty-launcher" bash "${SCRIPTS_DIR}/kitty-shell-launch.sh" --class=shell-terminal
+    assert_success
+
+    run cat "${BATS_TEST_TMPDIR}/launcher.log"
+    assert_success
+    assert_output --partial "--single-instance=no"
+    assert_output --partial "--session=none"
+    assert_output --partial "--start-as=normal"
+    assert_output --partial "--class=shell-terminal"
+    refute_output --partial "tmux-main-session.sh"
+}
+
 @test "tmux-main-session attaches to the persistent main session when it already exists" {
     export TMUX_HAS_SESSION_EXIT=0
 
@@ -79,7 +98,7 @@ EOF
     assert_line --index 0 "has-session -t dropdown"
     assert_output --partial "new-session -d -s dropdown -c ${REAL_STUDIO_DIR}"
     assert_output --partial "HG_AGENT_SESSION_QUIET=1 ralphglasses --scan-path ${REAL_STUDIO_DIR}"
-    assert_output --partial "split-window -t dropdown -h -c ${REAL_DOTFILES_DIR} claude"
+    assert_output --partial "split-window -t dropdown -h -c ${REAL_DOTFILES_DIR} HG_AGENT_SESSION_QUIET=1 ${REAL_SCRIPTS_DIR}/hg-claude-launch.sh"
     assert_output --partial "select-pane -t dropdown:0.0"
     assert_line --index 4 "attach-session -t dropdown"
     refute_output --partial "kill-session"
@@ -132,4 +151,9 @@ EOF
     assert_success
     assert_output --partial "dispatch movetoworkspacesilent special:dropdown,class:^(dropdown-cyber)$"
     assert_output --partial "dispatch togglespecialworkspace dropdown"
+}
+
+@test "hyprshell defaults terminal launches to kitty-shell-launch" {
+    run grep -F 'default_terminal = "$HOME/.local/bin/kitty-shell-launch"' "${DOTFILES_DIR}/hyprshell/config.toml"
+    assert_success
 }
