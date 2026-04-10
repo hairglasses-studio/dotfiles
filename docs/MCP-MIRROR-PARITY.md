@@ -21,14 +21,25 @@ Run the parity checker after touching bundled MCP module READMEs, the manifest, 
 
 ```bash
 bash ./scripts/hg-mcp-mirror-parity.sh --check
+```
+
+For `dotfiles-mcp`, also refresh the dedicated projection plan:
+
+```bash
+bash ./scripts/hg-dotfiles-mcp-projection.sh check
+```
 
 Only mirrors with `sync_strategy: tree_sync` are safe to mutate through the generic
 `mcp-mirror.sh` and `sync-standalone-mcp-repos.sh` rsync path. Mirrors marked
 `manual_projection` need a dedicated repo-local projection or packaging workflow.
 `dotfiles-mcp` is in that category because the standalone repo has its own root-level
 package layout, generated surfaces, and publish metadata that are not tree-isomorphic
-to `dotfiles/mcp/dotfiles-mcp`.
-```
+to `dotfiles/mcp/dotfiles-mcp`. The dedicated planner reports:
+
+- root assets that still move 1:1 into the standalone repo
+- bundled root Go files that map into `internal/dotfiles/*.go`
+- canonical-only additions and overlapping files that already drift
+- standalone-owned surfaces such as `cmd/*`, `internal/githubstars`, and contract snapshots
 
 The checker validates:
 

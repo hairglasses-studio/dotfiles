@@ -13,7 +13,7 @@ Use this reference when a change touches public docs, bundled MCP modules, skill
 
 1. Place the change with `docs/ARCHITECTURE-PROVENANCE.md` so installer, workstation, and `mcp/` ownership stay explicit.
 2. If the operator or public surface changed, align `docs/INSTALL-AND-OPERATIONS.md` or another searchable repo-local note with the real command path.
-3. If a mirror-managed MCP module changed, run `bash ./scripts/hg-mcp-mirror-parity.sh --check` first. Only use `bash ./scripts/sync-standalone-mcp-repos.sh check` or a live sync for mirrors whose `sync_strategy` is `tree_sync`; capture a deliberate projection plan for mirrors marked `manual_projection`.
+3. If a mirror-managed MCP module changed, run `bash ./scripts/hg-mcp-mirror-parity.sh --check` first. Only use `bash ./scripts/sync-standalone-mcp-repos.sh check` or a live sync for mirrors whose `sync_strategy` is `tree_sync`; for `dotfiles-mcp`, run `bash ./scripts/hg-dotfiles-mcp-projection.sh check` so the manual-projection map is current before touching the standalone repo.
 4. If agent or skill instructions changed, treat `.agents/skills/` and `AGENTS.md` as canonical, then regenerate compatibility surfaces with `codexkit skills sync .` or `bash ./scripts/hg-skill-surface-sync.sh .`, plus `bash ./scripts/hg-agent-docs.sh --source auto .`.
 5. End with the narrowest syntax or smoke check that proves the changed entrypoint or public contract.
 
