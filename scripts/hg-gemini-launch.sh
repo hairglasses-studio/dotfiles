@@ -10,6 +10,6 @@ hg_agent_launch_main \
   "$0" \
   --sandbox=false \
   --approval-mode \
-  yolo \
+  auto_edit \
   -- \
   "$@"
