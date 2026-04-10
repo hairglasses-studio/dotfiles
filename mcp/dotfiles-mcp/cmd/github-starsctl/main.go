@@ -35,6 +35,8 @@ func main() {
 		runCleanupCandidates(ctx, os.Args[2:])
 	case "audit-taxonomy":
 		runAuditTaxonomy(ctx, os.Args[2:])
+	case "audit-markdown":
+		runAuditMarkdown(ctx, os.Args[2:])
 	case "sync-markdown":
 		runSyncMarkdown(ctx, os.Args[2:])
 	case "install-codex-mcp":
@@ -59,6 +61,7 @@ Usage:
   github-starsctl suggest-taxonomy [--query text] [--limit n]
   github-starsctl cleanup-candidates [--inactive-days n] [--include-archived=true|false] [--include-forks=true|false] [--require-unlisted] [--managed-prefix prefix] [--limit n]
   github-starsctl audit-taxonomy [--managed-prefix prefix] [--max-items n] [--bootstrap-defaults] [--production repos] [--experimental repos] [--alpha repos]
+  github-starsctl audit-markdown [--source-dir dir] [--sources path1,path2] [--max-items n]
   github-starsctl sync-markdown [--source-dir dir] [--sources path1,path2] [--description-template 'text %s'] [--private=true|false] [--star-missing] [--execute]
   github-starsctl install-codex-mcp [--config path] [--dotfiles-dir path] [--execute]
   github-starsctl bootstrap [--production repos] [--experimental repos] [--alpha repos] [--install-codex-mcp] [--config path] [--dotfiles-dir path] [--execute]
@@ -256,6 +259,34 @@ func runAuditTaxonomy(ctx context.Context, args []string) {
 	})
 }
 
+func runAuditMarkdown(ctx context.Context, args []string) {
+	fs := flag.NewFlagSet("audit-markdown", flag.ExitOnError)
+	sourceDir := fs.String("source-dir", "", "directory containing markdown source files")
+	sources := fs.String("sources", "", "comma-separated markdown file paths")
+	maxItems := fs.Int("max-items", 100, "max missing or extra repos per list")
+	fs.Parse(args)
+
+	if strings.TrimSpace(*sourceDir) == "" && strings.TrimSpace(*sources) == "" {
+		if path := defaultMarkdownSourceDir(); path != "" {
+			*sourceDir = path
+		}
+	}
+
+	loadedSources, err := githubstars.ParseMarkdownSources(*sourceDir, splitCSV(*sources))
+	fatalIf(err)
+
+	client := mustClient(ctx)
+	viewer, err := client.Viewer(ctx)
+	fatalIf(err)
+	currentLists, err := client.ListLists(ctx, true, 0)
+	fatalIf(err)
+	audit := githubstars.TrimMarkdownAudit(githubstars.BuildMarkdownAudit(loadedSources, currentLists), *maxItems)
+	printJSON(map[string]any{
+		"viewer": viewer.Login,
+		"audit":  audit,
+	})
+}
+
 func runSyncMarkdown(ctx context.Context, args []string) {
 	fs := flag.NewFlagSet("sync-markdown", flag.ExitOnError)
 	sourceDir := fs.String("source-dir", "", "directory containing markdown source files")
@@ -379,14 +410,6 @@ func trimAuditForCLI(audit githubstars.TaxonomyAudit, limit int) githubstars.Tax
 	return audit
 }
 
-func defaultMarkdownSourceDir() string {
-	candidate := "/home/hg/github-reference-repos/index-files"
-	if info, err := os.Stat(candidate); err == nil && info.IsDir() {
-		return candidate
-	}
-	return ""
-}
-
 func printJSON(v any) {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
@@ -398,4 +421,12 @@ func fatalIf(err error) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func defaultMarkdownSourceDir() string {
+	candidate := "/home/hg/github-reference-repos/index-files"
+	if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+		return candidate
+	}
+	return ""
 }

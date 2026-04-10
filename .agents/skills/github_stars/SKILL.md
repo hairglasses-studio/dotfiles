@@ -22,6 +22,8 @@ allowed-tools:
   - mcp__dotfiles_workspace__dotfiles_gh_stars_taxonomy_suggest
   - mcp__dotfiles_workspace__dotfiles_gh_stars_taxonomy_audit
   - mcp__dotfiles_workspace__dotfiles_gh_stars_taxonomy_sync
+  - mcp__dotfiles_workspace__dotfiles_gh_stars_audit_markdown
+  - mcp__dotfiles_workspace__dotfiles_gh_stars_sync_markdown
   - mcp__dotfiles_workspace__dotfiles_gh_stars_bootstrap
   - mcp__dotfiles_workspace__dotfiles_gh_stars_install_codex_mcp
 ---
@@ -39,7 +41,9 @@ Use this skill when the task is about starred GitHub repositories, GitHub star f
 5. Use `dotfiles_gh_stars_cleanup_candidates` to prune archived, forked, stale, or unlisted stars before reorganizing.
 6. Prefer `dotfiles_gh_stars_taxonomy_sync` for repeatable repo-to-list reconciliation instead of one-off list edits.
 7. Use `dotfiles_gh_stars_bootstrap` for the first-time MCP maturity setup (`MCP / Production`, `MCP / Experimental`, `MCP / Alpha`).
-8. Use `dotfiles_gh_stars_install_codex_mcp` or `scripts/hg-github-stars.sh install-codex-mcp --execute` to install the global Codex MCP entries.
+8. Use `dotfiles_gh_stars_audit_markdown` first when a markdown bundle or `github-reference-repos/index-files` directory should be checked against live GitHub list membership.
+9. Use `dotfiles_gh_stars_sync_markdown` after the audit when that markdown corpus should become the source of truth for per-file star lists.
+10. Use `dotfiles_gh_stars_install_codex_mcp` or `scripts/hg-github-stars.sh install-codex-mcp --execute` to install the global Codex MCP entries.
 
 ## Shell fallback
 
@@ -50,6 +54,9 @@ Use this skill when the task is about starred GitHub repositories, GitHub star f
 - `scripts/hg-github-stars.sh suggest-taxonomy`
 - `scripts/hg-github-stars.sh audit-taxonomy --managed-prefix 'MCP / ' --bootstrap-defaults`
 - `scripts/hg-github-stars.sh cleanup-candidates --managed-prefix 'MCP / ' --require-unlisted`
+- `scripts/hg-github-stars.sh audit-markdown --source-dir /home/hg/github-reference-repos/index-files`
+- `scripts/hg-github-stars.sh set-membership --repos owner/name --lists list-a,list-b --operation replace --execute`
+- `scripts/hg-github-stars.sh sync-markdown --source-dir /home/hg/github-reference-repos/index-files --execute`
 - `scripts/hg-github-stars.sh bootstrap --install-codex-mcp --execute`
 
 ## Notes
