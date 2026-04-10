@@ -21,6 +21,10 @@ type OllamaClient struct {
 	httpClient *http.Client
 }
 
+type ollamaStatusSnapshotOptions struct {
+	includeRunningModels bool
+}
+
 // OllamaModelDetails represents shared model metadata returned by tags/show/ps.
 type OllamaModelDetails struct {
 	Format            string   `json:"format"`
@@ -347,8 +351,7 @@ func NewOllamaClient() (*OllamaClient, error) {
 	}, nil
 }
 
-// GetStatus returns the service status
-func (c *OllamaClient) GetStatus(ctx context.Context) (*OllamaStatus, error) {
+func (c *OllamaClient) fetchStatusSnapshot(ctx context.Context, opts ollamaStatusSnapshotOptions) (*OllamaStatus, error) {
 	status := &OllamaStatus{
 		BaseURL: c.baseURL,
 	}
@@ -382,12 +385,19 @@ func (c *OllamaClient) GetStatus(ctx context.Context) (*OllamaStatus, error) {
 		status.Models = models
 	}
 
-	runningModels, err := c.ListRunningModels(ctx)
-	if err == nil && len(runningModels) > 0 {
-		status.LoadedModel = runningModels[0].Name
+	if opts.includeRunningModels {
+		runningModels, err := c.ListRunningModels(ctx)
+		if err == nil && len(runningModels) > 0 {
+			status.LoadedModel = runningModels[0].Name
+		}
 	}
 
 	return status, nil
+}
+
+// GetStatus returns the service status
+func (c *OllamaClient) GetStatus(ctx context.Context) (*OllamaStatus, error) {
+	return c.fetchStatusSnapshot(ctx, ollamaStatusSnapshotOptions{includeRunningModels: true})
 }
 
 // ListModels returns available models
@@ -665,87 +675,22 @@ func (c *OllamaClient) DeleteModel(ctx context.Context, modelName string) error 
 	return nil
 }
 
-// GetHealth returns health status
-func (c *OllamaClient) GetHealth(ctx context.Context) (*OllamaHealth, error) {
-	health := &OllamaHealth{
-		Score:        100,
-		Status:       "healthy",
-		BaseURL:      c.baseURL,
-		PullCommands: RecommendedOllamaPullCommands(),
-	}
-
-	readiness, err := c.GetReadiness(ctx, false)
-	if err != nil {
-		return nil, err
-	}
-	health.Version = readiness.Version
-	health.RequiredModels = append([]string(nil), readiness.RequiredModels...)
-	health.ReadyModels = append([]string(nil), readiness.ReadyModels...)
-	health.MissingModels = append([]string(nil), readiness.MissingModels...)
-
-	status, err := c.GetStatus(ctx)
-	if err != nil || !status.Running || !readiness.Reachable {
-		health.ServiceRunning = false
-		health.Score -= 50
-		health.Issues = append(health.Issues, "Ollama service not running")
-		health.Recommendations = append(health.Recommendations,
-			"Start Ollama: ollama serve")
-	} else {
-		health.ServiceRunning = true
-		health.ModelsAvailable = len(status.Models)
-	}
-	if len(status.Models) == 0 {
-		health.Score -= 30
-		health.Issues = append(health.Issues, "No models installed")
-		health.Recommendations = append(health.Recommendations,
-			fmt.Sprintf("Pull a model set: %s", strings.Join(RecommendedOllamaPullCommands(), " && ")))
-	}
-	if len(readiness.MissingModels) > 0 {
-		health.Score -= 25
-		health.Issues = append(health.Issues, fmt.Sprintf("Missing required models: %s", strings.Join(readiness.MissingModels, ", ")))
-		health.Recommendations = append(health.Recommendations,
-			fmt.Sprintf("Pull the missing model set: %s", strings.Join(RecommendedOllamaPullCommands(), " && ")))
-	}
-	for _, check := range readiness.AliasChecks {
-		switch check.Status {
-		case "missing_alias", "digest_mismatch":
-			health.Score -= 10
-			health.Issues = append(health.Issues, fmt.Sprintf("Managed alias problem for %s: %s", check.Alias, check.Detail))
-			health.Recommendations = append(health.Recommendations,
-				"Rebuild the managed aliases: ~/hairglasses-studio/dotfiles/scripts/hg-ollama-sync-aliases.sh")
-		}
-	}
-
-	switch {
-	case health.Score >= 80:
-		health.Status = "healthy"
-	case health.Score >= 50:
-		health.Status = "degraded"
-	default:
-		health.Status = "critical"
-	}
-
-	return health, nil
-}
-
-// GetReadiness returns the live daemon/model readiness snapshot.
-func (c *OllamaClient) GetReadiness(ctx context.Context, requireHeavy bool) (*OllamaReadiness, error) {
+func (c *OllamaClient) buildReadinessFromStatus(status *OllamaStatus, requireHeavy bool) *OllamaReadiness {
 	readiness := &OllamaReadiness{
 		BaseURL:      c.baseURL,
 		RequireHeavy: requireHeavy,
 		PullCommands: RecommendedOllamaPullCommands(),
 	}
-
-	status, err := c.GetStatus(ctx)
-	if err != nil {
-		readiness.Error = err.Error()
-		return readiness, nil
+	if status == nil {
+		readiness.Error = "Ollama status unavailable"
+		return readiness
 	}
+
 	readiness.Reachable = status.Running
 	readiness.Version = status.Version
 	if !status.Running {
 		readiness.Error = "Ollama service not running"
-		return readiness, nil
+		return readiness
 	}
 
 	required := []string{
@@ -818,7 +763,86 @@ func (c *OllamaClient) GetReadiness(ctx context.Context, requireHeavy bool) (*Ol
 			}
 		}
 	}
-	return readiness, nil
+
+	return readiness
+}
+
+// GetHealth returns health status
+func (c *OllamaClient) GetHealth(ctx context.Context) (*OllamaHealth, error) {
+	health := &OllamaHealth{
+		Score:        100,
+		Status:       "healthy",
+		BaseURL:      c.baseURL,
+		PullCommands: RecommendedOllamaPullCommands(),
+	}
+
+	status, err := c.fetchStatusSnapshot(ctx, ollamaStatusSnapshotOptions{})
+	if err != nil {
+		return nil, err
+	}
+	readiness := c.buildReadinessFromStatus(status, false)
+	health.Version = readiness.Version
+	health.RequiredModels = append([]string(nil), readiness.RequiredModels...)
+	health.ReadyModels = append([]string(nil), readiness.ReadyModels...)
+	health.MissingModels = append([]string(nil), readiness.MissingModels...)
+
+	if !status.Running || !readiness.Reachable {
+		health.ServiceRunning = false
+		health.Score -= 50
+		health.Issues = append(health.Issues, "Ollama service not running")
+		health.Recommendations = append(health.Recommendations,
+			"Start Ollama: ollama serve")
+	} else {
+		health.ServiceRunning = true
+		health.ModelsAvailable = len(status.Models)
+	}
+	if len(status.Models) == 0 {
+		health.Score -= 30
+		health.Issues = append(health.Issues, "No models installed")
+		health.Recommendations = append(health.Recommendations,
+			fmt.Sprintf("Pull a model set: %s", strings.Join(RecommendedOllamaPullCommands(), " && ")))
+	}
+	if len(readiness.MissingModels) > 0 {
+		health.Score -= 25
+		health.Issues = append(health.Issues, fmt.Sprintf("Missing required models: %s", strings.Join(readiness.MissingModels, ", ")))
+		health.Recommendations = append(health.Recommendations,
+			fmt.Sprintf("Pull the missing model set: %s", strings.Join(RecommendedOllamaPullCommands(), " && ")))
+	}
+	for _, check := range readiness.AliasChecks {
+		switch check.Status {
+		case "missing_alias", "digest_mismatch":
+			health.Score -= 10
+			health.Issues = append(health.Issues, fmt.Sprintf("Managed alias problem for %s: %s", check.Alias, check.Detail))
+			health.Recommendations = append(health.Recommendations,
+				"Rebuild the managed aliases: ~/hairglasses-studio/dotfiles/scripts/hg-ollama-sync-aliases.sh")
+		}
+	}
+
+	switch {
+	case health.Score >= 80:
+		health.Status = "healthy"
+	case health.Score >= 50:
+		health.Status = "degraded"
+	default:
+		health.Status = "critical"
+	}
+
+	return health, nil
+}
+
+// GetReadiness returns the live daemon/model readiness snapshot.
+func (c *OllamaClient) GetReadiness(ctx context.Context, requireHeavy bool) (*OllamaReadiness, error) {
+	status, err := c.fetchStatusSnapshot(ctx, ollamaStatusSnapshotOptions{})
+	if err != nil {
+		readiness := &OllamaReadiness{
+			BaseURL:      c.baseURL,
+			RequireHeavy: requireHeavy,
+			PullCommands: RecommendedOllamaPullCommands(),
+			Error:        err.Error(),
+		}
+		return readiness, nil
+	}
+	return c.buildReadinessFromStatus(status, requireHeavy), nil
 }
 
 // GetModelInfo returns detailed info about a model
