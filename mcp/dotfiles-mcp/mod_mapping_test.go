@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/dotfiles-mcp/internal/mapping"
 	"github.com/hairglasses-studio/mcpkit/mcptest"
 	"github.com/hairglasses-studio/mcpkit/registry"
 )
@@ -282,14 +282,14 @@ func TestRuleIndex_ConditionFilter(t *testing.T) {
 	p := &mapping.MappingProfile{
 		Mappings: []mapping.MappingRule{
 			{
-				Input:     "midi:cc:1",
-				Condition: &mapping.Condition{Variable: "recording", Equals: true},
-				Output:    mapping.OutputAction{Type: mapping.OutputOSC, Address: "/record/level"},
+				Input:       "midi:cc:1",
+				Condition:   &mapping.Condition{Variable: "recording", Equals: true},
+				Output:      mapping.OutputAction{Type: mapping.OutputOSC, Address: "/record/level"},
 				Description: "recording mode",
 			},
 			{
-				Input:  "midi:cc:1",
-				Output: mapping.OutputAction{Type: mapping.OutputCommand, Exec: []string{"wpctl", "set-volume"}},
+				Input:       "midi:cc:1",
+				Output:      mapping.OutputAction{Type: mapping.OutputCommand, Exec: []string{"wpctl", "set-volume"}},
 				Description: "default volume",
 			},
 		},

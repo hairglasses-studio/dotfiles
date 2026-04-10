@@ -272,3 +272,104 @@ func TestBuildTaxonomyAudit(t *testing.T) {
 		t.Fatalf("unexpected desired missing repos: %+v", audit.DesiredReposMissing)
 	}
 }
+
+func TestBuildTaxonomyAuditCaseInsensitiveRepoNames(t *testing.T) {
+	repos := []StarredRepository{
+		{
+			NameWithOwner: "WayfireWM/wayfire",
+			Lists:         []ListRef{{Name: "hyprland"}, {Name: "wayland"}},
+		},
+	}
+	assignments := []TaxonomyAssignment{
+		{Repo: "wayfirewm/wayfire", Lists: []string{"hyprland", "wayland"}},
+	}
+
+	audit := BuildTaxonomyAudit(repos, assignments, "")
+	if len(audit.ReposWithDrift) != 0 {
+		t.Fatalf("expected no drift for case-only repo differences, got %+v", audit.ReposWithDrift)
+	}
+	if len(audit.DesiredReposMissing) != 0 {
+		t.Fatalf("expected no missing repos for case-only repo differences, got %+v", audit.DesiredReposMissing)
+	}
+}
+
+func TestParseMarkdownSources(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "kitty.md")
+	markdown := strings.Join([]string{
+		"# Kitty",
+		"https://github.com/kovidgoyal/kitty",
+		"https://github.com/kovidgoyal/kitty/blob/master/docs/remote-control.rst",
+		"https://github.com/hyprwm/hyprland-guiutils?ref=itsfoss.com",
+		"`https://github.com/WayfireWM/wayfire`",
+	}, "\n")
+	if err := os.WriteFile(path, []byte(markdown), 0o644); err != nil {
+		t.Fatalf("write markdown: %v", err)
+	}
+
+	sources, err := ParseMarkdownSources(dir, nil)
+	if err != nil {
+		t.Fatalf("ParseMarkdownSources() error = %v", err)
+	}
+	if len(sources) != 1 {
+		t.Fatalf("expected one source, got %d", len(sources))
+	}
+	if sources[0].Name != "kitty" {
+		t.Fatalf("source name = %q, want kitty", sources[0].Name)
+	}
+	wantRepos := []string{"hyprwm/hyprland-guiutils", "kovidgoyal/kitty", "WayfireWM/wayfire"}
+	if !stringSlicesEqual(sources[0].Repos, wantRepos) {
+		t.Fatalf("repos = %v, want %v", sources[0].Repos, wantRepos)
+	}
+}
+
+func TestBuildExactListRequests(t *testing.T) {
+	current := []UserList{
+		{
+			Name: "hyprland",
+			Items: []StarredListItem{
+				{NameWithOwner: "hyprwm/Hyprland"},
+				{NameWithOwner: "WayfireWM/wayfire"},
+			},
+		},
+		{
+			Name: "wayland",
+			Items: []StarredListItem{
+				{NameWithOwner: "WayfireWM/wayfire"},
+			},
+		},
+		{
+			Name: "MCP / Production",
+			Items: []StarredListItem{
+				{NameWithOwner: "WayfireWM/wayfire"},
+			},
+		},
+	}
+	assignments := []TaxonomyAssignment{
+		{Repo: "hyprwm/Hyprland", Lists: []string{"hyprland", "wayland"}},
+		{Repo: "be5invis/iosevka", Lists: []string{"kitty"}},
+	}
+	targets := []EnsureListSpec{{Name: "hyprland"}, {Name: "wayland"}, {Name: "kitty"}}
+
+	requests := BuildExactListRequests(current, assignments, targets, true, true)
+	got := map[string][]string{}
+	for _, request := range requests {
+		got[strings.ToLower(request.Repo)] = request.TargetLists
+		if request.Operation != OperationReplace {
+			t.Fatalf("expected replace operation, got %s", request.Operation)
+		}
+		if !request.CreateMissing || !request.StarMissing {
+			t.Fatalf("expected create-missing and star-missing enabled: %+v", request)
+		}
+	}
+
+	if !stringSlicesEqual(got["hyprwm/hyprland"], []string{"hyprland", "wayland"}) {
+		t.Fatalf("hyprland repo lists = %v", got["hyprwm/hyprland"])
+	}
+	if !stringSlicesEqual(got["wayfirewm/wayfire"], []string{"MCP / Production"}) {
+		t.Fatalf("wayfire repo should keep only non-target lists, got %v", got["wayfirewm/wayfire"])
+	}
+	if !stringSlicesEqual(got["be5invis/iosevka"], []string{"kitty"}) {
+		t.Fatalf("new repo lists = %v", got["be5invis/iosevka"])
+	}
+}

@@ -12,7 +12,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // Relative axis event codes (from linux/input-event-codes.h).

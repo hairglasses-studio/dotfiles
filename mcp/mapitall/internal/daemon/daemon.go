@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hairglasses-studio/mapping"
 	"github.com/hairglasses-studio/mapitall/internal/ipc"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 	"github.com/hairglasses-studio/mapitall/internal/output"
 	"github.com/hairglasses-studio/mapitall/internal/pipeline"
 	"github.com/hairglasses-studio/mapitall/internal/reload"

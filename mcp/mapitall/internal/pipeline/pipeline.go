@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 	"github.com/hairglasses-studio/mapitall/internal/output"
 	"github.com/hairglasses-studio/mcpkit/device"
 )
@@ -18,11 +18,11 @@ type EventObserver func(ev device.Event)
 
 // Pipeline processes device events through rule resolution and output dispatch.
 type Pipeline struct {
-	state            *mapping.EngineState
-	registry         *output.Registry
-	resolve          RuleResolver
-	customModifiers  map[string]bool
-	observer         EventObserver
+	state           *mapping.EngineState
+	registry        *output.Registry
+	resolve         RuleResolver
+	customModifiers map[string]bool
+	observer        EventObserver
 }
 
 // New creates a pipeline. customModifiers is the set of input sources that act as

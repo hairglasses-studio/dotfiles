@@ -31,7 +31,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // MovementTarget emits cursor movement and scroll events via macOS CoreGraphics.

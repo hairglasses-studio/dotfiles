@@ -68,7 +68,7 @@ var LinuxKeyCodes = map[string]uint16{
 	"BTN_Z": 0x135, "BTN_TL": 0x136, "BTN_TR": 0x137,
 	"BTN_TL2": 0x138, "BTN_TR2": 0x139, "BTN_SELECT": 0x13a,
 	"BTN_START": 0x13b, "BTN_MODE": 0x13c, "BTN_THUMBL": 0x13d,
-	"BTN_THUMBR": 0x13e,
+	"BTN_THUMBR":  0x13e,
 	"BTN_DPAD_UP": 0x220, "BTN_DPAD_DOWN": 0x221,
 	"BTN_DPAD_LEFT": 0x222, "BTN_DPAD_RIGHT": 0x223,
 

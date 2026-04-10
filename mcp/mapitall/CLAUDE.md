@@ -22,7 +22,7 @@ make check   # all three above
 
 ## Dependencies
 
-- `github.com/hairglasses-studio/mapping` — Shared types, engine, profile parsing, LUT transforms
+- `github.com/hairglasses-studio/mapitall/internal/mapping` — Shared types, engine, profile parsing, LUT transforms
 - `github.com/hairglasses-studio/mcpkit` — Device provider framework (evdev, ALSA MIDI input)
 
 ## Output Types

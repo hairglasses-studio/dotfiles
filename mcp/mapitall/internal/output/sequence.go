@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // SequenceTarget chains multiple output actions with optional delays.

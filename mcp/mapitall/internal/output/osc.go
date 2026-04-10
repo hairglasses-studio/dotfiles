@@ -7,7 +7,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // OSCTarget sends OSC messages over UDP.

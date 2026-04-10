@@ -54,7 +54,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // MIDITarget sends MIDI messages via macOS CoreMIDI.

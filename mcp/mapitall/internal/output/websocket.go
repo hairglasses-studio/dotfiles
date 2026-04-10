@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 	"nhooyr.io/websocket"
 )
 

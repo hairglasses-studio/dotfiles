@@ -1,6 +1,6 @@
 // mod_prompt_registry.go — Prompt capture, search, scoring, tagging, and improvement MCP tools.
 // Stores prompts in ~/hairglasses-studio/docs/prompts/ with TOML frontmatter.
-// Uses the prompt-improver enhancer for analysis and improvement.
+// Uses the in-tree enhancer for analysis and improvement.
 package main
 
 import (
@@ -17,9 +17,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/hairglasses-studio/dotfiles-mcp/internal/enhancer"
 	"github.com/hairglasses-studio/mcpkit/handler"
 	"github.com/hairglasses-studio/mcpkit/registry"
-	"github.com/hairglasses-studio/prompt-improver/pkg/enhancer"
 )
 
 // ---------------------------------------------------------------------------
@@ -470,11 +470,11 @@ type promptScoreInput struct {
 }
 
 type promptScoreOutput struct {
-	Score      int                      `json:"score"`
-	Grade      string                   `json:"grade"`
-	TaskType   string                   `json:"task_type"`
+	Score      int                       `json:"score"`
+	Grade      string                    `json:"grade"`
+	TaskType   string                    `json:"task_type"`
 	Dimensions []enhancer.DimensionScore `json:"dimensions"`
-	LintCount  int                      `json:"lint_count"`
+	LintCount  int                       `json:"lint_count"`
 }
 
 // prompt_improve
@@ -507,14 +507,14 @@ type TagCount struct {
 }
 
 type promptStatsResult struct {
-	TotalPrompts     int            `json:"total_prompts"`
-	ByRepo           map[string]int `json:"by_repo"`
-	ByStatus         map[string]int `json:"by_status"`
-	ByTaskType       map[string]int `json:"by_task_type"`
-	ByGrade          map[string]int `json:"by_grade"`
-	AverageScore     float64        `json:"average_score"`
-	TopTags          []TagCount     `json:"top_tags"`
-	RecentCaptures24h int           `json:"recent_captures_24h"`
+	TotalPrompts      int            `json:"total_prompts"`
+	ByRepo            map[string]int `json:"by_repo"`
+	ByStatus          map[string]int `json:"by_status"`
+	ByTaskType        map[string]int `json:"by_task_type"`
+	ByGrade           map[string]int `json:"by_grade"`
+	AverageScore      float64        `json:"average_score"`
+	TopTags           []TagCount     `json:"top_tags"`
+	RecentCaptures24h int            `json:"recent_captures_24h"`
 }
 
 // prompt_export
@@ -539,8 +539,10 @@ type promptExportOutput struct {
 
 type PromptRegistryModule struct{}
 
-func (m *PromptRegistryModule) Name() string        { return "prompt_registry" }
-func (m *PromptRegistryModule) Description() string { return "Prompt capture, search, scoring, tagging, and improvement" }
+func (m *PromptRegistryModule) Name() string { return "prompt_registry" }
+func (m *PromptRegistryModule) Description() string {
+	return "Prompt capture, search, scoring, tagging, and improvement"
+}
 
 func (m *PromptRegistryModule) Tools() []registry.ToolDefinition {
 	return []registry.ToolDefinition{
@@ -943,4 +945,3 @@ func (m *PromptRegistryModule) Tools() []registry.ToolDefinition {
 
 // ensure PromptRegistryModule satisfies the interface at compile time
 var _ registry.ToolModule = (*PromptRegistryModule)(nil)
-

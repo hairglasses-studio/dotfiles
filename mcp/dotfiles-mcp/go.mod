@@ -4,14 +4,13 @@ go 1.26.1
 
 require (
 	github.com/BurntSushi/toml v1.6.0
-	github.com/hairglasses-studio/mapping v0.0.0-20260409220440-47e7b7cae6c0
 	github.com/hairglasses-studio/mcpkit v0.5.1
-	github.com/hairglasses-studio/prompt-improver v0.1.0
 	github.com/mark3labs/mcp-go v0.47.0
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.43.0
 	go.opentelemetry.io/otel/sdk v1.43.0
 	go.opentelemetry.io/otel/trace v1.43.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -34,5 +33,4 @@ require (
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

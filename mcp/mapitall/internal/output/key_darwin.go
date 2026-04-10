@@ -17,7 +17,7 @@ import "C"
 import (
 	"fmt"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // KeyTarget emits virtual key events via macOS CoreGraphics.
