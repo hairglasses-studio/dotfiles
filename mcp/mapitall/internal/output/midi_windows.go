@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 var (
@@ -40,10 +40,10 @@ func (t *MIDITarget) open() error {
 	// Open default MIDI output device (device 0).
 	ret, _, _ := midiOutOpen.Call(
 		uintptr(unsafe.Pointer(&t.handle)),
-		0,                          // device ID
-		0,                          // callback
-		0,                          // instance
-		0,                          // flags
+		0, // device ID
+		0, // callback
+		0, // instance
+		0, // flags
 	)
 	if ret != 0 {
 		return fmt.Errorf("midiOutOpen failed: %d", ret)

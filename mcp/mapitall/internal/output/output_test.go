@@ -3,7 +3,7 @@ package output
 import (
 	"testing"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // mockTarget is a test double for Target.

@@ -9,8 +9,8 @@ import (
 // It mirrors the fields of device.Event that are useful for monitoring.
 type DeviceEvent struct {
 	DeviceID  string    `json:"device_id"`
-	Type      string    `json:"type"`       // "button", "axis", "hat", "midi_note", etc.
-	Source    string    `json:"source"`      // Canonical ID: "BTN_SOUTH", "ABS_X", "midi:cc:1"
+	Type      string    `json:"type"`   // "button", "axis", "hat", "midi_note", etc.
+	Source    string    `json:"source"` // Canonical ID: "BTN_SOUTH", "ABS_X", "midi:cc:1"
 	Timestamp time.Time `json:"timestamp"`
 	Value     float64   `json:"value,omitempty"`
 	Pressed   bool      `json:"pressed,omitempty"`

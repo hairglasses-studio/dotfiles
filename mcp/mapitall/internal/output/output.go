@@ -3,7 +3,7 @@ package output
 import (
 	"sync"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // Target executes an output action.

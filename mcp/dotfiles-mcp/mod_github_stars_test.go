@@ -15,8 +15,8 @@ func TestGitHubStarsModuleRegistration(t *testing.T) {
 	}
 
 	tools := m.Tools()
-	if len(tools) != 14 {
-		t.Fatalf("expected 14 github stars tools, got %d", len(tools))
+	if len(tools) != 15 {
+		t.Fatalf("expected 15 github stars tools, got %d", len(tools))
 	}
 
 	reg := registry.NewToolRegistry()
@@ -36,6 +36,7 @@ func TestGitHubStarsModuleRegistration(t *testing.T) {
 		"gh_stars_cleanup_candidates",
 		"gh_stars_taxonomy_audit",
 		"gh_stars_taxonomy_sync",
+		"gh_stars_sync_markdown",
 		"gh_stars_bootstrap",
 		"gh_stars_install_codex_mcp",
 	} {

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 	"github.com/hairglasses-studio/mapitall/internal/output"
 	"github.com/hairglasses-studio/mcpkit/device"
 )

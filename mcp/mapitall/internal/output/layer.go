@@ -3,7 +3,7 @@ package output
 import (
 	"strconv"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // LayerTarget handles layer switching by mutating EngineState.

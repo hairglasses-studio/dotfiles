@@ -53,12 +53,12 @@ func TestOscString(t *testing.T) {
 		in  string
 		len int // expected padded length
 	}{
-		{"", 4},          // 1 null byte + 3 pad = 4
-		{"a", 4},         // 2 bytes + 2 pad = 4
-		{"ab", 4},        // 3 bytes + 1 pad = 4
-		{"abc", 4},       // 4 bytes + 0 pad = 4
-		{"abcd", 8},      // 5 bytes + 3 pad = 8
-		{"/test", 8},     // 6 bytes + 2 pad = 8
+		{"", 4},      // 1 null byte + 3 pad = 4
+		{"a", 4},     // 2 bytes + 2 pad = 4
+		{"ab", 4},    // 3 bytes + 1 pad = 4
+		{"abc", 4},   // 4 bytes + 0 pad = 4
+		{"abcd", 8},  // 5 bytes + 3 pad = 8
+		{"/test", 8}, // 6 bytes + 2 pad = 8
 	}
 	for _, tt := range tests {
 		got := oscString(tt.in)

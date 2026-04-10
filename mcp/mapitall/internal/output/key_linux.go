@@ -10,7 +10,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // uinput ioctl constants (from linux/uinput.h).
@@ -25,11 +25,11 @@ const (
 	synReport = 0x00
 
 	// ioctl commands.
-	uiSetEvbit  = 0x40045564 // UI_SET_EVBIT
-	uiSetKeybit = 0x40045565 // UI_SET_KEYBIT
-	uiDevCreate = 0x5501     // UI_DEV_CREATE
-	uiDevDestroy = 0x5502    // UI_DEV_DESTROY
-	uiDevSetup  = 0x405C5503 // UI_DEV_SETUP
+	uiSetEvbit   = 0x40045564 // UI_SET_EVBIT
+	uiSetKeybit  = 0x40045565 // UI_SET_KEYBIT
+	uiDevCreate  = 0x5501     // UI_DEV_CREATE
+	uiDevDestroy = 0x5502     // UI_DEV_DESTROY
+	uiDevSetup   = 0x405C5503 // UI_DEV_SETUP
 )
 
 // uinputSetup matches struct uinput_setup from linux/uinput.h.

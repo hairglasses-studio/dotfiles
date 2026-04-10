@@ -76,9 +76,9 @@ func parseSwaymsgFocused(data []byte) string {
 }
 
 type swayNode struct {
-	Focused bool       `json:"focused"`
-	AppID   string     `json:"app_id"`
-	Nodes   []swayNode `json:"nodes"`
+	Focused  bool       `json:"focused"`
+	AppID    string     `json:"app_id"`
+	Nodes    []swayNode `json:"nodes"`
 	Floating []swayNode `json:"floating_nodes"`
 }
 

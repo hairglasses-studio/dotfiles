@@ -1,7 +1,7 @@
 package output
 
 import (
-	"github.com/hairglasses-studio/mapping"
+	"github.com/hairglasses-studio/mapitall/internal/mapping"
 )
 
 // VariableTarget handles set_var and toggle_var output types.
