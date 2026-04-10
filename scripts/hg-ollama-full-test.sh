@@ -6,7 +6,7 @@ source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/hg-local-llm.sh"
 
 REQUIRE_HEAVY=0
-DEEP_OFFLOAD_MEMORY_GB="${HG_OLLAMA_DEEP_OFFLOAD_MEMORY_GB:-80}"
+DEEP_OFFLOAD_MEMORY_GB="${HG_OLLAMA_DEEP_OFFLOAD_MEMORY_GB:-24}"
 
 usage() {
   cat <<'EOF'
