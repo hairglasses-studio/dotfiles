@@ -49,7 +49,7 @@ The server also exposes read-first workflow resources and prompt entrypoints for
 
 The canonical module now commits public contract snapshots under [`snapshots/contract`](./snapshots/contract) and regenerates the public server card at [`.well-known/mcp.json`](./.well-known/mcp.json). Current canonical snapshot counts:
 
-- `362` tools
+- `370` tools
 - `37` registered modules
 - `24` resources
 - `12` prompts
@@ -130,7 +130,7 @@ Exact per-tool counts should come from the snapshot bundle rather than prose. Th
 | Domain | Description |
 |--------|-------------|
 | Discovery | Search, schema, catalog, stats, and health entrypoints for the deferred surface |
-| Desktop Control | Hyprland, semantic AT-SPI targeting, session handles, screenshot/OCR, clipboard, notifications, shaders, audio, and Wayland input workflows |
+| Desktop Control | Hyprland, semantic AT-SPI targeting with refs/actions, session-local accessibility and D-Bus control, screenshot/OCR, clipboard, notifications, shaders, audio, and Wayland input workflows |
 | Workstation Ops | Systemd, process, tmux, sandbox, fleet audit, repo hygiene, and SDLC loops |
 | GitHub Workflows | Org lifecycle, GitHub Stars, and repo sync helpers |
 | Input & Devices | Bluetooth, juhradial-mx, controller mapping, MIDI, and mouse/controller diagnostics |
@@ -155,7 +155,7 @@ Runtime tools vary by category. Missing tools are detected gracefully -- unused 
 |----------|---------------------|
 | Hyprland | `hyprctl`, `ydotool`, `wtype` |
 | Semantic Desktop | `python3`, `pyatspi` |
-| Session Tools | `wayland-info`, `grim`, `wl-copy`, `wl-paste`; `kwin_wayland` for virtual-session startup |
+| Session Tools | `dbus-run-session`, `wayland-info`, `grim`, `wl-copy`, `wl-paste`, `wtype`; `kwin_wayland` for virtual-session startup |
 | Screenshot / OCR | `wayshot`, `tesseract`, `magick` |
 | Bluetooth | `bluetoothctl` |
 | Shaders | `glslangValidator` (optional, for compile-testing) |
