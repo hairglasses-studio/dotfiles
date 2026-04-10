@@ -761,8 +761,9 @@ EOF
     run cat "${TEST_ROOT}/projection.args"
     assert_success
     assert_line --index 0 "check"
-    assert_line --index 1 "--canonical"
-    assert_line --index 3 "--standalone"
+    assert_line --index 1 "--refresh-bare-origin"
+    assert_line --index 2 "--canonical"
+    assert_line --index 4 "--standalone"
 }
 
 @test "sync-standalone-mcp-repos: hygiene flags stale local main in bare mirror repos" {
