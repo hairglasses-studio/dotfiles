@@ -344,6 +344,16 @@ EOF
     chmod +x "${TEST_ROOT}/codexkit/scripts/agent-parity-audit.sh"
 }
 
+prepare_sync_script_copy() {
+    local dest_dir="$1"
+    mkdir -p "${dest_dir}/lib"
+    cp "${SCRIPTS_REAL}/sync-standalone-mcp-repos.sh" "${dest_dir}/sync-standalone-mcp-repos.sh"
+    cp "${SCRIPTS_REAL}/mcp-mirror.sh" "${dest_dir}/mcp-mirror.sh"
+    cp "${SCRIPTS_REAL}/lib/hg-core.sh" "${dest_dir}/lib/hg-core.sh"
+    cp "${SCRIPTS_REAL}/lib/hg-workspace.sh" "${dest_dir}/lib/hg-workspace.sh"
+    chmod +x "${dest_dir}/sync-standalone-mcp-repos.sh" "${dest_dir}/mcp-mirror.sh"
+}
+
 @test "hg-repo-profile-sync: sync creates Gemini project settings baseline" {
     write_manifest "demo"
     init_repo "demo"
@@ -682,6 +692,9 @@ EOF
 }
 
 @test "sync-standalone-mcp-repos: skips mirrors marked manual_projection" {
+    local sync_copy="${TEST_ROOT}/sync-copy-no-helper"
+    prepare_sync_script_copy "${sync_copy}"
+
     write_manifest "mirror-repo" "mirror" "\"canonical-src\""
     mkdir -p "${TEST_ROOT}/canonical-src"
     printf 'hello\n' > "${TEST_ROOT}/canonical-src/README.md"
@@ -704,7 +717,50 @@ EOF
 }
 EOF
 
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" HG_MCP_MIRROR_MANIFEST="${TEST_ROOT}/mirror-parity.json" bash "${SCRIPTS_REAL}/sync-standalone-mcp-repos.sh" check --repos=mirror-repo
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" HG_MCP_MIRROR_MANIFEST="${TEST_ROOT}/mirror-parity.json" bash "${sync_copy}/sync-standalone-mcp-repos.sh" check --repos=mirror-repo
     assert_success
     assert_output --partial "sync_strategy=manual_projection"
+}
+
+@test "sync-standalone-mcp-repos: uses repo-specific manual projection helper when present" {
+    local sync_copy="${TEST_ROOT}/sync-copy-with-helper"
+    prepare_sync_script_copy "${sync_copy}"
+
+    write_manifest "mirror-repo" "mirror" "\"canonical-src\""
+    mkdir -p "${TEST_ROOT}/canonical-src"
+    printf 'module example.com/canonical\n' > "${TEST_ROOT}/canonical-src/go.mod"
+
+    init_repo "mirror-repo"
+    mkdir -p "${TEST_ROOT}/mirror-repo/internal/dotfiles"
+
+    cat > "${TEST_ROOT}/mirror-parity.json" <<'EOF'
+{
+  "version": 1,
+  "mirrors": [
+    {
+      "module": "mirror-repo",
+      "standalone_repo": "mirror-repo",
+      "canonical_path": "canonical-src",
+      "purpose": "test mirror",
+      "sync_strategy": "manual_projection"
+    }
+  ]
+}
+EOF
+
+    cat > "${sync_copy}/hg-mirror-repo-projection.sh" <<EOF
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${TEST_ROOT}/projection.args"
+EOF
+    chmod +x "${sync_copy}/hg-mirror-repo-projection.sh"
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" HG_MCP_MIRROR_MANIFEST="${TEST_ROOT}/mirror-parity.json" bash "${sync_copy}/sync-standalone-mcp-repos.sh" check --repos=mirror-repo
+    assert_success
+    assert_output --partial "repo-specific helper hg-mirror-repo-projection.sh"
+
+    run cat "${TEST_ROOT}/projection.args"
+    assert_success
+    assert_line --index 0 "check"
+    assert_line --index 1 "--canonical"
+    assert_line --index 3 "--standalone"
 }

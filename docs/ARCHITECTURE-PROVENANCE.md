@@ -67,7 +67,7 @@ If you are searching the repo for a change target, start with these anchors.
 - Installer/bootstrap: `install.sh`, `dotfiles.toml`, `print_link_specs`, `create_symlinks`
 - Workstation runtime: `hyprland/`, `eww/`, `kitty/`, `ghostty/`, `systemd/`
 - Operator tooling: `scripts/hg*`, `scripts/lib/hg-*`, `.agents/skills/`
-- MCP packaging and parity: `mcp/`, `docs/MCP-MIRROR-PARITY.md`, `scripts/hg-mcp-mirror-parity.sh`, `.mcp.json`, `scripts/hg-codex-mcp-sync.sh`, `scripts/hg-codex-audit.sh`
+- MCP packaging and parity: `mcp/`, `docs/MCP-MIRROR-PARITY.md`, `scripts/hg-mcp-mirror-parity.sh`, `scripts/hg-dotfiles-mcp-projection.sh`, `.mcp.json`, `scripts/hg-codex-mcp-sync.sh`, `scripts/hg-codex-audit.sh`
 
 ## Why this note exists
 

@@ -50,6 +50,13 @@ mirror_parity_manifest() {
   printf '%s\n' "${HG_MCP_MIRROR_MANIFEST:-$HG_DOTFILES/mcp/mirror-parity.json}"
 }
 
+manual_projection_helper() {
+  local repo="$1"
+  local candidate="$SCRIPT_DIR/hg-${repo}-projection.sh"
+  [[ -f "$candidate" ]] || return 1
+  printf '%s\n' "$candidate"
+}
+
 abspath() {
   local target="$1"
   if [[ -d "$target" ]]; then
@@ -134,7 +141,16 @@ while IFS= read -r repo; do
 
   sync_strategy="$(mirror_sync_strategy "$repo" "$canonical_path")"
   if [[ "$sync_strategy" != "tree_sync" ]]; then
-    hg_warn "$repo: skipping $MODE because sync_strategy=$sync_strategy requires a dedicated projection workflow"
+    if helper="$(manual_projection_helper "$repo")"; then
+      helper_mode="plan"
+      if [[ "$MODE" == "check" ]]; then
+        helper_mode="check"
+      fi
+      bash "$helper" "$helper_mode" --canonical "$canonical_path" --standalone "$mirror_path"
+      hg_warn "$repo: generic $MODE skipped because sync_strategy=$sync_strategy uses repo-specific helper $(basename "$helper")"
+    else
+      hg_warn "$repo: skipping $MODE because sync_strategy=$sync_strategy requires a dedicated projection workflow"
+    fi
     SKIPPED=$((SKIPPED + 1))
     continue
   fi
