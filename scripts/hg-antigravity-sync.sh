@@ -81,21 +81,6 @@ OPENAI_API_KEY
 ANTHROPIC_API_KEY
 GOOGLE_API_KEY
 GEMINI_API_KEY
-OLLAMA_BASE_URL
-OLLAMA_HOST
-OLLAMA_PORT
-OLLAMA_API_KEY
-OLLAMA_KEEP_ALIVE
-OLLAMA_CHAT_MODEL
-OLLAMA_FAST_MODEL
-OLLAMA_CODE_MODEL
-OLLAMA_HEAVY_CODE_MODEL
-OLLAMA_HIGH_CONTEXT_CODE_MODEL
-OLLAMA_CLOUD_CODE_MODEL
-OLLAMA_CLOUD_VERIFIED_CODE_MODEL
-OLLAMA_MULTILINGUAL_CODE_MODEL
-OLLAMA_THINKING_CODE_MODEL
-OLLAMA_EMBED_MODEL
 EOF
 }
 
@@ -578,7 +563,7 @@ render_home_gemini_doc() {
     printf -- '- Prefer workspace-local skills in `%s/` before global skills.\n' "$WORKSPACE_SKILLS_DIR"
     printf -- '- Prefer workspace-local workflows in `%s/` before global workflows.\n' "$WORKSPACE_WORKFLOWS_DIR"
     printf -- '- Honor repo-local `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` as the first repo-specific instruction layer.\n'
-    printf -- '- Use the managed launcher so OpenAI, Anthropic, Google, Gemini, and shared `OLLAMA_*` settings are runtime-resolved from local `.env` files plus workstation defaults.\n'
+    printf -- '- Use the managed launcher so OpenAI, Anthropic, Google, and Gemini settings are runtime-resolved from local `.env` files.\n'
   } >"$legacy_doc"
 
   {
@@ -782,7 +767,7 @@ parse_env_file() {
         value="${raw%%[[:space:]]#*}"
       fi
       case "$key" in
-        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY|OLLAMA_BASE_URL|OLLAMA_HOST|OLLAMA_PORT|OLLAMA_API_KEY|OLLAMA_KEEP_ALIVE|OLLAMA_CHAT_MODEL|OLLAMA_FAST_MODEL|OLLAMA_CODE_MODEL|OLLAMA_HEAVY_CODE_MODEL|OLLAMA_HIGH_CONTEXT_CODE_MODEL|OLLAMA_CLOUD_CODE_MODEL|OLLAMA_CLOUD_VERIFIED_CODE_MODEL|OLLAMA_MULTILINGUAL_CODE_MODEL|OLLAMA_THINKING_CODE_MODEL|OLLAMA_EMBED_MODEL)
+        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY)
           if [[ -z "${imported_env_values[$key]:-}" && -n "$value" ]]; then
             imported_env_values["$key"]="$value"
             imported_env_sources["$key"]="$env_file"
@@ -886,7 +871,7 @@ build_launcher_wrapper() {
     printf '        value="${raw%%%%[[:space:]]#*}"\n'
     printf '      fi\n'
     printf '      case "$key" in\n'
-    printf '        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY|OLLAMA_BASE_URL|OLLAMA_HOST|OLLAMA_PORT|OLLAMA_API_KEY|OLLAMA_KEEP_ALIVE|OLLAMA_CHAT_MODEL|OLLAMA_FAST_MODEL|OLLAMA_CODE_MODEL|OLLAMA_HEAVY_CODE_MODEL|OLLAMA_HIGH_CONTEXT_CODE_MODEL|OLLAMA_CLOUD_CODE_MODEL|OLLAMA_CLOUD_VERIFIED_CODE_MODEL|OLLAMA_MULTILINGUAL_CODE_MODEL|OLLAMA_THINKING_CODE_MODEL|OLLAMA_EMBED_MODEL)\n'
+    printf '        OPENAI_API_KEY|ANTHROPIC_API_KEY|GOOGLE_API_KEY|GEMINI_API_KEY)\n'
     printf '          if [[ -z "${!key:-}" && -n "$value" ]]; then\n'
     printf '            export "$key=$value"\n'
     printf '          fi\n'
@@ -900,12 +885,6 @@ build_launcher_wrapper() {
     printf '    [[ -n "$env_file" ]] || continue\n'
     printf '    parse_runtime_env_file "$env_file"\n'
     printf "  done < <(jq -r '.ordered_sources[]?' %q)\n" "$ANTIGRAVITY_ENV_MANIFEST_PATH"
-    printf 'fi\n\n'
-    printf 'local_llm_lib=%q\n' "$WORKSPACE_ROOT/dotfiles/scripts/lib/hg-local-llm.sh"
-    printf 'if [[ -f "$local_llm_lib" ]]; then\n'
-    printf '  # shellcheck disable=SC1090\n'
-    printf '  source "$local_llm_lib"\n'
-    printf '  hg_local_llm_export_env\n'
     printf 'fi\n\n'
     printf 'if [[ "$#" -eq 0 && -f "$default_workspace" ]]; then\n'
     printf '  set -- "$default_workspace"\n'
