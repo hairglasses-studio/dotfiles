@@ -65,6 +65,7 @@ The dedicated planner/apply helper reports:
 
 - root assets that still move 1:1 into the standalone repo
 - bundled root Go files that map into `internal/dotfiles/*.go`
+- imported internal package directories that must exist for the projected code to build
 - canonical-only additions that still require projection, plus intentional
   canonical-only differences such as `contract_snapshot_cli.go` and
   `workflow_surface_test.go`
