@@ -83,7 +83,7 @@ free -h | tee "$FREE_ARTIFACT"
 
 "$SCRIPT_DIR/hg-ollama-sync-aliases.sh"
 
-current_threshold="${HG_OLLAMA_DEEP_OFFLOAD_MEMORY_GB:-80}"
+current_threshold="${HG_OLLAMA_DEEP_OFFLOAD_MEMORY_GB:-24}"
 available_mem_gb="$(free -g | awk '/^Mem:/ {print $7}')"
 if (( available_mem_gb < current_threshold )) && [[ "$FORCE_HEAVY_PROBE" != "1" ]]; then
   hg_die "Available memory ${available_mem_gb}GiB is below the ${current_threshold}GiB heavy preflight. Set HG_OLLAMA_FORCE_HEAVY_PROBE=1 to override."
