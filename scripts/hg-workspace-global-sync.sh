@@ -1435,7 +1435,7 @@ elif $RUN_TOOLS; then
   hg_info "Managed workspace global tool sources validated: ${claude_raw_count} repo-local raw MCP sources + ${codex_profile_count} curated Codex profiles"
 fi
 
-if $CHECK_GLOBAL_TARGETS && [[ "$overall_pending" -ne 0 ]]; then
+if $CHECK_GLOBAL_TARGETS && [[ "$MODE" != "write" && "$overall_pending" -ne 0 ]]; then
   hg_info "Managed home overlay drift breakdown: Claude skills ${global_claude_stale_count} stale + ${global_claude_unexpected_count} unexpected owned + ${global_claude_manual_block_count} manual blockers; Claude MCP ${stale_workspace_claude_overlay_count}; Claude home ${stale_claude_home_doc_count}; Codex MCP ${stale_workspace_codex_overlay_count}; Gemini MCP ${stale_workspace_gemini_overlay_count}; Gemini home ${stale_gemini_home_doc_count}; Gemini projects ${stale_gemini_projects_count}; Antigravity ${stale_antigravity_overlay_count}"
 fi
 
