@@ -141,7 +141,7 @@ normalize_gemini_settings() {
     | .security.enablePermanentToolApproval = true
     | .security.autoAddToPolicyByDefault = true
     | .general = (.general // {})
-    | .general.defaultApprovalMode = "yolo"
+    | .general.defaultApprovalMode = "auto_edit"
     | .experimental = (.experimental // {})
     | .experimental.worktrees = true
   ' "$base" >"$tmp"

@@ -159,6 +159,21 @@ antigravity_target_home() {
   getent passwd "$owner" | cut -d: -f6
 }
 
+repo_uses_public_github_https() {
+  local repo_url="$1"
+  [[ "$repo_url" == https://github.com/* ]]
+}
+
+run_repo_git() {
+  local repo_url="$1"
+  shift
+  if repo_uses_public_github_https "$repo_url"; then
+    env GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null git "$@"
+    return 0
+  fi
+  git "$@"
+}
+
 run_antigravity_cli() {
   local owner owner_home
   owner="$(antigravity_target_owner)"
@@ -221,7 +236,7 @@ ensure_repo_checkout() {
     case "$MODE" in
       write)
         mkdir -p "$(dirname "$target")"
-        git clone "$repo_url" "$target" >/dev/null
+        run_repo_git "$repo_url" clone "$repo_url" "$target" >/dev/null
         hg_ok "Cloned $label: $target"
         ;;
       dry-run)
@@ -236,13 +251,13 @@ ensure_repo_checkout() {
   fi
 
   if [[ "$MODE" == "write" ]]; then
-    git -C "$target" fetch --tags origin >/dev/null 2>&1 || true
-    git -C "$target" checkout --detach "$ref" >/dev/null 2>&1
+    run_repo_git "$repo_url" -C "$target" fetch --tags origin >/dev/null 2>&1 || true
+    run_repo_git "$repo_url" -C "$target" checkout --detach "$ref" >/dev/null 2>&1
   else
     local head=""
     local expected=""
-    head="$(git -C "$target" rev-parse HEAD 2>/dev/null || true)"
-    expected="$(git -C "$target" rev-parse "${ref}^{commit}" 2>/dev/null || true)"
+    head="$(run_repo_git "$repo_url" -C "$target" rev-parse HEAD 2>/dev/null || true)"
+    expected="$(run_repo_git "$repo_url" -C "$target" rev-parse "${ref}^{commit}" 2>/dev/null || true)"
     if [[ -n "$head" && -n "$expected" && "$head" != "$expected" ]]; then
       pending=1
       if [[ "$MODE" == "dry-run" ]]; then
