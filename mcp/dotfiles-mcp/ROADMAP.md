@@ -2,32 +2,30 @@
 
 ## Current State
 
-dotfiles-mcp is a consolidated desktop environment MCP server with 86 tools across 10 modules: config management, GitHub org lifecycle, fleet auditing, build pipelines, Hyprland desktop, Kitty visual pipeline, Bluetooth, input devices (Logitech/gamepad/MIDI), composed workflows, and open-source readiness scoring. Discovery-first design with deferred tool loading. Built on mcpkit with stdio transport.
+dotfiles-mcp is now a discovery-first workstation MCP surface with committed contract artifacts. The canonical snapshot currently exposes `291` tools across `33` registered modules, plus `17` resources and `9` prompts. Public release metadata is regenerated into `.well-known/mcp.json`, and the JSON bundle in `snapshots/contract/` is treated as the checked-in contract for publish parity.
 
-All modules functional and tested. MIT licensed, README and CLAUDE.md in place. Batch tools default to dry-run mode.
+The server remains stdio-first, built on mcpkit, and defaults to deferred loading outside the discovery surface. Batch workflows still default to dry-run where live mutation would be risky.
 
 ## Planned
 
-### Phase 1 — Test Coverage & Documentation
-- Increase unit test coverage for GitHub org lifecycle tools (currently lowest coverage)
-- Add integration tests for Bluetooth and input device modules
-- Per-module documentation with usage examples
-- Improve error messages for missing system dependencies (ydotool, wtype, bluetoothctl)
+### Phase 1 — Publish And Mirror Hygiene
+- Automate canonical-to-standalone carry-forward for the embedded `dotfiles/mcp/dotfiles-mcp` module so publish-mirror updates stop depending on manual drift cleanup
+- Publish contract diff summaries into release notes and docs whenever `snapshots/contract/` changes
+- Promote the committed `publish-check`, `host-smoke`, and release-parity workflows into the standalone mirror so GitHub releases enforce the same gate set
 
-### Phase 2 — Desktop Automation
-- `hypr_record_screen` — screen recording via wf-recorder with configurable region
-- `hypr_layout_save` / `hypr_layout_restore` — snapshot and restore window arrangements
-- Eww widget data tools — expose eww variable state and widget tree to MCP
-- Notification management tools (mako: list, dismiss, toggle DND)
+### Phase 2 — Surface Quality And Verification
+- Add targeted integration tests for Bluetooth, juhradial-mx, and desktop-control readiness paths that currently depend on workstation state
+- Expand resource and prompt coverage tests so the contract bundle fails loudly when workflow catalogs drift
+- Add higher-signal validation for profile-specific eager/deferred loading behavior, especially `desktop` and `ops`
 
-### Phase 3 — Fleet & CI Improvements
+### Phase 3 — Product Expansion
 - `dotfiles_pipeline_status` — aggregate CI status across all repos in one view
 - `dotfiles_changelog_gen` — generate changelogs from conventional commits
 - `dotfiles_release` — orchestrate go-releaser across repos
-- Webhook support for fleet audit notifications
+- Deeper workspace scene tooling around layout capture, window restoration, and publishable workstation diagnostics
 
 ## Future Considerations
-- Wayland-native screenshot/recording (replace ydotool with libinput where possible)
-- Audio device management tools (PipeWire/PulseAudio)
-- Multi-monitor layout presets (save/restore per-workspace monitor configurations)
-- Plugin architecture for community-contributed modules
+- Remove the remaining Solaar recovery-only bridge once juhradial can replay full MX wheel state durably
+- Run host smoke on a logged-in self-hosted Hyprland publish runner rather than treating local workstation smoke as a partial proxy
+- Consider richer runtime grouping metadata in contract snapshots so category counts stop collapsing into the current unassigned bucket
+- Explore release-note automation that hyperlinks tool/resource/prompt deltas directly from `snapshots/contract`

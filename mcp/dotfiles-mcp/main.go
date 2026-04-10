@@ -2727,12 +2727,7 @@ func main() {
 		Level: slog.LevelInfo,
 	})).With("service", "dotfiles-mcp"))
 
-	// Handle --session-index: output session index as JSONL for ccg.
-	if len(os.Args) > 1 && os.Args[1] == "--session-index" {
-		if err := outputSessionIndex(); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
-		}
+	if maybeRunAuxiliaryCommand(os.Args[1:]) {
 		return
 	}
 

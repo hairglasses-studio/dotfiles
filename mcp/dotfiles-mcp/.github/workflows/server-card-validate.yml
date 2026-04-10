@@ -1,28 +1,36 @@
 name: Validate Server Card
 on:
   push:
-    paths: ['.well-known/mcp.json']
+    paths:
+      - '.well-known/mcp.json'
+      - 'snapshots/contract/**'
+      - 'README.md'
+      - 'ROADMAP.md'
+      - 'CONTRIBUTING.md'
+      - 'Makefile'
+      - 'scripts/release-parity.sh'
   pull_request:
-    paths: ['.well-known/mcp.json']
+    paths:
+      - '.well-known/mcp.json'
+      - 'snapshots/contract/**'
+      - 'README.md'
+      - 'ROADMAP.md'
+      - 'CONTRIBUTING.md'
+      - 'Makefile'
+      - 'scripts/release-parity.sh'
+  workflow_dispatch:
 
 jobs:
-  validate:
-    runs-on: [self-hosted, archglasses, optimized]
+  validate-publish-surface:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.1"
 
-      - name: Validate JSON syntax
-        run: python3 -m json.tool .well-known/mcp.json > /dev/null
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Check required fields
-        run: |
-          python3 -c "
-          import json, sys
-          card = json.load(open('.well-known/mcp.json'))
-          required = ['name', 'version', 'description']
-          missing = [f for f in required if f not in card]
-          if missing:
-              print(f'Missing required fields: {missing}', file=sys.stderr)
-              sys.exit(1)
-          print(f'Server card valid: {card[\"name\"]} v{card[\"version\"]}')
-          "
+      - name: Validate canonical publish surface
+        run: make publish-check

@@ -11,7 +11,7 @@ jobs:
     uses: hairglasses-studio/.github/.github/workflows/mcp-test.yml@main
     with:
       go-version: "1.26.1"
-      expected-tool-count: 86
+      expected-tool-count: 291
       cgo-enabled: true
       cgo-cflags: "-DSQLITE_ENABLE_FTS5"
       cgo-ldflags: "-lm"
