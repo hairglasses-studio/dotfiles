@@ -37,12 +37,9 @@ do
   exec bash -lc 'cd "$1" && exec bash "$2" "$1" "${@:3}"' -- "$REPO_PATH" "$target" "${MODE_ARGS[@]}"
 done
 
-for target in \
-  "$HG_STUDIO_ROOT/codexkit/scripts/skill-surface-sync.sh" \
-  "$HG_STUDIO_ROOT/surfacekit/scripts/skill-surface-sync.sh"
-do
-  [[ -f "$target" ]] || continue
+target="$HG_STUDIO_ROOT/codexkit/scripts/skill-surface-sync.sh"
+if [[ -f "$target" ]]; then
   exec bash "$target" "$REPO_PATH" "${MODE_ARGS[@]}"
-done
+fi
 
 hg_die "No managed skill sync entrypoint found for $REPO_PATH"

@@ -26,6 +26,16 @@ EOF
     chmod +x "${TEST_STUDIO_ROOT}/codexkit/scripts/skill-surface-sync.sh"
 }
 
+make_fake_surfacekit_wrapper() {
+    mkdir -p "${TEST_STUDIO_ROOT}/surfacekit/scripts"
+    cat > "${TEST_STUDIO_ROOT}/surfacekit/scripts/skill-surface-sync.sh" <<EOF
+#!/usr/bin/env bash
+echo "surfacekit-should-not-run" > "${BATS_TEST_TMPDIR}/surfacekit.called"
+exit 0
+EOF
+    chmod +x "${TEST_STUDIO_ROOT}/surfacekit/scripts/skill-surface-sync.sh"
+}
+
 @test "hg-skill-surface-sync forwards repo path and flags to codexkit" {
     make_fake_codexkit_wrapper 0
 
@@ -53,4 +63,14 @@ EOF
         bash "${SCRIPTS_DIR}/hg-skill-surface-sync.sh" "${TEST_REPO_PATH}"
     assert_failure
     assert_output --partial "No managed skill sync entrypoint found"
+}
+
+@test "hg-skill-surface-sync does not fall back to surfacekit" {
+    make_fake_surfacekit_wrapper
+
+    run env HG_STUDIO_ROOT="${TEST_STUDIO_ROOT}" \
+        bash "${SCRIPTS_DIR}/hg-skill-surface-sync.sh" "${TEST_REPO_PATH}"
+    assert_failure
+    assert_output --partial "No managed skill sync entrypoint found"
+    [ ! -e "${BATS_TEST_TMPDIR}/surfacekit.called" ]
 }
