@@ -686,6 +686,7 @@ func dotfilesModules() []registry.ToolModule {
 		&DotfilesModule{},
 		&GitHubStarsModule{},
 		&HyprlandModule{},
+		&KittyModule{},
 		&ShaderModule{},
 		&InputModule{},
 		&BluetoothModule{},
@@ -711,6 +712,7 @@ func dotfilesModules() []registry.ToolModule {
 		&OpsModule{},
 		&AudioModule{},
 		&NetworkModule{},
+		&ArchModule{},
 		&SystemModule{},
 		&SystemdModule{},
 		&TmuxModule{},
@@ -742,7 +744,8 @@ func shouldDeferDotfilesTool(profile string, td registry.ToolDefinition) bool {
 	case "ops":
 		return !(strings.HasPrefix(td.Tool.Name, "dotfiles_") ||
 			strings.HasPrefix(td.Tool.Name, "workflow_") ||
-			strings.HasPrefix(td.Tool.Name, "oss_"))
+			strings.HasPrefix(td.Tool.Name, "oss_") ||
+			strings.HasPrefix(td.Tool.Name, "arch_"))
 	default:
 		return true
 	}
@@ -762,6 +765,7 @@ func dotfilesDiscoveryToolNames() []string {
 func isDesktopProfileTool(name string) bool {
 	switch {
 	case strings.HasPrefix(name, "hypr_"),
+		strings.HasPrefix(name, "kitty_"),
 		strings.HasPrefix(name, "screen_"),
 		strings.HasPrefix(name, "desktop_"),
 		strings.HasPrefix(name, "shader_"),
