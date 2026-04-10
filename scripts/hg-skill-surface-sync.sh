@@ -34,7 +34,7 @@ do
   if [[ "$(cd "$(dirname "$target")" && pwd -P)/$(basename "$target")" == "$SELF_PATH" ]]; then
     continue
   fi
-  exec bash "$target" "$REPO_PATH" "${MODE_ARGS[@]}"
+  exec bash -lc 'cd "$1" && exec bash "$2" "$1" "${@:3}"' -- "$REPO_PATH" "$target" "${MODE_ARGS[@]}"
 done
 
 for target in \
