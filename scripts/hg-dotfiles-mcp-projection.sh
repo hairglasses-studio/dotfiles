@@ -239,7 +239,11 @@ COPY_ALLOWLIST_PRESENT_LIST="$(temp_file)"
 COPY_PRESENT_LIST="$(temp_file)"
 COPY_IDENTICAL_LIST="$(temp_file)"
 COPY_DRIFTED_LIST="$(temp_file)"
+COPY_DRIFTED_REQUIRED_LIST="$(temp_file)"
+COPY_DRIFTED_INTENTIONAL_LIST="$(temp_file)"
 COPY_MISSING_LIST="$(temp_file)"
+COPY_MISSING_REQUIRED_LIST="$(temp_file)"
+COPY_MISSING_INTENTIONAL_LIST="$(temp_file)"
 COPY_DRIFT_PREVIEW_JSON="$(temp_file)"
 STANDALONE_ROOT_ONLY_LIST="$(temp_file)"
 STANDALONE_INTERNAL_ONLY_LIST="$(temp_file)"
@@ -310,6 +314,28 @@ copy_allowlist=(
   "scripts/release-parity.sh"
 )
 
+intentional_copy_drift=(
+  ".github/copilot-instructions.md"
+  ".gitignore"
+  ".goreleaser.yaml"
+  ".well-known/mcp.json"
+  "AGENTS.md"
+  "CHANGELOG.md"
+  "CLAUDE.md"
+  "CONTRIBUTING.md"
+  "GEMINI.md"
+  "Makefile"
+  "README.md"
+  "REVIEW.md"
+  "ROADMAP.md"
+  "scripts/host-smoke.sh"
+  "scripts/release-parity.sh"
+)
+
+intentional_copy_missing=(
+  ".goreleaser.yml"
+)
+
 for rel in "${copy_allowlist[@]}"; do
   if [[ -f "$CANONICAL_PATH/$rel" ]]; then
     printf '%s\n' "$rel" >>"$COPY_ALLOWLIST_PRESENT_LIST"
@@ -327,6 +353,32 @@ for rel in "${copy_allowlist[@]}"; do
   fi
 done
 
+for rel in "${intentional_copy_drift[@]}"; do
+  if grep -Fxq "$rel" "$COPY_DRIFTED_LIST"; then
+    printf '%s\n' "$rel" >>"$COPY_DRIFTED_INTENTIONAL_LIST"
+  fi
+done
+
+while IFS= read -r rel; do
+  [[ -n "$rel" ]] || continue
+  if ! grep -Fxq "$rel" "$COPY_DRIFTED_INTENTIONAL_LIST"; then
+    printf '%s\n' "$rel" >>"$COPY_DRIFTED_REQUIRED_LIST"
+  fi
+done <"$COPY_DRIFTED_LIST"
+
+for rel in "${intentional_copy_missing[@]}"; do
+  if grep -Fxq "$rel" "$COPY_MISSING_LIST"; then
+    printf '%s\n' "$rel" >>"$COPY_MISSING_INTENTIONAL_LIST"
+  fi
+done
+
+while IFS= read -r rel; do
+  [[ -n "$rel" ]] || continue
+  if ! grep -Fxq "$rel" "$COPY_MISSING_INTENTIONAL_LIST"; then
+    printf '%s\n' "$rel" >>"$COPY_MISSING_REQUIRED_LIST"
+  fi
+done <"$COPY_MISSING_LIST"
+
 find "$STANDALONE_INSPECT_ROOT" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort | while IFS= read -r entry; do
   [[ -e "$CANONICAL_PATH/$entry" ]] || printf '%s\n' "$entry"
 done >"$STANDALONE_ROOT_ONLY_LIST"
@@ -338,7 +390,7 @@ if [[ -d "$STANDALONE_INSPECT_ROOT/internal" ]]; then
 fi
 
 plan_status="in_sync"
-if [[ "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_LIST")" -gt 0 ]]; then
+if [[ "$(count_lines "$GO_CANONICAL_ONLY_REQUIRED_LIST")" -gt 0 || "$(count_lines "$GO_DRIFTED_LIST")" -gt 0 || "$(count_lines "$COPY_DRIFTED_REQUIRED_LIST")" -gt 0 || "$(count_lines "$COPY_MISSING_REQUIRED_LIST")" -gt 0 ]]; then
   plan_status="projection_needed"
 fi
 
@@ -371,12 +423,20 @@ if $JSON_MODE; then
     --argjson copy_present_count "$(count_lines "$COPY_PRESENT_LIST")" \
     --argjson copy_identical_count "$(count_lines "$COPY_IDENTICAL_LIST")" \
     --argjson copy_drifted_count "$(count_lines "$COPY_DRIFTED_LIST")" \
+    --argjson copy_drifted_required_count "$(count_lines "$COPY_DRIFTED_REQUIRED_LIST")" \
+    --argjson copy_drifted_intentional_count "$(count_lines "$COPY_DRIFTED_INTENTIONAL_LIST")" \
     --argjson copy_missing_count "$(count_lines "$COPY_MISSING_LIST")" \
+    --argjson copy_missing_required_count "$(count_lines "$COPY_MISSING_REQUIRED_LIST")" \
+    --argjson copy_missing_intentional_count "$(count_lines "$COPY_MISSING_INTENTIONAL_LIST")" \
     --argjson copy_candidates "$(json_array_file "$COPY_ALLOWLIST_PRESENT_LIST")" \
     --argjson copy_present "$(json_array_file "$COPY_PRESENT_LIST")" \
     --argjson copy_identical "$(json_array_file "$COPY_IDENTICAL_LIST")" \
     --argjson copy_drifted "$(json_array_file "$COPY_DRIFTED_LIST")" \
+    --argjson copy_drifted_required "$(json_array_file "$COPY_DRIFTED_REQUIRED_LIST")" \
+    --argjson copy_drifted_intentional "$(json_array_file "$COPY_DRIFTED_INTENTIONAL_LIST")" \
     --argjson copy_missing "$(json_array_file "$COPY_MISSING_LIST")" \
+    --argjson copy_missing_required "$(json_array_file "$COPY_MISSING_REQUIRED_LIST")" \
+    --argjson copy_missing_intentional "$(json_array_file "$COPY_MISSING_INTENTIONAL_LIST")" \
     --argjson copy_drift_previews "$(json_objects_file "$COPY_DRIFT_PREVIEW_JSON")" \
     --argjson go_identical "$(json_array_file "$GO_IDENTICAL_LIST")" \
     --argjson go_drifted "$(json_array_file "$GO_DRIFTED_LIST")" \
@@ -402,12 +462,20 @@ if $JSON_MODE; then
         present_count: $copy_present_count,
         identical_count: $copy_identical_count,
         drifted_count: $copy_drifted_count,
+        required_drift_count: $copy_drifted_required_count,
+        intentional_drift_count: $copy_drifted_intentional_count,
         missing_count: $copy_missing_count,
+        required_missing_count: $copy_missing_required_count,
+        intentional_missing_count: $copy_missing_intentional_count,
         candidates: $copy_candidates,
         present: $copy_present,
         identical: $copy_identical,
         drifted: $copy_drifted,
         missing: $copy_missing,
+        required_drift: $copy_drifted_required,
+        intentional_drift: $copy_drifted_intentional,
+        required_missing: $copy_missing_required,
+        intentional_missing: $copy_missing_intentional,
         drift_previews: $copy_drift_previews
       },
       go_projection: {
@@ -456,17 +524,30 @@ printf '  candidates        %s\n' "$(count_lines "$COPY_ALLOWLIST_PRESENT_LIST")
 printf '  present           %s\n' "$(count_lines "$COPY_PRESENT_LIST")"
 printf '  identical         %s\n' "$(count_lines "$COPY_IDENTICAL_LIST")"
 printf '  drifted           %s\n' "$(count_lines "$COPY_DRIFTED_LIST")"
+printf '  drifted required  %s\n' "$(count_lines "$COPY_DRIFTED_REQUIRED_LIST")"
+printf '  drifted intent.   %s\n' "$(count_lines "$COPY_DRIFTED_INTENTIONAL_LIST")"
 printf '  missing           %s\n' "$(count_lines "$COPY_MISSING_LIST")"
-if [[ -s "$COPY_DRIFTED_LIST" ]]; then
-  printf '  direct-copy candidates that already drift from canonical content\n'
-  sed 's/^/    - /' "$COPY_DRIFTED_LIST"
+printf '  missing required  %s\n' "$(count_lines "$COPY_MISSING_REQUIRED_LIST")"
+printf '  missing intent.   %s\n' "$(count_lines "$COPY_MISSING_INTENTIONAL_LIST")"
+if [[ -s "$COPY_DRIFTED_REQUIRED_LIST" ]]; then
+  printf '  direct-copy candidates requiring projection\n'
+  sed 's/^/    - /' "$COPY_DRIFTED_REQUIRED_LIST"
+fi
+if [[ -s "$COPY_DRIFTED_INTENTIONAL_LIST" ]]; then
+  printf '  intentional mirror-owned direct-copy drift\n'
+  sed 's/^/    - /' "$COPY_DRIFTED_INTENTIONAL_LIST"
 fi
 if $DIFF_PREVIEW && [[ -s "$COPY_DRIFT_PREVIEW_JSON" ]]; then
   printf '  direct-copy diff previews (first %s lines per file)\n' "$DIFF_PREVIEW_LINES"
   jq -sr '.[] | "    - " + .path + " (+" + (.added|tostring) + " / -" + (.deleted|tostring) + ")\n" + (.preview | split("\n") | map(select(length > 0) | "      " + .) | join("\n"))' "$COPY_DRIFT_PREVIEW_JSON"
 fi
-if [[ -s "$COPY_MISSING_LIST" ]]; then
-  sed 's/^/    - /' "$COPY_MISSING_LIST"
+if [[ -s "$COPY_MISSING_REQUIRED_LIST" ]]; then
+  printf '  missing direct-copy files requiring projection\n'
+  sed 's/^/    - /' "$COPY_MISSING_REQUIRED_LIST"
+fi
+if [[ -s "$COPY_MISSING_INTENTIONAL_LIST" ]]; then
+  printf '  intentional mirror-owned missing files\n'
+  sed 's/^/    - /' "$COPY_MISSING_INTENTIONAL_LIST"
 fi
 printf '\n'
 

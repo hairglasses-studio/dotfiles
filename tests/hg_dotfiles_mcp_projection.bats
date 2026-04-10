@@ -87,6 +87,24 @@ teardown() {
     assert_line --index 5 "true"
 }
 
+@test "hg-dotfiles-mcp-projection classifies intentional direct-copy drift separately" {
+    cat > "${TEST_CANONICAL}/.goreleaser.yml" <<'EOF'
+version: 2
+EOF
+    cat > "${TEST_STANDALONE}/README.md" <<'EOF'
+# standalone mirror
+EOF
+
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.direct_copy.required_drift_count, .direct_copy.intentional_drift_count, .direct_copy.required_missing_count, .direct_copy.intentional_missing_count, .direct_copy.intentional_drift[0], .direct_copy.intentional_missing[0]'"
+    assert_success
+    assert_line --index 0 "0"
+    assert_line --index 1 "2"
+    assert_line --index 2 "0"
+    assert_line --index 3 "1"
+    assert_line --index 4 "README.md"
+    assert_line --index 5 ".goreleaser.yml"
+}
+
 @test "hg-dotfiles-mcp-projection prints diff previews in text mode when requested" {
     run bash "${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh" check --canonical "${TEST_CANONICAL}" --standalone "${TEST_STANDALONE}" --diff-preview --diff-lines 5
     assert_success
