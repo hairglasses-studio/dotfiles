@@ -96,7 +96,7 @@ var knownServices = []ServiceGroup{
 	{Name: "Whisper", EnvVars: []string{"WHISPER_PATH", "OPENAI_API_KEY"}},
 
 	// ── AI ──
-	{Name: "Ollama", EnvVars: []string{"OLLAMA_HOST"}},
+	{Name: "Ollama", EnvVars: []string{"OLLAMA_BASE_URL", "OLLAMA_HOST"}},
 	{Name: "Anthropic", EnvVars: []string{"ANTHROPIC_API_KEY"}},
 
 	// ── Infrastructure ──
@@ -127,7 +127,7 @@ var CategoryToService = map[string]string{
 	"spotify": "Spotify", "soundcloud": "SoundCloud", "beatport": "Beatport",
 	"tidal": "Tidal", "discogs": "Discogs",
 	"rekordbox": "Rekordbox", "traktor": "Traktor", "serato": "Serato",
-	"notion": "Notion",
+	"notion":        "Notion",
 	"homeassistant": "HomeAssistant", "mqtt": "MQTT",
 	"companion": "Companion", "chataigne": "Chataigne",
 	"resolume": "Resolume", "touchdesigner": "TouchDesigner",
@@ -141,8 +141,8 @@ var CategoryToService = map[string]string{
 	"whisper": "Whisper", "ollama": "Ollama",
 	"unraid": "Unraid", "opnsense": "OPNsense",
 	"rclone": "Rclone", "backup": "Backup",
-	"inventory": "Inventory",
-	"twitch": "Twitch",
+	"inventory":   "Inventory",
+	"twitch":      "Twitch",
 	"retrogaming": "Retrogaming",
 }
 

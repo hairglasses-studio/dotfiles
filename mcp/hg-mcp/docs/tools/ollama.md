@@ -33,7 +33,7 @@ Chat with a local LLM model using conversation history
 |------|------|----------|-------------|
 | `history` | array |  | Previous conversation messages |
 | `message` | string | Yes | The message to send |
-| `model` | string |  | Model to use (default: llama2) |
+| `model` | string |  | Model to use (default: qwen3:8b) |
 | `system` | string |  | Optional system prompt to set assistant behavior |
 
 ### Example
@@ -67,7 +67,7 @@ Generate text completion using a local LLM model
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | `max_tokens` | integer |  | Maximum tokens to generate |
-| `model` | string |  | Model to use (default: llama2) |
+| `model` | string |  | Model to use (default: qwen3:8b) |
 | `prompt` | string | Yes | The prompt to generate completion for |
 | `system` | string |  | Optional system prompt to set context |
 | `temperature` | number |  | Sampling temperature (0.0-2.0, default: 0.8) |
@@ -130,4 +130,3 @@ Get Ollama service status including version and loaded models
 - Verify connectivity
 
 ---
-

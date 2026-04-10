@@ -453,7 +453,7 @@ internal/mcp/tools/
 **Implementation:**
 - Client: `internal/clients/ollama.go`
 - MCP: `internal/mcp/tools/ollama/module.go`
-- Recommended models: llama2, codellama, mistral
+- Recommended models: qwen3:8b, qwen2.5-coder:7b, devstral-small-2, nomic-embed-text:v1.5
 
 ### 5.2 Audio Transcription (Whisper) ✅ IMPLEMENTED
 

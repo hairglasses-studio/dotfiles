@@ -58,7 +58,7 @@ func (m *Module) Tools() []tools.ToolDefinition {
 			Tool: mcp.NewTool("aftrs_ollama_generate",
 				mcp.WithDescription("Generate text completion using a local LLM model"),
 				mcp.WithString("prompt", mcp.Required(), mcp.Description("The prompt to generate completion for")),
-				mcp.WithString("model", mcp.Description("Model to use (default: llama2)")),
+				mcp.WithString("model", mcp.Description("Model to use (default: qwen3:8b)")),
 				mcp.WithString("system", mcp.Description("Optional system prompt to set context")),
 				mcp.WithNumber("temperature", mcp.Description("Sampling temperature (0.0-2.0, default: 0.8)")),
 				mcp.WithNumber("max_tokens", mcp.Description("Maximum tokens to generate")),
@@ -75,7 +75,7 @@ func (m *Module) Tools() []tools.ToolDefinition {
 			Tool: mcp.NewTool("aftrs_ollama_chat",
 				mcp.WithDescription("Chat with a local LLM model using conversation history"),
 				mcp.WithString("message", mcp.Required(), mcp.Description("The message to send")),
-				mcp.WithString("model", mcp.Description("Model to use (default: llama2)")),
+				mcp.WithString("model", mcp.Description("Model to use (default: qwen3:8b)")),
 				mcp.WithString("system", mcp.Description("Optional system prompt to set assistant behavior")),
 				mcp.WithArray("history", mcp.Description("Previous conversation messages")),
 			),
@@ -147,7 +147,7 @@ func handleOllamaGenerate(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 		return errResult, nil
 	}
 
-	model := tools.OptionalStringParam(req, "model", "llama2")
+	model := tools.OptionalStringParam(req, "model", clients.DefaultOllamaChatModel())
 
 	system := tools.GetStringParam(req, "system")
 	temperature := tools.GetFloatParam(req, "temperature", 0.8)
@@ -195,7 +195,7 @@ func handleOllamaChat(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		return errResult, nil
 	}
 
-	model := tools.OptionalStringParam(req, "model", "llama2")
+	model := tools.OptionalStringParam(req, "model", clients.DefaultOllamaChatModel())
 
 	system := tools.GetStringParam(req, "system")
 

@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	httpclient "github.com/hairglasses-studio/mcpkit/client"
@@ -46,11 +47,12 @@ type OllamaStatus struct {
 
 // GenerateRequest represents a generation request
 type GenerateRequest struct {
-	Model   string                 `json:"model"`
-	Prompt  string                 `json:"prompt"`
-	System  string                 `json:"system,omitempty"`
-	Stream  bool                   `json:"stream"`
-	Options map[string]interface{} `json:"options,omitempty"`
+	Model     string                 `json:"model"`
+	Prompt    string                 `json:"prompt"`
+	System    string                 `json:"system,omitempty"`
+	Stream    bool                   `json:"stream"`
+	KeepAlive string                 `json:"keep_alive,omitempty"`
+	Options   map[string]interface{} `json:"options,omitempty"`
 }
 
 // GenerateResponse represents a generation response
@@ -75,10 +77,11 @@ type ChatMessage struct {
 
 // ChatRequest represents a chat request
 type ChatRequest struct {
-	Model    string                 `json:"model"`
-	Messages []ChatMessage          `json:"messages"`
-	Stream   bool                   `json:"stream"`
-	Options  map[string]interface{} `json:"options,omitempty"`
+	Model     string                 `json:"model"`
+	Messages  []ChatMessage          `json:"messages"`
+	Stream    bool                   `json:"stream"`
+	KeepAlive string                 `json:"keep_alive,omitempty"`
+	Options   map[string]interface{} `json:"options,omitempty"`
 }
 
 // ChatResponse represents a chat response
@@ -116,22 +119,119 @@ type OllamaHealth struct {
 	Recommendations []string `json:"recommendations,omitempty"`
 }
 
-// NewOllamaClient creates a new Ollama client
-func NewOllamaClient() (*OllamaClient, error) {
-	host := os.Getenv("OLLAMA_HOST")
-	if host == "" {
-		host = "localhost"
+// DefaultOllamaBaseURL returns the configured Ollama base URL.
+func DefaultOllamaBaseURL() string {
+	baseURL := strings.TrimSpace(os.Getenv("OLLAMA_BASE_URL"))
+	if baseURL != "" {
+		return strings.TrimRight(baseURL, "/")
 	}
 
-	port := os.Getenv("OLLAMA_PORT")
+	host := strings.TrimSpace(os.Getenv("OLLAMA_HOST"))
+	if host == "" {
+		return "http://127.0.0.1:11434"
+	}
+
+	if strings.HasPrefix(host, "http://") || strings.HasPrefix(host, "https://") {
+		return strings.TrimRight(host, "/")
+	}
+
+	port := strings.TrimSpace(os.Getenv("OLLAMA_PORT"))
 	if port == "" {
 		port = "11434"
 	}
 
-	baseURL := fmt.Sprintf("http://%s:%s", host, port)
+	return fmt.Sprintf("http://%s:%s", host, port)
+}
 
+// DefaultOllamaChatModel returns the default local chat model.
+func DefaultOllamaChatModel() string {
+	if model := strings.TrimSpace(os.Getenv("OLLAMA_CHAT_MODEL")); model != "" {
+		return model
+	}
+	return "qwen3:8b"
+}
+
+func defaultOllamaModel(envKey, fallback string) string {
+	if model := strings.TrimSpace(os.Getenv(envKey)); model != "" {
+		return model
+	}
+	return fallback
+}
+
+// DefaultOllamaFastModel returns the default local fast coding model.
+func DefaultOllamaFastModel() string {
+	return defaultOllamaModel("OLLAMA_FAST_MODEL", "qwen2.5-coder:7b")
+}
+
+// DefaultOllamaCodeModel returns the default local benchmark-ranked coding model.
+func DefaultOllamaCodeModel() string {
+	return defaultOllamaModel("OLLAMA_CODE_MODEL", "devstral-small-2")
+}
+
+// DefaultOllamaHeavyCodeModel returns the deeper offload-heavy local coding model.
+func DefaultOllamaHeavyCodeModel() string {
+	return defaultOllamaModel("OLLAMA_HEAVY_CODE_MODEL", "devstral-2")
+}
+
+// DefaultOllamaHighContextCodeModel returns the larger-context local coding model.
+func DefaultOllamaHighContextCodeModel() string {
+	return defaultOllamaModel("OLLAMA_HIGH_CONTEXT_CODE_MODEL", "qwen3-coder-next")
+}
+
+// DefaultOllamaEmbedModel returns the default local embedding model.
+func DefaultOllamaEmbedModel() string {
+	if model := strings.TrimSpace(os.Getenv("OLLAMA_EMBED_MODEL")); model != "" {
+		return model
+	}
+	return "nomic-embed-text:v1.5"
+}
+
+// DefaultOllamaKeepAlive returns the workstation-standard model residency duration.
+func DefaultOllamaKeepAlive() string {
+	if value := strings.TrimSpace(os.Getenv("OLLAMA_KEEP_ALIVE")); value != "" {
+		return value
+	}
+	return "15m"
+}
+
+// RecommendedOllamaModels returns the workstation-standard local model set.
+func RecommendedOllamaModels() []string {
+	models := []string{
+		DefaultOllamaChatModel(),
+		DefaultOllamaFastModel(),
+		DefaultOllamaCodeModel(),
+		DefaultOllamaHeavyCodeModel(),
+		DefaultOllamaHighContextCodeModel(),
+		DefaultOllamaEmbedModel(),
+	}
+
+	seen := make(map[string]struct{}, len(models))
+	deduped := make([]string, 0, len(models))
+	for _, model := range models {
+		if _, ok := seen[model]; ok {
+			continue
+		}
+		seen[model] = struct{}{}
+		deduped = append(deduped, model)
+	}
+
+	return deduped
+}
+
+// RecommendedOllamaPullCommands returns pull commands for the standard model set.
+func RecommendedOllamaPullCommands() []string {
+	models := RecommendedOllamaModels()
+	commands := make([]string, 0, len(models))
+	for _, model := range models {
+		commands = append(commands, fmt.Sprintf("ollama pull %s", model))
+	}
+	return commands
+}
+
+// NewOllamaClient creates a new Ollama client
+func NewOllamaClient() (*OllamaClient, error) {
 	return &OllamaClient{
-		baseURL: baseURL,
+		baseURL:    DefaultOllamaBaseURL(),
 		httpClient: httpclient.WithTimeout(5 * time.Minute),
 	}, nil
 }
@@ -205,9 +305,12 @@ func (c *OllamaClient) ListModels(ctx context.Context) ([]OllamaModel, error) {
 // Generate generates text completion
 func (c *OllamaClient) Generate(ctx context.Context, req *GenerateRequest) (*GenerateResponse, error) {
 	if req.Model == "" {
-		req.Model = "llama2"
+		req.Model = DefaultOllamaChatModel()
 	}
 	req.Stream = false
+	if req.KeepAlive == "" {
+		req.KeepAlive = DefaultOllamaKeepAlive()
+	}
 
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -242,9 +345,12 @@ func (c *OllamaClient) Generate(ctx context.Context, req *GenerateRequest) (*Gen
 // Chat performs a chat completion
 func (c *OllamaClient) Chat(ctx context.Context, req *ChatRequest) (*ChatResponse, error) {
 	if req.Model == "" {
-		req.Model = "llama2"
+		req.Model = DefaultOllamaChatModel()
 	}
 	req.Stream = false
+	if req.KeepAlive == "" {
+		req.KeepAlive = DefaultOllamaKeepAlive()
+	}
 
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -279,7 +385,7 @@ func (c *OllamaClient) Chat(ctx context.Context, req *ChatRequest) (*ChatRespons
 // Embed generates embeddings for text
 func (c *OllamaClient) Embed(ctx context.Context, model, prompt string) (*EmbeddingResponse, error) {
 	if model == "" {
-		model = "llama2"
+		model = DefaultOllamaEmbedModel()
 	}
 
 	req := EmbeddingRequest{
@@ -403,7 +509,7 @@ func (c *OllamaClient) GetHealth(ctx context.Context) (*OllamaHealth, error) {
 			health.Score -= 30
 			health.Issues = append(health.Issues, "No models installed")
 			health.Recommendations = append(health.Recommendations,
-				"Pull a model: ollama pull llama2")
+				fmt.Sprintf("Pull a model set: %s", strings.Join(RecommendedOllamaPullCommands(), " && ")))
 		}
 	}
 
