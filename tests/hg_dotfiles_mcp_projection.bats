@@ -76,6 +76,68 @@ teardown() {
     assert_line --index 3 "cmd"
 }
 
+@test "hg-dotfiles-mcp-projection refreshes bare origin when requested" {
+    local refresh_canonical="${BATS_TEST_TMPDIR}/refresh-canonical"
+    local refresh_origin="${BATS_TEST_TMPDIR}/refresh-origin"
+    local refresh_bare="${BATS_TEST_TMPDIR}/refresh-bare"
+
+    mkdir -p "${refresh_canonical}/internal/dotfiles"
+    cat > "${refresh_canonical}/go.mod" <<'EOF'
+module example.com/refresh
+
+go 1.24
+EOF
+    cat > "${refresh_canonical}/README.md" <<'EOF'
+# refresh
+EOF
+    cat > "${refresh_canonical}/internal/dotfiles/main.go" <<'EOF'
+package dotfiles
+
+func Setup() {}
+EOF
+
+    mkdir -p "${refresh_origin}"
+    git init -q "${refresh_origin}"
+    git -C "${refresh_origin}" config user.name "Codex Test"
+    git -C "${refresh_origin}" config user.email "codex@example.com"
+    mkdir -p "${refresh_origin}/internal/dotfiles"
+    cat > "${refresh_origin}/go.mod" <<'EOF'
+module example.com/refresh
+
+go 1.24
+EOF
+    cat > "${refresh_origin}/README.md" <<'EOF'
+# refresh
+EOF
+    cat > "${refresh_origin}/internal/dotfiles/main.go" <<'EOF'
+package dotfiles
+
+func Setup() {}
+EOF
+    git -C "${refresh_origin}" add go.mod README.md internal/dotfiles/main.go
+    git -C "${refresh_origin}" commit -qm "initial"
+    git -C "${refresh_origin}" branch -M main
+
+    git clone --bare "${refresh_origin}" "${refresh_bare}" >/dev/null 2>&1
+
+    cat > "${refresh_origin}/README.md" <<'EOF'
+# refresh standalone
+EOF
+    git -C "${refresh_origin}" add README.md
+    git -C "${refresh_origin}" commit -qm "advance"
+
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${refresh_canonical}' --standalone '${refresh_bare}' --json | jq -r '.refreshed_bare_origin, .direct_copy.intentional_drift_count'"
+    assert_success
+    assert_line --index 0 "false"
+    assert_line --index 1 "0"
+
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${refresh_canonical}' --standalone '${refresh_bare}' --refresh-bare-origin --json | jq -r '.refreshed_bare_origin, .direct_copy.intentional_drift_count, .direct_copy.intentional_drift[0]'"
+    assert_success
+    assert_line --index 0 "true"
+    assert_line --index 1 "1"
+    assert_line --index 2 "README.md"
+}
+
 @test "hg-dotfiles-mcp-projection emits diff previews when requested" {
     run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json --diff-preview --diff-lines 6 | jq -r '.direct_copy.drift_preview_enabled, .direct_copy.drift_preview_lines, .direct_copy.drift_previews[0].path, (.direct_copy.drift_previews[0].preview | contains(\"standalone-host-smoke\")), .go_projection.drift_previews[0].path, (.go_projection.drift_previews[0].preview | contains(\"stale beta\"))'"
     assert_success
@@ -133,6 +195,36 @@ EOF
     assert_line --index 2 "2"
     assert_line --index 3 "contract_snapshot_cli.go"
     assert_line --index 4 "workflow_surface_test.go"
+}
+
+@test "hg-dotfiles-mcp-projection marks review-only overlap drift as parity review" {
+    cat > "${TEST_STANDALONE}/internal/dotfiles/alpha.go" <<'EOF'
+package dotfiles
+
+func alpha() string { return "alpha" }
+EOF
+    cat > "${TEST_STANDALONE}/internal/dotfiles/beta.go" <<'EOF'
+package dotfiles
+
+func beta() string { return "beta" }
+EOF
+    cat > "${TEST_CANONICAL}/context.go" <<'EOF'
+package main
+
+func contextValue() string { return "canonical" }
+EOF
+    cat > "${TEST_STANDALONE}/internal/dotfiles/context.go" <<'EOF'
+package dotfiles
+
+func contextValue() string { return "standalone" }
+EOF
+
+    run bash -lc "bash '${SCRIPTS_DIR}/hg-dotfiles-mcp-projection.sh' plan --canonical '${TEST_CANONICAL}' --standalone '${TEST_STANDALONE}' --json | jq -r '.status, .go_projection.required_drift_count, .go_projection.review_drift_count, .go_projection.review_drift[0]'"
+    assert_success
+    assert_line --index 0 "parity_review_needed"
+    assert_line --index 1 "0"
+    assert_line --index 2 "1"
+    assert_line --index 3 "context.go"
 }
 
 @test "hg-dotfiles-mcp-projection tracks workflow drift as required direct-copy projection" {

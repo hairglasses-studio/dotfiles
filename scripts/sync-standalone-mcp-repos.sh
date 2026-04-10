@@ -269,7 +269,12 @@ while IFS= read -r repo; do
       elif [[ "$MODE" == "sync" || "$MODE" == "bootstrap" ]]; then
         helper_mode="apply"
       fi
-      if bash "$helper" "$helper_mode" --canonical "$canonical_path" --standalone "$mirror_path"; then
+      helper_args=("$helper_mode")
+      if [[ "$MODE" == "check" ]]; then
+        helper_args+=(--refresh-bare-origin)
+      fi
+      helper_args+=(--canonical "$canonical_path" --standalone "$mirror_path")
+      if bash "$helper" "${helper_args[@]}"; then
         if [[ "$helper_mode" == "apply" ]]; then
           hg_ok "$repo: $MODE complete via repo-specific helper $(basename "$helper")"
           UPDATED=$((UPDATED + 1))
