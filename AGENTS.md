@@ -6,7 +6,7 @@ Desktop automation, local workstation config, MCP server scaffolding, and org-wi
 
 ## Start Here
 
-- Read [CLAUDE.md](CLAUDE.md) for the detailed architecture map, script catalog, and dotfiles-specific operational caveats.
+- Read this file and `docs/ARCHITECTURE-PROVENANCE.md` for the detailed architecture map, script catalog, and dotfiles-specific operational caveats.
 - Treat [AGENTS.md](AGENTS.md) as the canonical cross-provider instruction file.
 - Keep [CLAUDE.md](CLAUDE.md), `GEMINI.md`, and `.github/copilot-instructions.md` as compatibility mirrors of the core guidance here.
 
