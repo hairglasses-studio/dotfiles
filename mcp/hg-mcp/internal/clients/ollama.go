@@ -21,19 +21,22 @@ type OllamaClient struct {
 	httpClient *http.Client
 }
 
+// OllamaModelDetails represents shared model metadata returned by tags/show/ps.
+type OllamaModelDetails struct {
+	Format            string   `json:"format"`
+	Family            string   `json:"family"`
+	Families          []string `json:"families"`
+	ParameterSize     string   `json:"parameter_size"`
+	QuantizationLevel string   `json:"quantization_level"`
+}
+
 // OllamaModel represents an available model
 type OllamaModel struct {
-	Name       string    `json:"name"`
-	ModifiedAt time.Time `json:"modified_at"`
-	Size       int64     `json:"size"`
-	Digest     string    `json:"digest"`
-	Details    struct {
-		Format            string   `json:"format"`
-		Family            string   `json:"family"`
-		Families          []string `json:"families"`
-		ParameterSize     string   `json:"parameter_size"`
-		QuantizationLevel string   `json:"quantization_level"`
-	} `json:"details"`
+	Name       string             `json:"name"`
+	ModifiedAt time.Time          `json:"modified_at"`
+	Size       int64              `json:"size"`
+	Digest     string             `json:"digest"`
+	Details    OllamaModelDetails `json:"details"`
 }
 
 // OllamaStatus represents service status
@@ -45,6 +48,33 @@ type OllamaStatus struct {
 	BaseURL     string        `json:"base_url"`
 }
 
+// OllamaRunningModel represents a loaded model returned by /api/ps.
+type OllamaRunningModel struct {
+	Name          string             `json:"name"`
+	Model         string             `json:"model"`
+	Size          int64              `json:"size"`
+	Digest        string             `json:"digest"`
+	Details       OllamaModelDetails `json:"details"`
+	ExpiresAt     string             `json:"expires_at,omitempty"`
+	SizeVRAM      int64              `json:"size_vram,omitempty"`
+	ContextLength int                `json:"context_length,omitempty"`
+}
+
+// OllamaToolFunction describes a tool definition or tool call function.
+type OllamaToolFunction struct {
+	Index       int                    `json:"index,omitempty"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description,omitempty"`
+	Parameters  map[string]interface{} `json:"parameters,omitempty"`
+	Arguments   map[string]interface{} `json:"arguments,omitempty"`
+}
+
+// OllamaTool describes a tool schema or a tool call.
+type OllamaTool struct {
+	Type     string             `json:"type"`
+	Function OllamaToolFunction `json:"function"`
+}
+
 // GenerateRequest represents a generation request
 type GenerateRequest struct {
 	Model     string                 `json:"model"`
@@ -52,6 +82,7 @@ type GenerateRequest struct {
 	System    string                 `json:"system,omitempty"`
 	Stream    bool                   `json:"stream"`
 	KeepAlive string                 `json:"keep_alive,omitempty"`
+	Format    interface{}            `json:"format,omitempty"`
 	Options   map[string]interface{} `json:"options,omitempty"`
 }
 
@@ -71,8 +102,10 @@ type GenerateResponse struct {
 
 // ChatMessage represents a chat message
 type ChatMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role      string       `json:"role"`
+	Content   string       `json:"content"`
+	ToolName  string       `json:"tool_name,omitempty"`
+	ToolCalls []OllamaTool `json:"tool_calls,omitempty"`
 }
 
 // ChatRequest represents a chat request
@@ -81,6 +114,8 @@ type ChatRequest struct {
 	Messages  []ChatMessage          `json:"messages"`
 	Stream    bool                   `json:"stream"`
 	KeepAlive string                 `json:"keep_alive,omitempty"`
+	Format    interface{}            `json:"format,omitempty"`
+	Tools     []OllamaTool           `json:"tools,omitempty"`
 	Options   map[string]interface{} `json:"options,omitempty"`
 }
 
@@ -115,8 +150,37 @@ type OllamaHealth struct {
 	Status          string   `json:"status"`
 	ServiceRunning  bool     `json:"service_running"`
 	ModelsAvailable int      `json:"models_available"`
+	BaseURL         string   `json:"base_url,omitempty"`
+	Version         string   `json:"version,omitempty"`
+	RequiredModels  []string `json:"required_models,omitempty"`
+	ReadyModels     []string `json:"ready_models,omitempty"`
+	MissingModels   []string `json:"missing_models,omitempty"`
+	PullCommands    []string `json:"pull_commands,omitempty"`
 	Issues          []string `json:"issues,omitempty"`
 	Recommendations []string `json:"recommendations,omitempty"`
+}
+
+// OllamaAliasStatus captures whether a managed alias resolves cleanly.
+type OllamaAliasStatus struct {
+	Alias  string `json:"alias"`
+	Source string `json:"source"`
+	Status string `json:"status"`
+	Detail string `json:"detail,omitempty"`
+}
+
+// OllamaReadiness captures machine-readable daemon/model readiness.
+type OllamaReadiness struct {
+	BaseURL        string              `json:"base_url"`
+	Version        string              `json:"version,omitempty"`
+	Reachable      bool                `json:"reachable"`
+	Ready          bool                `json:"ready"`
+	RequireHeavy   bool                `json:"require_heavy"`
+	RequiredModels []string            `json:"required_models"`
+	ReadyModels    []string            `json:"ready_models,omitempty"`
+	MissingModels  []string            `json:"missing_models,omitempty"`
+	AliasChecks    []OllamaAliasStatus `json:"alias_checks,omitempty"`
+	PullCommands   []string            `json:"pull_commands,omitempty"`
+	Error          string              `json:"error,omitempty"`
 }
 
 // DefaultOllamaBaseURL returns the configured Ollama base URL.
@@ -148,7 +212,7 @@ func DefaultOllamaChatModel() string {
 	if model := strings.TrimSpace(os.Getenv("OLLAMA_CHAT_MODEL")); model != "" {
 		return model
 	}
-	return "qwen3:8b"
+	return "code-primary"
 }
 
 func defaultOllamaModel(envKey, fallback string) string {
@@ -160,22 +224,22 @@ func defaultOllamaModel(envKey, fallback string) string {
 
 // DefaultOllamaFastModel returns the default local fast coding model.
 func DefaultOllamaFastModel() string {
-	return defaultOllamaModel("OLLAMA_FAST_MODEL", "qwen2.5-coder:7b")
+	return defaultOllamaModel("OLLAMA_FAST_MODEL", "code-fast")
 }
 
 // DefaultOllamaCodeModel returns the default local benchmark-ranked coding model.
 func DefaultOllamaCodeModel() string {
-	return defaultOllamaModel("OLLAMA_CODE_MODEL", "devstral-small-2")
+	return defaultOllamaModel("OLLAMA_CODE_MODEL", "code-primary")
 }
 
 // DefaultOllamaHeavyCodeModel returns the deeper offload-heavy local coding model.
 func DefaultOllamaHeavyCodeModel() string {
-	return defaultOllamaModel("OLLAMA_HEAVY_CODE_MODEL", "devstral-2")
+	return defaultOllamaModel("OLLAMA_HEAVY_CODE_MODEL", "code-heavy")
 }
 
 // DefaultOllamaHighContextCodeModel returns the larger-context local coding model.
 func DefaultOllamaHighContextCodeModel() string {
-	return defaultOllamaModel("OLLAMA_HIGH_CONTEXT_CODE_MODEL", "qwen3-coder-next")
+	return defaultOllamaModel("OLLAMA_HIGH_CONTEXT_CODE_MODEL", "code-long")
 }
 
 // DefaultOllamaEmbedModel returns the default local embedding model.
@@ -222,10 +286,57 @@ func RecommendedOllamaModels() []string {
 func RecommendedOllamaPullCommands() []string {
 	models := RecommendedOllamaModels()
 	commands := make([]string, 0, len(models))
+	seen := make(map[string]struct{}, len(models))
 	for _, model := range models {
-		commands = append(commands, fmt.Sprintf("ollama pull %s", model))
+		command := fmt.Sprintf("ollama pull %s", pullableOllamaModelName(model))
+		if _, ok := seen[command]; ok {
+			continue
+		}
+		seen[command] = struct{}{}
+		commands = append(commands, command)
 	}
 	return commands
+}
+
+func pullableOllamaModelName(model string) string {
+	if source := ollamaAliasSourceModel(model); source != "" {
+		return source
+	}
+	return strings.TrimSpace(model)
+}
+
+func ollamaAliasSourceModel(model string) string {
+	switch strings.TrimSpace(model) {
+	case "code-fast", "code-compact":
+		return "qwen2.5-coder:7b"
+	case "code-primary", "code-reasoner":
+		return "devstral-small-2"
+	case "code-long":
+		return "qwen3-coder-next"
+	case "code-heavy":
+		return "devstral-2"
+	default:
+		return ""
+	}
+}
+
+func ollamaModelInstalled(model string, installed map[string]struct{}) bool {
+	model = strings.TrimSpace(model)
+	if model == "" {
+		return false
+	}
+	if _, ok := installed[model]; ok {
+		return true
+	}
+	if strings.HasSuffix(model, ":latest") {
+		_, ok := installed[strings.TrimSuffix(model, ":latest")]
+		return ok
+	}
+	if !strings.Contains(model, ":") {
+		_, ok := installed[model+":latest"]
+		return ok
+	}
+	return false
 }
 
 // NewOllamaClient creates a new Ollama client
@@ -271,6 +382,11 @@ func (c *OllamaClient) GetStatus(ctx context.Context) (*OllamaStatus, error) {
 		status.Models = models
 	}
 
+	runningModels, err := c.ListRunningModels(ctx)
+	if err == nil && len(runningModels) > 0 {
+		status.LoadedModel = runningModels[0].Name
+	}
+
 	return status, nil
 }
 
@@ -294,6 +410,34 @@ func (c *OllamaClient) ListModels(ctx context.Context) ([]OllamaModel, error) {
 
 	var result struct {
 		Models []OllamaModel `json:"models"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return result.Models, nil
+}
+
+// ListRunningModels returns models currently loaded in memory.
+func (c *OllamaClient) ListRunningModels(ctx context.Context) ([]OllamaRunningModel, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+"/api/ps", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to Ollama: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("Ollama API error: %s", string(body))
+	}
+
+	var result struct {
+		Models []OllamaRunningModel `json:"models"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
@@ -489,13 +633,23 @@ func (c *OllamaClient) DeleteModel(ctx context.Context, modelName string) error 
 // GetHealth returns health status
 func (c *OllamaClient) GetHealth(ctx context.Context) (*OllamaHealth, error) {
 	health := &OllamaHealth{
-		Score:  100,
-		Status: "healthy",
+		Score:        100,
+		Status:       "healthy",
+		BaseURL:      c.baseURL,
+		PullCommands: RecommendedOllamaPullCommands(),
 	}
 
-	// Check if service is running
+	readiness, err := c.GetReadiness(ctx, false)
+	if err != nil {
+		return nil, err
+	}
+	health.Version = readiness.Version
+	health.RequiredModels = append([]string(nil), readiness.RequiredModels...)
+	health.ReadyModels = append([]string(nil), readiness.ReadyModels...)
+	health.MissingModels = append([]string(nil), readiness.MissingModels...)
+
 	status, err := c.GetStatus(ctx)
-	if err != nil || !status.Running {
+	if err != nil || !status.Running || !readiness.Reachable {
 		health.ServiceRunning = false
 		health.Score -= 50
 		health.Issues = append(health.Issues, "Ollama service not running")
@@ -504,12 +658,26 @@ func (c *OllamaClient) GetHealth(ctx context.Context) (*OllamaHealth, error) {
 	} else {
 		health.ServiceRunning = true
 		health.ModelsAvailable = len(status.Models)
-
-		if len(status.Models) == 0 {
-			health.Score -= 30
-			health.Issues = append(health.Issues, "No models installed")
+	}
+	if len(status.Models) == 0 {
+		health.Score -= 30
+		health.Issues = append(health.Issues, "No models installed")
+		health.Recommendations = append(health.Recommendations,
+			fmt.Sprintf("Pull a model set: %s", strings.Join(RecommendedOllamaPullCommands(), " && ")))
+	}
+	if len(readiness.MissingModels) > 0 {
+		health.Score -= 25
+		health.Issues = append(health.Issues, fmt.Sprintf("Missing required models: %s", strings.Join(readiness.MissingModels, ", ")))
+		health.Recommendations = append(health.Recommendations,
+			fmt.Sprintf("Pull the missing model set: %s", strings.Join(RecommendedOllamaPullCommands(), " && ")))
+	}
+	for _, check := range readiness.AliasChecks {
+		switch check.Status {
+		case "missing_alias", "digest_mismatch":
+			health.Score -= 10
+			health.Issues = append(health.Issues, fmt.Sprintf("Managed alias problem for %s: %s", check.Alias, check.Detail))
 			health.Recommendations = append(health.Recommendations,
-				fmt.Sprintf("Pull a model set: %s", strings.Join(RecommendedOllamaPullCommands(), " && ")))
+				"Rebuild the managed aliases: ~/hairglasses-studio/dotfiles/scripts/hg-ollama-sync-aliases.sh")
 		}
 	}
 
@@ -523,6 +691,99 @@ func (c *OllamaClient) GetHealth(ctx context.Context) (*OllamaHealth, error) {
 	}
 
 	return health, nil
+}
+
+// GetReadiness returns the live daemon/model readiness snapshot.
+func (c *OllamaClient) GetReadiness(ctx context.Context, requireHeavy bool) (*OllamaReadiness, error) {
+	readiness := &OllamaReadiness{
+		BaseURL:      c.baseURL,
+		RequireHeavy: requireHeavy,
+		PullCommands: RecommendedOllamaPullCommands(),
+	}
+
+	status, err := c.GetStatus(ctx)
+	if err != nil {
+		readiness.Error = err.Error()
+		return readiness, nil
+	}
+	readiness.Reachable = status.Running
+	readiness.Version = status.Version
+	if !status.Running {
+		readiness.Error = "Ollama service not running"
+		return readiness, nil
+	}
+
+	required := []string{
+		DefaultOllamaChatModel(),
+		DefaultOllamaFastModel(),
+		DefaultOllamaEmbedModel(),
+	}
+	if requireHeavy {
+		required = append(required, DefaultOllamaHeavyCodeModel())
+	}
+	readiness.RequiredModels = append(readiness.RequiredModels, required...)
+
+	installed := make(map[string]struct{}, len(status.Models)*2)
+	for _, model := range status.Models {
+		if model.Name != "" {
+			installed[strings.TrimSpace(model.Name)] = struct{}{}
+		}
+	}
+	for _, model := range required {
+		if ollamaModelInstalled(model, installed) {
+			readiness.ReadyModels = append(readiness.ReadyModels, model)
+		} else {
+			readiness.MissingModels = append(readiness.MissingModels, model)
+		}
+	}
+
+	for _, pair := range []struct {
+		alias  string
+		source string
+	}{
+		{alias: "code-fast", source: "qwen2.5-coder:7b"},
+		{alias: "code-compact", source: "qwen2.5-coder:7b"},
+		{alias: "code-primary", source: "devstral-small-2"},
+		{alias: "code-reasoner", source: "devstral-small-2"},
+		{alias: "code-long", source: "qwen3-coder-next"},
+		{alias: "code-heavy", source: "devstral-2"},
+	} {
+		check := OllamaAliasStatus{Alias: pair.alias, Source: pair.source, Status: "skipped"}
+		if ollamaModelInstalled(pair.source, installed) {
+			if !ollamaModelInstalled(pair.alias, installed) {
+				check.Status = "missing_alias"
+				check.Detail = "backing model is installed but the managed alias is missing"
+			} else {
+				check.Status = "ok"
+			}
+		} else if ollamaModelInstalled(pair.alias, installed) {
+			check.Status = "alias_only"
+			check.Detail = "alias is installed but the backing model is absent"
+		}
+		readiness.AliasChecks = append(readiness.AliasChecks, check)
+	}
+
+	readiness.Ready = readiness.Reachable && len(readiness.MissingModels) == 0
+	for _, check := range readiness.AliasChecks {
+		if check.Status == "missing_alias" || check.Status == "digest_mismatch" {
+			readiness.Ready = false
+			break
+		}
+	}
+	if !readiness.Ready && readiness.Error == "" {
+		switch {
+		case len(readiness.MissingModels) > 0:
+			readiness.Error = fmt.Sprintf("missing required models: %s", strings.Join(readiness.MissingModels, ", "))
+		default:
+			for _, check := range readiness.AliasChecks {
+				if check.Status == "missing_alias" || check.Status == "digest_mismatch" {
+					readiness.Error = fmt.Sprintf("managed alias problem for %s: %s", check.Alias, check.Detail)
+					break
+				}
+			}
+		}
+	}
+	return readiness, nil
 }
 
 // GetModelInfo returns detailed info about a model

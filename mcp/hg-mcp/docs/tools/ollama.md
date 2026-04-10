@@ -1,132 +1,110 @@
 # ollama
 
-> Local LLM inference using Ollama for text generation and chat
+> Local LLM inference using Ollama for text generation, chat, and native model capabilities
 
-**5 tools**
+**10 tools**
 
 ## Tools
 
-- [`aftrs_ollama_chat`](#aftrs-ollama-chat)
-- [`aftrs_ollama_generate`](#aftrs-ollama-generate)
-- [`aftrs_ollama_health`](#aftrs-ollama-health)
-- [`aftrs_ollama_models`](#aftrs-ollama-models)
-- [`aftrs_ollama_status`](#aftrs-ollama-status)
-
----
-
-## aftrs_ollama_chat
-
-Chat with a local LLM model using conversation history
-
-**Complexity:** moderate
-
-**Tags:** `ollama`, `chat`, `conversation`, `ai`
-
-**Use Cases:**
-- Chat with AI
-- Multi-turn conversation
-- Interactive Q&A
-
-### Parameters
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `history` | array |  | Previous conversation messages |
-| `message` | string | Yes | The message to send |
-| `model` | string |  | Model to use (default: qwen3:8b) |
-| `system` | string |  | Optional system prompt to set assistant behavior |
-
-### Example
-
-```json
-{
-  "history": [],
-  "message": "example",
-  "model": "example",
-  "system": "example"
-}
-```
-
----
-
-## aftrs_ollama_generate
-
-Generate text completion using a local LLM model
-
-**Complexity:** moderate
-
-**Tags:** `ollama`, `generate`, `completion`, `ai`
-
-**Use Cases:**
-- Generate text
-- Complete prompts
-- Creative writing
-
-### Parameters
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `max_tokens` | integer |  | Maximum tokens to generate |
-| `model` | string |  | Model to use (default: qwen3:8b) |
-| `prompt` | string | Yes | The prompt to generate completion for |
-| `system` | string |  | Optional system prompt to set context |
-| `temperature` | number |  | Sampling temperature (0.0-2.0, default: 0.8) |
-
-### Example
-
-```json
-{
-  "max_tokens": 0,
-  "model": "example",
-  "prompt": "example",
-  "system": "example",
-  "temperature": 0
-}
-```
-
----
-
-## aftrs_ollama_health
-
-Check Ollama service health and get troubleshooting recommendations
-
-**Complexity:** simple
-
-**Tags:** `ollama`, `health`, `diagnostics`, `troubleshooting`
-
-**Use Cases:**
-- Diagnose issues
-- Check service health
-- Get troubleshooting tips
-
----
-
-## aftrs_ollama_models
-
-List available Ollama models installed locally
-
-**Complexity:** simple
-
-**Tags:** `ollama`, `models`, `list`, `ai`
-
-**Use Cases:**
-- List installed models
-- Check model sizes
-- View available options
-
----
+- [`aftrs_ollama_status`](#aftrs_ollama_status)
+- [`aftrs_ollama_models`](#aftrs_ollama_models)
+- [`aftrs_ollama_loaded`](#aftrs_ollama_loaded)
+- [`aftrs_ollama_show`](#aftrs_ollama_show)
+- [`aftrs_ollama_generate`](#aftrs_ollama_generate)
+- [`aftrs_ollama_structured`](#aftrs_ollama_structured)
+- [`aftrs_ollama_chat`](#aftrs_ollama_chat)
+- [`aftrs_ollama_tool_chat`](#aftrs_ollama_tool_chat)
+- [`aftrs_ollama_health`](#aftrs_ollama_health)
+- [`aftrs_ollama_readiness`](#aftrs_ollama_readiness)
 
 ## aftrs_ollama_status
 
-Get Ollama service status including version and loaded models
+Get Ollama service status including version, installed models, and the first loaded model when one is resident.
 
-**Complexity:** simple
+## aftrs_ollama_models
 
-**Tags:** `ollama`, `llm`, `status`, `ai`
+List installed Ollama models from `/api/tags`.
 
-**Use Cases:**
-- Check service status
-- View loaded models
-- Verify connectivity
+## aftrs_ollama_loaded
 
----
+List loaded Ollama models from `/api/ps`, including residency metadata such as `expires_at`, `context_length`, and `size_vram`.
+
+## aftrs_ollama_show
+
+Show detailed metadata for one model via `/api/show`.
+
+Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `model` | string | Yes | Model name or alias to inspect |
+
+## aftrs_ollama_generate
+
+Generate text completion using a local LLM model.
+
+Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `prompt` | string | Yes | Prompt to complete |
+| `model` | string |  | Model to use, default `code-primary` |
+| `system` | string |  | Optional system prompt |
+| `temperature` | number |  | Sampling temperature, default `0.8` |
+| `max_tokens` | integer |  | Maximum tokens to generate |
+
+## aftrs_ollama_structured
+
+Generate schema-constrained JSON using Ollama's native `format` support.
+
+Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `prompt` | string | Yes | Prompt to answer with structured JSON |
+| `schema` | object | Yes | JSON schema object passed through as `format` |
+| `model` | string |  | Model to use, default `code-primary` |
+| `system` | string |  | Optional system prompt |
+| `temperature` | number |  | Sampling temperature, default `0.0` |
+| `max_tokens` | integer |  | Maximum tokens to generate |
+
+## aftrs_ollama_chat
+
+Chat with a local LLM model using conversation history.
+
+Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `message` | string | Yes | Message to send |
+| `model` | string |  | Model to use, default `code-primary` |
+| `system` | string |  | Optional system prompt |
+| `history` | array |  | Previous conversation messages |
+
+## aftrs_ollama_tool_chat
+
+Run a native Ollama chat request with explicit tool definitions and inspect returned tool calls without executing them server-side.
+
+Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `message` | string | Yes | Message to send |
+| `tools` | array | Yes | Tool definitions to expose to the model |
+| `model` | string |  | Model to use, default `code-primary` |
+| `system` | string |  | Optional system prompt |
+| `history` | array |  | Previous conversation messages |
+
+## aftrs_ollama_health
+
+Check Ollama service health and receive troubleshooting recommendations.
+
+## aftrs_ollama_readiness
+
+Return the live Ollama readiness report, including required models, managed `code-*` alias state, and recommended pull commands.
+
+Parameters:
+
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| `require_heavy` | boolean |  | Also require the heavy local coding lane |

@@ -22,7 +22,7 @@ hg_ok "Ollama version: $(jq -r '.version // "unknown"' <<<"$version_json")"
 
 tags_json="$(curl -fsS "$tags_url")"
 for model in "${required_models[@]}"; do
-  if jq -e --arg model "$model" '.models[]? | select(.name == $model or .name == ($model + ":latest"))' <<<"$tags_json" >/dev/null; then
+  if hg_local_llm_model_installed_json "$tags_json" "$model"; then
     hg_ok "Installed baseline model: $model"
   else
     hg_die "Missing baseline model: $model"

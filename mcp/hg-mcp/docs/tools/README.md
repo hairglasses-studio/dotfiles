@@ -41,7 +41,7 @@
 | [ndicv](./ndicv.md) | 6 | NDI computer vision and frame analysis tools |
 | [notion](./notion.md) | 8 | Notion workspace integration for pages, databases, and content management |
 | [obs](./obs.md) | 15 | OBS Studio streaming and recording control via WebSocket |
-| [ollama](./ollama.md) | 5 | Local LLM inference using Ollama for text generation and chat |
+| [ollama](./ollama.md) | 10 | Local LLM inference using Ollama for text generation, native capabilities, and readiness diagnostics |
 | [paramsync](./paramsync.md) | 4 | Cross-system parameter mapping and modulation |
 | [plugins](./plugins.md) | 12 | GitHub-based plugin registry for TouchDesigner and Resolume plugins |
 | [ptz](./ptz.md) | 15 | ONVIF PTZ camera control for pan, tilt, zoom, and preset management |
