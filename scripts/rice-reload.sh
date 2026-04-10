@@ -29,15 +29,23 @@ else
 fi
 
 # Eww (config + widgets)
-if eww reload 2>/dev/null; then
-  eww open sidebar >/dev/null 2>&1 || true
-  reloaded="${reloaded} eww"
+if command -v eww >/dev/null 2>&1; then
+  if ! eww ping >/dev/null 2>&1; then
+    eww daemon >/dev/null 2>&1 || true
+    sleep 1
+  fi
+  if eww ping >/dev/null 2>&1 && eww reload 2>/dev/null; then
+    eww open sidebar >/dev/null 2>&1 || true
+    reloaded="${reloaded} eww"
+  else
+    failed="${failed} eww"
+  fi
 else
   failed="${failed} eww"
 fi
 
 # Kitty (SIGUSR1)
-if kill -USR1 "$(pidof kitty)" 2>/dev/null; then
+if pidof kitty >/dev/null 2>&1 && pidof kitty | xargs -r kill -USR1 >/dev/null 2>&1; then
   reloaded="${reloaded} kitty"
 else
   failed="${failed} kitty"
