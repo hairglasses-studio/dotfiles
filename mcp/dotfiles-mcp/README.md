@@ -88,7 +88,9 @@ claude mcp call dotfiles desktop_fill_form '{"app":"Firefox","preview":true,"fie
 
 # Enumerate tracked session handles and inspect one session before driving it
 claude mcp call dotfiles session_list '{}'
+claude mcp call dotfiles session_wait_ready '{"session_id":"session-123","timeout":10}'
 claude mcp call dotfiles session_status '{"session_id":"session-123"}'
+claude mcp call dotfiles session_list_apps '{"session_id":"session-123"}'
 claude mcp call dotfiles session_read_log '{"session_id":"session-123","lines":40}'
 
 # Check desktop rice health
