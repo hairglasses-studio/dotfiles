@@ -227,7 +227,7 @@ managed_repo_count=0
 repos_with_skill_surfaces=0
 global_canonical_count=0
 global_alias_count=0
-global_alias_conflict_names=0
+global_alias_namespaced_conflicts=0
 claude_foundational_count=0
 claude_raw_count=0
 claude_tool_count=0
@@ -239,6 +239,7 @@ declare -A desired_claude_skill_dirs=()
 declare -A managed_canonical_owners=()
 declare -A alias_counts=()
 declare -A alias_conflicts_reported=()
+declare -A alias_export_targets=()
 declare -A claude_key_seen=()
 declare -A codex_name_seen=()
 declare -A gemini_name_seen=()
@@ -287,6 +288,47 @@ extract_frontmatter_scalar() {
       exit
     }
   ' "$file"
+}
+
+rewrite_skill_frontmatter_name() {
+  local file="$1"
+  local new_name="$2"
+  local tmp
+  tmp="$(mktemp)"
+
+  awk -v new_name="$new_name" '
+    BEGIN { in_frontmatter = 0; renamed = 0 }
+    NR == 1 && $0 == "---" { in_frontmatter = 1; print; next }
+    in_frontmatter && !renamed && /^name:[[:space:]]*/ {
+      print "name: " new_name
+      renamed = 1
+      next
+    }
+    in_frontmatter && $0 == "---" {
+      in_frontmatter = 0
+      print
+      next
+    }
+    { print }
+    END {
+      if (!renamed) {
+        exit 42
+      }
+    }
+  ' "$file" >"$tmp" || {
+    local status=$?
+    rm -f "$tmp"
+    case "$status" in
+      42)
+        hg_die "Managed workspace skill missing name frontmatter: $file"
+        ;;
+      *)
+        return "$status"
+        ;;
+    esac
+  }
+
+  mv "$tmp" "$file"
 }
 
 manifest_supports_jq() {
@@ -782,14 +824,17 @@ sync_managed_workspace_skills() {
 
     repos_with_skill_surfaces=$((repos_with_skill_surfaces + 1))
     if [[ "$json_surface" -eq 1 ]]; then
-      if ! "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$repo_path" "${MODE_ARGS[@]}"; then
-        if repo_has_dirty_tracked_changes "$repo_path"; then
-          hg_warn "Managed repo has dirty tracked changes; skipping source-contract failure for skill sync drift: $repo_name"
-        else
-          overall_pending=1
-          skill_pending=1
-        fi
+      local surface_sync_log="$tmpdir/skill-surface-${repo_name//[^A-Za-z0-9._-]/_}.log"
+      if "$SCRIPT_DIR/hg-skill-surface-sync.sh" "$repo_path" "${MODE_ARGS[@]}" >"$surface_sync_log" 2>&1; then
+        [[ -s "$surface_sync_log" ]] && cat "$surface_sync_log"
+      elif repo_has_dirty_tracked_changes "$repo_path"; then
+        hg_warn "Managed repo has dirty tracked changes; skipping source-contract failure for skill sync drift: $repo_name"
+      else
+        [[ -s "$surface_sync_log" ]] && cat "$surface_sync_log"
+        overall_pending=1
+        skill_pending=1
       fi
+      rm -f "$surface_sync_log"
     else
       hg_warn "Managed skill manifest is YAML-only; repo-local Claude mirror sync still requires JSON: $surface_path"
     fi
@@ -801,7 +846,7 @@ sync_managed_workspace_skills() {
         hg_die "Duplicate managed canonical skill name: $canonical_name"
       fi
       managed_canonical_owners["$canonical_name"]="$repo_name"
-      printf 'canonical\t%s\t%s\t%s\t%s\n' "$canonical_name" "$repo_name" "$repo_path" "$canonical_name" >>"$skill_entries_file"
+      printf 'canonical\t%s\t%s\t%s\t%s\t%s\n' "$canonical_name" "$repo_name" "$repo_path" "$canonical_name" "$canonical_name" >>"$skill_entries_file"
       global_canonical_count=$((global_canonical_count + 1))
     done
 
@@ -822,36 +867,36 @@ sync_managed_workspace_skills() {
   while IFS=$'\t' read -r alias_name repo_name repo_path canonical_name; do
     [[ -n "$alias_name" ]] || continue
 
-    if [[ "${alias_counts[$alias_name]:-0}" -gt 1 ]]; then
+    local target_alias_name="$alias_name"
+    if [[ "${alias_counts[$alias_name]:-0}" -gt 1 || -n "${managed_canonical_owners[$alias_name]:-}" ]]; then
       if [[ -z "${alias_conflicts_reported[$alias_name]:-}" ]]; then
         alias_conflicts_reported["$alias_name"]=1
-        global_alias_conflict_names=$((global_alias_conflict_names + 1))
-        hg_warn "Skipping conflicting global Claude alias: $alias_name (${alias_counts[$alias_name]} managed providers)"
+        global_alias_namespaced_conflicts=$((global_alias_namespaced_conflicts + 1))
       fi
-      continue
+      target_alias_name="$(workspace_global_exported_skill_name "$repo_name" "$alias_name")"
     fi
 
-    if [[ -n "${managed_canonical_owners[$alias_name]:-}" ]]; then
-      if [[ -z "${alias_conflicts_reported[$alias_name]:-}" ]]; then
-        alias_conflicts_reported["$alias_name"]=1
-        global_alias_conflict_names=$((global_alias_conflict_names + 1))
-        hg_warn "Skipping conflicting global Claude alias: $alias_name (collides with canonical ${managed_canonical_owners[$alias_name]})"
-      fi
-      continue
+    if [[ -n "${managed_canonical_owners[$target_alias_name]:-}" ]]; then
+      hg_die "Managed global Claude alias export collides with canonical skill: $target_alias_name"
     fi
+    if [[ -n "${alias_export_targets[$target_alias_name]:-}" ]]; then
+      hg_die "Duplicate managed global Claude alias export name: $target_alias_name"
+    fi
+    alias_export_targets["$target_alias_name"]="$repo_name"
 
-    printf 'alias\t%s\t%s\t%s\t%s\n' "$alias_name" "$repo_name" "$repo_path" "$canonical_name" >>"$skill_entries_file"
+    printf 'alias\t%s\t%s\t%s\t%s\t%s\n' "$target_alias_name" "$repo_name" "$repo_path" "$canonical_name" "$alias_name" >>"$skill_entries_file"
     global_alias_count=$((global_alias_count + 1))
   done <"$alias_entries_file"
 
-  while IFS=$'\t' read -r kind global_name repo_name repo_path canonical_name; do
+  while IFS=$'\t' read -r kind global_name repo_name repo_path canonical_name source_name; do
     [[ -n "$global_name" ]] || continue
+    [[ -n "$source_name" ]] || continue
 
     local source_skill canonical_refs staged_dir target_dir description
     if [[ "$kind" == "canonical" ]]; then
-      source_skill="$repo_path/.agents/skills/$canonical_name/SKILL.md"
+      source_skill="$repo_path/.agents/skills/$source_name/SKILL.md"
     else
-      source_skill="$repo_path/.claude/skills/$global_name/SKILL.md"
+      source_skill="$repo_path/.claude/skills/$source_name/SKILL.md"
     fi
     canonical_refs="$repo_path/.agents/skills/$canonical_name/references"
     staged_dir="$tmpdir/workspace-skill-$global_name"
@@ -877,7 +922,7 @@ sync_managed_workspace_skills() {
     fi
 
     description="$(extract_frontmatter_scalar "$source_skill" "description")"
-    exported_gemini_name="$(workspace_global_exported_skill_name "$repo_name" "$global_name")"
+    exported_gemini_name="$(workspace_global_exported_skill_name "$repo_name" "$source_name")"
     if ! hg_gemini_name_is_builtin "$exported_gemini_name"; then
       printf '%s\t%s\t%s\t%s\t%s\n' "$exported_gemini_name" "${description:-Compatibility mirror for $canonical_name.}" "$kind" "$repo_name" "$canonical_name" >>"$tmpdir/gemini-skill-catalog.tsv"
     fi
@@ -885,6 +930,9 @@ sync_managed_workspace_skills() {
     rm -rf "$staged_dir"
     mkdir -p "$staged_dir"
     cp "$source_skill" "$staged_dir/SKILL.md"
+    if [[ "$global_name" != "$source_name" ]]; then
+      rewrite_skill_frontmatter_name "$staged_dir/SKILL.md" "$global_name"
+    fi
 
     if [[ -d "$canonical_refs" ]]; then
       mkdir -p "$staged_dir/references"
@@ -897,14 +945,16 @@ sync_managed_workspace_skills() {
       --arg path "$repo_path" \
       --arg canonical "$canonical_name" \
       --arg kind "$kind" \
-      --arg name "$global_name" \
+      --arg name "$source_name" \
+      --arg global_name "$global_name" \
       '{
         generator: $generator,
         repo: $repo,
         repo_path: $path,
         canonical: $canonical,
         kind: $kind,
-        name: $name
+        name: $name,
+        global_name: $global_name
       }' >"$staged_dir/$SKILL_OWNER_FILE"
 
     sync_skill_dir "$staged_dir" "$target_dir" || true
@@ -1361,7 +1411,7 @@ if $RUN_SKILLS; then
 fi
 
 if $RUN_SKILLS && $CHECK_GLOBAL_TARGETS; then
-  hg_info "Managed workspace global skills: ${global_canonical_count} canonical + ${global_alias_count} aliases (${global_alias_conflict_names} conflicts skipped across ${repos_with_skill_surfaces} skill surfaces)"
+  hg_info "Managed workspace global skills: ${global_canonical_count} canonical + ${global_alias_count} aliases (${global_alias_namespaced_conflicts} conflicting aliases namespaced across ${repos_with_skill_surfaces} skill surfaces)"
   hg_info "Managed home context: Claude memory at $CLAUDE_HOME_DOC_PATH; Gemini memory at $GEMINI_HOME_DOC_PATH; Gemini project registry at $GEMINI_PROJECTS_PATH"
 elif $RUN_SKILLS; then
   hg_info "Managed workspace global source contract validated for ${global_canonical_count} canonical skills across ${repos_with_skill_surfaces} skill surfaces"
