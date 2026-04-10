@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # sync-standalone-mcp-repos.sh — Mirror canonical dotfiles MCP modules into standalone publish repos.
-# Usage: sync-standalone-mcp-repos.sh [bootstrap|sync|check|hygiene] [--repos=a,b] [--allow-dirty] [--repair-bare-main]
+# Usage: sync-standalone-mcp-repos.sh [bootstrap|sync|check|hygiene] [--repos=a,b] [--allow-dirty] [--refresh-origin] [--repair-bare-main]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,11 +10,12 @@ source "$SCRIPT_DIR/lib/hg-workspace.sh"
 MODE="sync"
 REPO_FILTER=""
 ALLOW_DIRTY=false
+REFRESH_ORIGIN=false
 REPAIR_BARE_MAIN=false
 
 usage() {
   cat <<'EOF'
-Usage: sync-standalone-mcp-repos.sh [bootstrap|sync|check|hygiene] [--repos=a,b] [--allow-dirty] [--repair-bare-main]
+Usage: sync-standalone-mcp-repos.sh [bootstrap|sync|check|hygiene] [--repos=a,b] [--allow-dirty] [--refresh-origin] [--repair-bare-main]
 
 Mirror canonical MCP source trees from dotfiles/mcp/* into standalone publish repos
 declared as lifecycle=mirror in workspace/manifest.json.
@@ -25,6 +26,7 @@ Modes:
   check      Verify tree-sync mirrors and run manual-projection planners
   hygiene    Inspect bare mirror repo branch hygiene; use --repair-bare-main to
              align stale local refs/heads/main to refs/remotes/origin/main
+             after optionally refreshing origin with --refresh-origin
 EOF
 }
 
@@ -40,6 +42,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --allow-dirty)
       ALLOW_DIRTY=true
+      shift
+      ;;
+    --refresh-origin)
+      REFRESH_ORIGIN=true
       shift
       ;;
     --repair-bare-main)
@@ -174,8 +180,8 @@ hygiene_check_repo() {
     return 0
   fi
 
-  if $REPAIR_BARE_MAIN; then
-    git -C "$repo_path" fetch --prune origin >/dev/null 2>&1 || true
+  if $REFRESH_ORIGIN || $REPAIR_BARE_MAIN; then
+    git -C "$repo_path" fetch --prune origin '+refs/heads/*:refs/remotes/origin/*' >/dev/null 2>&1 || true
   fi
 
   local head_ref local_main remote_main status

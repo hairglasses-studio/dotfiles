@@ -35,6 +35,7 @@ If a local standalone mirror is managed through a bare repo and its local
 bare-mirror hygiene path:
 
 ```bash
+bash ./scripts/sync-standalone-mcp-repos.sh hygiene --refresh-origin --repos=dotfiles-mcp
 bash ./scripts/sync-standalone-mcp-repos.sh hygiene --repos=dotfiles-mcp
 bash ./scripts/sync-standalone-mcp-repos.sh hygiene --repair-bare-main --repos=dotfiles-mcp
 ```
