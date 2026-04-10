@@ -30,6 +30,22 @@ bash ./scripts/hg-dotfiles-mcp-projection.sh check
 bash ./scripts/hg-dotfiles-mcp-projection.sh check --diff-preview --diff-lines 12
 ```
 
+When an editable standalone checkout is available, the projection helper can now
+apply the carry-forward directly:
+
+```bash
+bash ./scripts/hg-dotfiles-mcp-projection.sh apply --standalone /tmp/dotfiles-mcp-real
+```
+
+If the manifest mirror path is bare, set `HG_DOTFILES_MCP_APPLY_WORKTREE` to an
+editable checkout or create `/tmp/dotfiles-mcp-real`, then the wrapper can use
+the repo-specific apply path automatically:
+
+```bash
+HG_DOTFILES_MCP_APPLY_WORKTREE=/tmp/dotfiles-mcp-real \
+  bash ./scripts/sync-standalone-mcp-repos.sh sync --repos=dotfiles-mcp
+```
+
 If a local standalone mirror is managed through a bare repo and its local
 `refs/heads/main` may have drifted behind `refs/remotes/origin/main`, run the
 bare-mirror hygiene path:
@@ -41,11 +57,11 @@ bash ./scripts/sync-standalone-mcp-repos.sh hygiene --repair-bare-main --repos=d
 ```
 
 Only mirrors with `sync_strategy: tree_sync` are safe to mutate through the generic
-`mcp-mirror.sh` and `sync-standalone-mcp-repos.sh` rsync path. Mirrors marked
-`manual_projection` need a dedicated repo-local projection or packaging workflow.
-`dotfiles-mcp` is in that category because the standalone repo has its own root-level
-package layout, generated surfaces, and publish metadata that are not tree-isomorphic
-to `dotfiles/mcp/dotfiles-mcp`. The dedicated planner reports:
+`mcp-mirror.sh` rsync path. Mirrors marked `manual_projection` need a dedicated
+repo-local projection workflow. `dotfiles-mcp` is in that category because the
+standalone repo has its own root-level package layout, generated surfaces, and
+publish metadata that are not tree-isomorphic to `dotfiles/mcp/dotfiles-mcp`.
+The dedicated planner/apply helper reports:
 
 - root assets that still move 1:1 into the standalone repo
 - bundled root Go files that map into `internal/dotfiles/*.go`
