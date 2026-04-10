@@ -1,6 +1,11 @@
 package clients
 
-import "testing"
+import (
+	"context"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
 
 func TestDefaultOllamaBaseURLUsesBaseURLFirst(t *testing.T) {
 	t.Setenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434/")
@@ -61,5 +66,65 @@ func TestDefaultOllamaModelsUseEnvOverrides(t *testing.T) {
 	}
 	if got := DefaultOllamaKeepAlive(); got != "30m" {
 		t.Fatalf("DefaultOllamaKeepAlive() = %q, want %q", got, "30m")
+	}
+}
+
+func TestRecommendedOllamaPullCommandsUseBackingModelsForAliases(t *testing.T) {
+	t.Setenv("OLLAMA_CHAT_MODEL", "code-primary")
+	t.Setenv("OLLAMA_FAST_MODEL", "code-fast")
+	t.Setenv("OLLAMA_CODE_MODEL", "code-primary")
+	t.Setenv("OLLAMA_HEAVY_CODE_MODEL", "code-heavy")
+	t.Setenv("OLLAMA_HIGH_CONTEXT_CODE_MODEL", "code-long")
+	t.Setenv("OLLAMA_EMBED_MODEL", "nomic-embed-text:v1.5")
+
+	got := RecommendedOllamaPullCommands()
+	want := []string{
+		"ollama pull devstral-small-2",
+		"ollama pull qwen2.5-coder:7b",
+		"ollama pull devstral-2",
+		"ollama pull qwen3-coder-next",
+		"ollama pull nomic-embed-text:v1.5",
+	}
+
+	if len(got) != len(want) {
+		t.Fatalf("RecommendedOllamaPullCommands() length = %d, want %d", len(got), len(want))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("RecommendedOllamaPullCommands()[%d] = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func TestGetReadinessReportsMissingAlias(t *testing.T) {
+	t.Setenv("OLLAMA_CHAT_MODEL", "code-primary")
+	t.Setenv("OLLAMA_FAST_MODEL", "code-fast")
+	t.Setenv("OLLAMA_EMBED_MODEL", "nomic-embed-text:v1.5")
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/version":
+			_, _ = w.Write([]byte(`{"version":"0.20.4"}`))
+		case "/api/tags":
+			_, _ = w.Write([]byte(`{"models":[{"name":"devstral-small-2"},{"name":"code-fast"},{"name":"qwen2.5-coder:7b"},{"name":"nomic-embed-text:v1.5"}]}`))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+
+	client := &OllamaClient{baseURL: srv.URL, httpClient: srv.Client()}
+	readiness, err := client.GetReadiness(context.Background(), false)
+	if err != nil {
+		t.Fatalf("GetReadiness() error = %v", err)
+	}
+	if readiness.Ready {
+		t.Fatal("expected readiness to fail when code-primary alias is missing")
+	}
+	if len(readiness.MissingModels) != 1 || readiness.MissingModels[0] != "code-primary" {
+		t.Fatalf("missing_models = %#v, want [code-primary]", readiness.MissingModels)
+	}
+	if readiness.AliasChecks[2].Status != "missing_alias" {
+		t.Fatalf("code-primary alias status = %q, want missing_alias", readiness.AliasChecks[2].Status)
 	}
 }
