@@ -117,6 +117,7 @@ $DOTFILES_DIR/scripts/hg-claude-launch.sh|$HOME/.local/bin/hg-claude-launch.sh
 $DOTFILES_DIR/scripts/hg-gemini-launch.sh|$HOME/.local/bin/hg-gemini-launch.sh
 $DOTFILES_DIR/scripts/hg-codex-worktree-prune.sh|$HOME/.local/bin/hg-codex-worktree-prune.sh
 $DOTFILES_DIR/scripts/hg-agent-home-sync.sh|$HOME/.local/bin/hg-agent-home-sync.sh
+$DOTFILES_DIR/scripts/hg-ollama-pull-resume.sh|$HOME/.local/bin/hg-ollama-pull-resume.sh
 $DOTFILES_DIR/scripts/theme-sync.sh|$HOME/.local/bin/theme-sync
 $DOTFILES_DIR/scripts/hyprpm-bootstrap.sh|$HOME/.local/bin/hyprpm-bootstrap
 EOF
