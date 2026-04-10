@@ -1413,13 +1413,15 @@ if $RUN_TOOLS; then
   sync_managed_workspace_tools
 fi
 
-if $RUN_SKILLS || $RUN_TOOLS; then
-  sync_antigravity_home_state
-fi
-
 if $RUN_SKILLS; then
   sync_claude_home_context
   sync_gemini_home_context
+fi
+
+# Antigravity metadata records the managed home overlays, so it must run after
+# Claude/Gemini home context writes when skills are in scope.
+if $RUN_SKILLS || $RUN_TOOLS; then
+  sync_antigravity_home_state
 fi
 
 if $RUN_SKILLS && $CHECK_GLOBAL_TARGETS; then
