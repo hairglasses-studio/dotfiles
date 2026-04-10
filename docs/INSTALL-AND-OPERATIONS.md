@@ -15,6 +15,12 @@ What it does:
 - creates the managed symlink surface into the user config directories
 - supports `--check` for validation and `--print-link-specs` for machine-readable link inventory
 
+Current `--check` contract:
+
+- accepts the current repo checkout and the primary managed checkout when the check is run from another worktree of the same git repo
+- distinguishes repo-owned symlinks from writable config roots such as `~/.config/eww` and `~/.config/hyprshell`
+- reports generated runtime state such as `~/.local/state/hypr/monitors.dynamic.conf` and `~/.local/state/kitty/sessions` separately from broken link targets
+
 What it does not do:
 
 - deploy `/etc` configuration directly
@@ -161,6 +167,10 @@ Examples:
 bash ./scripts/hg --help
 bash ./scripts/hg doctor
 bash ./scripts/hg config --help
+bash ./scripts/hg desktop status
+bash ./scripts/hg desktop preset save dual-dock
+bash ./scripts/hg desktop layout save code-review --launch kitty='kitty --class kitty'
+bash ./scripts/hg desktop project open ~/hairglasses-studio/dotfiles --monitor dual-dock --layout code-review --dry-run
 ```
 
 ## Why this guide exists

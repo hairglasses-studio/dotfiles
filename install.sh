@@ -11,6 +11,8 @@ BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 BACKUP_CREATED=false
 CHECK_ONLY=false
 PRINT_LINK_SPECS=false
+DOTFILES_TOPLEVEL="$DOTFILES_DIR"
+DOTFILES_GIT_COMMON_DIR=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -20,6 +22,15 @@ while [[ $# -gt 0 ]]; do
     esac
     shift
 done
+
+if git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    DOTFILES_TOPLEVEL="$(git -C "$DOTFILES_DIR" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$DOTFILES_DIR")"
+    _dotfiles_common_dir="$(git -C "$DOTFILES_DIR" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+    if [[ -n "$_dotfiles_common_dir" ]]; then
+        DOTFILES_GIT_COMMON_DIR="$(cd "$DOTFILES_DIR" && cd "$_dotfiles_common_dir" 2>/dev/null && pwd -P || true)"
+    fi
+    unset _dotfiles_common_dir
+fi
 
 # ── Logging ─────────────────────────────────────
 _has_tte() { command -v tte &>/dev/null && [[ -t 1 ]]; }
@@ -197,6 +208,89 @@ print_link_specs() {
         print_linux_link_specs
         print_linux_systemd_link_specs
     fi
+}
+
+print_linux_writable_config_dirs() {
+    cat <<EOF
+$HOME/.config/eww|eww writable config dir
+$HOME/.config/hyprshell|hyprshell writable config dir
+EOF
+}
+
+print_linux_runtime_specs() {
+    cat <<EOF
+$HOME/.local/state/hypr/monitors.dynamic.conf|generated Hyprland monitor include|file|required
+$HOME/.local/state/kitty/sessions|kitty session state directory|dir|required
+$HOME/.local/state/dotfiles/desktop-control|desktop control state root|dir|optional
+$HOME/.local/state/dotfiles/desktop-control/notifications/history.jsonl|desktop notification history log|file|optional
+EOF
+}
+
+resolve_physical_path() {
+    local path="$1"
+    if command -v realpath >/dev/null 2>&1; then
+        realpath "$path" 2>/dev/null
+        return $?
+    fi
+    perl -MCwd=abs_path -e '
+        my $resolved = abs_path(shift);
+        exit 1 unless defined $resolved;
+        print "$resolved\n";
+    ' "$path" 2>/dev/null
+}
+
+path_relative_to_root() {
+    local root="$1" path="$2"
+    case "$path" in
+        "$root") printf '.\n' ;;
+        "$root"/*) printf '%s\n' "${path#$root/}" ;;
+        *) return 1 ;;
+    esac
+}
+
+same_repo_managed_target() {
+    local src="$1" dst="$2"
+    [[ -L "$dst" ]] || return 1
+    [[ -n "$DOTFILES_GIT_COMMON_DIR" ]] || return 1
+
+    local src_abs dst_abs src_rel dst_repo_root dst_rel dst_common_raw dst_common
+    src_abs="$(resolve_physical_path "$src")" || return 1
+    dst_abs="$(resolve_physical_path "$dst")" || return 1
+    src_rel="$(path_relative_to_root "$DOTFILES_TOPLEVEL" "$src_abs")" || return 1
+    dst_repo_root="$(git -C "$(dirname "$dst_abs")" rev-parse --show-toplevel 2>/dev/null)" || return 1
+    dst_common_raw="$(git -C "$dst_repo_root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
+    dst_common="$(cd "$dst_repo_root" && cd "$dst_common_raw" 2>/dev/null && pwd -P)" || return 1
+    [[ "$dst_common" == "$DOTFILES_GIT_COMMON_DIR" ]] || return 1
+    dst_rel="$(path_relative_to_root "$dst_repo_root" "$dst_abs")" || return 1
+    [[ "$src_rel" == "$dst_rel" ]]
+}
+
+linux_dir_allows_real_path() {
+    local path="$1"
+    case "$path" in
+        "$HOME/.config/hypr-dock"|\
+        "$HOME/.config/hyprdynamicmonitors"|\
+        "$HOME/.config/hyprland-autoname-workspaces")
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+path_is_package_managed() {
+    local path="$1"
+    command -v pacman >/dev/null 2>&1 || return 1
+
+    if pacman -Qo "$path" >/dev/null 2>&1; then
+        return 0
+    fi
+    [[ -d "$path" ]] || return 1
+
+    local child
+    while IFS= read -r child; do
+        pacman -Qo "$child" >/dev/null 2>&1 && return 0
+    done < <(find "$path" -maxdepth 2 -mindepth 1 2>/dev/null | head -n 64)
+    return 1
 }
 
 # ── Homebrew ────────────────────────────────────
@@ -538,9 +632,13 @@ check_symlinks() {
         local src="$1" dst="$2"
         if [[ -L "$dst" ]] && [[ "$(readlink "$dst")" == "$src" ]]; then
             log_success "OK: $dst"
+        elif same_repo_managed_target "$src" "$dst"; then
+            log_success "OK (same repo): $dst"
         elif [[ -L "$dst" ]]; then
             log_error "Wrong target: $dst -> $(readlink "$dst") (expected $src)"
             errors=$((errors + 1))
+        elif [[ -d "$dst" ]] && linux_dir_allows_real_path "$dst" && path_is_package_managed "$dst"; then
+            log_success "OK (package-managed dir): $dst"
         elif [[ -e "$dst" ]]; then
             log_warn "Exists but not a symlink: $dst"
             errors=$((errors + 1))
@@ -548,6 +646,36 @@ check_symlinks() {
             log_error "Missing: $dst"
             errors=$((errors + 1))
         fi
+    }
+
+    check_linux_writable_dirs() {
+        local path label
+        log_info "Checking writable config roots..."
+        while IFS='|' read -r path label; do
+            [[ -n "$path" ]] || continue
+            if [[ -d "$path" ]]; then
+                log_success "OK ($label): $path"
+            elif [[ -L "$path" ]]; then
+                log_warn "Expected writable dir, found symlink: $path -> $(readlink "$path")"
+            else
+                log_warn "Missing writable dir: $path"
+            fi
+        done < <(print_linux_writable_config_dirs)
+    }
+
+    check_linux_runtime_paths() {
+        local path label kind requirement
+        log_info "Checking generated runtime state..."
+        while IFS='|' read -r path label kind requirement; do
+            [[ -n "$path" ]] || continue
+            if [[ "$kind" == "dir" && -d "$path" ]] || [[ "$kind" == "file" && -f "$path" ]]; then
+                log_success "OK ($label): $path"
+            elif [[ "$requirement" == "required" ]]; then
+                log_warn "Missing generated runtime $kind: $path"
+            else
+                log_info "Generated runtime $kind not created yet: $path"
+            fi
+        done < <(print_linux_runtime_specs)
     }
 
     check_link_if_present() {
@@ -570,6 +698,8 @@ check_symlinks() {
 
     if [[ "$OS" == "Linux" ]]; then
         log_info "Checking systemd user services..."
+        check_linux_writable_dirs
+        check_linux_runtime_paths
     fi
 
     if [[ "$OS" == "Darwin" ]]; then
