@@ -42,6 +42,8 @@ tags_url="${OLLAMA_BASE_URL%/}/api/tags"
 ps_url="${OLLAMA_BASE_URL%/}/api/ps"
 generate_url="${OLLAMA_BASE_URL%/}/api/generate"
 embed_url="${OLLAMA_BASE_URL%/}/api/embed"
+anthropic_messages_url="$(hg_local_llm_v1_base_url)/messages"
+responses_url="$(hg_local_llm_v1_base_url)/responses"
 
 require_service_env() {
   local env_text="$1"
@@ -89,6 +91,45 @@ run_generate_exact() {
   hg_ok "Generate test passed for $model"
 }
 
+run_anthropic_messages_exact() {
+  local model="$1"
+  local expected="$2"
+  local prompt="$3"
+  local response_json response_text
+
+  response_json="$(curl -fsS "$anthropic_messages_url" \
+    -H 'Content-Type: application/json' \
+    -H "x-api-key: $OLLAMA_API_KEY" \
+    -H 'anthropic-version: 2023-06-01' \
+    -d "$(jq -cn \
+      --arg model "$model" \
+      --arg prompt "$prompt" \
+      '{model: $model, max_tokens: 64, messages: [{role: "user", content: $prompt}]}')")"
+
+  response_text="$(jq -r '[.content[]? | .text // empty] | join(" ")' <<<"$response_json" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+  [[ "$response_text" == *"$expected"* ]] || hg_die "Anthropic compatibility test for $model did not contain expected token $expected"
+  hg_ok "Anthropic compatibility test passed for $model"
+}
+
+run_responses_exact() {
+  local model="$1"
+  local expected="$2"
+  local prompt="$3"
+  local response_json response_text
+
+  response_json="$(curl -fsS "$responses_url" \
+    -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer $OLLAMA_API_KEY" \
+    -d "$(jq -cn \
+      --arg model "$model" \
+      --arg prompt "$prompt" \
+      '{model: $model, input: $prompt}')")"
+
+  response_text="$(jq -r '(.output_text // .output[0].content[0].text // empty)' <<<"$response_json" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+  [[ "$response_text" == *"$expected"* ]] || hg_die "Responses compatibility test for $model did not contain expected token $expected"
+  hg_ok "Responses compatibility test passed for $model"
+}
+
 systemctl is-active --quiet ollama || hg_die "ollama service is not active"
 hg_ok "ollama service is active"
 
@@ -134,6 +175,8 @@ done < <(hg_local_llm_code_alias_pairs)
 run_generate_exact "$OLLAMA_CHAT_MODEL" "CHAT_OK" "Reply with exactly CHAT_OK."
 run_generate_exact "$OLLAMA_FAST_MODEL" "FAST_CODE_OK" "Reply with exactly FAST_CODE_OK."
 run_generate_exact "$OLLAMA_CODE_MODEL" "CODE_OK" "Reply with exactly CODE_OK."
+run_anthropic_messages_exact "$OLLAMA_CHAT_MODEL" "ANTHROPIC_OK" "Reply with exactly ANTHROPIC_OK."
+run_responses_exact "$OLLAMA_FAST_MODEL" "RESPONSES_OK" "Reply with exactly RESPONSES_OK."
 
 if model_installed "$tags_json" "$OLLAMA_HIGH_CONTEXT_CODE_MODEL"; then
   run_generate_exact "$OLLAMA_HIGH_CONTEXT_CODE_MODEL" "HIGH_CONTEXT_CODE_OK" "Reply with exactly HIGH_CONTEXT_CODE_OK."
