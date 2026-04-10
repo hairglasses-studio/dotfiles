@@ -51,7 +51,7 @@ The server also exposes read-first workflow resources and prompt entrypoints for
 
 The canonical module now commits public contract snapshots under [`snapshots/contract`](./snapshots/contract) and regenerates the public server card at [`.well-known/mcp.json`](./.well-known/mcp.json). Current canonical snapshot counts:
 
-- `405` tools
+- `407` tools
 - `37` registered modules
 - `24` resources
 - `12` prompts
@@ -87,10 +87,12 @@ claude mcp call dotfiles desktop_form_fields '{"app":"Firefox","include_actions"
 claude mcp call dotfiles desktop_fill_form '{"app":"Firefox","preview":true,"fields":[{"name":"Email","text":"user@example.com"}]}'
 claude mcp call dotfiles desktop_find '{"app":"Firefox","name":"Email","role":"entry"}'
 claude mcp call dotfiles session_wait_for_element '{"session_id":"session-123","app":"Firefox","name":"Email","role":"entry","timeout":5}'
+claude mcp call dotfiles desktop_find '{"app":"Firefox","name":"Email","role":"entry"}'
+claude mcp call dotfiles session_wait_for_element '{"session_id":"session-123","app":"Firefox","name":"Email","role":"entry","timeout":5}'
 
 # Enumerate tracked session handles and inspect one session before driving it
 claude mcp call dotfiles session_list '{}'
-claude mcp call dotfiles session_wait_ready '{"session_id":"session-123","timeout":10}'
+claude mcp call dotfiles session_wait_ready '{"session_id":"session-123","timeout":5}'
 claude mcp call dotfiles session_status '{"session_id":"session-123"}'
 claude mcp call dotfiles session_list_apps '{"session_id":"session-123"}'
 claude mcp call dotfiles session_read_log '{"session_id":"session-123","lines":40}'
@@ -146,7 +148,7 @@ The canonical source treats the committed snapshot bundle as the public surface 
 - `make contract-diff` summarizes surface deltas against a base ref
 - `make publish-check` runs vet, tests, contract validation, and release-parity checks together
 - `make host-smoke` checks Hyprland, semantic AT-SPI, session clipboard/screenshot/runtime prerequisites, device basics, and GitHub CLI availability; `make host-smoke-strict` turns missing and skipped checks into failures for prepared runners
-- The publish-guard and release workflows emit `make contract-diff` summaries into CI step summaries and uploaded artifacts; the standalone mirror release also appends the diff into the GitHub release body
+- The publish-guard and release workflows emit `make contract-diff` summaries into CI step summaries and uploaded artifacts; the release workflow also appends the diff into the GitHub release body
 
 Exact per-tool counts should come from the snapshot bundle rather than prose. The current surface domains include:
 
