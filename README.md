@@ -163,8 +163,7 @@ All MCP tools are consolidated under `mcp/` (7 Go modules + 3 JS servers via `go
 | `systemd-mcp` | 10 | Systemd unit management |
 | `tmux-mcp` | 11 | Tmux session management |
 | `process-mcp` | 8 | Process debugging and port investigation |
-| `mapitall` | 30+ | Controller/MIDI mapping engine |
-| `mapping` | 20+ | Input mapping profiles |
+| `mapitall` | 30+ | Controller/MIDI mapping engine and managed profile catalog |
 
 All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
 Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
