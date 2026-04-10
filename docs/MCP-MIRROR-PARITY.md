@@ -29,6 +29,15 @@ For `dotfiles-mcp`, also refresh the dedicated projection plan:
 bash ./scripts/hg-dotfiles-mcp-projection.sh check
 ```
 
+If a local standalone mirror is managed through a bare repo and its local
+`refs/heads/main` may have drifted behind `refs/remotes/origin/main`, run the
+bare-mirror hygiene path:
+
+```bash
+bash ./scripts/sync-standalone-mcp-repos.sh hygiene --repos=dotfiles-mcp
+bash ./scripts/sync-standalone-mcp-repos.sh hygiene --repair-bare-main --repos=dotfiles-mcp
+```
+
 Only mirrors with `sync_strategy: tree_sync` are safe to mutate through the generic
 `mcp-mirror.sh` and `sync-standalone-mcp-repos.sh` rsync path. Mirrors marked
 `manual_projection` need a dedicated repo-local projection or packaging workflow.

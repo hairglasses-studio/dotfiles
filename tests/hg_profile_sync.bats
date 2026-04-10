@@ -764,3 +764,54 @@ EOF
     assert_line --index 1 "--canonical"
     assert_line --index 3 "--standalone"
 }
+
+@test "sync-standalone-mcp-repos: hygiene flags stale local main in bare mirror repos" {
+    write_manifest "mirror-repo" "mirror" "\"canonical-src\""
+    mkdir -p "${TEST_ROOT}/canonical-src"
+
+    git init -q "${TEST_ROOT}/origin-repo"
+    git -C "${TEST_ROOT}/origin-repo" config user.name "Codex Test"
+    git -C "${TEST_ROOT}/origin-repo" config user.email "codex@example.com"
+    printf 'one\n' > "${TEST_ROOT}/origin-repo/README.md"
+    git -C "${TEST_ROOT}/origin-repo" add README.md
+    git -C "${TEST_ROOT}/origin-repo" commit -qm "initial"
+    git -C "${TEST_ROOT}/origin-repo" branch -M main
+
+    git clone --bare "${TEST_ROOT}/origin-repo" "${TEST_ROOT}/mirror-repo" >/dev/null 2>&1
+
+    printf 'two\n' >> "${TEST_ROOT}/origin-repo/README.md"
+    git -C "${TEST_ROOT}/origin-repo" commit -am "advance" -q
+    git -C "${TEST_ROOT}/mirror-repo" fetch origin main:refs/remotes/origin/main >/dev/null 2>&1
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/sync-standalone-mcp-repos.sh" hygiene --repos=mirror-repo
+    assert_failure
+    assert_output --partial "bare main stale"
+}
+
+@test "sync-standalone-mcp-repos: hygiene can repair stale local main in bare mirror repos" {
+    write_manifest "mirror-repo" "mirror" "\"canonical-src\""
+    mkdir -p "${TEST_ROOT}/canonical-src"
+
+    git init -q "${TEST_ROOT}/origin-repo"
+    git -C "${TEST_ROOT}/origin-repo" config user.name "Codex Test"
+    git -C "${TEST_ROOT}/origin-repo" config user.email "codex@example.com"
+    printf 'one\n' > "${TEST_ROOT}/origin-repo/README.md"
+    git -C "${TEST_ROOT}/origin-repo" add README.md
+    git -C "${TEST_ROOT}/origin-repo" commit -qm "initial"
+    git -C "${TEST_ROOT}/origin-repo" branch -M main
+
+    git clone --bare "${TEST_ROOT}/origin-repo" "${TEST_ROOT}/mirror-repo" >/dev/null 2>&1
+
+    printf 'two\n' >> "${TEST_ROOT}/origin-repo/README.md"
+    git -C "${TEST_ROOT}/origin-repo" commit -am "advance" -q
+    git -C "${TEST_ROOT}/mirror-repo" fetch origin main:refs/remotes/origin/main >/dev/null 2>&1
+
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_REAL}/sync-standalone-mcp-repos.sh" hygiene --repair-bare-main --repos=mirror-repo
+    assert_success
+    assert_output --partial "bare main in sync"
+    assert_output --partial "1 bare mirror repos repaired"
+
+    run git -C "${TEST_ROOT}/mirror-repo" rev-parse refs/heads/main refs/remotes/origin/main
+    assert_success
+    assert_line --index 0 "${lines[1]}"
+}
