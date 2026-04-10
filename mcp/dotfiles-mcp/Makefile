@@ -1,4 +1,4 @@
-.PHONY: build test vet contract-snapshot contract-check contract-diff host-smoke release-parity publish-check
+.PHONY: build test vet contract-snapshot contract-check contract-diff host-smoke host-smoke-strict release-parity publish-check
 
 GO ?= go
 GO_RUN := env GOWORK=off $(GO)
@@ -23,6 +23,9 @@ contract-diff:
 
 host-smoke:
 	bash ./scripts/host-smoke.sh
+
+host-smoke-strict:
+	bash ./scripts/host-smoke.sh --strict-missing --strict-skip
 
 release-parity:
 	bash ./scripts/release-parity.sh
