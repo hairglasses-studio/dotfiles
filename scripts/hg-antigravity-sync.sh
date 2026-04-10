@@ -172,6 +172,19 @@ hg_require jq mktemp diff find sort awk realpath cmp /usr/bin/antigravity
 
 WORKSPACE_ROOT="$(cd "$WORKSPACE_ROOT" && pwd)"
 ROOT_MCP_PATH="${ROOT_MCP_PATH:-$WORKSPACE_ROOT/.mcp.json}"
+WORKSPACE_OWNER="${HG_WORKSPACE_OWNER:-$(hg_workspace_owner "$WORKSPACE_ROOT")}"
+WORKSPACE_HOME="${HG_WORKSPACE_HOME:-$(hg_workspace_owner_home "$WORKSPACE_OWNER" "$WORKSPACE_ROOT")}"
+[[ -n "${HG_ANTIGRAVITY_DIR:-}" ]] || ANTIGRAVITY_DIR="$WORKSPACE_HOME/.gemini/antigravity"
+[[ -n "${HG_ANTIGRAVITY_MCP_CONFIG_PATH:-}" ]] || ANTIGRAVITY_MCP_PATH="$ANTIGRAVITY_DIR/mcp_config.json"
+[[ -n "${HG_ANTIGRAVITY_GLOBAL_WORKFLOWS_DIR:-}" ]] || ANTIGRAVITY_GLOBAL_WORKFLOWS_DIR="$ANTIGRAVITY_DIR/global_workflows"
+[[ -n "${HG_ANTIGRAVITY_METADATA_PATH:-}" ]] || ANTIGRAVITY_METADATA_PATH="$ANTIGRAVITY_DIR/.hg-antigravity-sync.json"
+[[ -n "${HG_ANTIGRAVITY_ECOSYSTEM_METADATA_PATH:-}" ]] || ANTIGRAVITY_ECOSYSTEM_METADATA_PATH="$ANTIGRAVITY_DIR/.hg-antigravity-ecosystem.json"
+[[ -n "${HG_ANTIGRAVITY_SETTINGS_PATH:-}" ]] || ANTIGRAVITY_SETTINGS_PATH="$WORKSPACE_HOME/.config/Antigravity/User/settings.json"
+[[ -n "${HG_ANTIGRAVITY_ENV_MANIFEST_PATH:-}" ]] || ANTIGRAVITY_ENV_MANIFEST_PATH="$WORKSPACE_HOME/.config/antigravity/env-sources.json"
+[[ -n "${HG_ANTIGRAVITY_LEGACY_ENV_PATH:-}" ]] || ANTIGRAVITY_LEGACY_ENV_PATH="$WORKSPACE_HOME/.config/antigravity/env.sh"
+[[ -n "${HG_ANTIGRAVITY_WRAPPER_PATH:-}" ]] || ANTIGRAVITY_WRAPPER_PATH="$WORKSPACE_HOME/.local/bin/antigravity-managed"
+[[ -n "${HG_ANTIGRAVITY_DESKTOP_PATH:-}" ]] || ANTIGRAVITY_DESKTOP_PATH="$WORKSPACE_HOME/.local/share/applications/antigravity.desktop"
+[[ -n "${HG_ANTIGRAVITY_HOME_DOC_PATH:-}" ]] || ANTIGRAVITY_HOME_DOC_PATH="$ANTIGRAVITY_DIR/GEMINI.md"
 [[ -d "$WORKSPACE_ROOT" ]] || hg_die "Workspace root not found: $WORKSPACE_ROOT"
 [[ -f "$ROOT_MCP_PATH" ]] || hg_die "Shared root MCP file not found: $ROOT_MCP_PATH"
 
@@ -186,8 +199,8 @@ trap 'rm -rf "$tmpdir"' EXIT
 
 expand_home_tokens() {
   local value="$1"
-  value="${value//\$\{HOME\}/$HOME}"
-  value="${value//\$HOME/$HOME}"
+  value="${value//\$\{HOME\}/$WORKSPACE_HOME}"
+  value="${value//\$HOME/$WORKSPACE_HOME}"
   printf '%s\n' "$value"
 }
 
@@ -209,7 +222,7 @@ json_string_array_from_lines() {
 
 normalize_env_json() {
   local env_json="$1"
-  jq -c --arg home "$HOME" '
+  jq -c --arg home "$WORKSPACE_HOME" '
     (if type == "object" then . else {} end)
     | with_entries(
         .value |= if type == "string"
@@ -1126,7 +1139,7 @@ sync_permission_preset
 remove_stale_workspace_artifacts
 
 if [[ -x "$ECOSYSTEM_SYNC_SCRIPT" ]]; then
-  "$ECOSYSTEM_SYNC_SCRIPT" "${MODE_ARGS[@]}"
+  env HOME="$WORKSPACE_HOME" HG_WORKSPACE_OWNER="$WORKSPACE_OWNER" HG_WORKSPACE_HOME="$WORKSPACE_HOME" "$ECOSYSTEM_SYNC_SCRIPT" "${MODE_ARGS[@]}"
 fi
 
 remove_legacy_global_workspace_workflows
