@@ -145,6 +145,24 @@ _config_cmd_check() {
     printf "  %s%-18s%s %smissing startup_session none%s\n" "$HG_CYAN" "kitty session" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
   fi
 
+  if grep -Fq '$HOME/.local/bin/kitty-dev-launch' "$HG_DOTFILES/hyprland/hyprland.conf" \
+    && grep -Fq '$HOME/.local/bin/kitty-visual-launch' "$HG_DOTFILES/hyprland/hyprland.conf" \
+    && grep -Fq '$HOME/.local/bin/kitty-visual-launch --class=scratchpad' "$HG_DOTFILES/pypr/config.toml" \
+    && grep -Fq '$HOME/.local/bin/kitty-visual-launch --class=scratchpad' "$HG_DOTFILES/hyprland/pyprland.toml"; then
+    printf "  %s%-18s%s %smanaged wrappers%s\n" "$HG_CYAN" "hypr surfaces" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+  else
+    printf "  %s%-18s%s %slauncher drift%s\n" "$HG_CYAN" "hypr surfaces" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+  fi
+
+  if grep -Fq 'kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh' "$HG_DOTFILES/juhradial/config.json" \
+    && grep -Fq 'kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh' "$HG_DOTFILES/juhradial/profiles.json" \
+    && grep -Fq 'kitty-visual-launch' "$HG_DOTFILES/ironbar/config.toml" \
+    && grep -Fq 'kitty-visual-launch' "$HG_DOTFILES/makima/Microsoft Xbox Series S|X Controller.toml"; then
+    printf "  %s%-18s%s %smanaged wrappers%s\n" "$HG_CYAN" "aux launchers" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+  else
+    printf "  %s%-18s%s %slauncher drift%s\n" "$HG_CYAN" "aux launchers" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+  fi
+
   if grep -Eq 'dotfiles-kitty-save-session\.(service|timer)' "$HG_DOTFILES/install.sh" "$HG_DOTFILES/manjaro/install.sh"; then
     printf "  %s%-18s%s %sinstaller enables save-session%s\n" "$HG_CYAN" "kitty saver" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
   else

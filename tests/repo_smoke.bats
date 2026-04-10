@@ -36,6 +36,11 @@ teardown() {
     assert_success
 }
 
+@test "launcher consumers stay pinned to the managed kitty wrappers" {
+    run bash -lc "grep -F '\$HOME/.local/bin/kitty-dev-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/pypr/config.toml' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/hyprland/pyprland.toml' && grep -F 'kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh' '${DOTFILES_DIR}/juhradial/config.json' '${DOTFILES_DIR}/juhradial/profiles.json' && grep -F 'kitty-visual-launch' '${DOTFILES_DIR}/ironbar/config.toml' '${DOTFILES_DIR}/makima/Microsoft Xbox Series S|X Controller.toml'"
+    assert_success
+}
+
 @test "install.sh rejects unknown flags with exit code 2" {
     run bash "${DOTFILES_DIR}/install.sh" --definitely-not-a-real-flag
     assert_failure
