@@ -10,12 +10,15 @@ StartLimitBurst=5
 
 [Service]
 Type=simple
+ExecStartPre=/usr/bin/env sh -c 'mkdir -p "%h/.local/state/juhradial"'
 ExecStart=%h/.local/bin/juhradiald
 Restart=on-abnormal
 RestartSec=5s
 WatchdogSec=0
-Environment=RUST_LOG=info
+Environment=RUST_LOG=warn,juhradiald::window_tracker=error
 Environment=RUST_BACKTRACE=1
+StandardOutput=append:%h/.local/state/juhradial/juhradiald.log
+StandardError=append:%h/.local/state/juhradial/juhradiald.log
 NoNewPrivileges=yes
 MemoryMax=100M
 CPUQuota=50%
