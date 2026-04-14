@@ -58,6 +58,16 @@ remove_file_if_present() {
     return 1
 }
 
+quarantine_dbus_service_file() {
+    local target="$1" reason="$2" quarantined="${1}.disabled-by-dotfiles"
+    if sudo test -f "$target"; then
+        sudo mv "$target" "$quarantined"
+        echo "  Quarantined D-Bus service file $(basename "$target") ($reason)"
+        return 0
+    fi
+    return 1
+}
+
 deploy_tree() {
     local src_root="$1" dst_root="$2" label="$3"
     local changed=1
@@ -91,6 +101,7 @@ bluetooth_changed=false
 udev_changed=false
 systemd_changed=false
 resolved_changed=false
+dbus_changed=false
 openlinkhub_changed=false
 
 # sysctl
@@ -204,6 +215,33 @@ if $resolved_changed; then
     else
         note_follow_up "systemd-resolved config changed, but systemd-resolved.service was not found"
     fi
+fi
+
+dbus_service_root="$DOTFILES/etc/dbus-1/services"
+if [[ -d "$dbus_service_root" ]]; then
+    if deploy_tree "$dbus_service_root" /etc/dbus-1/services "dbus-1/services"; then
+        any_changes=true
+        dbus_changed=true
+    fi
+fi
+
+for service_file in \
+    /usr/share/dbus-1/services/org.erikreider.swaync.service \
+    /usr/share/dbus-1/services/org.kde.kscreen.service \
+    /usr/share/dbus-1/services/org.kde.plasma.Notifications.service \
+    /usr/share/dbus-1/services/org.xfce.Thunar.FileManager1.service \
+    /usr/share/dbus-1/services/org.xfce.Tumbler.Cache1.service \
+    /usr/share/dbus-1/services/org.xfce.Tumbler.Manager1.service \
+    /usr/share/dbus-1/services/org.xfce.Tumbler.Thumbnailer1.service
+do
+    if quarantine_dbus_service_file "$service_file" "canonical override in /etc/dbus-1/services"; then
+        any_changes=true
+        dbus_changed=true
+    fi
+done
+
+if $dbus_changed; then
+    note_follow_up "D-Bus service filenames normalized; restart affected desktop apps or relogin to fully eliminate broker filename warnings"
 fi
 
 if $bluetooth_changed; then
