@@ -35,6 +35,14 @@ if ! wait_for_wayland "$wait_secs"; then
   exit 1
 fi
 
+state_root="${XDG_STATE_HOME:-$HOME/.local/state}/ironbar"
+mkdir -p "$state_root"
+raw_log_path="${IRONBAR_STDERR_LOG_PATH:-$state_root/ironbar.stderr.log}"
+touch "$raw_log_path"
+
+export IRONBAR_LOG="${IRONBAR_LOG:-warn}"
+export IRONBAR_FILE_LOG="${IRONBAR_FILE_LOG:-warn}"
+
 if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
   rm -f "${XDG_RUNTIME_DIR%/}/ironbar-ipc.sock"
 fi
@@ -48,6 +56,7 @@ mkfifo "$stderr_fifo"
 
 {
   while IFS= read -r line; do
+    printf '[%s] %s\n' "$(date '+%F %T')" "$line" >>"$raw_log_path"
     case "$line" in
       *"Unable to locate workspace"*) continue ;;
       *"Unable to locate client"*) continue ;;
