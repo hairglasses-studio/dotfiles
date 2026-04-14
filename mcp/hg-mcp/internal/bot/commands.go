@@ -122,18 +122,6 @@ func getCommands() []*discordgo.ApplicationCommand {
 			Description: "Check bot latency",
 		},
 		{
-			Name:        "ai",
-			Description: "Ask the AI assistant a question",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "question",
-					Description: "Your question for the AI",
-					Required:    true,
-				},
-			},
-		},
-		{
 			Name:        "session",
 			Description: "Studio session management",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -369,7 +357,6 @@ func getCommandHandlers() map[string]CommandHandler {
 		"td-health":     handleTDHealth,
 		"lighting":      handleLighting,
 		"ping":          handlePing,
-		"ai":            handleAI,
 		"session":       handleSession,
 		"admin":         requireAdmin(handleAdmin),
 	}
@@ -423,11 +410,6 @@ func handleHelp(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Inline: true,
 			},
 			{
-				Name:   "/ai [question]",
-				Value:  "Ask the AI assistant",
-				Inline: true,
-			},
-			{
 				Name:   "/session start|end|status|log",
 				Value:  "Manage studio sessions",
 				Inline: true,
@@ -444,7 +426,7 @@ func handleHelp(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 			{
 				Name:   "@mention or DM",
-				Value:  "Chat with AI assistant",
+				Value:  "Get a quick reminder to use `/help`",
 				Inline: true,
 			},
 		},
@@ -846,63 +828,12 @@ func getStreamColor(streaming bool) int {
 
 // Package-level instances for use by command handlers
 var (
-	globalAIHandler     *AIHandler
 	globalSessionLogger *SessionLogger
 )
 
 // SetGlobalHandlers sets the global handlers for command use
-func SetGlobalHandlers(ai *AIHandler, session *SessionLogger) {
-	globalAIHandler = ai
+func SetGlobalHandlers(session *SessionLogger) {
 	globalSessionLogger = session
-}
-
-// handleAI handles the /ai command
-func handleAI(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	options := i.ApplicationCommandData().Options
-	if len(options) == 0 {
-		respondText(s, i, "Please provide a question.")
-		return
-	}
-
-	question := options[0].StringValue()
-
-	if globalAIHandler == nil || !globalAIHandler.IsConfigured() {
-		respondText(s, i, "AI assistant is not configured. Set `ANTHROPIC_API_KEY` to enable.")
-		return
-	}
-
-	// Defer response since AI might take a moment
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
-
-	// Get context and call AI
-	ctx := context.Background()
-	contextInfo := globalAIHandler.gatherContext(ctx, i.ChannelID, s)
-
-	fullPrompt := question
-	if contextInfo != "" {
-		fullPrompt = fmt.Sprintf("%s\n\n---\nUser question: %s", contextInfo, question)
-	}
-
-	messages := []anthropicMessage{{Role: "user", Content: fullPrompt}}
-
-	response, err := globalAIHandler.callClaude(ctx, messages)
-	if err != nil {
-		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-			Content: stringPtr(fmt.Sprintf("Error: %s", err.Error())),
-		})
-		return
-	}
-
-	// Truncate if needed
-	if len(response) > 2000 {
-		response = response[:1997] + "..."
-	}
-
-	s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-		Content: &response,
-	})
 }
 
 // handleSession handles the /session command

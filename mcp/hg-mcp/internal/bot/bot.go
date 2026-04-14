@@ -15,7 +15,6 @@ type Bot struct {
 	guildID       string
 	commands      []*discordgo.ApplicationCommand
 	handlers      map[string]CommandHandler
-	aiHandler     *AIHandler
 	sessionLogger *SessionLogger
 	notifier      *Notifier
 }
@@ -61,20 +60,12 @@ func New() (*Bot, error) {
 	// Create notifier
 	bot.notifier = NewNotifier(session)
 
-	// Create AI handler
-	bot.aiHandler = NewAIHandler(session)
-	if bot.aiHandler.IsConfigured() {
-		log.Println("AI handler configured with Anthropic API")
-	} else {
-		log.Println("AI handler not configured (set ANTHROPIC_API_KEY to enable)")
-	}
-
 	// Create session logger
 	bot.sessionLogger = NewSessionLogger(session, bot.notifier)
 	log.Println("Session logger initialized")
 
 	// Set global handlers for command use
-	SetGlobalHandlers(bot.aiHandler, bot.sessionLogger)
+	SetGlobalHandlers(bot.sessionLogger)
 
 	// Register event handlers
 	session.AddHandler(bot.ready)
@@ -181,13 +172,8 @@ func (b *Bot) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// Use AI handler if configured, otherwise fall back to simple response
-	if b.aiHandler != nil && b.aiHandler.IsConfigured() {
-		b.aiHandler.HandleMessage(s, m)
-	} else {
-		response := fmt.Sprintf("Hey %s! I'm the Aftrs Studio bot. Use `/help` to see available commands.", m.Author.Username)
-		s.ChannelMessageSend(m.ChannelID, response)
-	}
+	response := fmt.Sprintf("Hey %s! I'm the Aftrs Studio bot. Use `/help` to see available commands.", m.Author.Username)
+	s.ChannelMessageSend(m.ChannelID, response)
 }
 
 // Session returns the underlying Discord session (for external use)

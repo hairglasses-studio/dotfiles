@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
-	"time"
 )
 
 // LLMClient calls the Claude Messages API to improve prompts using a meta-prompt.
@@ -28,48 +26,15 @@ func resolveLLMBaseURL(cfg LLMConfig) string {
 	return strings.TrimRight(baseURL, "/")
 }
 
-func resolveLLMAPIKey(cfg LLMConfig) string {
-	if cfg.APIKeyEnv != "" {
-		if apiKey := strings.TrimSpace(os.Getenv(cfg.APIKeyEnv)); apiKey != "" {
-			return apiKey
-		}
-	}
-	if apiKey := strings.TrimSpace(os.Getenv("ANTHROPIC_API_KEY")); apiKey != "" {
-		return apiKey
-	}
-	return ""
-}
-
 func defaultLLMModel() string {
 	return "claude-sonnet-4-6"
 }
 
-// NewLLMClient creates a client from config. Returns nil if no API key is available.
+// NewLLMClient is intentionally disabled to conserve Anthropic budget for
+// active coding sessions.
 func NewLLMClient(cfg LLMConfig) *LLMClient {
-	baseURL := resolveLLMBaseURL(cfg)
-	apiKey := resolveLLMAPIKey(cfg)
-	if apiKey == "" {
-		return nil
-	}
-
-	model := cfg.Model
-	if model == "" {
-		model = defaultLLMModel()
-	}
-
-	timeout := cfg.Timeout
-	if timeout <= 0 {
-		timeout = 30 * time.Second
-	}
-
-	return &LLMClient{
-		APIKey:  apiKey,
-		Model:   model,
-		BaseURL: baseURL,
-		HTTPClient: &http.Client{
-			Timeout: timeout,
-		},
-	}
+	_ = cfg
+	return nil
 }
 
 // ImproveOptions configures the LLM improvement request.

@@ -198,14 +198,8 @@ func TestNewLLMClient_UsesConfiguredAPIKeyEnv(t *testing.T) {
 		APIKeyEnv: "CUSTOM_API_KEY",
 		BaseURL:   "https://api.example.invalid",
 	})
-	if client == nil {
-		t.Fatal("expected client")
-	}
-	if client.APIKey != "custom-key" {
-		t.Fatalf("client.APIKey = %q, want %q", client.APIKey, "custom-key")
-	}
-	if client.Model != "claude-sonnet-4-6" {
-		t.Fatalf("client.Model = %q, want %q", client.Model, "claude-sonnet-4-6")
+	if client != nil {
+		t.Fatal("expected nil client while Anthropic-backed enhancement is disabled")
 	}
 }
 
@@ -214,10 +208,7 @@ func TestNewLLMClient_UsesAnthropicFallback(t *testing.T) {
 	client := NewLLMClient(LLMConfig{
 		APIKeyEnv: "MISSING_KEY",
 	})
-	if client == nil {
-		t.Fatal("expected client")
-	}
-	if client.APIKey != "anthropic-key" {
-		t.Fatalf("client.APIKey = %q, want %q", client.APIKey, "anthropic-key")
+	if client != nil {
+		t.Fatal("expected nil client while Anthropic-backed enhancement is disabled")
 	}
 }
