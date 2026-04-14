@@ -103,6 +103,7 @@ systemd_changed=false
 resolved_changed=false
 dbus_changed=false
 openlinkhub_changed=false
+dbus_pacman_hook_changed=false
 
 # sysctl
 if [[ -f "$DOTFILES/etc/sysctl.d/99-workstation.conf" ]]; then
@@ -218,10 +219,27 @@ if $resolved_changed; then
 fi
 
 dbus_service_root="$DOTFILES/etc/dbus-1/services"
+dbus_hook_src="$DOTFILES/etc/pacman.d/hooks/95-dbus-service-filename-normalize.hook"
+dbus_hook_target="/etc/pacman.d/hooks/95-dbus-service-filename-normalize.hook"
+dbus_normalizer_src="$DOTFILES/scripts/dbus-service-filename-normalize.sh"
+dbus_normalizer_target="/usr/local/bin/dbus-service-filename-normalize.sh"
 if [[ -d "$dbus_service_root" ]]; then
     if deploy_tree "$dbus_service_root" /etc/dbus-1/services "dbus-1/services"; then
         any_changes=true
         dbus_changed=true
+    fi
+fi
+if [[ -f "$dbus_normalizer_src" ]]; then
+    if deploy_file_if_changed "$dbus_normalizer_src" "$dbus_normalizer_target" "usr/local/bin/dbus-service-filename-normalize.sh" 755; then
+        any_changes=true
+        dbus_changed=true
+    fi
+fi
+if [[ -f "$dbus_hook_src" ]]; then
+    if deploy_file_if_changed "$dbus_hook_src" "$dbus_hook_target" "pacman.d/hooks/95-dbus-service-filename-normalize.hook"; then
+        any_changes=true
+        dbus_changed=true
+        dbus_pacman_hook_changed=true
     fi
 fi
 
@@ -241,6 +259,12 @@ do
 done
 
 if $dbus_changed; then
+    if [[ -x "$dbus_normalizer_target" ]]; then
+        sudo "$dbus_normalizer_target" --quiet || true
+    fi
+    if $dbus_pacman_hook_changed; then
+        echo "  Installed pacman hook for D-Bus service filename normalization"
+    fi
     note_follow_up "D-Bus service filenames normalized; restart affected desktop apps or relogin to fully eliminate broker filename warnings"
 fi
 
