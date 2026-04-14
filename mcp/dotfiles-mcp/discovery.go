@@ -396,10 +396,10 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 				name    string
 				running bool
 			}{
-				{name: "hyprshell", running: processRunningExact("hyprshell")},
-				{name: "hypr-dock", running: processRunningExact("hypr-dock")},
-				{name: "hyprdynamicmonitors", running: processRunningExact("hyprdynamicmonitors")},
-				{name: "hyprland-autoname-workspaces", running: processRunningExact("hyprland-autoname-workspaces")},
+				{name: "hyprshell", running: systemdUserUnitActive("dotfiles-hyprshell.service") || processRunningExact("hyprshell")},
+				{name: "hypr-dock", running: systemdUserUnitActive("dotfiles-hypr-dock.service") || processRunningExact("hypr-dock")},
+				{name: "hyprdynamicmonitors", running: systemdUserUnitActive("dotfiles-hyprdynamicmonitors.service") || processRunningExact("hyprdynamicmonitors")},
+				{name: "hyprland-autoname-workspaces", running: systemdUserUnitActive("dotfiles-hyprland-autoname-workspaces.service") || processRunningExact("hyprland-autoname-workspaces")},
 			} {
 				if component.running {
 					shellDetails = append(shellDetails, component.name+" running")
