@@ -59,6 +59,7 @@ install_desktop_integration() {
 
   log "Installing desktop integration"
   install -Dm644 "$src_dir/packaging/juhradial-mx.desktop" "$app_dir/juhradial-mx.desktop"
+  install -Dm644 "$src_dir/packaging/juhradial-mx.desktop" "$app_dir/org.juhlabs.JuhRadialMX.desktop"
 
   if [[ -f "$src_dir/packaging/org.kde.juhradialmx.settings.desktop" ]]; then
     install -Dm644 \
