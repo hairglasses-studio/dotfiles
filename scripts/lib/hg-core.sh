@@ -59,6 +59,106 @@ hg_user_home() {
   getent passwd "$user" | cut -d: -f6
 }
 
+hg_user_uid() {
+  local user="${1:-}"
+  [[ -n "$user" ]] || return 1
+  id -u "$user"
+}
+
+hg_user_gid() {
+  local user="${1:-}"
+  [[ -n "$user" ]] || return 1
+  id -g "$user"
+}
+
+hg_user_runtime_dir() {
+  local user="${1:-}"
+  local uid
+  [[ -n "$user" ]] || return 1
+  uid="$(hg_user_uid "$user")" || return 1
+  printf '/run/user/%s\n' "$uid"
+}
+
+hg_user_bus_address() {
+  local user="${1:-}"
+  local runtime
+  [[ -n "$user" ]] || return 1
+  runtime="$(hg_user_runtime_dir "$user")" || return 1
+  printf 'unix:path=%s/bus\n' "$runtime"
+}
+
+hg_run_as_user() {
+  local user="${1:-}"
+  shift || true
+  [[ -n "$user" ]] || hg_die "hg_run_as_user requires a target user"
+  [[ $# -gt 0 ]] || hg_die "hg_run_as_user requires a command"
+
+  local owner_home runtime bus uid gid current_uid current_user
+  owner_home="$(hg_user_home "$user")"
+  [[ -n "$owner_home" ]] || hg_die "Failed to resolve home directory for user: $user"
+  runtime="$(hg_user_runtime_dir "$user")"
+  bus="$(hg_user_bus_address "$user")"
+  uid="$(hg_user_uid "$user")"
+  gid="$(hg_user_gid "$user")"
+  current_uid="${EUID:-$(id -u)}"
+  current_user="$(id -un)"
+
+  if [[ "$current_user" == "$user" ]]; then
+    env \
+      HOME="$owner_home" \
+      USER="$user" \
+      LOGNAME="$user" \
+      XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$runtime}" \
+      DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-$bus}" \
+      "$@"
+    return $?
+  fi
+
+  # Prefer setpriv for root->user hops: keeps env explicit without creating the
+  # extra PAM/audit session noise that runuser/sudo can trigger under logind.
+  if [[ "$current_uid" -eq 0 ]] && command -v setpriv >/dev/null 2>&1; then
+    env \
+      HOME="$owner_home" \
+      USER="$user" \
+      LOGNAME="$user" \
+      XDG_RUNTIME_DIR="$runtime" \
+      DBUS_SESSION_BUS_ADDRESS="$bus" \
+      setpriv --reuid "$uid" --regid "$gid" --init-groups "$@"
+    return $?
+  fi
+
+  if [[ "$current_uid" -eq 0 ]] && command -v runuser >/dev/null 2>&1; then
+    runuser -u "$user" -- env \
+      HOME="$owner_home" \
+      USER="$user" \
+      LOGNAME="$user" \
+      XDG_RUNTIME_DIR="$runtime" \
+      DBUS_SESSION_BUS_ADDRESS="$bus" \
+      "$@"
+    return $?
+  fi
+
+  if command -v sudo >/dev/null 2>&1; then
+    sudo -u "$user" -H env \
+      HOME="$owner_home" \
+      USER="$user" \
+      LOGNAME="$user" \
+      XDG_RUNTIME_DIR="$runtime" \
+      DBUS_SESSION_BUS_ADDRESS="$bus" \
+      "$@"
+    return $?
+  fi
+
+  hg_die "Cannot switch to user $user: need setpriv, runuser, or sudo"
+}
+
+hg_systemctl_user() {
+  local user="${1:-}"
+  shift || true
+  [[ -n "$user" ]] || hg_die "hg_systemctl_user requires a target user"
+  hg_run_as_user "$user" systemctl --user "$@"
+}
+
 # ── Paths ──────────────────────────────────────
 _hg_core_path="${BASH_SOURCE[0]:-$0}"
 _hg_core_dir="$(cd "$(dirname "$_hg_core_path")" && pwd)"
