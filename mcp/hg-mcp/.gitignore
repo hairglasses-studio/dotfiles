@@ -60,7 +60,6 @@ tfplan
 # Go binaries
 bin/
 /hg-mcp
-/hg-mcp-ollama-eval
 /aftrs
 aftrs-bot
 aftrs-mcp
