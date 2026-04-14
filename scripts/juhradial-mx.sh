@@ -56,6 +56,7 @@ fi
 
 juhradial_export_graphical_env
 if command -v systemd-run >/dev/null 2>&1; then
+  desktop_file="$(juhradial_desktop_file)"
   env \
     XDG_RUNTIME_DIR="$(juhradial_runtime_dir)" \
     DBUS_SESSION_BUS_ADDRESS="$(juhradial_user_bus)" \
@@ -72,6 +73,8 @@ if command -v systemd-run >/dev/null 2>&1; then
       HYPRLAND_INSTANCE_SIGNATURE="${HYPRLAND_INSTANCE_SIGNATURE:-}" \
       XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-}" \
       XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-}" \
+      GIO_LAUNCHED_DESKTOP_FILE="$desktop_file" \
+      GIO_LAUNCHED_DESKTOP_FILE_PID="$$" \
       python3 "$overlay_script" >/dev/null
 else
   nohup python3 "$overlay_script" </dev/null >/dev/null 2>&1 &

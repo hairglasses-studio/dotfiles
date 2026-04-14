@@ -112,6 +112,10 @@ juhradial_settings_script() {
   printf '%s\n' "$(juhradial_install_dir)/overlay/settings_dashboard.py"
 }
 
+juhradial_desktop_file() {
+  printf '%s\n' "${XDG_DATA_HOME:-$HOME/.local/share}/applications/org.juhlabs.JuhRadialMX.desktop"
+}
+
 juhradial_config_file() {
   printf '%s\n' "$(juhradial_config_dir)/config.json"
 }
