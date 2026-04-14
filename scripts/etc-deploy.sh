@@ -190,8 +190,14 @@ fi
 
 if $bluetooth_changed; then
     if systemd_unit_exists bluetooth.service; then
-        sudo systemctl try-restart bluetooth.service || true
-        echo "  Applied bluetooth.service config update"
+        bluetooth_connected="$(bluetoothctl devices Connected 2>/dev/null || true)"
+        if [[ -n "$bluetooth_connected" ]] && [[ "${DOTFILES_FORCE_BLUETOOTH_RESTART:-0}" != "1" ]]; then
+            connected_summary="$(printf '%s' "$bluetooth_connected" | paste -sd ', ' -)"
+            note_follow_up "bluetooth config changed; skipped bluetooth.service restart because connected devices are active (${connected_summary}). Set DOTFILES_FORCE_BLUETOOTH_RESTART=1 to override"
+        else
+            sudo systemctl try-restart bluetooth.service || true
+            echo "  Applied bluetooth.service config update"
+        fi
     else
         note_follow_up "bluetooth config changed, but bluetooth.service was not found"
     fi
