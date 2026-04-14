@@ -6,7 +6,7 @@ You are a research agent building a comprehensive search index of the Linux rici
 
 ## My Stack (for relevance scoring)
 
-I run: Hyprland, eww bar, foot terminal, Ghostty (138 GLSL shaders), zsh+starship, neovim, mako notifications, wofi launcher, hyprlock, catppuccin/Snazzy custom palette, Arch/Manjaro. Anything using these tools or cyberpunk/neon aesthetics is HIGH relevance. General Linux ricing with different tools is MEDIUM. X11-only or macOS-only is LOW.
+I run: Hyprland, eww bar, foot terminal, Ghostty (138 GLSL shaders), zsh+starship, neovim, mako notifications, wofi launcher, catppuccin/Snazzy custom palette, Arch/Manjaro. Anything using these tools or cyberpunk/neon aesthetics is HIGH relevance. General Linux ricing with different tools is MEDIUM. X11-only or macOS-only is LOW.
 
 ## Step 0: Setup
 
@@ -47,7 +47,7 @@ YAML frontmatter — every field required, use `null` for unknown:
     editor: "neovim"
     launcher: "fuzzel"
     notifications: "swaync"
-    lockscreen: "hyprlock"
+    lockscreen: null
     color_scheme: "custom"
     gtk_theme: null
     icon_theme: null
@@ -231,7 +231,7 @@ Theme framework repos go to `themes/`. Full dotfiles rices go to their WM direct
 ## Round 9: Components
 
 Queries:
-1. `mcp__github__search_repositories(query="hyprlock swaylock config theme sort:stars", perPage=30)`
+1. `mcp__github__search_repositories(query="swaylock lockscreen config theme sort:stars", perPage=30)`
 2. `mcp__github__search_repositories(query="rofi theme rice sort:stars", perPage=30)`
 3. `mcp__github__search_repositories(query="wofi fuzzel launcher config sort:stars", perPage=30)`
 4. `mcp__github__search_repositories(query="mako dunst swaync config sort:stars", perPage=30)`

@@ -72,6 +72,6 @@ Round 5: `nixos dotfiles flake`, `home-manager dotfiles`, `nixos hyprland rice`,
 Round 6: `awesome archlinux`, `arch linux rice tools`, `unixporn dotfiles`
 Round 7: `dotfile manager stow chezmoi yadm`, `linux ricing tool pywal wpgtk`
 Round 8: `catppuccin dotfiles rice`, `nord gruvbox theme dotfiles`, `dracula theme dotfiles linux`, `tokyo-night rose-pine dotfiles`, `pywal base16 flavor theme generator`
-Round 9: `hyprlock swaylock config theme`, `rofi theme rice collection`, `mako dunst swaync notification theme`, `sddm theme plymouth grub theme`, `cursor theme icon theme linux`
+Round 9: `swaylock lockscreen config theme`, `rofi theme rice collection`, `mako dunst swaync notification theme`, `sddm theme plymouth grub theme`, `cursor theme icon theme linux`
 
 All queries used `sort:stars` and `per_page=100`.

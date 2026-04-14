@@ -47,7 +47,7 @@ shell: "zsh"                # zsh | fish | bash | nushell | null
 editor: "neovim"            # neovim | vim | emacs | helix | null
 launcher: "wofi"            # rofi | wofi | fuzzel | dmenu | tofi | null
 notifications: "mako"       # mako | dunst | swaync | fnott | null
-lockscreen: "hyprlock"      # hyprlock | swaylock | i3lock | null
+lockscreen: null            # hyprlock | swaylock | i3lock | null
 color_scheme: "catppuccin-mocha"  # catppuccin-* | nord | gruvbox | dracula | tokyo-night | rose-pine | custom | null
 has_screenshots: true
 has_install_script: true
