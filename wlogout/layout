@@ -5,12 +5,6 @@
     "keybind": "e"
 }
 {
-    "label": "suspend",
-    "action": "systemctl suspend",
-    "text": "󰤄",
-    "keybind": "s"
-}
-{
     "label": "reboot",
     "action": "systemctl reboot",
     "text": "",
