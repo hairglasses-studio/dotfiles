@@ -137,6 +137,12 @@ fi
 
 # Bluetooth
 if [[ -f "$DOTFILES/etc/bluetooth/main.conf" ]]; then
+    bluetooth_dir_mode="$(stat -c '%a' /etc/bluetooth 2>/dev/null || true)"
+    sudo install -d -m 0555 /etc/bluetooth
+    if [[ "$bluetooth_dir_mode" != "555" ]]; then
+        any_changes=true
+        echo "  Normalized /etc/bluetooth directory permissions"
+    fi
     if deploy_file_if_changed "$DOTFILES/etc/bluetooth/main.conf" /etc/bluetooth/main.conf "bluetooth/main.conf"; then
         any_changes=true
         bluetooth_changed=true
