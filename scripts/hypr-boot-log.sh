@@ -26,7 +26,14 @@ sleep "$BOOT_DELAY_SECS"
 refresh_desktop_runtime_env
 BOOT_STARTED_AT="$(uptime -s 2>/dev/null || true)"
 if [[ -n "$BOOT_STARTED_AT" ]]; then
-    BOOT_WINDOW_END_AT="$(date -d "$BOOT_STARTED_AT + ${SYSTEM_BOOT_WINDOW_SECS} seconds" '+%F %T' 2>/dev/null || true)"
+    BOOT_STARTED_EPOCH="$(date -d "$BOOT_STARTED_AT" '+%s' 2>/dev/null || true)"
+    if [[ -n "${BOOT_STARTED_EPOCH:-}" ]]; then
+        BOOT_WINDOW_END_AT="$(
+            date -d "@$((BOOT_STARTED_EPOCH + SYSTEM_BOOT_WINDOW_SECS))" '+%F %T' 2>/dev/null || true
+        )"
+    else
+        BOOT_WINDOW_END_AT=""
+    fi
 else
     BOOT_WINDOW_END_AT=""
 fi
@@ -93,6 +100,7 @@ fi
         else
             journalctl -b -p warning..alert --no-pager 2>/dev/null
         fi \
+            | grep -v '^-- No entries --$' \
             | grep -viE "$SYSTEM_JOURNAL_IGNORE_MATCH" \
             | head -200 \
             || true
@@ -142,3 +150,4 @@ fi
 
 # Keep only last 10 boot logs
 ls -t "$LOG_DIR"/boot-*.log 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
+exit 0
