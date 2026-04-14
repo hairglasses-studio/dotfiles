@@ -163,18 +163,24 @@ if [[ "${needs_fetch_bootstrap}" -eq 1 ]]; then
   done
 fi
 
+echo "Boot profiles: ${PROFILES[*]}"
 remove_project_orphans
+echo "Running preflight (fetch_bootstrap=${needs_fetch_bootstrap})"
 "${ROOT_DIR}/scripts/preflight.sh" "${preflight_args[@]}"
 
 if [[ "${needs_fetch_bootstrap}" -eq 1 ]]; then
   echo "WireGuard placeholders detected; starting bootstrap fetch path without gluetun/jdownloader"
+  echo "Compose up services: ${up_services[*]}"
   docker compose "${compose_args[@]}" up -d --no-deps --remove-orphans "${up_services[@]}"
   ensure_fetch_bootstrap_network
 else
+  echo "Compose up services: all selected profiles"
   docker compose "${compose_args[@]}" up -d --remove-orphans
 fi
 
 # Refresh the Jellyfin container after the host FUSE mounts are confirmed live.
 # Existing bind mounts can hold stale rclone endpoints across stack restarts,
 # which then causes library scans to fail with "Transport endpoint is not connected".
+echo "Recreating jellyfin to refresh mount bindings"
 docker compose "${compose_args[@]}" up -d --no-deps --force-recreate jellyfin
+echo "Jellyfin boot stack ready"

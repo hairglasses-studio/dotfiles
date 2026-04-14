@@ -1,0 +1,179 @@
+diff --git a/daemon/src/battery.rs b/daemon/src/battery.rs
+index 7a33952..b11c388 100644
+--- a/daemon/src/battery.rs
++++ b/daemon/src/battery.rs
+@@ -493,6 +493,7 @@ pub async fn start_battery_updater_shared(
+     haptic_manager: crate::hidpp::SharedHapticManager,
+ ) {
+     let mut consecutive_errors = 0u32;
++    let mut saw_success = false;
+ 
+     // Initial update - get result first, then update state (don't hold lock across await)
+     let initial_result = {
+@@ -502,6 +503,7 @@ pub async fn start_battery_updater_shared(
+ 
+     match initial_result {
+         Ok((percentage, charging)) => {
++            saw_success = true;
+             let mut s = state.write().await;
+             s.percentage = percentage;
+             s.charging = charging;
+@@ -510,10 +512,16 @@ pub async fn start_battery_updater_shared(
+             tracing::info!(percentage, charging, "Initial battery state");
+         }
+         Err(e) => {
++            let error_text = e.to_string();
++            let transport_pending = error_text.contains("not connected");
+             let mut s = state.write().await;
+             s.available = false;
+-            s.error = Some(format!("{}", e));
+-            tracing::warn!(error = %e, "Failed initial battery query");
++            s.error = Some(error_text.clone());
++            if transport_pending {
++                tracing::info!("Initial battery query deferred until Logitech transport is ready");
++            } else {
++                tracing::warn!(error = %e, "Failed initial battery query");
++            }
+         }
+     }
+ 
+@@ -531,6 +539,7 @@ pub async fn start_battery_updater_shared(
+ 
+         match result {
+             Ok((percentage, charging)) => {
++                saw_success = true;
+                 consecutive_errors = 0;
+                 let mut s = state.write().await;
+                 s.percentage = percentage;
+@@ -541,11 +550,21 @@ pub async fn start_battery_updater_shared(
+             }
+             Err(e) => {
+                 consecutive_errors += 1;
++                let error_text = e.to_string();
++                let transport_pending = error_text.contains("not connected");
+                 let mut s = state.write().await;
+                 s.available = false;
+-                s.error = Some(format!("{}", e));
++                s.error = Some(error_text.clone());
+ 
+-                // Only log warning for first few errors, then go quiet
++                // Before first successful connection, treat transport-not-ready as expected startup churn.
++                if !saw_success && transport_pending {
++                    if consecutive_errors == 1 {
++                        tracing::info!("Battery query waiting for Logitech transport");
++                    }
++                    continue;
++                }
++
++                // Only log warning for first few errors, then go quiet.
+                 if consecutive_errors <= 3 {
+                     tracing::warn!(error = %e, "Failed to query battery (shared)");
+                 } else if consecutive_errors == 4 {
+diff --git a/daemon/src/hidraw.rs b/daemon/src/hidraw.rs
+index 441d083..1e93dc1 100644
+--- a/daemon/src/hidraw.rs
++++ b/daemon/src/hidraw.rs
+@@ -240,10 +240,6 @@ impl HidrawHandler {
+             .open(path)
+             .map_err(|e| {
+                 if e.kind() == io::ErrorKind::PermissionDenied {
+-                    tracing::error!(
+-                        "Permission denied opening {:?}. Make sure udev rules are installed.",
+-                        path
+-                    );
+                     HidrawError::PermissionDenied
+                 } else {
+                     HidrawError::IoError(e)
+diff --git a/daemon/src/main.rs b/daemon/src/main.rs
+index 29b5510..6efee6d 100644
+--- a/daemon/src/main.rs
++++ b/daemon/src/main.rs
+@@ -388,13 +388,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
+         run_evdev_loop(evdev_tx, suppressed_for_mx, hotplug_for_mx, evdev_config).await
+     });
+ 
+-    let generic_evdev_tx = event_tx.clone();
+-    let suppressed_for_generic = macro_evdev_codes.clone();
+-    let hotplug_for_generic = hotplug_notify.clone();
+-    let generic_evdev_config = shared_config.clone();
+-    let generic_evdev_handle = tokio::spawn(async move {
+-        run_generic_evdev_loop(generic_evdev_tx, suppressed_for_generic, hotplug_for_generic, generic_evdev_config).await
+-    });
++    let generic_evdev_handle = if device_mode == "generic" {
++        info!("Generic fallback enabled for current session");
++        let generic_evdev_tx = event_tx.clone();
++        let suppressed_for_generic = macro_evdev_codes.clone();
++        let hotplug_for_generic = hotplug_notify.clone();
++        let generic_evdev_config = shared_config.clone();
++        tokio::spawn(async move {
++            run_generic_evdev_loop(generic_evdev_tx, suppressed_for_generic, hotplug_for_generic, generic_evdev_config).await
++        })
++    } else {
++        info!("Generic fallback disabled while Logitech mode is active");
++        tokio::spawn(async move {
++            std::future::pending::<()>().await;
++        })
++    };
+ 
+     // Get screen bounds for edge clamping (query once at startup)
+     let screen_bounds = get_screen_bounds();
+@@ -505,6 +513,8 @@ async fn run_hidraw_loop(event_tx: mpsc::Sender<GestureEvent>, preferred_path: O
+     let mut handler = HidrawHandler::new(event_tx);
+     handler.set_macro_cids(macro_cids);
+     handler.set_shared_config(shared_config);
++    let mut awaiting_device = false;
++    let mut awaiting_permissions = false;
+ 
+     loop {
+         // Try to open - use preferred path from HidppDevice if available
+@@ -516,6 +526,14 @@ async fn run_hidraw_loop(event_tx: mpsc::Sender<GestureEvent>, preferred_path: O
+         };
+         match open_result {
+             Ok(()) => {
++                if awaiting_device {
++                    info!("hidraw device ready; resuming HID++ listener");
++                    awaiting_device = false;
++                }
++                if awaiting_permissions {
++                    info!("hidraw access ready; resuming HID++ listener");
++                    awaiting_permissions = false;
++                }
+                 info!("HID++ hidraw handler connected");
+ 
+                 // Run the event loop until error
+@@ -524,10 +542,14 @@ async fn run_hidraw_loop(event_tx: mpsc::Sender<GestureEvent>, preferred_path: O
+                         info!("HID++ event loop ended normally");
+                     }
+                     Err(HidrawError::DeviceNotFound) => {
++                        awaiting_device = true;
+                         warn!("HID++ device disconnected, will poll for reconnection...");
+                     }
+                     Err(HidrawError::PermissionDenied) => {
+-                        error!("Permission denied for hidraw device. Ensure udev rules are installed.");
++                        if !awaiting_permissions {
++                            info!("hidraw device present but access not ready yet; retrying");
++                            awaiting_permissions = true;
++                        }
+                     }
+                     Err(HidrawError::IoError(e)) => {
+                         error!("HID++ I/O error: {}. Will retry...", e);
+@@ -536,11 +558,16 @@ async fn run_hidraw_loop(event_tx: mpsc::Sender<GestureEvent>, preferred_path: O
+             }
+             Err(HidrawError::DeviceNotFound) => {
+                 // Device not found, this is expected during polling
+-                info!("Waiting for Bolt receiver hidraw device... (polling every {}s)", DEVICE_POLL_INTERVAL_SECS);
++                if !awaiting_device {
++                    info!("Waiting for Bolt receiver hidraw device... (polling every {}s)", DEVICE_POLL_INTERVAL_SECS);
++                    awaiting_device = true;
++                }
+             }
+             Err(HidrawError::PermissionDenied) => {
+-                error!("Permission denied accessing hidraw devices.");
+-                error!("Ensure udev rules are installed.");
++                if !awaiting_permissions {
++                    info!("hidraw device present but access not ready yet; retrying");
++                    awaiting_permissions = true;
++                }
+             }
+             Err(HidrawError::IoError(e)) => {
+                 error!("I/O error during hidraw scan: {}", e);

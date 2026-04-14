@@ -48,6 +48,41 @@ sync_tree() {
   cp -a "$src" "$dst"
 }
 
+install_desktop_integration() {
+  local data_home app_dir icon_theme_dir scalable_icon_dir large_icon_dir
+
+  data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+  app_dir="$data_home/applications"
+  icon_theme_dir="$data_home/icons/hicolor"
+  scalable_icon_dir="$icon_theme_dir/scalable/apps"
+  large_icon_dir="$icon_theme_dir/256x256/apps"
+
+  log "Installing desktop integration"
+  install -Dm644 "$src_dir/packaging/juhradial-mx.desktop" "$app_dir/juhradial-mx.desktop"
+
+  if [[ -f "$src_dir/packaging/org.kde.juhradialmx.settings.desktop" ]]; then
+    install -Dm644 \
+      "$src_dir/packaging/org.kde.juhradialmx.settings.desktop" \
+      "$app_dir/org.kde.juhradialmx.settings.desktop"
+  fi
+
+  if [[ -f "$src_dir/assets/juhradial-mx.svg" ]]; then
+    install -Dm644 "$src_dir/assets/juhradial-mx.svg" "$scalable_icon_dir/juhradial-mx.svg"
+  fi
+
+  if [[ -f "$src_dir/assets/devices/mx_master_4.png" ]]; then
+    install -Dm644 "$src_dir/assets/devices/mx_master_4.png" "$large_icon_dir/juhradial-mx.png"
+  fi
+
+  if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$app_dir" >/dev/null 2>&1 || true
+  fi
+
+  if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    gtk-update-icon-cache -q -t -f "$icon_theme_dir" >/dev/null 2>&1 || true
+  fi
+}
+
 apply_repo_patches() {
   local patch_dir patch
   patch_dir="$(juhradial_patch_dir)"
@@ -101,6 +136,7 @@ ln -sf "$DOTFILES_DIR/scripts/kitty-clipboard-action.sh" "$bin_dir/juhradial-kit
 ln -sf "$DOTFILES_DIR/scripts/kitty-font-wheel.sh" "$bin_dir/juhradial-kitty-font-wheel"
 sync_tree "$src_dir/overlay" "$install_dir/overlay"
 sync_tree "$src_dir/assets" "$install_dir/assets"
+install_desktop_integration
 
 if [[ "${JUHRADIAL_INSTALL_SKIP_SYNC:-0}" != "1" ]]; then
   "$SCRIPT_DIR/juhradial-sync.sh" --quiet
