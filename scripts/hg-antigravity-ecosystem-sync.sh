@@ -61,7 +61,7 @@ for arg in "$@"; do
   esac
 done
 
-hg_require jq git mktemp diff cmp curl awk sed find node npm getent runuser /usr/bin/antigravity
+hg_require jq git mktemp diff cmp curl awk sed find node npm getent /usr/bin/antigravity
 
 WORKSPACE_ROOT="$(cd "$WORKSPACE_ROOT" && pwd)"
 WORKSPACE_OWNER="${HG_WORKSPACE_OWNER:-$(hg_workspace_owner "$WORKSPACE_ROOT")}"
@@ -178,11 +178,6 @@ antigravity_target_owner() {
   printf '%s\n' "$WORKSPACE_OWNER"
 }
 
-antigravity_target_home() {
-  local owner="$1"
-  getent passwd "$owner" | cut -d: -f6
-}
-
 repo_uses_public_github_https() {
   local repo_url="$1"
   [[ "$repo_url" == https://github.com/* ]]
@@ -199,18 +194,10 @@ run_repo_git() {
 }
 
 run_antigravity_cli() {
-  local owner owner_home
+  local owner
   owner="$(antigravity_target_owner)"
   [[ "$owner" != "root" ]] || return 125
-  owner_home="$(antigravity_target_home "$owner")"
-  [[ -n "$owner_home" ]] || hg_die "Failed to resolve home directory for Antigravity owner: $owner"
-
-  if [[ "$(id -un)" == "$owner" ]]; then
-    HOME="$owner_home" /opt/Antigravity/bin/antigravity "$@"
-    return 0
-  fi
-
-  runuser -u "$owner" -- env HOME="$owner_home" /opt/Antigravity/bin/antigravity "$@"
+  hg_run_as_user "$owner" /opt/Antigravity/bin/antigravity "$@"
 }
 
 strip_frontmatter() {
