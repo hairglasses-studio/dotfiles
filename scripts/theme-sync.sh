@@ -65,51 +65,7 @@ mkdir -p \
   "$HOME/.config/wofi" \
   "$HOME/.config/wlogout"
 
-write_css_var_theme() {
-  local target="$1"
-  cat > "$target" <<EOF
-:root {
-  --theme-name: "${THEME_NAME}";
-  --ui-font: "${THEME_UI_FONT}";
-  --code-font: "${THEME_CODE_FONT}";
-  --icon-font: "${THEME_ICON_FONT}";
-  --theme-bg: $(hex_css "$THEME_BG");
-  --theme-bg-rgb: $(hex_to_rgb "$THEME_BG");
-  --theme-surface: $(hex_css "$THEME_SURFACE");
-  --theme-surface-rgb: $(hex_to_rgb "$THEME_SURFACE");
-  --theme-surface-alt: $(hex_css "$THEME_SURFACE_ALT");
-  --theme-surface-alt-rgb: $(hex_to_rgb "$THEME_SURFACE_ALT");
-  --theme-panel: $(hex_css "$THEME_PANEL");
-  --theme-panel-rgb: $(hex_to_rgb "$THEME_PANEL");
-  --theme-panel-strong: $(hex_css "$THEME_PANEL_STRONG");
-  --theme-panel-strong-rgb: $(hex_to_rgb "$THEME_PANEL_STRONG");
-  --theme-fg: $(hex_css "$THEME_FG");
-  --theme-fg-rgb: $(hex_to_rgb "$THEME_FG");
-  --theme-muted: $(hex_css "$THEME_MUTED");
-  --theme-muted-rgb: $(hex_to_rgb "$THEME_MUTED");
-  --theme-primary: $(hex_css "$theme_primary");
-  --theme-primary-rgb: $(hex_to_rgb "$theme_primary");
-  --theme-secondary: $(hex_css "$theme_secondary");
-  --theme-secondary-rgb: $(hex_to_rgb "$theme_secondary");
-  --theme-tertiary: $(hex_css "$theme_tertiary");
-  --theme-tertiary-rgb: $(hex_to_rgb "$theme_tertiary");
-  --theme-warning: $(hex_css "$THEME_WARNING");
-  --theme-warning-rgb: $(hex_to_rgb "$THEME_WARNING");
-  --theme-danger: $(hex_css "$THEME_DANGER");
-  --theme-danger-rgb: $(hex_to_rgb "$THEME_DANGER");
-  --theme-border: $(hex_css "$THEME_BORDER");
-  --theme-border-rgb: $(hex_to_rgb "$THEME_BORDER");
-  --theme-border-strong: $(hex_css "$THEME_BORDER_STRONG");
-  --theme-border-strong-rgb: $(hex_to_rgb "$THEME_BORDER_STRONG");
-  --radius-sm: ${THEME_RADIUS_SM};
-  --radius-md: ${THEME_RADIUS_MD};
-  --radius-lg: ${THEME_RADIUS_LG};
-  --shadow-panel: 0 24px 80px $(rgba_css "$THEME_BG" "0.65");
-}
-EOF
-}
-
-write_wofi_gtk_theme() {
+write_gtk_theme() {
   local target="$1"
   cat > "$target" <<EOF
 @define-color theme_bg $(hex_css "$THEME_BG");
@@ -132,18 +88,20 @@ EOF
 for target in \
   "$HOME/.config/hyprshell/theme.generated.css" \
   "$HOME/.config/swaync/theme.generated.css" \
+  "$HOME/.config/wofi/theme.generated.css" \
   "$HOME/.config/wlogout/theme.generated.css"
 do
-  write_css_var_theme "$target"
+  write_gtk_theme "$target"
 done
 
-write_wofi_gtk_theme "$HOME/.config/wofi/theme.generated.css"
-
 apply_runtime_theme_preferences() {
+  local desktop_marker
+
   export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-qt6ct}"
   export QT_QUICK_CONTROLS_MATERIAL_THEME="${QT_QUICK_CONTROLS_MATERIAL_THEME:-Dark}"
   export QT_QUICK_CONTROLS_UNIVERSAL_THEME="${QT_QUICK_CONTROLS_UNIVERSAL_THEME:-Dark}"
   unset QT_STYLE_OVERRIDE || true
+  desktop_marker="$(printf '%s:%s' "${XDG_CURRENT_DESKTOP:-}" "${DESKTOP_SESSION:-}" | tr '[:upper:]' '[:lower:]')"
 
   if command -v gsettings >/dev/null 2>&1; then
     gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark" >/dev/null 2>&1 || true
@@ -158,10 +116,10 @@ apply_runtime_theme_preferences() {
     xfconf-query -c xsettings -p /Gtk/CursorThemeName -n -t string -s "Bibata-Modern-Classic" >/dev/null 2>&1 || true
   fi
 
-  if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+  if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" && ( "$desktop_marker" == *plasma* || "$desktop_marker" == *kde* ) ]] && command -v plasma-apply-colorscheme >/dev/null 2>&1; then
     plasma-apply-colorscheme BreezeDark >/dev/null 2>&1 || true
   fi
-  if command -v plasma-apply-desktoptheme >/dev/null 2>&1; then
+  if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" && ( "$desktop_marker" == *plasma* || "$desktop_marker" == *kde* ) ]] && command -v plasma-apply-desktoptheme >/dev/null 2>&1; then
     plasma-apply-desktoptheme breeze-dark >/dev/null 2>&1 || true
   fi
 

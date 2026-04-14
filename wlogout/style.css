@@ -1,9 +1,9 @@
 @import url("theme.generated.css");
 
 window {
-    background: rgba(var(--theme-bg-rgb), 0.86);
-    font-family: var(--ui-font), var(--icon-font), monospace;
-    color: var(--theme-fg);
+    background: alpha(@theme_bg, 0.86);
+    font-family: "Maple Mono NF CN", "Symbols Nerd Font Mono", monospace;
+    color: @theme_fg;
 }
 
 button {
@@ -11,16 +11,16 @@ button {
     min-height: 172px;
     margin: 14px;
     padding: 24px;
-    border: 1px solid rgba(var(--theme-border-rgb), 0.92);
-    border-radius: var(--radius-lg);
+    border: 1px solid alpha(@theme_border, 0.92);
+    border-radius: 24px;
     background:
-        linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.08), transparent 36%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
-    color: var(--theme-fg);
+        linear-gradient(135deg, alpha(@theme_primary, 0.08), alpha(@theme_primary, 0) 36%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
+    color: @theme_fg;
     font-size: 20px;
     font-weight: 700;
     letter-spacing: 1px;
-    box-shadow: var(--shadow-panel);
+    box-shadow: 0 24px 80px alpha(@theme_bg, 0.65);
     transition: all 0.22s ease;
 }
 
@@ -29,62 +29,60 @@ button:focus {
 }
 
 button:hover {
-    transform: translateY(-4px);
-    border-color: rgba(var(--theme-primary-rgb), 0.55);
-    box-shadow: 0 28px 56px rgba(var(--theme-bg-rgb), 0.42);
+    border-color: alpha(@theme_primary, 0.55);
+    box-shadow: 0 28px 56px alpha(@theme_bg, 0.42);
 }
 
 button:active {
     opacity: 0.92;
-    transform: translateY(-1px);
 }
 
 #lock {
-    border-color: rgba(var(--theme-primary-rgb), 0.40);
+    border-color: alpha(@theme_primary, 0.40);
 }
 
 #lock:hover {
     background:
-        linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.22), transparent 45%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
+        linear-gradient(135deg, alpha(@theme_primary, 0.22), alpha(@theme_primary, 0) 45%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
 }
 
 #logout {
-    border-color: rgba(var(--theme-secondary-rgb), 0.40);
+    border-color: alpha(@theme_secondary, 0.40);
 }
 
 #logout:hover {
     background:
-        linear-gradient(135deg, rgba(var(--theme-secondary-rgb), 0.22), transparent 45%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
+        linear-gradient(135deg, alpha(@theme_secondary, 0.22), alpha(@theme_secondary, 0) 45%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
 }
 
 #suspend {
-    border-color: rgba(var(--theme-tertiary-rgb), 0.40);
+    border-color: alpha(@theme_tertiary, 0.40);
 }
 
 #suspend:hover {
     background:
-        linear-gradient(135deg, rgba(var(--theme-tertiary-rgb), 0.20), transparent 45%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
+        linear-gradient(135deg, alpha(@theme_tertiary, 0.20), alpha(@theme_tertiary, 0) 45%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
 }
 
 #reboot {
-    border-color: rgba(var(--theme-warning-rgb), 0.45);
+    border-color: alpha(@theme_warning, 0.45);
 }
 
 #reboot:hover {
     background:
-        linear-gradient(135deg, rgba(var(--theme-warning-rgb), 0.20), transparent 45%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
+        linear-gradient(135deg, alpha(@theme_warning, 0.20), alpha(@theme_warning, 0) 45%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
 }
 
 #shutdown {
-    border-color: rgba(var(--theme-danger-rgb), 0.45);
+    border-color: alpha(@theme_danger, 0.45);
 }
 
 #shutdown:hover {
     background:
-        linear-gradient(135deg, rgba(var(--theme-danger-rgb), 0.22), transparent 45%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
+        linear-gradient(135deg, alpha(@theme_danger, 0.22), alpha(@theme_danger, 0) 45%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
 }

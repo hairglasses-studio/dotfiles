@@ -7,8 +7,8 @@
 }
 
 * {
-    font-family: var(--ui-font), var(--icon-font), monospace;
-    color: var(--theme-fg);
+    font-family: "Maple Mono NF CN", "Symbols Nerd Font Mono", monospace;
+    color: @theme_fg;
 }
 
 .floating-notifications,
@@ -28,24 +28,24 @@
 .widget-buttons-grid,
 .widget-volume,
 .widget-notifications {
-    border-radius: var(--radius-lg);
+    border-radius: 24px;
 }
 
 .notification {
     margin: 8px 10px;
     padding: 0;
-    border: 1px solid rgba(var(--theme-primary-rgb), 0.42);
+    border: 1px solid alpha(@theme_primary, 0.42);
     background:
-        linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.08), transparent 38%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
-    color: var(--theme-fg);
-    box-shadow: 0 22px 54px rgba(var(--theme-bg-rgb), 0.42);
+        linear-gradient(135deg, alpha(@theme_primary, 0.08), alpha(@theme_primary, 0) 38%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
+    color: @theme_fg;
+    box-shadow: 0 22px 54px alpha(@theme_bg, 0.42);
     transition: all 220ms ease;
 }
 
 .notification:hover {
-    border-color: rgba(var(--theme-secondary-rgb), 0.55);
-    box-shadow: 0 24px 60px rgba(var(--theme-bg-rgb), 0.52);
+    border-color: alpha(@theme_secondary, 0.55);
+    box-shadow: 0 24px 60px alpha(@theme_bg, 0.52);
 }
 
 .notification-content {
@@ -53,58 +53,58 @@
 }
 
 .notification-default-action {
-    border-radius: var(--radius-md);
+    border-radius: 16px;
 }
 
 .summary {
-    color: var(--theme-fg);
+    color: @theme_fg;
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.5px;
 }
 
 .body {
-    color: rgba(var(--theme-fg-rgb), 0.84);
+    color: alpha(@theme_fg, 0.84);
     font-size: 12px;
 }
 
 .time {
-    color: rgba(var(--theme-muted-rgb), 0.9);
+    color: alpha(@theme_muted, 0.9);
     font-size: 10px;
 }
 
 .close-button {
-    background: rgba(var(--theme-surface-rgb), 0.72);
-    color: rgba(var(--theme-muted-rgb), 0.95);
-    border: 1px solid rgba(var(--theme-border-rgb), 0.85);
+    background: alpha(@theme_surface, 0.72);
+    color: alpha(@theme_muted, 0.95);
+    border: 1px solid alpha(@theme_border, 0.85);
     border-radius: 999px;
     padding: 2px 8px;
     transition: all 180ms ease;
 }
 
 .close-button:hover {
-    background: rgba(var(--theme-danger-rgb), 0.18);
-    color: var(--theme-fg);
-    border-color: rgba(var(--theme-danger-rgb), 0.46);
+    background: alpha(@theme_danger, 0.18);
+    color: @theme_fg;
+    border-color: alpha(@theme_danger, 0.46);
 }
 
 .low {
-    border-color: rgba(var(--theme-border-rgb), 0.88);
+    border-color: alpha(@theme_border, 0.88);
 }
 
 .normal {
-    border-color: rgba(var(--theme-primary-rgb), 0.46);
+    border-color: alpha(@theme_primary, 0.46);
 }
 
 .critical {
-    border-color: rgba(var(--theme-danger-rgb), 0.68);
+    border-color: alpha(@theme_danger, 0.68);
     background:
-        linear-gradient(135deg, rgba(var(--theme-danger-rgb), 0.10), transparent 42%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
+        linear-gradient(135deg, alpha(@theme_danger, 0.10), alpha(@theme_danger, 0) 42%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
 }
 
 .critical .summary {
-    color: var(--theme-danger);
+    color: @theme_danger;
 }
 
 .notification-action,
@@ -113,10 +113,10 @@
 .widget-volume button {
     margin: 4px;
     padding: 8px 12px;
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(var(--theme-border-strong-rgb), 0.9);
-    background: rgba(var(--theme-surface-rgb), 0.82);
-    color: var(--theme-fg);
+    border-radius: 16px;
+    border: 1px solid alpha(@theme_border_strong, 0.9);
+    background: alpha(@theme_surface, 0.82);
+    color: @theme_fg;
     transition: all 180ms ease;
 }
 
@@ -125,17 +125,17 @@
 .widget-buttons-grid button:hover,
 .widget-volume button:hover,
 button:hover {
-    background: linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.16), rgba(var(--theme-secondary-rgb), 0.14));
-    border-color: rgba(var(--theme-primary-rgb), 0.55);
+    background: linear-gradient(135deg, alpha(@theme_primary, 0.16), alpha(@theme_secondary, 0.14));
+    border-color: alpha(@theme_primary, 0.55);
 }
 
 .control-center {
     background:
-        linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.08), transparent 34%),
-        linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
-    border: 1px solid rgba(var(--theme-secondary-rgb), 0.28);
+        linear-gradient(135deg, alpha(@theme_primary, 0.08), alpha(@theme_primary, 0) 34%),
+        linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
+    border: 1px solid alpha(@theme_secondary, 0.28);
     padding: 14px;
-    box-shadow: var(--shadow-panel);
+    box-shadow: 0 24px 80px alpha(@theme_bg, 0.65);
 }
 
 .widget-title,
@@ -146,8 +146,8 @@ button:hover {
 .widget-notifications {
     margin: 8px 6px;
     padding: 12px 14px;
-    border: 1px solid rgba(var(--theme-border-rgb), 0.82);
-    background: rgba(var(--theme-surface-alt-rgb), 0.74);
+    border: 1px solid alpha(@theme_border, 0.82);
+    background: alpha(@theme_surface_alt, 0.74);
 }
 
 .widget-title {
@@ -158,17 +158,17 @@ button:hover {
 
 .widget-dnd > switch {
     border-radius: 999px;
-    background: rgba(var(--theme-surface-rgb), 0.9);
-    border: 1px solid rgba(var(--theme-border-rgb), 0.88);
+    background: alpha(@theme_surface, 0.9);
+    border: 1px solid alpha(@theme_border, 0.88);
 }
 
 .widget-dnd > switch:checked {
-    background: rgba(var(--theme-secondary-rgb), 0.55);
-    border-color: rgba(var(--theme-secondary-rgb), 0.72);
+    background: alpha(@theme_secondary, 0.55);
+    border-color: alpha(@theme_secondary, 0.72);
 }
 
 .widget-dnd > switch slider {
-    background: var(--theme-fg);
+    background: @theme_fg;
     border-radius: 999px;
     min-width: 16px;
     min-height: 16px;
@@ -181,24 +181,24 @@ button:hover {
 .widget-mpris-player,
 .widget-mpris-title,
 .widget-mpris-subtitle {
-    color: var(--theme-fg);
+    color: @theme_fg;
 }
 
 scale trough {
     min-height: 6px;
     border-radius: 999px;
-    background: rgba(var(--theme-surface-rgb), 0.96);
+    background: alpha(@theme_surface, 0.96);
 }
 
 scale highlight {
     min-height: 6px;
     border-radius: 999px;
-    background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
+    background: linear-gradient(90deg, @theme_primary, @theme_secondary);
 }
 
 scale slider {
     min-width: 14px;
     min-height: 14px;
     border-radius: 999px;
-    background: var(--theme-fg);
+    background: @theme_fg;
 }
