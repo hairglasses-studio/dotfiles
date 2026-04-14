@@ -1,0 +1,8 @@
+[Unit]
+Description=User Network Online Target
+Documentation=man:systemd.target(5) man:systemd.special(7)
+# User systemd does not ship network-online.target by default, but many
+# user services still reference it for boot ordering. Bridge those Wants/After
+# edges onto Podman's helper so the target exists and resolves cleanly.
+Wants=podman-user-wait-network-online.service
+After=podman-user-wait-network-online.service
