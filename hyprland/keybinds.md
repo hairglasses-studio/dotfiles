@@ -8,8 +8,8 @@
 | `Super+D` | Hyprshell overview + launcher, with managed Wofi/Rofi fallback |
 | `Super+`` | Keybind reference |
 | `Super+X` | Dropdown terminal |
-| `Super+P` | Toggle powermenu |
-| `Super+Ctrl+F` | Toggle fleet sidebar |
+| `Super+P` | Power menu |
+| `Super+Ctrl+F` | Restart menubar |
 
 ##  Navigation
 
@@ -192,7 +192,6 @@
 | `Super+Shift+Alt+W` | Wallpaper static random |
 | `Super+Ctrl+W` | Wallpaper video mode |
 | `Super+Alt+W` | Wallpaper depth mode |
-| `Super+Shift+D` | Toggle dashboard |
 | `Super+Shift+E` | Power menu |
 
 ## 󰎟 Scratchpads
@@ -209,10 +208,3 @@
 |-----|--------|
 | `Super+LMB` | Move window (drag) |
 | `Super+RMB` | Resize window (drag) |
-
-##  Special workspaces
-
-| Key | Action |
-|-----|--------|
-| `Super+O` | Toggle dashboard workspace |
-| `Super+Shift+O` | Move to dashboard |

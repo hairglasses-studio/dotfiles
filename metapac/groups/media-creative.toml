@@ -38,7 +38,6 @@ packages = [
     { name = "firefox" },
     { name = "google-chrome" },
     { name = "opera" },
-    { name = "chrome-remote-desktop-existing-session" },
 
     # Email/PIM
     { name = "aerc" },

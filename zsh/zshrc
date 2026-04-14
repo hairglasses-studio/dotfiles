@@ -120,7 +120,6 @@ plugins=(
     1password
     jsontools
     encode64
-    tmux
 )
 
 export UPDATE_ZSH_DAYS=7

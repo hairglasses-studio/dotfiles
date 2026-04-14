@@ -2,9 +2,9 @@
 
 This skill replaces the previous narrow catalog around desktop visuals, widgets, shaders, and screenshot review.
 
-## Eww And Desktop Services
+## Ironbar And Desktop Services
 
-- Inspect eww state before restarting it.
+- Inspect menubar state before restarting it.
 - Use cascade reloads when a change affects multiple themed services.
 - Report both service health and visible outcome after a reload.
 
@@ -23,5 +23,5 @@ This skill replaces the previous narrow catalog around desktop visuals, widgets,
 
 The previous Claude skills now collapse into this one canonical surface:
 
-- `eww`, `hyprland`, `shader-browse`, `screenshot`, `screenshot-review`, `screen-record`
+- `ironbar`, `hyprland`, `shader-browse`, `screenshot`, `screenshot-review`, `screen-record`
 - `rice-check`, `sway-rice`, `mapping`, `notify`, `clipboard`, `tmux`

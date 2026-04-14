@@ -15,7 +15,7 @@ GOWORK=off go install .
 ### Config Management (4)
 - `dotfiles_list_configs` — List dotfiles config directories with symlink health and format
 - `dotfiles_validate_config` — Validate TOML or JSON config syntax
-- `dotfiles_reload_service` — Reload desktop service (hyprland, mako, eww, waybar, sway, tmux)
+- `dotfiles_reload_service` — Reload desktop service (hyprland, ironbar, mako, sway, tmux; legacy eww/waybar still accepted)
 - `dotfiles_check_symlinks` — Check health of all expected dotfiles symlinks
 
 ### GitHub Org Lifecycle (12)
@@ -48,9 +48,9 @@ GOWORK=off go install .
 ### Desktop (6)
 - `dotfiles_cascade_reload` — Ordered multi-service reload with health verification
 - `dotfiles_rice_check` — Compositor/shader/wallpaper/service status + Snazzy palette compliance
-- `dotfiles_eww_restart` — Kill and restart eww daemon with both bars
-- `dotfiles_eww_status` — Show eww daemon health, windows, key variables
-- `dotfiles_eww_get` — Query current eww variable value
+- `dotfiles_eww_restart` — Legacy Eww restart helper retained for compatibility
+- `dotfiles_eww_status` — Legacy Eww status helper retained for compatibility
+- `dotfiles_eww_get` — Legacy Eww variable helper retained for compatibility
 - `dotfiles_onboard_repo` — Add standard files to any repo (.editorconfig, CI, LICENSE)
 
 ### Hyprland Desktop (19)

@@ -97,6 +97,32 @@ link_if_present() {
     fi
 }
 
+copy_file() {
+    local src="$1" dst="$2"
+
+    if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
+        log_success "Already copied: $dst"
+        return 0
+    fi
+
+    if [[ -e "$dst" ]] || [[ -L "$dst" ]]; then
+        backup_file "$dst"
+    fi
+
+    mkdir -p "$(dirname "$dst")"
+    install -m644 "$src" "$dst"
+    log_success "Copied: $dst"
+}
+
+copy_file_if_present() {
+    local src="$1" dst="$2"
+    if source_exists "$src"; then
+        copy_file "$src" "$dst"
+    else
+        log_warn "Skipping missing source: $src"
+    fi
+}
+
 print_common_link_specs() {
     cat <<EOF
 $DOTFILES_DIR/zsh/zshrc|$HOME/.zshrc
@@ -150,6 +176,7 @@ print_linux_link_specs() {
     cat <<EOF
 $DOTFILES_DIR/swaync/config.json|$HOME/.config/swaync/config.json
 $DOTFILES_DIR/swaync/style.css|$HOME/.config/swaync/style.css
+$DOTFILES_DIR/ironbar|$HOME/.config/ironbar
 $DOTFILES_DIR/hyprshell/config.toml|$HOME/.config/hyprshell/config.toml
 $DOTFILES_DIR/hyprshell/styles.css|$HOME/.config/hyprshell/styles.css
 $DOTFILES_DIR/hypr-dock|$HOME/.config/hypr-dock
@@ -159,8 +186,6 @@ $DOTFILES_DIR/wofi/config|$HOME/.config/wofi/config
 $DOTFILES_DIR/wofi/style.css|$HOME/.config/wofi/style.css
 $DOTFILES_DIR/hyprland|$HOME/.config/hypr
 $DOTFILES_DIR/pypr/config.toml|$HOME/.config/pypr/config.toml
-$DOTFILES_DIR/eww/eww.scss|$HOME/.config/eww/eww.scss
-$DOTFILES_DIR/eww/eww.yuck|$HOME/.config/eww/eww.yuck
 $DOTFILES_DIR/helix/config.toml|$HOME/.config/helix/config.toml
 $DOTFILES_DIR/makima|$HOME/.config/makima
 $DOTFILES_DIR/environment.d/theme.conf|$HOME/.config/environment.d/theme.conf
@@ -196,8 +221,15 @@ print_linux_systemd_link_specs() {
     for src in "$DOTFILES_DIR"/systemd/*; do
         [[ -f "$src" ]] || continue
         [[ "$(basename "$src")" == "makima.service" ]] && continue
+        [[ "$(basename "$src")" == "foot-server.socket" ]] && continue
         printf '%s|%s\n' "$src" "$HOME/.config/systemd/user/$(basename "$src")"
     done
+}
+
+print_linux_systemd_copy_specs() {
+    cat <<EOF
+$DOTFILES_DIR/systemd/foot-server.socket|$HOME/.config/systemd/user/foot-server.socket
+EOF
 }
 
 print_link_specs() {
@@ -212,7 +244,6 @@ print_link_specs() {
 
 print_linux_writable_config_dirs() {
     cat <<EOF
-$HOME/.config/eww|eww writable config dir
 $HOME/.config/hyprshell|hyprshell writable config dir
 EOF
 }
@@ -518,6 +549,25 @@ install_juhradial_stack() {
     fi
 }
 
+deploy_linux_etc_configs() {
+    if [[ "$OS" != "Linux" ]]; then
+        return 0
+    fi
+
+    local script="$DOTFILES_DIR/scripts/etc-deploy.sh"
+    if [[ ! -x "$script" ]]; then
+        log_warn "Skipping /etc deploy — missing executable: $script"
+        return 0
+    fi
+
+    log_info "Deploying tracked /etc configs..."
+    if "$script"; then
+        log_success "Tracked /etc configs deployed"
+    else
+        log_warn "Tracked /etc deploy reported an error — rerun: $script"
+    fi
+}
+
 normalize_writable_config_dir() {
     local dir="$1"
     if [[ -L "$dir" ]]; then
@@ -576,7 +626,6 @@ create_symlinks() {
     log_info "Creating symlinks..."
     if [[ "$OS" == "Linux" ]]; then
         mkdir -p "$HOME/.config/systemd/user"
-        normalize_writable_config_dir "$HOME/.config/eww"
         normalize_writable_config_dir "$HOME/.config/hyprshell"
     fi
 
@@ -586,12 +635,33 @@ create_symlinks() {
         link_if_present "$src" "$dst"
     done < <(print_link_specs)
 
+    if [[ "$OS" == "Linux" ]]; then
+        while IFS='|' read -r src dst; do
+            [[ -n "$src" ]] || continue
+            copy_file_if_present "$src" "$dst"
+        done < <(print_linux_systemd_copy_specs)
+    fi
+
     # Platform-specific service management
     if [[ "$OS" == "Darwin" ]]; then
         :
     elif [[ "$OS" == "Linux" ]]; then
         log_info "Installing systemd user services..."
         systemctl --user daemon-reload
+
+        local retired_units=(
+            waybar.service
+            eww-calendar-sync.service
+            eww-calendar-sync.timer
+        )
+        systemctl --user disable --now "${retired_units[@]}" >/dev/null 2>&1 || true
+        rm -f \
+            "$HOME/.config/systemd/user/eww-calendar-sync.service" \
+            "$HOME/.config/systemd/user/eww-calendar-sync.timer"
+        if [[ -L "$HOME/.config/eww" ]] && [[ "$(readlink "$HOME/.config/eww")" == "$DOTFILES_DIR/eww" ]]; then
+            rm -f "$HOME/.config/eww"
+            log_success "Removed retired Eww config symlink"
+        fi
 
         mkdir -p "$HOME/.local/state/hypr"
         if [[ ! -f "$HOME/.local/state/hypr/monitors.dynamic.conf" ]]; then
@@ -600,11 +670,14 @@ create_symlinks() {
         mkdir -p "$HOME/.local/state/kitty/sessions"
 
         local desktop_units=(
+            ironbar.service
             dotfiles-hyprshell.service
             dotfiles-hypr-dock.service
             dotfiles-hyprdynamicmonitors.service
             dotfiles-hyprland-autoname-workspaces.service
             dotfiles-notification-history.service
+            rg-status-bar.timer
+            foot-server.socket
         )
         if systemctl --user enable "${desktop_units[@]}" >/dev/null 2>&1; then
             log_success "Enabled desktop systemd user units"
@@ -689,12 +762,46 @@ check_symlinks() {
         fi
     }
 
+    check_copied_file() {
+        local src="$1" dst="$2"
+        if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
+            log_success "OK (copied): $dst"
+        elif [[ -L "$dst" ]]; then
+            log_error "Expected copied file, found symlink: $dst -> $(readlink "$dst")"
+            errors=$((errors + 1))
+        elif [[ -e "$dst" ]]; then
+            log_error "Copied file drift: $dst"
+            errors=$((errors + 1))
+        else
+            log_error "Missing copied file: $dst"
+            errors=$((errors + 1))
+        fi
+    }
+
+    check_copied_file_if_present() {
+        local src="$1" dst="$2"
+        if source_exists "$src"; then
+            check_copied_file "$src" "$dst"
+        elif [[ -e "$dst" || -L "$dst" ]]; then
+            log_warn "Source missing in repo, destination left as-is: $dst"
+        else
+            log_info "Skipping missing source: $src"
+        fi
+    }
+
     log_info "Checking symlinks..."
     local src dst
     while IFS='|' read -r src dst; do
         [[ -n "$src" ]] || continue
         check_link_if_present "$src" "$dst"
     done < <(print_link_specs)
+
+    if [[ "$OS" == "Linux" ]]; then
+        while IFS='|' read -r src dst; do
+            [[ -n "$src" ]] || continue
+            check_copied_file_if_present "$src" "$dst"
+        done < <(print_linux_systemd_copy_specs)
+    fi
 
     if [[ "$OS" == "Linux" ]]; then
         log_info "Checking systemd user services..."
@@ -798,6 +905,11 @@ main() {
         return $?
     fi
 
+    if [[ "$OS" == "Linux" ]]; then
+        log_phase "SYSTEM SETUP"
+        deploy_linux_etc_configs
+    fi
+
     log_phase "PACKAGE MANAGEMENT"
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install_homebrew
@@ -811,6 +923,7 @@ main() {
             link_file "$DOTFILES_DIR/metapac" "$HOME/.config/metapac"
         fi
         install_linux_packages
+        deploy_linux_etc_configs
     fi
 
     log_phase "SHELL ENVIRONMENT"

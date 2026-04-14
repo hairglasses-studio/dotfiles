@@ -1,14 +1,11 @@
 ---
 name: dotfiles_ui
-description: 'Desktop UI, rice, shader, eww, Hyprland, and screenshot workflow for the hairglasses dotfiles repo.'
+description: 'Desktop UI, rice, shader, Ironbar, Hyprland, and screenshot workflow for the hairglasses dotfiles repo.'
 allowed-tools:
   - Bash
   - Read
   - Write
   - Grep
-  - mcp__dotfiles__dotfiles_eww_status
-  - mcp__dotfiles__dotfiles_eww_restart
-  - mcp__dotfiles__dotfiles_eww_get
   - mcp__dotfiles__dotfiles_cascade_reload
   - mcp__dotfiles__shader_status
   - mcp__dotfiles__shader_list
@@ -25,7 +22,7 @@ Compatibility mirror of the canonical `dotfiles_ui` skill.
 
 # Dotfiles UI
 
-Use this skill for visual desktop work: eww widgets, Hyprland behavior, shaders, screenshots, and rice-quality iterations.
+Use this skill for visual desktop work: Ironbar, Hyprland behavior, shaders, screenshots, and rice-quality iterations.
 
 ## Default loop
 

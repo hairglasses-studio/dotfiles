@@ -163,3 +163,7 @@
 	directory = /home/hg/actions-runner/01/_work/mcp-catalog/mcp-catalog
 	directory = /home/hg/actions-runner/01/_work/mcp-catalog/mcp-catalog
 	directory = /tmp/rg-pt-aftrs
+	directory = /home/hg/hairglasses-studio/docs-agent-parity-reconcile
+	directory = /home/hg/hairglasses-studio/.codex-worktrees/codexkit-obs
+	directory = /home/hg/hairglasses-studio/.codex-worktrees/jellyfin-obs
+	directory = /home/hg/hairglasses-studio/.codex-worktrees/surfacekit-obs

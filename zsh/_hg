@@ -130,7 +130,7 @@ _hg() {
   local cmd="${words[3]}"
   case "$module/$cmd" in
     config/reload)
-      _values 'component' hyprland mako eww waybar sway tmux ;;
+      _values 'component' hyprland hyprshell hypr-dock hyprdynamicmonitors autoname swaync ironbar tmux ;;
     config/backup)
       _files ;;
     media/play)

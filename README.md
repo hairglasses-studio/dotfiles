@@ -11,12 +11,12 @@
 
 Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware `Voltage After Dark` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
-![Desktop — Hyprland + eww sidebar + tiled terminals (Voltage After Dark)](.github/assets/desktop.png)
+![Desktop — Hyprland + Ironbar menubar + tiled terminals (Voltage After Dark)](.github/assets/desktop.png)
 
 ### Technical Highlights
 
 - **GPU Shaders**: 131 CRTty-ready GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
-- **Theme System**: shared token pipeline for `eww`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`
+- **Theme System**: shared token pipeline for `ironbar`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`
 - **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Local LLM Ops**: shared Ollama defaults plus smoke tests, full validation, alias sync, and resumable long-pull helpers via `scripts/hg-ollama-*.sh`
@@ -27,7 +27,7 @@ Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware
 
 The managed workstation alias `studio_desktop` now projects the desktop-focused `dotfiles-mcp` profile into Codex, Claude, and Gemini through the existing home-sync path.
 
-Hyprland + eww + hyprshell + hypr-dock + swaync + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
+Hyprland + ironbar + hyprshell + hypr-dock + swaync + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
 
 ## Install
 
@@ -86,7 +86,7 @@ hg-ollama-verify-heavy.sh
 | Config | Description |
 |--------|-------------|
 | `hyprland/` | Tiling WM — 113 keybinds, custom animations, plugin-based layout, wallpaper mode orchestration |
-| `eww/` | Status bar widgets, calendar, sidebar, powermenu, dashboard |
+| `ironbar/` | Primary top menubar with fleet cache widgets, workspaces, media, and system status |
 | `hyprshell/` | Primary launcher, overview, and app switcher for `Super+D` / `Alt+Tab`, with `default_terminal` pinned to the shell-first Kitty launcher |
 | `hypr-dock/` | Bottom dock with pinned apps, indicators, and window previews |
 | `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |
@@ -123,7 +123,7 @@ dotfiles/
 ├── hypr-dock/      → ~/.config/hypr-dock (dock + theme)
 ├── hyprdynamicmonitors/ → ~/.config/hyprdynamicmonitors (dynamic monitor profiles)
 ├── hyprland-autoname-workspaces/ → ~/.config/hyprland-autoname-workspaces
-├── eww/            → ~/.config/eww (bar + widgets)
+├── ironbar/        → ~/.config/ironbar (GTK4 menubar)
 ├── kitty/          → ~/.config/kitty (terminal + 131 shaders)
 ├── swaync/         → ~/.config/swaync (notifications)
 ├── wofi/           → ~/.config/wofi (fallback launcher)

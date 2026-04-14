@@ -1,9 +1,8 @@
-# Desktop environment: Hyprland + eww + hyprshell + hypr-dock + swaync
+# Desktop environment: Hyprland + ironbar + hyprshell + hypr-dock + swaync
 [arch]
 packages = [
     # Hyprland core
     { name = "hyprland" },
-    { name = "hy3" },
     { name = "hypridle" },
     { name = "hyprlock" },
     { name = "hyprpaper" },
@@ -20,7 +19,7 @@ packages = [
     { name = "xdg-terminal-exec" },
 
     # Bar & widgets
-    { name = "eww" },
+    { name = "ironbar-bin" },
     { name = "hypr-dock" },
 
     # Notifications
@@ -59,7 +58,6 @@ packages = [
     { name = "wtype" },
     { name = "flashfocus" },
     { name = "socat" },
-    { name = "tesseract" },
     { name = "imagemagick" },
     { name = "python" },
 
@@ -82,7 +80,6 @@ packages = [
     { name = "qt6-wayland" },
     { name = "qt6ct" },
     { name = "qt6-imageformats" },
-    { name = "python-pyqt6" },
     { name = "papirus-icon-theme" },
     { name = "bibata-cursor-theme" },
 

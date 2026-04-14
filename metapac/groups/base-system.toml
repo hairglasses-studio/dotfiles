@@ -110,5 +110,4 @@ packages = [
 
     # Kernel modules (AUR)
     { name = "nct6687d-dkms-git" },
-    { name = "zenpower5-dkms-git" },
 ]

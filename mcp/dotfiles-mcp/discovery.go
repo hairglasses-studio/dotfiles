@@ -136,6 +136,7 @@ type dotfilesDesktopStatusOutput struct {
 	Input           dotfilesDesktopCapability `json:"input"`
 	Accessibility   dotfilesDesktopCapability `json:"accessibility"`
 	DesktopSession  dotfilesDesktopCapability `json:"desktop_session"`
+	Ironbar         dotfilesDesktopCapability `json:"ironbar"`
 	Eww             dotfilesDesktopCapability `json:"eww"`
 	Notifications   dotfilesDesktopCapability `json:"notifications"`
 	Terminal        dotfilesDesktopCapability `json:"terminal"`
@@ -529,28 +530,42 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 				sessionDetails = append(sessionDetails, "live Wayland session not detected")
 			}
 
-			ewwStatus := currentEwwStatus()
-			ewwMissing := make([]string, 0)
-			ewwDetails := make([]string, 0)
+			ironbarStatus := currentIronbarStatus()
+			ironbarMissing := make([]string, 0)
+			ironbarDetails := make([]string, 0)
+			if ironbarStatus.BinaryAvailable {
+				ironbarDetails = append(ironbarDetails, "ironbar available")
+			} else {
+				ironbarMissing = append(ironbarMissing, "ironbar")
+				missingCommands = append(missingCommands, "ironbar")
+			}
+			if ironbarStatus.ConfigPresent {
+				ironbarDetails = append(ironbarDetails, "config rooted at "+ironbarStatus.ConfigPath)
+			} else {
+				ironbarMissing = append(ironbarMissing, "ironbar config")
+			}
+			if ironbarStatus.ServiceActive {
+				ironbarDetails = append(ironbarDetails, "user service active")
+			}
+			if ironbarStatus.Running {
+				ironbarDetails = append(ironbarDetails, fmt.Sprintf("process running (%d instances)", ironbarStatus.ProcessCount))
+			} else {
+				ironbarMissing = append(ironbarMissing, "ironbar process")
+			}
+			if ironbarStatus.IPCReady {
+				ironbarDetails = append(ironbarDetails, "ipc socket present at "+ironbarStatus.IPCSocket)
+			}
+			ironbarDetails = append(ironbarDetails, fmt.Sprintf("%d visible layer surfaces", len(ironbarStatus.Layers)))
+
+			legacyBarDetails := []string{
+				"legacy Eww surface retired; ironbar is the active menubar runtime",
+			}
 			if hasCmd("eww") {
-				ewwDetails = append(ewwDetails, "eww available")
-			} else {
-				ewwMissing = append(ewwMissing, "eww")
-				missingCommands = append(missingCommands, "eww")
+				legacyBarDetails = append(legacyBarDetails, "legacy eww binary still present on PATH")
 			}
-			ewwConfig := dotfilesEwwConfigDir()
-			if pathExists(ewwConfig) {
-				ewwDetails = append(ewwDetails, "config rooted at "+ewwConfig)
-			} else {
-				ewwMissing = append(ewwMissing, "eww config")
+			if pathExists(filepath.Join(homeDir(), ".config", "eww")) {
+				legacyBarDetails = append(legacyBarDetails, "legacy ~/.config/eww still present")
 			}
-			if ewwStatus.DaemonRunning {
-				ewwDetails = append(ewwDetails, fmt.Sprintf("daemon running (%d processes)", ewwStatus.DaemonCount))
-			} else {
-				ewwMissing = append(ewwMissing, "eww daemon")
-			}
-			ewwDetails = append(ewwDetails, fmt.Sprintf("%d active windows", len(ewwStatus.Windows)))
-			ewwDetails = append(ewwDetails, fmt.Sprintf("%d defined windows", len(ewwStatus.DefinedWindows)))
 
 			notificationMissing := make([]string, 0)
 			notificationDetails := make([]string, 0)
@@ -678,10 +693,14 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 					Details: sessionDetails,
 					Missing: uniqueSortedStrings(sessionMissing),
 				},
+				Ironbar: dotfilesDesktopCapability{
+					Ready:   len(ironbarMissing) == 0,
+					Details: ironbarDetails,
+					Missing: uniqueSortedStrings(ironbarMissing),
+				},
 				Eww: dotfilesDesktopCapability{
-					Ready:   len(ewwMissing) == 0,
-					Details: ewwDetails,
-					Missing: uniqueSortedStrings(ewwMissing),
+					Ready:   true,
+					Details: legacyBarDetails,
 				},
 				Notifications: dotfilesDesktopCapability{
 					Ready:   len(notificationMissing) == 0,
@@ -700,7 +719,7 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 				},
 				MissingCommands: uniqueSortedStrings(missingCommands),
 			}
-			if !(output.Hyprland.Ready && output.Shell.Ready && output.Screenshot.Ready && output.OCR.Ready && output.Input.Ready && output.Accessibility.Ready && output.DesktopSession.Ready && output.Eww.Ready && output.Notifications.Ready && output.Terminal.Ready && output.Shader.Ready) {
+			if !(output.Hyprland.Ready && output.Shell.Ready && output.Screenshot.Ready && output.OCR.Ready && output.Input.Ready && output.Accessibility.Ready && output.DesktopSession.Ready && output.Ironbar.Ready && output.Notifications.Ready && output.Terminal.Ready && output.Shader.Ready) {
 				output.Status = "degraded"
 			}
 			return output, nil
@@ -711,6 +730,8 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 		"desktop status",
 		"desktop readiness",
 		"hyprland status",
+		"ironbar",
+		"menubar",
 		"hyprshell",
 		"hypr-dock",
 		"hyprdynamicmonitors",

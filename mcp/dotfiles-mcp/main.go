@@ -63,6 +63,7 @@ func detectFormat(path string) string {
 // reloadCommands maps service name -> reload command.
 var reloadCommands = map[string][]string{
 	"hyprland": {"hyprctl", "reload"},
+	"ironbar":  {"ironbar", "reload"},
 	"mako":     {"makoctl", "reload"},
 	"eww":      {"eww", "reload"},
 	"waybar":   {"pkill", "-SIGUSR2", "waybar"},
@@ -111,14 +112,12 @@ func expectedSymlinks() []struct{ src, dst string } {
 	} else if runtime.GOOS == "linux" {
 		links = append(links,
 			struct{ src, dst string }{filepath.Join(dir, "sway/config"), filepath.Join(cfg, "sway/config")},
-			struct{ src, dst string }{filepath.Join(dir, "waybar/config.jsonc"), filepath.Join(cfg, "waybar/config")},
-			struct{ src, dst string }{filepath.Join(dir, "waybar/style.css"), filepath.Join(cfg, "waybar/style.css")},
+			struct{ src, dst string }{filepath.Join(dir, "ironbar"), filepath.Join(cfg, "ironbar")},
 			struct{ src, dst string }{filepath.Join(dir, "mako/config"), filepath.Join(cfg, "mako/config")},
 			struct{ src, dst string }{filepath.Join(dir, "wofi/config"), filepath.Join(cfg, "wofi/config")},
 			struct{ src, dst string }{filepath.Join(dir, "wofi/style.css"), filepath.Join(cfg, "wofi/style.css")},
 			struct{ src, dst string }{filepath.Join(dir, "foot/foot.ini"), filepath.Join(cfg, "foot/foot.ini")},
 			struct{ src, dst string }{filepath.Join(dir, "hyprland"), filepath.Join(cfg, "hypr")},
-			struct{ src, dst string }{filepath.Join(dir, "eww"), filepath.Join(cfg, "eww")},
 			struct{ src, dst string }{filepath.Join(dir, "tattoy/tattoy.toml"), filepath.Join(cfg, "tattoy/tattoy.toml")},
 		)
 	}
@@ -182,7 +181,7 @@ type ValidateConfigOutput struct {
 // Tool 3: dotfiles_reload_service
 
 type ReloadServiceInput struct {
-	Service string `json:"service" jsonschema:"required,description=Service to reload,enum=hyprland,enum=mako,enum=eww,enum=waybar,enum=sway,enum=tmux"`
+	Service string `json:"service" jsonschema:"required,description=Service to reload,enum=hyprland,enum=ironbar,enum=mako,enum=eww,enum=waybar,enum=sway,enum=tmux"`
 }
 
 type ReloadServiceOutput struct {
@@ -552,7 +551,7 @@ type FleetAuditOutput struct {
 // Tool 19: dotfiles_cascade_reload
 
 type CascadeReloadInput struct {
-	Services []string `json:"services,omitempty" jsonschema:"description=Services to reload in order (default: hyprland then mako then eww)"`
+	Services []string `json:"services,omitempty" jsonschema:"description=Services to reload in order (default: hyprland then mako then ironbar)"`
 }
 
 type ServiceReloadStatus struct {
@@ -2305,11 +2304,11 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 		// ── dotfiles_cascade_reload ──────────────────
 		handler.TypedHandler[CascadeReloadInput, CascadeReloadOutput](
 			"dotfiles_cascade_reload",
-			"Atomic multi-service reload with health verification. Reloads services in order (default: hyprland → mako → eww), verifying each is healthy before proceeding to the next.",
+			"Atomic multi-service reload with health verification. Reloads services in order (default: hyprland → mako → ironbar), verifying each is healthy before proceeding to the next.",
 			func(_ context.Context, input CascadeReloadInput) (CascadeReloadOutput, error) {
 				services := input.Services
 				if len(services) == 0 {
-					services = []string{"hyprland", "mako", "eww"}
+					services = []string{"hyprland", "mako", "ironbar"}
 				}
 
 				var results []ServiceReloadStatus
@@ -2342,6 +2341,8 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 						if checkCmd.Run() == nil {
 							healthy = hyprConfigHealthy(checkOut.String())
 						}
+					case "ironbar":
+						healthy = processRunningExact("ironbar") || systemdUserUnitActive("ironbar.service")
 					case "eww":
 						checkCmd := exec.Command("eww", "ping")
 						healthy = checkCmd.Run() == nil
@@ -2412,7 +2413,7 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 				}
 
 				// Service status.
-				checkServices := []string{"hyprland", "eww", "mako", "waybar", "swww-daemon", "hypridle"}
+				checkServices := []string{"hyprland", "ironbar", "mako", "swww-daemon", "hypridle"}
 				for _, svc := range checkServices {
 					pgrepCmd := exec.Command("pgrep", "-x", svc)
 					action := "stopped"
@@ -2455,10 +2456,9 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					}
 					scanDirs := []string{
 						filepath.Join(dir, "hyprland"),
-						filepath.Join(dir, "eww"),
+						filepath.Join(dir, "ironbar"),
 						filepath.Join(dir, "mako"),
 						filepath.Join(dir, "wofi"),
-						filepath.Join(dir, "waybar"),
 						filepath.Join(dir, "foot"),
 					}
 

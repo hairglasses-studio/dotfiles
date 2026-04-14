@@ -14,7 +14,7 @@ packages = [
     { name = "zoxide" },
 
     # Multiplexer
-    { name = "tmux", hooks = { after_sync = ["systemctl", "--user", "enable", "tmux.service"] } },
+    { name = "tmux" },
     { name = "zellij" },
 
     # Terminal effects

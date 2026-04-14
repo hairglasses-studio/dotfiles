@@ -66,6 +66,7 @@ func writeDesktopStatusCommandFixtures(t *testing.T, binDir string) {
 	t.Helper()
 
 	writeExitZeroCommands(t, binDir,
+		"ironbar",
 		"hyprshell",
 		"hypr-dock",
 		"hyprdynamicmonitors",
@@ -93,6 +94,10 @@ printf '%s\n' '{}'
 `)
 
 	writeTestExecutable(t, binDir, "pgrep", `#!/bin/sh
+if [ "$1" = "-c" ] && [ "$2" = "ironbar" ]; then
+  printf '%s\n' "${DOTFILES_TEST_PGREP_IRONBAR_COUNT:-0}"
+  exit 0
+fi
 if [ "$1" = "-c" ] && [ "$2" = "eww" ]; then
   printf '%s\n' "${DOTFILES_TEST_PGREP_EWW_COUNT:-0}"
   exit 0
@@ -115,7 +120,7 @@ exit 1
 	writeTestExecutable(t, binDir, "hyprctl", `#!/bin/sh
 case "$1" in
   layers)
-    printf '%s\n' 'Monitor DP-1:' 'level 1, namespace: sidebar, xywh: 0 0 100 30' 'Monitor DP-2:' 'level 1, namespace: bar, xywh: 0 0 100 30'
+    printf '%s\n' 'Monitor DP-1:' 'level 1, namespace: ironbar, xywh: 0 0 100 30' 'Monitor DP-2:' 'level 1, namespace: ironbar, xywh: 0 0 100 30'
     ;;
   *)
     exit 0
@@ -162,8 +167,9 @@ func writeDesktopStatusFixtureTree(t *testing.T, homeDir, dotfilesRoot, stateDir
 	t.Helper()
 
 	for _, dir := range []string{
-		filepath.Join(homeDir, ".config", "eww"),
+		filepath.Join(homeDir, ".config", "ironbar"),
 		filepath.Join(dotfilesRoot, "scripts"),
+		filepath.Join(dotfilesRoot, "ironbar"),
 		filepath.Join(dotfilesRoot, "kitty", "shaders", "crtty"),
 		filepath.Join(dotfilesRoot, "ghostty"),
 		filepath.Join(runtimeDir, "hypr"),
@@ -177,6 +183,7 @@ func writeDesktopStatusFixtureTree(t *testing.T, homeDir, dotfilesRoot, stateDir
 	for path, content := range map[string]string{
 		filepath.Join(dotfilesRoot, "scripts", "notification-history-listener.py"): "#!/usr/bin/env python3\n",
 		filepath.Join(dotfilesRoot, "scripts", "kitty-shader-playlist.sh"):         "#!/bin/sh\nexit 0\n",
+		filepath.Join(dotfilesRoot, "ironbar", "config.toml"):                      "position = \"top\"\n",
 		filepath.Join(dotfilesRoot, "kitty", "kitty.conf"):                         "allow_remote_control yes\n",
 		filepath.Join(dotfilesRoot, "ghostty", "config"):                           "theme = fixture\n",
 		filepath.Join(stateDir, "hypr", "monitors.dynamic.conf"):                   "monitor=DP-1,preferred,auto,1\n",
@@ -216,9 +223,9 @@ func TestDotfilesDesktopStatusReadyWithFixtures(t *testing.T) {
 	t.Setenv("HYPRLAND_INSTANCE_SIGNATURE", "fixture-hypr")
 	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/tmp/fixture-bus")
 	t.Setenv("PATH", binDir)
-	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_EXACT", "hyprshell|hypr-dock|hyprdynamicmonitors|hyprland-autoname-workspaces|eww")
+	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_EXACT", "hyprshell|hypr-dock|hyprdynamicmonitors|hyprland-autoname-workspaces|ironbar")
 	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_PATTERN", "notification-history-listener.py")
-	t.Setenv("DOTFILES_TEST_PGREP_EWW_COUNT", "2")
+	t.Setenv("DOTFILES_TEST_PGREP_IRONBAR_COUNT", "1")
 
 	writeDesktopStatusFixtureTree(t, homeDir, dotfilesRoot, stateDir, runtimeDir)
 	writeDesktopStatusCommandFixtures(t, binDir)
@@ -256,7 +263,7 @@ func TestDotfilesDesktopStatusReadyWithFixtures(t *testing.T) {
 		"input":          out.Input,
 		"accessibility":  out.Accessibility,
 		"desktopSession": out.DesktopSession,
-		"eww":            out.Eww,
+		"ironbar":        out.Ironbar,
 		"notifications":  out.Notifications,
 		"terminal":       out.Terminal,
 		"shader":         out.Shader,
@@ -266,8 +273,11 @@ func TestDotfilesDesktopStatusReadyWithFixtures(t *testing.T) {
 		}
 	}
 
-	if !detailContainsSubstring(out.Eww.Details, "daemon running (2 processes)") {
-		t.Fatalf("expected eww detail to report daemon count, got %v", out.Eww.Details)
+	if !detailContainsSubstring(out.Ironbar.Details, "process running (1 instances)") {
+		t.Fatalf("expected ironbar detail to report process count, got %v", out.Ironbar.Details)
+	}
+	if !detailContainsSubstring(out.Eww.Details, "legacy Eww surface retired") {
+		t.Fatalf("expected legacy eww compatibility detail, got %v", out.Eww.Details)
 	}
 	if !detailContainsSubstring(out.Notifications.Details, "1 tracked notification entries") {
 		t.Fatalf("expected notification history detail, got %v", out.Notifications.Details)
@@ -330,8 +340,8 @@ func TestDotfilesDesktopStatusDegradedWithoutCommands(t *testing.T) {
 	if !containsString(out.Accessibility.Missing, "python3") {
 		t.Fatalf("expected accessibility missing to include python3, got %v", out.Accessibility.Missing)
 	}
-	if !containsString(out.Eww.Missing, "eww") {
-		t.Fatalf("expected eww missing to include eww, got %v", out.Eww.Missing)
+	if !containsString(out.Ironbar.Missing, "ironbar") {
+		t.Fatalf("expected ironbar missing to include ironbar, got %v", out.Ironbar.Missing)
 	}
 	if !containsString(out.Notifications.Missing, "swaync-client") {
 		t.Fatalf("expected notifications missing to include swaync-client, got %v", out.Notifications.Missing)

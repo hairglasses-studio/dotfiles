@@ -458,11 +458,11 @@ fi
 
 # ── Window management (per-platform in aliases.{darwin,linux}.zsh) ──
 
-# ── Eww dashboard ─────────────────────────────
-if cmd_exists eww; then
-  alias hud='eww open --toggle dashboard'
-  alias hud-reload='eww reload'
-  alias hud-kill='eww kill'
+# ── Ironbar menubar ───────────────────────────
+if cmd_exists ironbar; then
+  alias menubar-reload='ironbar reload || systemctl --user restart ironbar.service'
+  alias menubar-restart='systemctl --user restart ironbar.service'
+  alias menubar-stop='systemctl --user stop ironbar.service'
 fi
 
 # ── Email ─────────────────────────────────────

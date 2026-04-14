@@ -65,9 +65,9 @@ func TestDotfilesWorkstationDiagnosticsReadyWithFixtures(t *testing.T) {
 	t.Setenv("HYPRLAND_INSTANCE_SIGNATURE", "fixture-hypr")
 	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/tmp/fixture-bus")
 	t.Setenv("PATH", binDir+":/usr/bin:/bin")
-	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_EXACT", "hyprland|eww|mako|swww-daemon|hypridle|hyprshell|hypr-dock|hyprdynamicmonitors|hyprland-autoname-workspaces|swaync")
+	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_EXACT", "hyprland|ironbar|mako|swww-daemon|hypridle|hyprshell|hypr-dock|hyprdynamicmonitors|hyprland-autoname-workspaces|swaync")
 	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_PATTERN", "notification-history-listener.py")
-	t.Setenv("DOTFILES_TEST_PGREP_EWW_COUNT", "2")
+	t.Setenv("DOTFILES_TEST_PGREP_IRONBAR_COUNT", "1")
 
 	writeDesktopStatusFixtureTree(t, homeDir, dotfilesRoot, stateDir, runtimeDir)
 	writeDesktopStatusCommandFixtures(t, binDir)

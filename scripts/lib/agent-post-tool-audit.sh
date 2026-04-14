@@ -33,7 +33,7 @@ errors=()
 case "$file_path" in
   */hyprland/* | */hypr/*)  config_reload_service hyprland 2>/dev/null || errors+=("[reload] hyprland reload failed") ;;
   */swaync/*)               config_reload_service swaync   2>/dev/null || errors+=("[reload] swaync reload failed") ;;
-  */eww/*)                  config_reload_service eww      2>/dev/null || errors+=("[reload] eww reload failed") ;;
+  */ironbar/*)              config_reload_service ironbar  2>/dev/null || errors+=("[reload] ironbar reload failed") ;;
   */tmux/*)                 config_reload_service tmux     2>/dev/null || errors+=("[reload] tmux reload failed") ;;
   */metapac/*)
     # Validate TOML and check for unmanaged packages
@@ -80,16 +80,18 @@ case "$file_path" in
     fi
     ;;
 
-  */eww/*)
-    # Check eww log for errors
-    if command -v eww &>/dev/null; then
-      eww_errors="$(eww logs 2>&1 | tail -10 | grep -iE 'error|warn|failed' || true)"
-      if [[ -n "$eww_errors" ]]; then
-        errors+=("[eww] Errors in eww logs:")
-        while IFS= read -r line; do
-          errors+=("  $line")
-        done <<< "$eww_errors"
+  */ironbar/*)
+    if command -v ironbar &>/dev/null; then
+      if ! ironbar ping >/dev/null 2>&1; then
+        errors+=("[ironbar] ironbar is not responding after reload")
       fi
+    fi
+    if command -v systemctl &>/dev/null && systemctl --user --quiet is-failed ironbar.service; then
+      errors+=("[ironbar] ironbar.service is failed")
+      while IFS= read -r line; do
+        [[ -n "$line" ]] || continue
+        errors+=("  $line")
+      done < <(journalctl --user -u ironbar.service -n 10 --no-pager 2>/dev/null || true)
     fi
     ;;
 

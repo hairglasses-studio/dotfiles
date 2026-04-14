@@ -12,7 +12,7 @@ cd dotfiles
 
 - `kitty/` — Kitty config, CRTty shader assets, and theme playlists
 - `hyprland/` — Hyprland window manager config  
-- `eww/` — eww bar widgets
+- `ironbar/` — Ironbar menubar config
 - `zsh/` — Shell config + starship prompt
 - `scripts/` — Helper scripts + shared libraries
 

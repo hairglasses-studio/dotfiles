@@ -66,9 +66,9 @@ python-pipx
 nodejs
 npm
 
-# Desktop rice (Hyprland + eww)
+# Desktop rice (Hyprland + ironbar)
 hyprland
-eww
+ironbar-bin
 swaync
 wofi
 wlogout

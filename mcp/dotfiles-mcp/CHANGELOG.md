@@ -25,7 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Fleet auditing: per-repo health dashboard, dependency skew, workflow sync
 - Build pipeline: multi-language build+test, Go version sync, repo scaffolding
 - Hyprland desktop: window/workspace management, screenshots, monitor config, input simulation
-- Desktop services: cascade reload, rice check, eww bar management
+- Desktop services: cascade reload, rice check, ironbar-first bar management
 - Shader pipeline: GLSL shader lifecycle for Ghostty and wallpapers
 - Bluetooth: BLE-safe pairing, connect/disconnect, battery, trust
 - Input devices: juhradial-mx config and battery, gamepad profiles (makima)

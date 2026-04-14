@@ -139,7 +139,7 @@ func summarizeDesktopCapabilities(out dotfilesDesktopStatusOutput) dotfilesDeskt
 		out.Input,
 		out.Accessibility,
 		out.DesktopSession,
-		out.Eww,
+		out.Ironbar,
 		out.Notifications,
 		out.Terminal,
 		out.Shader,
@@ -230,7 +230,7 @@ func collectWorkstationIssues(systemOut SystemHealthCheckOutput, desktopOut dotf
 		})
 	}
 	for _, service := range riceOut.Services {
-		if (service.Service == "hyprland" || service.Service == "eww") && service.Action != "running" {
+		if (service.Service == "hyprland" || service.Service == "ironbar") && service.Action != "running" {
 			issues = append(issues, dotfilesWorkstationDiagnosticIssue{
 				Severity:         "warn",
 				Component:        "rice." + service.Service,
@@ -308,7 +308,7 @@ func desktopCapabilitiesForDiagnostics(out dotfilesDesktopStatusOutput) []struct
 		{Name: "input", Capability: out.Input},
 		{Name: "accessibility", Capability: out.Accessibility},
 		{Name: "desktop_session", Capability: out.DesktopSession},
-		{Name: "eww", Capability: out.Eww},
+		{Name: "ironbar", Capability: out.Ironbar},
 		{Name: "notifications", Capability: out.Notifications},
 		{Name: "terminal", Capability: out.Terminal},
 		{Name: "shader", Capability: out.Shader},
@@ -339,8 +339,8 @@ func issueToolsForComponent(component string) []string {
 		return []string{"dotfiles_desktop_status", "desktop_capabilities", "desktop_snapshot"}
 	case strings.HasPrefix(component, "desktop.desktop_session"):
 		return []string{"dotfiles_desktop_status", "session_connect", "session_wayland_info"}
-	case strings.HasPrefix(component, "desktop.eww"):
-		return []string{"dotfiles_desktop_status", "dotfiles_eww_status", "dotfiles_eww_inspect"}
+	case strings.HasPrefix(component, "desktop.ironbar"):
+		return []string{"dotfiles_desktop_status", "dotfiles_reload_service", "dotfiles_rice_check"}
 	case strings.HasPrefix(component, "desktop.notifications"):
 		return []string{"dotfiles_desktop_status", "notify_history_entries", "notify_history"}
 	case strings.HasPrefix(component, "desktop.terminal"):

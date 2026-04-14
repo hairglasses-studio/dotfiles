@@ -149,7 +149,7 @@ test_plugins() {
 # ── Section: Services ──────────────────────────────
 test_services() {
   echo "── Running Services ──" >&2
-  for svc in eww swaync swww-daemon hypridle pypr swayosd-server; do
+  for svc in ironbar swaync swww-daemon hypridle pypr swayosd-server; do
     if pgrep -x "$svc" &>/dev/null; then
       add_result services "$svc" pass "running"
     else
@@ -217,7 +217,7 @@ test_palette() {
   echo "── Theme Surface ──" >&2
 
   local scan_paths=(
-    "$SCRIPT_DIR/../eww"
+    "$SCRIPT_DIR/../ironbar"
     "$SCRIPT_DIR/../hyprshell"
     "$SCRIPT_DIR/../swaync"
     "$SCRIPT_DIR/../wofi"
