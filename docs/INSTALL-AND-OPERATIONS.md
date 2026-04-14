@@ -18,7 +18,9 @@ What it does:
 Current `--check` contract:
 
 - accepts the current repo checkout and the primary managed checkout when the check is run from another worktree of the same git repo
+- treats `install.sh --print-link-specs` as the canonical managed-link inventory that other surfaces must consume instead of re-declaring by hand
 - distinguishes repo-owned symlinks such as `~/.config/ironbar` from writable config roots such as `~/.config/hyprshell`
+- fails writable-root checks when the expected writable directory is actually a symlink or is not writable by the current user, and includes owner/mode detail in the failure line
 - reports generated runtime state such as `~/.local/state/hypr/monitors.dynamic.conf` and `~/.local/state/kitty/sessions` separately from broken link targets
 
 What it does not do:
@@ -142,6 +144,10 @@ bash -n scripts/*.sh scripts/lib/*.sh
 bash ./install.sh --print-link-specs
 bash ./install.sh --check
 ```
+
+The bundled `dotfiles/mcp/dotfiles-mcp` `dotfiles_check_symlinks` tool consumes
+the same `--print-link-specs` inventory, so CLI and MCP symlink checks now
+share one source of truth.
 
 ### Canonical parity audit
 
