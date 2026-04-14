@@ -7,7 +7,6 @@ set -euo pipefail
 
 BIND_FILE="${HOME}/.config/hypr/plugin-binds.conf"
 REQUIRED_PLUGINS=(
-  hy3
   split-monitor-workspaces
   hyprexpo
 )

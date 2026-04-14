@@ -28,20 +28,15 @@ else
   failed="${failed} hyprland"
 fi
 
-# Eww (config + widgets)
-if command -v eww >/dev/null 2>&1; then
-  if ! eww ping >/dev/null 2>&1; then
-    eww daemon >/dev/null 2>&1 || true
-    sleep 1
-  fi
-  if eww ping >/dev/null 2>&1 && eww reload 2>/dev/null; then
-    eww open sidebar >/dev/null 2>&1 || true
-    reloaded="${reloaded} eww"
+# Ironbar menubar
+if command -v ironbar >/dev/null 2>&1; then
+  if config_reload_service ironbar --quiet 2>/dev/null; then
+    reloaded="${reloaded} ironbar"
   else
-    failed="${failed} eww"
+    failed="${failed} ironbar"
   fi
 else
-  failed="${failed} eww"
+  failed="${failed} ironbar"
 fi
 
 # Kitty (SIGUSR1)

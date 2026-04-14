@@ -19,7 +19,7 @@ These files decide how the repo is installed, linked, and verified on a machine.
 
 These directories are the day-to-day desktop and shell runtime state managed by the installer.
 
-- Desktop control plane: `hyprland/`, `hyprshell/`, `hypr-dock/`, `hyprdynamicmonitors/`, `hyprland-autoname-workspaces/`, `eww/`, `swaync/`, `wofi/`, `wlogout/`, `greetd/`.
+- Desktop control plane: `hyprland/`, `ironbar/`, `hyprshell/`, `hypr-dock/`, `hyprdynamicmonitors/`, `hyprland-autoname-workspaces/`, `swaync/`, `wofi/`, `wlogout/`, `greetd/`.
 - Terminal and shell stack: `kitty/`, `ghostty/`, `tmux/`, `zsh/`, `starship/`, `nvim/`.
 - TUI theming and utilities: `bat/`, `btop/`, `cava/`, `glow/`, `k9s/`, `lazygit/`, `yazi/`, `fastfetch/`, `gh/`.
 - Device or hardware config: `keyboard/`, `juhradial/`, `makima/`, `environment.d/`, `udev/`.
@@ -66,7 +66,7 @@ Start narrow and escalate only when the change crosses surfaces.
 If you are searching the repo for a change target, start with these anchors.
 
 - Installer/bootstrap: `install.sh`, `dotfiles.toml`, `print_link_specs`, `create_symlinks`
-- Workstation runtime: `hyprland/`, `eww/`, `kitty/`, `ghostty/`, `systemd/`
+- Workstation runtime: `hyprland/`, `ironbar/`, `kitty/`, `ghostty/`, `systemd/`
 - Operator tooling: `scripts/hg*`, `scripts/lib/hg-*`, `.agents/skills/`
 - MCP packaging and parity: `mcp/`, `docs/MCP-MIRROR-PARITY.md`, `scripts/hg-mcp-mirror-parity.sh`, `scripts/hg-dotfiles-mcp-projection.sh`, `.mcp.json`, `scripts/hg-codex-mcp-sync.sh`, `scripts/hg-codex-audit.sh`
 

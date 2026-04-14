@@ -9,7 +9,7 @@ config_action_lane() {
   local verb="${1:-}" component="${2:-}"
 
   case "${verb}:${component}" in
-    reload:hyprland|reload:hypr|reload:hyprshell|reload:swaync|reload:eww|reload:ironbar|reload:tmux)
+    reload:hyprland|reload:hypr|reload:hyprshell|reload:swaync|reload:ironbar|reload:tmux)
       printf 'safe_reload\n'
       ;;
     reload:hypr-dock|reload:hyprdock|reload:hyprdynamicmonitors|reload:monitors|reload:hyprland-autoname-workspaces|reload:autoname)
@@ -88,9 +88,16 @@ config_reload_service() {
       rc=$?
       ;;
     hyprland-autoname-workspaces|autoname) systemctl --user restart dotfiles-hyprland-autoname-workspaces.service; rc=$? ;;
-    ironbar)       ironbar reload 2>/dev/null; rc=$? ;;
+    ironbar)
+      if command -v ironbar >/dev/null 2>&1 && ironbar ping >/dev/null 2>&1; then
+        ironbar reload 2>/dev/null || systemctl --user restart ironbar.service
+        rc=$?
+      else
+        systemctl --user restart ironbar.service
+        rc=$?
+      fi
+      ;;
     swaync)        swaync-client --reload-config; rc=$? ;;
-    eww)           eww reload 2>/dev/null; rc=$? ;;
     tmux)          tmux source-file ~/.tmux.conf 2>/dev/null; rc=$? ;;
     # ghostty and tattoy auto-reload via file watching
   esac
@@ -135,7 +142,7 @@ config_restart_service() {
 }
 
 # Reload multiple services in parallel
-# Usage: config_reload_parallel hyprland swaync eww
+# Usage: config_reload_parallel hyprland swaync ironbar
 config_reload_parallel() {
   local pids=() component
   for component in "$@"; do

@@ -889,7 +889,7 @@ func sandboxDiff(_ context.Context, input SandboxDiffInput) (SandboxDiffOutput, 
 
 	// Check symlinks inside container
 	out, _ := dockerExecUser(s.ContainerID, "hg", "bash", "-c",
-		`for link in ~/.config/hypr ~/.config/eww ~/.config/ghostty ~/.config/swaync ~/.config/foot ~/.config/starship.toml; do
+		`for link in ~/.config/hypr ~/.config/ironbar ~/.config/ghostty ~/.config/swaync ~/.config/foot ~/.config/starship.toml; do
 			if [ -L "$link" ]; then
 				target=$(readlink "$link")
 				if [ -e "$link" ]; then

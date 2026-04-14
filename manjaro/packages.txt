@@ -43,8 +43,6 @@ hypridle
 hyprlock
 
 # Desktop — Shared
-waybar
-eww
 wl-clipboard
 xorg-xwayland
 kitty

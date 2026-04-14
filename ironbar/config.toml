@@ -1,5 +1,5 @@
 # Cyberpunk Neon ironbar config
-# Replaces eww bar — GTK4, GPU-accelerated
+# Primary Hyprland menubar — GTK4, GPU-accelerated
 
 position = "top"
 height = 28
@@ -131,7 +131,7 @@ icons.muted = "󰝟"
 [[end]]
 type = "label"
 class = "bar-weather"
-label = "{{1800000:$HOME/hairglasses-studio/dotfiles/scripts/eww-weather.sh 2>/dev/null || echo ''}}"
+label = "{{1800000:$HOME/hairglasses-studio/dotfiles/scripts/bar-weather.sh 2>/dev/null || echo ''}}"
 
 # Network
 [[end]]

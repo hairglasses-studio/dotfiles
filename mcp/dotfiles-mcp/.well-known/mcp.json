@@ -310,7 +310,7 @@
     },
     {
       "name": "dotfiles_cascade_reload",
-      "description": "Atomic multi-service reload with health verification. Reloads services in order (default: hyprland → mako → eww), verifying each is healthy before proceeding to the next."
+      "description": "Atomic multi-service reload with health verification. Reloads services in order (default: hyprland → mako → ironbar), verifying each is healthy before proceeding to the next."
     },
     {
       "name": "dotfiles_changelog_gen",

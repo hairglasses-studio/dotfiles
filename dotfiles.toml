@@ -30,8 +30,8 @@ kitty_save_session = true
 [desktop.linux]
 hyprland = true
 sway = false
-eww = true
-waybar = true
+ironbar = true
+waybar = false
 mako = true
 hyprshell = true
 hypr_dock = true

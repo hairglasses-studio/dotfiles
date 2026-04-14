@@ -2,7 +2,7 @@
 
 ## Current State
 
-Manjaro Linux dotfiles with 60+ symlinked configs, 138 GLSL shaders with shuffled playlists, Snazzy-on-black palette applied to 15+ tools, Hyprland-first compositor automation, eww bar widgets, and a full boot stack (rEFInd + Plymouth). Idempotent installer with backup/restore support.
+Manjaro Linux dotfiles with 60+ symlinked configs, 138 GLSL shaders with shuffled playlists, Snazzy-on-black palette applied to 15+ tools, Hyprland-first compositor automation, an Ironbar-first menubar, and a full boot stack (rEFInd + Plymouth). Idempotent installer with backup/restore support.
 
 Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
 
@@ -11,14 +11,14 @@ Shader collection is one of the largest curated GLSL terminal shader sets public
 ### Phase 1 — Linux Installer Hardening
 - Keep `install.sh` Linux-only and catch non-Manjaro drift early
 - Tighten package validation for pacman/yay/metapac
-- Hyprland-specific installer steps (eww, mako, wofi, wlogout setup)
+- Hyprland-specific installer steps (ironbar, mako, wofi, wlogout setup)
 - Automated symlink validation in CI
 
-### Phase 2 — Eww Bar Polish
-- Sidebar with system stats, calendar, and notifications
-- Revealer-on-hover patterns for dense info display
-- Workspace indicator with empty-workspace placeholders
-- Theme generation from wallpaper colors via matugen integration
+### Phase 2 — Ironbar Menubar Polish
+- Menubar restart and recovery path stays reliable at login and hot reload time
+- Cache-fed fleet widgets stay visible without blocking the GTK layer
+- Workspace and focused-window modules stay legible on mixed-density monitors
+- Power, weather, and update affordances remain theme-aligned without writable bar config drift
 
 ### Phase 3 — Shader Pipeline
 - Shader performance benchmarks in CI (flag regressions above GPU budget)

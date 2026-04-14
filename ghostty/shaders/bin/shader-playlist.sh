@@ -121,7 +121,7 @@ shader-playlist-next() {
       "$_ghostty_config" > "$tmp"
   command mv -f "$tmp" "$_ghostty_config"
 
-  # Write state for eww bar
+  # Write state for menubar consumers
   command mkdir -p "$_shader_bar_state_dir" 2>/dev/null
   printf '%s' "$shader_path" > "$_shader_bar_state_file"
 }

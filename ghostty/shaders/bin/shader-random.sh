@@ -47,7 +47,7 @@ sed "s|^custom-shader = .*|custom-shader = ${relative_pick}|" "$CONFIG" \
   > "$tmp"
 mv "$tmp" "$CONFIG"
 
-# Write state for eww bar
+# Write state for menubar consumers
 mkdir -p "$BAR_STATE_DIR" 2>/dev/null
 printf '%s' "$pick" > "$BAR_STATE_FILE"
 

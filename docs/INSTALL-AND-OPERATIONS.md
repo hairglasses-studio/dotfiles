@@ -18,7 +18,7 @@ What it does:
 Current `--check` contract:
 
 - accepts the current repo checkout and the primary managed checkout when the check is run from another worktree of the same git repo
-- distinguishes repo-owned symlinks from writable config roots such as `~/.config/eww` and `~/.config/hyprshell`
+- distinguishes repo-owned symlinks such as `~/.config/ironbar` from writable config roots such as `~/.config/hyprshell`
 - reports generated runtime state such as `~/.local/state/hypr/monitors.dynamic.conf` and `~/.local/state/kitty/sessions` separately from broken link targets
 
 What it does not do:

@@ -59,6 +59,7 @@ id_ed25519*
 .codex/
 .gemini/*
 !.gemini/settings.json
+!.gemini/.hg-gemini-settings-sync.json
 !.gemini/extensions/
 !.gemini/extensions/**
 !.gemini/config.yaml

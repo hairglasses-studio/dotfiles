@@ -1,0 +1,15 @@
+[Unit]
+Description=dotfiles Ironbar top bar
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env ironbar -c %h/.config/ironbar/config.toml -t %h/.config/ironbar/style.css
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

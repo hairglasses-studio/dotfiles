@@ -83,7 +83,7 @@ hg_doctor() {
     "$HOME/.config/hypr-dock:hypr-dock"
     "$HOME/.config/hyprdynamicmonitors:hyprdynamicmonitors"
     "$HOME/.config/hyprland-autoname-workspaces:autoname"
-    "$HOME/.config/eww:eww"
+    "$HOME/.config/ironbar:ironbar"
     "$HOME/.config/swaync:swaync"
   )
   for _entry in "${_links[@]}"; do

@@ -1,13 +1,13 @@
-# rg-status-bar.service — Refresh fleet status cache for eww bar
+# rg-status-bar.service — Refresh fleet status cache for Ironbar
 #
 # Runs rg-status-bar.sh --all --json and writes to /tmp/rg-status.json.
-# eww reads from this cache file instead of invoking ralphglasses directly,
+# Ironbar reads from this cache file instead of invoking ralphglasses directly,
 # preventing bar freezes during slow MCP calls.
 #
 # Paired with rg-status-bar.timer (30s interval).
 
 [Unit]
-Description=Refresh ralphglasses fleet status cache for eww bar
+Description=Refresh ralphglasses fleet status cache for Ironbar
 After=network-online.target
 Wants=network-online.target
 

@@ -310,7 +310,7 @@ func TestBuildOutputTypes_JSONRoundTrip(t *testing.T) {
 					Results: []ServiceReloadStatus{
 						{Service: "hyprland", Action: "reloaded"},
 						{Service: "mako", Action: "reloaded"},
-						{Service: "eww", Action: "failed", Message: "not running"},
+						{Service: "ironbar", Action: "failed", Message: "not running"},
 					},
 				}
 				data, err := json.Marshal(out)

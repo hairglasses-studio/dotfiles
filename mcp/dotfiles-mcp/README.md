@@ -186,7 +186,7 @@ Runtime tools vary by category. Missing tools are detected gracefully -- unused 
 | Bluetooth | `bluetoothctl` |
 | Shaders | `glslangValidator` (optional, for compile-testing) |
 | Input / Mouse | `juhradial-mx`, `ydotool`, `makima` |
-| Desktop | `eww`, `makoctl`, `pgrep` |
+| Desktop | `ironbar`, `makoctl`, `pgrep` |
 | GitHub Org | `gh` (GitHub CLI) |
 | MIDI | ALSA (`aconnect`, `amidi`) |
 
