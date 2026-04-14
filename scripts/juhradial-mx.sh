@@ -26,7 +26,7 @@ log() {
 }
 
 overlay_script="$(juhradial_overlay_script)"
-overlay_unit="juhradial-overlay"
+overlay_unit="juhradial-overlay.service"
 if [[ ! -f "$overlay_script" ]]; then
   printf 'juhradial overlay not installed at %s\n' "$overlay_script" >&2
   printf 'Run %s/scripts/juhradial-install.sh first.\n' "$(juhradial_dotfiles_dir)" >&2
@@ -44,25 +44,27 @@ if ! $overlay_only; then
 fi
 
 if $restart; then
-  juhradial_systemctl stop "${overlay_unit}.service" >/dev/null 2>&1 || true
+  juhradial_systemctl stop "$overlay_unit" >/dev/null 2>&1 || true
   pkill -f 'juhradial-overlay(\.py)?' >/dev/null 2>&1 || true
   sleep 0.2
 fi
 
-if juhradial_overlay_running; then
+if juhradial_systemctl is-active "$overlay_unit" >/dev/null 2>&1 || juhradial_overlay_running; then
   log "Overlay already running"
   exit 0
 fi
 
 juhradial_export_graphical_env
-if command -v systemd-run >/dev/null 2>&1; then
+if juhradial_systemctl cat "$overlay_unit" >/dev/null 2>&1; then
+  juhradial_systemctl start --no-block "$overlay_unit" >/dev/null
+elif command -v systemd-run >/dev/null 2>&1; then
   desktop_file="$(juhradial_desktop_file)"
   env \
     XDG_RUNTIME_DIR="$(juhradial_runtime_dir)" \
     DBUS_SESSION_BUS_ADDRESS="$(juhradial_user_bus)" \
     systemd-run \
       --user \
-      --unit="$overlay_unit" \
+      --unit="${overlay_unit%.service}" \
       --quiet \
       --collect \
       /usr/bin/env \
