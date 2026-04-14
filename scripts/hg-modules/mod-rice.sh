@@ -83,7 +83,6 @@ _rice_services() {
     "autoname:hyprland-autoname-workspaces"
     "swaync:swaync"
     "swww:swww-daemon"
-    "hypridle:hypridle"
     "hyprsunset:hyprsunset"
   )
 

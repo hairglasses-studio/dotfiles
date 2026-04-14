@@ -3,8 +3,6 @@
 packages = [
     # Hyprland core
     { name = "hyprland" },
-    { name = "hypridle" },
-    { name = "hyprlock" },
     { name = "hyprpaper" },
     { name = "hyprpicker" },
     { name = "hyprsunset" },

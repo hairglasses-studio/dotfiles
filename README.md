@@ -118,7 +118,7 @@ hg-ollama-verify-heavy.sh
 
 ```
 dotfiles/
-├── hyprland/       → ~/.config/hypr (WM + hypridle + hyprlock + pyprland)
+├── hyprland/       → ~/.config/hypr (WM + pyprland + Hyprland companion config)
 ├── hyprshell/      → ~/.config/hyprshell (launcher + overview)
 ├── hypr-dock/      → ~/.config/hypr-dock (dock + theme)
 ├── hyprdynamicmonitors/ → ~/.config/hyprdynamicmonitors (dynamic monitor profiles)
