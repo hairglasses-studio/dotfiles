@@ -149,7 +149,7 @@ test_plugins() {
 # ── Section: Services ──────────────────────────────
 test_services() {
   echo "── Running Services ──" >&2
-  for svc in ironbar swaync swww-daemon hypridle pypr swayosd-server; do
+  for svc in ironbar swaync swww-daemon pypr swayosd-server; do
     if pgrep -x "$svc" &>/dev/null; then
       add_result services "$svc" pass "running"
     else

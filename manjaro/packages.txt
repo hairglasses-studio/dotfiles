@@ -39,8 +39,6 @@ dive
 
 # Desktop — Hyprland
 hyprland
-hypridle
-hyprlock
 
 # Desktop — Shared
 wl-clipboard

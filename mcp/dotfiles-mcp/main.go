@@ -2413,7 +2413,7 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 				}
 
 				// Service status.
-				checkServices := []string{"hyprland", "ironbar", "mako", "swww-daemon", "hypridle"}
+				checkServices := []string{"hyprland", "ironbar", "mako", "swww-daemon"}
 				for _, svc := range checkServices {
 					pgrepCmd := exec.Command("pgrep", "-x", svc)
 					action := "stopped"
