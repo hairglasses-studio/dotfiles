@@ -1,0 +1,34 @@
+diff --git a/daemon/src/main.rs b/daemon/src/main.rs
+index 6efb7f2..29b5510 100644
+--- a/daemon/src/main.rs
++++ b/daemon/src/main.rs
+@@ -69,7 +69,14 @@ fn spawn_device_hotplug_watcher() -> Arc<tokio::sync::Notify> {
+                             .map(|n| n.starts_with("event"))
+                             .unwrap_or(false)
+                     });
+-                    if is_event_device {
++                    let is_hotplug_event = matches!(
++                        event.kind,
++                        notify::EventKind::Create(_)
++                            | notify::EventKind::Remove(_)
++                            | notify::EventKind::Modify(notify::event::ModifyKind::Name(_))
++                    );
++
++                    if is_event_device && is_hotplug_event {
+                         info!("Device hotplug detected: {:?}", event.kind);
+                         hotplug_tx.notify_waiters();
+                     }
+diff --git a/daemon/src/evdev.rs b/daemon/src/evdev.rs
+index b58da67..044fe44 100644
+--- a/daemon/src/evdev.rs
++++ b/daemon/src/evdev.rs
+@@ -24,7 +24,8 @@ pub const LOGITECH_VENDOR_ID: u16 = 0x046D;
+ /// Known MX Master 4 product IDs (varies by connection type)
+ pub const MX_MASTER_4_PRODUCT_IDS: &[u16] = &[
+     0xB034, // USB receiver
+-    0xB035, // Bluetooth
++    0xB035, // Bluetooth (legacy)
++    0xB042, // Bluetooth (current)
+     0x4082, // Bolt receiver (variant)
+     0xC548, // Unifying receiver (fallback)
+ ];
