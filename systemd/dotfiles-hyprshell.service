@@ -10,6 +10,11 @@ Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 Environment=HYPRSHELL_RELOAD_TIMEOUT=3000
 ExecStartPre=/usr/bin/env sh -c '[ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] || exit 0'
 ExecStart=/usr/bin/env hyprshell -c %h/.config/hyprshell/config.toml -s %h/.config/hyprshell/styles.css run
+# Hyprshell can accumulate large transient GTK/cache allocations over long
+# sessions; keep soft/hard cgroup ceilings so systemd can reclaim/restart
+# instead of letting the launcher grow unbounded.
+MemoryHigh=384M
+MemoryMax=768M
 Restart=on-failure
 RestartSec=2
 
