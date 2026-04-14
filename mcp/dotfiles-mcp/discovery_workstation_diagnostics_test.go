@@ -126,6 +126,13 @@ func TestDotfilesWorkstationDiagnosticsDegradedWhenDesktopReadinessFails(t *test
 	if err := os.MkdirAll(filepath.Join(dotfilesRoot, "scripts"), 0o755); err != nil {
 		t.Fatalf("mkdir scripts: %v", err)
 	}
+	writeTestExecutable(t, binDir, "python3", `#!/bin/sh
+if [ "$1" = "-c" ]; then
+  printf '%s\n' 'ModuleNotFoundError: No module named pyatspi' >&2
+  exit 1
+fi
+exit 1
+`)
 	writeSystemHealthFixtures(t, binDir)
 
 	result := callDiscoveryTool(t, "dotfiles_workstation_diagnostics", map[string]any{
