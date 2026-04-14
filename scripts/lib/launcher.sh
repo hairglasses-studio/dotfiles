@@ -16,9 +16,33 @@ launcher_refresh_desktop_env() {
   fi
 }
 
+launcher_hyprshell_socket_path() {
+  launcher_refresh_desktop_env
+
+  if [[ -n "${XDG_RUNTIME_DIR:-}" && -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+    local instance_socket="${XDG_RUNTIME_DIR%/}/hypr/${HYPRLAND_INSTANCE_SIGNATURE}/hyprshell.sock"
+    if [[ -e "$instance_socket" ]]; then
+      printf '%s\n' "$instance_socket"
+      return 0
+    fi
+  fi
+
+  if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
+    local runtime_socket="${XDG_RUNTIME_DIR%/}/hyprshell.sock"
+    if [[ -e "$runtime_socket" ]]; then
+      printf '%s\n' "$runtime_socket"
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
 launcher_hyprshell_running() {
   launcher_refresh_desktop_env
-  command -v hyprshell >/dev/null 2>&1 && pgrep -x hyprshell >/dev/null 2>&1
+  command -v hyprshell >/dev/null 2>&1 \
+    && pgrep -x hyprshell >/dev/null 2>&1 \
+    && launcher_hyprshell_socket_path >/dev/null 2>&1
 }
 
 launcher_hyprshell_socat() {
@@ -27,6 +51,7 @@ launcher_hyprshell_socat() {
   launcher_refresh_desktop_env
   command -v hyprshell >/dev/null 2>&1 || return 1
   pgrep -x hyprshell >/dev/null 2>&1 || return 1
+  launcher_hyprshell_socket_path >/dev/null 2>&1 || return 1
 
   hyprshell socat "$payload" >/dev/null 2>&1
 }
