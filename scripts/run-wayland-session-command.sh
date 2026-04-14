@@ -5,9 +5,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/lib/runtime-desktop-env.sh
 source "$SCRIPT_DIR/lib/runtime-desktop-env.sh"
 
-wait_secs="${IRONBAR_WAIT_SECS:-15}"
-mode="${1:-run}"
+wait_secs="${WAYLAND_COMMAND_WAIT_SECS:-15}"
 
+usage() {
+  printf 'Usage: %s [--check|--print-env|--] [command...]\n' "${0##*/}" >&2
+}
+
+mode="${1:-run}"
 case "$mode" in
   --print-env)
     refresh_desktop_runtime_env
@@ -19,22 +23,25 @@ case "$mode" in
       print_desktop_runtime_env
       exit 0
     fi
-    printf 'run-ironbar: no live Wayland socket after %ss\n' "$wait_secs" >&2
+    printf '%s: no live Wayland socket after %ss\n' "${0##*/}" "$wait_secs" >&2
     exit 1
     ;;
-  run|--run)
+  --)
+    shift
     ;;
-  *)
-    printf 'Usage: %s [--check|--print-env]\n' "${0##*/}" >&2
-    exit 2
+  run|--run)
+    shift
     ;;
 esac
 
+if [[ "$#" -eq 0 ]]; then
+  usage
+  exit 2
+fi
+
 if ! wait_for_wayland "$wait_secs"; then
-  printf 'run-ironbar: no live Wayland socket after %ss\n' "$wait_secs" >&2
+  printf '%s: no live Wayland socket after %ss\n' "${0##*/}" "$wait_secs" >&2
   exit 1
 fi
 
-exec /usr/bin/env ironbar \
-  -c "${IRONBAR_CONFIG_PATH:-$HOME/.config/ironbar/config.toml}" \
-  -t "${IRONBAR_STYLE_PATH:-$HOME/.config/ironbar/style.css}"
+exec "$@"

@@ -2,11 +2,11 @@
 Description=dotfiles hypr-dock bottom launcher
 PartOf=graphical-session.target
 After=graphical-session.target
-ConditionEnvironment=WAYLAND_DISPLAY
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/env hypr-dock -config %h/.config/hypr-dock/hypr-dock.conf
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-wayland-session-command.sh -- hypr-dock -config %h/.config/hypr-dock/hypr-dock.conf
 Restart=on-failure
 RestartSec=2
 
