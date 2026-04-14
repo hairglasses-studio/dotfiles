@@ -373,6 +373,15 @@ path_is_package_managed() {
     return 1
 }
 
+linux_path_owner_details() {
+    local path="$1"
+    if stat -Lc 'owner=%U group=%G mode=%a' "$path" >/dev/null 2>&1; then
+        stat -Lc 'owner=%U group=%G mode=%a' "$path"
+        return 0
+    fi
+    printf 'owner=unknown group=unknown mode=unknown\n'
+}
+
 # ── Homebrew ────────────────────────────────────
 install_homebrew() {
     if ! command -v brew &>/dev/null; then
@@ -776,14 +785,19 @@ check_symlinks() {
     }
 
     check_linux_writable_dirs() {
-        local path label
+        local path label details
         log_info "Checking writable config roots..."
         while IFS='|' read -r path label; do
             [[ -n "$path" ]] || continue
-            if [[ -d "$path" ]]; then
+            if [[ -L "$path" ]]; then
+                log_error "Expected writable dir, found symlink: $path -> $(readlink "$path")"
+                errors=$((errors + 1))
+            elif [[ -d "$path" ]] && [[ -w "$path" ]] && [[ -x "$path" ]]; then
                 log_success "OK ($label): $path"
-            elif [[ -L "$path" ]]; then
-                log_warn "Expected writable dir, found symlink: $path -> $(readlink "$path")"
+            elif [[ -d "$path" ]]; then
+                details="$(linux_path_owner_details "$path")"
+                log_error "Writable dir not writable by current user ($label): $path [$details]"
+                errors=$((errors + 1))
             else
                 log_warn "Missing writable dir: $path"
             fi

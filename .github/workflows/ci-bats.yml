@@ -57,5 +57,8 @@ jobs:
       - name: Run script tests
         run: bats tests/hg_*.bats tests/rice_selftest.bats
 
+      - name: Run installer reliability tests
+        run: bats tests/install_check_worktree.bats tests/repo_smoke.bats
+
       - name: Run launcher and shell policy tests
         run: bats tests/tmux_session.bats tests/shell_env.bats tests/app_launcher.bats

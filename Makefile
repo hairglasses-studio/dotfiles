@@ -16,7 +16,7 @@ test-lib:
 
 test-scripts:
 	@echo "=== Script tests ==="
-	bats tests/shader_*.bats tests/hg_*.bats
+	bats tests/shader_*.bats tests/hg_*.bats tests/install_check_worktree.bats tests/repo_smoke.bats
 
 test-verbose:
 	bats --verbose-run --show-output-of-passing-tests tests/*.bats

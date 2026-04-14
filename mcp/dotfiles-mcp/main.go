@@ -17,7 +17,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -69,60 +68,6 @@ var reloadCommands = map[string][]string{
 	"waybar":   {"pkill", "-SIGUSR2", "waybar"},
 	"sway":     {"swaymsg", "reload"},
 	"tmux":     {"tmux", "source-file", "~/.tmux.conf"},
-}
-
-// expectedSymlinks returns the symlink mapping from install.sh logic.
-func expectedSymlinks() []struct{ src, dst string } {
-	dir := dotfilesDir()
-	home := homeDir()
-	cfg := filepath.Join(home, ".config")
-
-	// Common (all platforms).
-	links := []struct{ src, dst string }{
-		{filepath.Join(dir, "zsh/zshrc"), filepath.Join(home, ".zshrc")},
-		{filepath.Join(dir, "zsh/p10k.zsh"), filepath.Join(home, ".p10k.zsh")},
-		{filepath.Join(dir, "zsh/zshenv"), filepath.Join(home, ".zshenv")},
-		{filepath.Join(dir, "git/gitconfig"), filepath.Join(home, ".gitconfig")},
-		{filepath.Join(dir, "ssh/config"), filepath.Join(home, ".ssh/config")},
-		{filepath.Join(dir, "starship/starship.toml"), filepath.Join(cfg, "starship.toml")},
-		{filepath.Join(dir, "ghostty"), filepath.Join(cfg, "ghostty")},
-		{filepath.Join(dir, "nvim"), filepath.Join(cfg, "nvim")},
-		{filepath.Join(dir, "bat"), filepath.Join(cfg, "bat")},
-		{filepath.Join(dir, "fastfetch"), filepath.Join(cfg, "fastfetch")},
-		{filepath.Join(dir, "git/delta"), filepath.Join(cfg, "delta")},
-		{filepath.Join(dir, "git/ignore"), filepath.Join(cfg, "git/ignore")},
-		{filepath.Join(dir, "gh"), filepath.Join(cfg, "gh")},
-		{filepath.Join(dir, "k9s"), filepath.Join(cfg, "k9s")},
-		{filepath.Join(dir, "lazygit"), filepath.Join(cfg, "lazygit")},
-		{filepath.Join(dir, "btop"), filepath.Join(cfg, "btop")},
-		{filepath.Join(dir, "yazi"), filepath.Join(cfg, "yazi")},
-		{filepath.Join(dir, "cava"), filepath.Join(cfg, "cava")},
-		{filepath.Join(dir, "glow"), filepath.Join(cfg, "glow")},
-		{filepath.Join(dir, "tmux/tmux.conf"), filepath.Join(home, ".tmux.conf")},
-	}
-
-	// Platform-specific links.
-	if runtime.GOOS == "darwin" {
-		links = append(links,
-			struct{ src, dst string }{filepath.Join(dir, "aerospace/aerospace.toml"), filepath.Join(home, ".aerospace.toml")},
-			struct{ src, dst string }{filepath.Join(dir, "sketchybar"), filepath.Join(cfg, "sketchybar")},
-			struct{ src, dst string }{filepath.Join(dir, "borders"), filepath.Join(cfg, "borders")},
-			struct{ src, dst string }{filepath.Join(dir, "tattoo/tattoy.toml"), filepath.Join(home, "Library/Application Support/tattoy/tattoy.toml")},
-		)
-	} else if runtime.GOOS == "linux" {
-		links = append(links,
-			struct{ src, dst string }{filepath.Join(dir, "sway/config"), filepath.Join(cfg, "sway/config")},
-			struct{ src, dst string }{filepath.Join(dir, "ironbar"), filepath.Join(cfg, "ironbar")},
-			struct{ src, dst string }{filepath.Join(dir, "mako/config"), filepath.Join(cfg, "mako/config")},
-			struct{ src, dst string }{filepath.Join(dir, "wofi/config"), filepath.Join(cfg, "wofi/config")},
-			struct{ src, dst string }{filepath.Join(dir, "wofi/style.css"), filepath.Join(cfg, "wofi/style.css")},
-			struct{ src, dst string }{filepath.Join(dir, "foot/foot.ini"), filepath.Join(cfg, "foot/foot.ini")},
-			struct{ src, dst string }{filepath.Join(dir, "hyprland"), filepath.Join(cfg, "hypr")},
-			struct{ src, dst string }{filepath.Join(dir, "tattoy/tattoy.toml"), filepath.Join(cfg, "tattoy/tattoy.toml")},
-		)
-	}
-
-	return links
 }
 
 // parseStringArray extracts a []string from an interface{} that may be []any.
@@ -884,7 +829,10 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 			"dotfiles_check_symlinks",
 			"Check health of all expected dotfiles symlinks (healthy, broken, or missing).",
 			func(_ context.Context, _ CheckSymlinksInput) (CheckSymlinksOutput, error) {
-				links := expectedSymlinks()
+				links, err := loadManagedLinkSpecs()
+				if err != nil {
+					return CheckSymlinksOutput{}, fmt.Errorf("load managed link inventory: %w", err)
+				}
 				var results []SymlinkStatus
 
 				for _, l := range links {
