@@ -712,7 +712,13 @@ create_symlinks() {
             foot-server.socket
             foot-server.service
         )
+        local obsolete_audio_compat_units=(
+            pulseaudio.service
+            pulseaudio.socket
+            pipewire-media-session.service
+        )
         systemctl --user disable --now "${retired_units[@]}" >/dev/null 2>&1 || true
+        systemctl --user mask "${obsolete_audio_compat_units[@]}" >/dev/null 2>&1 || true
         rm -f \
             "$HOME/.config/systemd/user/eww-calendar-sync.service" \
             "$HOME/.config/systemd/user/eww-calendar-sync.timer" \
