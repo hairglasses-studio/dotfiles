@@ -90,6 +90,7 @@ modules_changed=false
 bluetooth_changed=false
 udev_changed=false
 systemd_changed=false
+resolved_changed=false
 openlinkhub_changed=false
 
 # sysctl
@@ -186,6 +187,23 @@ fi
 if $systemd_changed; then
     sudo systemctl daemon-reload
     echo "  Reloaded systemd daemon"
+fi
+
+resolved_root="$DOTFILES/etc/systemd/resolved.conf.d"
+if [[ -d "$resolved_root" ]]; then
+    if deploy_tree "$resolved_root" /etc/systemd/resolved.conf.d "systemd/resolved.conf.d"; then
+        any_changes=true
+        resolved_changed=true
+    fi
+fi
+if $resolved_changed; then
+    if systemd_unit_exists systemd-resolved.service; then
+        sudo systemctl enable systemd-resolved.service >/dev/null 2>&1 || true
+        sudo systemctl restart systemd-resolved.service || true
+        echo "  Applied systemd-resolved config update"
+    else
+        note_follow_up "systemd-resolved config changed, but systemd-resolved.service was not found"
+    fi
 fi
 
 if $bluetooth_changed; then
