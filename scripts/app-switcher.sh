@@ -14,10 +14,10 @@ source "$SCRIPT_DIR/lib/launcher.sh"
 action="${1:-open}"
 case "$action" in
   open|"")
-    hyprshell_payload='"OpenSwitch"'
+    hyprshell_payload='{"OpenSwitch":{"reverse":false}}'
     ;;
   reverse)
-    hyprshell_payload='"OpenSwitchReverse"'
+    hyprshell_payload='{"OpenSwitch":{"reverse":true}}'
     ;;
   close)
     hyprshell_payload='"CloseSwitch"'

@@ -51,8 +51,11 @@ setup() {
         "title": "Docs"
       }
     ]'
+    export HYPR_TEST_INSTANCE="hypr-test-instance"
 
     mkdir -p "${RUNTIME_DIR_DEFAULT}" "${DOTFILES_RUNTIME_SCAN_ROOT}"
+    mkdir -p "${RUNTIME_DIR_DEFAULT}/hypr/${HYPR_TEST_INSTANCE}"
+    touch "${RUNTIME_DIR_DEFAULT}/hypr/${HYPR_TEST_INSTANCE}/hyprshell.sock"
 
     for cmd in awk bash cat dirname find head id jq readlink sleep sort; do
         ln -s "$(command -v "$cmd")" "${AUX_BIN}/${cmd}"
@@ -151,6 +154,18 @@ teardown() {
     assert_output --partial 'socat "OpenOverview"'
 }
 
+@test "app-launcher skips hyprshell socket call when daemon socket is missing" {
+    export PGREP_EXIT=0
+    rm -f "${RUNTIME_DIR_DEFAULT}/hypr/${HYPR_TEST_INSTANCE}/hyprshell.sock"
+
+    run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-launcher.sh"
+    assert_success
+    assert_output --partial "--show drun"
+
+    run cat "${HYPRSHELL_LOG}"
+    assert_failure
+}
+
 @test "app-launcher falls back to rofi when wofi is unavailable" {
     rm -f "${TEST_BIN}/wofi"
     run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-launcher.sh"
@@ -209,7 +224,7 @@ teardown() {
 
     run cat "${HYPRSHELL_LOG}"
     assert_success
-    assert_output --partial 'socat "OpenSwitch"'
+    assert_output --partial 'socat {"OpenSwitch":{"reverse":false}}'
 }
 
 @test "app-switcher can send close and reverse commands to hyprshell" {
@@ -225,7 +240,7 @@ teardown() {
 
     run cat "${HYPRSHELL_LOG}"
     assert_success
-    assert_output --partial 'socat "OpenSwitchReverse"'
+    assert_output --partial 'socat {"OpenSwitch":{"reverse":true}}'
     assert_output --partial 'socat "CloseSwitch"'
 }
 
