@@ -98,6 +98,7 @@ sysctl_changed=false
 modprobe_changed=false
 modules_changed=false
 bluetooth_changed=false
+networkmanager_changed=false
 udev_changed=false
 systemd_changed=false
 resolved_changed=false
@@ -159,6 +160,31 @@ if [[ -f "$DOTFILES/etc/bluetooth/main.conf" ]]; then
     if deploy_file_if_changed "$DOTFILES/etc/bluetooth/main.conf" /etc/bluetooth/main.conf "bluetooth/main.conf"; then
         any_changes=true
         bluetooth_changed=true
+    fi
+fi
+if $bluetooth_changed; then
+    note_follow_up "bluetooth config changed; restart bluetooth.service when safe to apply without interrupting active devices"
+fi
+
+# NetworkManager
+networkmanager_root="$DOTFILES/etc/NetworkManager"
+if [[ -d "$networkmanager_root" ]]; then
+    if deploy_tree "$networkmanager_root" /etc/NetworkManager "NetworkManager"; then
+        any_changes=true
+        networkmanager_changed=true
+    fi
+fi
+if $networkmanager_changed; then
+    if systemd_unit_exists NetworkManager.service; then
+        if sudo nmcli general reload >/dev/null 2>&1; then
+            echo "  Reloaded NetworkManager configuration"
+        elif sudo systemctl reload NetworkManager.service >/dev/null 2>&1; then
+            echo "  Reloaded NetworkManager.service"
+        else
+            note_follow_up "NetworkManager config changed; reload or restart NetworkManager.service when safe"
+        fi
+    else
+        note_follow_up "NetworkManager config changed, but NetworkManager.service was not found"
     fi
 fi
 
