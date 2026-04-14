@@ -3,16 +3,18 @@ set -euo pipefail
 
 # app-launcher.sh — fallback-aware launcher entrypoint for Hyprland
 #
-# If hyprshell is installed and running, ask its daemon to open the overview /
-# launcher surface directly. Otherwise fall back to whichever launcher is
-# available locally.
+# Default to stable local launcher surfaces. Hyprshell overview is still
+# available for explicit opt-in callers, but daily Mod+D should not depend on
+# a native overview path that may silently no-op.
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]:-$0}")"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 source "$SCRIPT_DIR/lib/launcher.sh"
 
-if launcher_hyprshell_socat '"OpenOverview"' && launcher_wait_hyprshell_layer 'hyprshell_(overview|launcher)'; then
-  exit 0
+if launcher_prefer_hyprshell; then
+  if launcher_hyprshell_socat '"OpenOverview"' && launcher_wait_hyprshell_layer 'hyprshell_(overview|launcher)'; then
+    exit 0
+  fi
 fi
 
 if command -v wofi >/dev/null 2>&1; then

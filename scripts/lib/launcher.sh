@@ -16,6 +16,20 @@ launcher_refresh_desktop_env() {
   fi
 }
 
+launcher_truthy() {
+  local value="${1:-}"
+  case "${value,,}" in
+    1|true|yes|on)
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+launcher_prefer_hyprshell() {
+  launcher_truthy "${DOTFILES_LAUNCHER_PREFER_HYPRSHELL:-0}"
+}
+
 launcher_hyprshell_socket_path() {
   launcher_refresh_desktop_env
 

@@ -144,9 +144,19 @@ teardown() {
     assert_output --partial "--height 620"
 }
 
-@test "app-launcher tries hyprshell overview before falling back" {
+@test "app-launcher uses stable fallback launcher by default" {
     export PGREP_EXIT=0
     run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-launcher.sh"
+    assert_success
+    assert_output --partial "--show drun"
+
+    run cat "${HYPRSHELL_LOG}"
+    assert_failure
+}
+
+@test "app-launcher can prefer hyprshell overview when explicitly requested" {
+    export PGREP_EXIT=0
+    run env PATH="${TEST_BIN}:${AUX_BIN}" DOTFILES_LAUNCHER_PREFER_HYPRSHELL=1 /usr/bin/bash "${SCRIPTS_DIR}/app-launcher.sh"
     assert_success
 
     run cat "${HYPRSHELL_LOG}"
@@ -217,9 +227,19 @@ teardown() {
     assert_output --partial "--height 620"
 }
 
-@test "app-switcher tries hyprshell switcher before falling back" {
+@test "app-switcher uses stable fallback switcher by default" {
     export PGREP_EXIT=0
     run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh"
+    assert_success
+    assert_output ""
+
+    run cat "${HYPRSHELL_LOG}"
+    assert_failure
+}
+
+@test "app-switcher can prefer hyprshell switcher when explicitly requested" {
+    export PGREP_EXIT=0
+    run env PATH="${TEST_BIN}:${AUX_BIN}" DOTFILES_LAUNCHER_PREFER_HYPRSHELL=1 /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh"
     assert_success
 
     run cat "${HYPRSHELL_LOG}"
@@ -230,11 +250,11 @@ teardown() {
 @test "app-switcher can send close and reverse commands to hyprshell" {
     export PGREP_EXIT=0
 
-    run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh" reverse
+    run env PATH="${TEST_BIN}:${AUX_BIN}" DOTFILES_LAUNCHER_PREFER_HYPRSHELL=1 /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh" reverse
     assert_success
     assert_output ""
 
-    run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh" close
+    run env PATH="${TEST_BIN}:${AUX_BIN}" DOTFILES_LAUNCHER_PREFER_HYPRSHELL=1 /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh" close
     assert_success
     assert_output ""
 
