@@ -31,5 +31,22 @@ fi
 
 export DOTFILES_DIR="${DOTFILES_DIR:-$REPO_ROOT}"
 
-cd "$REPO_ROOT/mcp/dotfiles-mcp"
-exec env GOWORK=off go run .
+SERVER_ROOT="$REPO_ROOT/mcp/dotfiles-mcp"
+BIN_PATH="$REPO_ROOT/.codex/bin/dotfiles-mcp"
+
+needs_build=false
+if [[ ! -x "$BIN_PATH" ]]; then
+  needs_build=true
+elif find "$SERVER_ROOT" -type f \( -name '*.go' -o -name 'go.mod' -o -name 'go.sum' \) -newer "$BIN_PATH" -print -quit | grep -q .; then
+  needs_build=true
+fi
+
+if [[ "$needs_build" == true ]]; then
+  mkdir -p "$(dirname "$BIN_PATH")"
+  (
+    cd "$SERVER_ROOT"
+    env GOWORK=off go build -o "$BIN_PATH" .
+  )
+fi
+
+exec "$BIN_PATH" "$@"
