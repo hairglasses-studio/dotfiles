@@ -14,9 +14,12 @@ setup() {
     export ROFI_LOG="${BATS_TEST_TMPDIR}/rofi.log"
     export ROFI_STDIN_LOG="${BATS_TEST_TMPDIR}/rofi.stdin.log"
     export HYPRCTL_LOG="${BATS_TEST_TMPDIR}/hyprctl.log"
+    export HYPRSHELL_LOG="${BATS_TEST_TMPDIR}/hyprshell.log"
     export PGREP_EXIT=1
     export WOFI_CHOICE=""
     export ROFI_CHOICE=""
+    export RUNTIME_DIR_DEFAULT="${BATS_TEST_TMPDIR}/run-user"
+    export DOTFILES_RUNTIME_SCAN_ROOT="${BATS_TEST_TMPDIR}/runtime-scan"
     export HYPRCTL_MONITORS_JSON='[
       {
         "name": "DP-3",
@@ -26,6 +29,16 @@ setup() {
         "scale": 1
       }
     ]'
+    export HYPRCTL_LAYERS_JSON='{
+      "DP-3": {
+        "levels": {
+          "3": [
+            { "namespace": "hyprshell_overview" },
+            { "namespace": "hyprshell_switch" }
+          ]
+        }
+      }
+    }'
     export HYPRCTL_CLIENTS_JSON='[
       {
         "address": "0x001",
@@ -39,12 +52,15 @@ setup() {
       }
     ]'
 
-    for cmd in awk bash cat dirname jq readlink; do
+    mkdir -p "${RUNTIME_DIR_DEFAULT}" "${DOTFILES_RUNTIME_SCAN_ROOT}"
+
+    for cmd in awk bash cat dirname find head id jq readlink sleep sort; do
         ln -s "$(command -v "$cmd")" "${AUX_BIN}/${cmd}"
     done
 
     cat > "${TEST_BIN}/hyprshell" <<'EOF'
 #!/usr/bin/env bash
+printf '%s\n' "$*" >> "${HYPRSHELL_LOG}"
 exit 0
 EOF
     chmod +x "${TEST_BIN}/hyprshell"
@@ -78,6 +94,9 @@ EOF
 case "${1:-} ${2:-}" in
     "-j monitors")
         printf '%s\n' "${HYPRCTL_MONITORS_JSON:-[]}"
+        ;;
+    "layers -j")
+        printf '%s\n' "${HYPRCTL_LAYERS_JSON:-{}}"
         ;;
     "clients -j")
         printf '%s\n' "${HYPRCTL_CLIENTS_JSON:-[]}"
@@ -122,11 +141,14 @@ teardown() {
     assert_output --partial "--height 620"
 }
 
-@test "app-launcher exits cleanly when hyprshell is running" {
+@test "app-launcher tries hyprshell overview before falling back" {
     export PGREP_EXIT=0
-    run bash "${SCRIPTS_DIR}/app-launcher.sh"
+    run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-launcher.sh"
     assert_success
-    assert_output ""
+
+    run cat "${HYPRSHELL_LOG}"
+    assert_success
+    assert_output --partial 'socat "OpenOverview"'
 }
 
 @test "app-launcher falls back to rofi when wofi is unavailable" {
@@ -180,14 +202,31 @@ teardown() {
     assert_output --partial "--height 620"
 }
 
-@test "app-switcher exits cleanly when hyprshell is running" {
+@test "app-switcher tries hyprshell switcher before falling back" {
     export PGREP_EXIT=0
-    run bash "${SCRIPTS_DIR}/app-switcher.sh"
+    run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh"
+    assert_success
+
+    run cat "${HYPRSHELL_LOG}"
+    assert_success
+    assert_output --partial 'socat "OpenSwitch"'
+}
+
+@test "app-switcher can send close and reverse commands to hyprshell" {
+    export PGREP_EXIT=0
+
+    run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh" reverse
     assert_success
     assert_output ""
 
-    run test -f "${HYPRCTL_LOG}"
-    assert_failure
+    run env PATH="${TEST_BIN}:${AUX_BIN}" /usr/bin/bash "${SCRIPTS_DIR}/app-switcher.sh" close
+    assert_success
+    assert_output ""
+
+    run cat "${HYPRSHELL_LOG}"
+    assert_success
+    assert_output --partial 'socat "OpenSwitchReverse"'
+    assert_output --partial 'socat "CloseSwitch"'
 }
 
 @test "app-switcher falls back to rofi when wofi is unavailable" {

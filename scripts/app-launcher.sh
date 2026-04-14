@@ -3,15 +3,15 @@ set -euo pipefail
 
 # app-launcher.sh — fallback-aware launcher entrypoint for Hyprland
 #
-# If hyprshell is installed and running, it owns Super+D itself and this script
-# should stay inert to avoid double-launching surfaces. Until that stack is
-# installed, fall back to whichever launcher is available locally.
+# If hyprshell is installed and running, ask its daemon to open the overview /
+# launcher surface directly. Otherwise fall back to whichever launcher is
+# available locally.
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]:-$0}")"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 source "$SCRIPT_DIR/lib/launcher.sh"
 
-if launcher_hyprshell_running; then
+if launcher_hyprshell_socat '"OpenOverview"' && launcher_wait_hyprshell_layer 'hyprshell_(overview|launcher)'; then
   exit 0
 fi
 
@@ -20,6 +20,10 @@ if command -v wofi >/dev/null 2>&1; then
   args=(--show drun --width "$width" --height "$height")
   if [[ -n "$monitor" ]]; then
     args+=(--monitor "$monitor")
+  fi
+  wofi_dir="$(launcher_wofi_config_dir)"
+  if [[ -d "$wofi_dir" ]]; then
+    cd "$wofi_dir"
   fi
   exec wofi "${args[@]}"
 fi
