@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/hairglasses-studio/mcpkit/handler"
@@ -344,9 +346,10 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 		"dotfiles_desktop_status",
 		"Report desktop control readiness, including Hyprland, AT-SPI semantic targeting, session helpers, screenshot/OCR, input injection, and the kitty-to-ghostty terminal shader pipeline.",
 		func(_ context.Context, _ dotfilesDesktopStatusInput) (dotfilesDesktopStatusOutput, error) {
-			runtimeDir := dotfilesRuntimeDir()
-			waylandDisplay := dotfilesWaylandDisplay(runtimeDir)
-			hyprSignature := dotfilesHyprlandSignature(runtimeDir)
+			desktopRuntime := dotfilesResolveDesktopRuntime()
+			runtimeDir := desktopRuntime.XDGRuntimeDir
+			waylandDisplay := desktopRuntime.WaylandDisplay
+			hyprSignature := desktopRuntime.HyprlandInstanceSignature
 			hyprSocketDir := ""
 			if runtimeDir != "" {
 				candidate := filepath.Join(runtimeDir, "hypr")
@@ -905,20 +908,79 @@ func isDesktopProfileTool(name string) bool {
 }
 
 func dotfilesRuntimeDir() string {
-	if dir := strings.TrimSpace(os.Getenv("XDG_RUNTIME_DIR")); dir != "" {
-		return dir
-	}
-	dir := fmt.Sprintf("/run/user/%d", os.Getuid())
-	if info, err := os.Stat(dir); err == nil && info.IsDir() {
-		return dir
-	}
-	return ""
+	return dotfilesResolveDesktopRuntime().XDGRuntimeDir
 }
 
 func dotfilesWaylandDisplay(runtimeDir string) string {
-	if display := strings.TrimSpace(os.Getenv("WAYLAND_DISPLAY")); display != "" {
-		return display
+	if runtimeDir == "" {
+		return dotfilesResolveDesktopRuntime().WaylandDisplay
 	}
+	resolved := dotfilesResolveDesktopRuntime()
+	if resolved.XDGRuntimeDir == runtimeDir && resolved.WaylandDisplay != "" {
+		return resolved.WaylandDisplay
+	}
+	envRuntime := strings.TrimSpace(os.Getenv("XDG_RUNTIME_DIR"))
+	if runtimeDir == envRuntime {
+		if display := strings.TrimSpace(os.Getenv("WAYLAND_DISPLAY")); display != "" {
+			return display
+		}
+	}
+	return dotfilesWaylandDisplayInDir(runtimeDir)
+}
+
+func dotfilesHyprlandSignature(runtimeDir string) string {
+	if runtimeDir == "" {
+		return dotfilesResolveDesktopRuntime().HyprlandInstanceSignature
+	}
+	resolved := dotfilesResolveDesktopRuntime()
+	if resolved.XDGRuntimeDir == runtimeDir && resolved.HyprlandInstanceSignature != "" {
+		return resolved.HyprlandInstanceSignature
+	}
+	envRuntime := strings.TrimSpace(os.Getenv("XDG_RUNTIME_DIR"))
+	if runtimeDir == envRuntime {
+		if sig := strings.TrimSpace(os.Getenv("HYPRLAND_INSTANCE_SIGNATURE")); sig != "" {
+			return sig
+		}
+	}
+	return dotfilesHyprlandSignatureInDir(runtimeDir)
+}
+
+type dotfilesDesktopRuntimeCandidate struct {
+	RuntimeDir        string
+	WaylandDisplay    string
+	HyprlandSignature string
+	UID               int
+}
+
+func dotfilesRuntimeScanRoot() string {
+	if root := strings.TrimSpace(os.Getenv("DOTFILES_RUNTIME_SCAN_ROOT")); root != "" {
+		return root
+	}
+	return "/run/user"
+}
+
+func dotfilesRuntimeDirUID(runtimeDir string) int {
+	base := filepath.Base(strings.TrimRight(runtimeDir, "/"))
+	uid, err := strconv.Atoi(base)
+	if err != nil {
+		return -1
+	}
+	return uid
+}
+
+func dotfilesRuntimeSystemdMachine(runtimeDir string) string {
+	uid := dotfilesRuntimeDirUID(runtimeDir)
+	if uid < 0 {
+		return ""
+	}
+	account, err := user.LookupId(strconv.Itoa(uid))
+	if err != nil || strings.TrimSpace(account.Username) == "" {
+		return ""
+	}
+	return account.Username + "@.host"
+}
+
+func dotfilesWaylandDisplayInDir(runtimeDir string) string {
 	if runtimeDir == "" {
 		return ""
 	}
@@ -946,10 +1008,7 @@ func dotfilesWaylandDisplay(runtimeDir string) string {
 	return ""
 }
 
-func dotfilesHyprlandSignature(runtimeDir string) string {
-	if sig := strings.TrimSpace(os.Getenv("HYPRLAND_INSTANCE_SIGNATURE")); sig != "" {
-		return sig
-	}
+func dotfilesHyprlandSignatureInDir(runtimeDir string) string {
 	if runtimeDir == "" {
 		return ""
 	}
@@ -969,6 +1028,113 @@ func dotfilesHyprlandSignature(runtimeDir string) string {
 		return signatures[0]
 	}
 	return ""
+}
+
+func dotfilesRuntimeCandidate(runtimeDir string, allowEnv bool) (dotfilesDesktopRuntimeCandidate, bool) {
+	runtimeDir = strings.TrimSpace(runtimeDir)
+	if runtimeDir == "" {
+		return dotfilesDesktopRuntimeCandidate{}, false
+	}
+	info, err := os.Stat(runtimeDir)
+	if err != nil || !info.IsDir() {
+		return dotfilesDesktopRuntimeCandidate{}, false
+	}
+
+	candidate := dotfilesDesktopRuntimeCandidate{
+		RuntimeDir: runtimeDir,
+		UID:        dotfilesRuntimeDirUID(runtimeDir),
+	}
+	if allowEnv {
+		envRuntime := strings.TrimSpace(os.Getenv("XDG_RUNTIME_DIR"))
+		if runtimeDir == envRuntime {
+			candidate.WaylandDisplay = strings.TrimSpace(os.Getenv("WAYLAND_DISPLAY"))
+			candidate.HyprlandSignature = strings.TrimSpace(os.Getenv("HYPRLAND_INSTANCE_SIGNATURE"))
+		}
+	}
+	if candidate.WaylandDisplay == "" {
+		candidate.WaylandDisplay = dotfilesWaylandDisplayInDir(runtimeDir)
+	}
+	if candidate.HyprlandSignature == "" {
+		candidate.HyprlandSignature = dotfilesHyprlandSignatureInDir(runtimeDir)
+	}
+	if candidate.WaylandDisplay == "" && candidate.HyprlandSignature == "" {
+		return dotfilesDesktopRuntimeCandidate{}, false
+	}
+	return candidate, true
+}
+
+func dotfilesResolveDesktopRuntime() dotfilesDesktopRuntime {
+	envRuntime := strings.TrimSpace(os.Getenv("XDG_RUNTIME_DIR"))
+	if envRuntime != "" {
+		if candidate, ok := dotfilesRuntimeCandidate(envRuntime, true); ok {
+			return dotfilesDesktopRuntime{
+				XDGRuntimeDir:             candidate.RuntimeDir,
+				WaylandDisplay:            candidate.WaylandDisplay,
+				HyprlandInstanceSignature: candidate.HyprlandSignature,
+			}
+		}
+		return dotfilesDesktopRuntime{
+			XDGRuntimeDir:             envRuntime,
+			WaylandDisplay:            strings.TrimSpace(os.Getenv("WAYLAND_DISPLAY")),
+			HyprlandInstanceSignature: strings.TrimSpace(os.Getenv("HYPRLAND_INSTANCE_SIGNATURE")),
+		}
+	}
+
+	best := dotfilesDesktopRuntimeCandidate{}
+	bestScore := -1
+	if scanRoot := dotfilesRuntimeScanRoot(); scanRoot != "" {
+		entries, err := os.ReadDir(scanRoot)
+		if err == nil {
+			for _, entry := range entries {
+				if !entry.IsDir() {
+					continue
+				}
+				runtimeDir := filepath.Join(scanRoot, entry.Name())
+				candidate, ok := dotfilesRuntimeCandidate(runtimeDir, runtimeDir == envRuntime)
+				if !ok {
+					continue
+				}
+				score := 0
+				if candidate.RuntimeDir == envRuntime {
+					score += 40
+				}
+				if candidate.WaylandDisplay != "" {
+					score += 40
+				}
+				if candidate.HyprlandSignature != "" {
+					score += 30
+				}
+				if candidate.WaylandDisplay != "" && candidate.HyprlandSignature != "" {
+					score += 20
+				}
+				if candidate.UID > 0 {
+					score += 10
+				}
+				if score > bestScore {
+					best = candidate
+					bestScore = score
+				}
+			}
+		}
+	}
+	if bestScore >= 0 {
+		return dotfilesDesktopRuntime{
+			XDGRuntimeDir:             best.RuntimeDir,
+			WaylandDisplay:            best.WaylandDisplay,
+			HyprlandInstanceSignature: best.HyprlandSignature,
+		}
+	}
+
+	currentRuntime := fmt.Sprintf("%s/%d", strings.TrimRight(dotfilesRuntimeScanRoot(), "/"), os.Getuid())
+	if info, err := os.Stat(currentRuntime); err == nil && info.IsDir() {
+		return dotfilesDesktopRuntime{
+			XDGRuntimeDir:             currentRuntime,
+			WaylandDisplay:            dotfilesWaylandDisplayInDir(currentRuntime),
+			HyprlandInstanceSignature: dotfilesHyprlandSignatureInDir(currentRuntime),
+		}
+	}
+
+	return dotfilesDesktopRuntime{}
 }
 
 func schemaMap(schema any) map[string]any {

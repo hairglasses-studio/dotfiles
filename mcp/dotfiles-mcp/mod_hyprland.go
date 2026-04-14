@@ -27,18 +27,7 @@ func hyprInstanceSig() string {
 	if sig := os.Getenv("HYPRLAND_INSTANCE_SIGNATURE"); sig != "" {
 		return sig
 	}
-	uid := os.Getuid()
-	dir := fmt.Sprintf("/run/user/%d/hypr", uid)
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return ""
-	}
-	for _, e := range entries {
-		if e.IsDir() {
-			return e.Name()
-		}
-	}
-	return ""
+	return dotfilesHyprlandSignature(dotfilesRuntimeDir())
 }
 
 // hyprctlCmd builds an exec.Cmd for hyprctl, inheriting the Wayland env.
