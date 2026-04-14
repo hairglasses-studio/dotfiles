@@ -39,6 +39,30 @@ if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
   rm -f "${XDG_RUNTIME_DIR%/}/ironbar-ipc.sock"
 fi
 
-exec /usr/bin/env ironbar \
+stderr_fifo="$(mktemp -u "${XDG_RUNTIME_DIR:-/tmp}/ironbar-stderr.XXXXXX")"
+cleanup() {
+  rm -f "$stderr_fifo"
+}
+trap cleanup EXIT
+mkfifo "$stderr_fifo"
+
+{
+  while IFS= read -r line; do
+    case "$line" in
+      *"Unable to locate workspace"*) continue ;;
+      *"Unable to locate client"*) continue ;;
+      *"[Gdk] MESSAGE: Vulkan: Loader Message:"*) continue ;;
+    esac
+    printf '%s\n' "$line"
+  done <"$stderr_fifo"
+} &
+filter_pid=$!
+
+/usr/bin/env ironbar \
   -c "${IRONBAR_CONFIG_PATH:-$HOME/.config/ironbar/config.toml}" \
-  -t "${IRONBAR_STYLE_PATH:-$HOME/.config/ironbar/style.css}"
+  -t "${IRONBAR_STYLE_PATH:-$HOME/.config/ironbar/style.css}" \
+  >"$stderr_fifo" 2>&1
+status=$?
+
+wait "$filter_pid" || true
+exit "$status"
