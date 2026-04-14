@@ -8,6 +8,7 @@ Type=simple
 Environment=XDG_RUNTIME_DIR=%t
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus
 ExecStart=/usr/bin/env python3 %h/hairglasses-studio/dotfiles/scripts/notification-history-listener.py
+SuccessExitStatus=143
 Restart=always
 RestartSec=2
 

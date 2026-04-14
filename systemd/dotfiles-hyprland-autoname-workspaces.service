@@ -7,6 +7,7 @@ After=graphical-session.target
 Type=simple
 Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-wayland-session-command.sh -- hyprland-autoname-workspaces
+SuccessExitStatus=143
 Restart=always
 RestartSec=10
 

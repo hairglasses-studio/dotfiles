@@ -8,6 +8,7 @@ Type=simple
 Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 Environment=HYPRSHELL_RELOAD_TIMEOUT=3000
 ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-wayland-session-command.sh -- hyprshell -c %h/.config/hyprshell/config.toml -s %h/.config/hyprshell/styles.css run
+SuccessExitStatus=143
 # Hyprshell can accumulate large transient GTK/cache allocations over long
 # sessions; keep soft/hard cgroup ceilings so systemd can reclaim/restart
 # instead of letting the launcher grow unbounded.
