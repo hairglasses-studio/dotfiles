@@ -65,12 +65,8 @@ mkdir -p \
   "$HOME/.config/wofi" \
   "$HOME/.config/wlogout"
 
-for target in \
-  "$HOME/.config/hyprshell/theme.generated.css" \
-  "$HOME/.config/swaync/theme.generated.css" \
-  "$HOME/.config/wofi/theme.generated.css" \
-  "$HOME/.config/wlogout/theme.generated.css"
-do
+write_css_var_theme() {
+  local target="$1"
   cat > "$target" <<EOF
 :root {
   --theme-name: "${THEME_NAME}";
@@ -111,7 +107,37 @@ do
   --shadow-panel: 0 24px 80px $(rgba_css "$THEME_BG" "0.65");
 }
 EOF
+}
+
+write_wofi_gtk_theme() {
+  local target="$1"
+  cat > "$target" <<EOF
+@define-color theme_bg $(hex_css "$THEME_BG");
+@define-color theme_surface $(hex_css "$THEME_SURFACE");
+@define-color theme_surface_alt $(hex_css "$THEME_SURFACE_ALT");
+@define-color theme_panel $(hex_css "$THEME_PANEL");
+@define-color theme_panel_strong $(hex_css "$THEME_PANEL_STRONG");
+@define-color theme_fg $(hex_css "$THEME_FG");
+@define-color theme_muted $(hex_css "$THEME_MUTED");
+@define-color theme_primary $(hex_css "$theme_primary");
+@define-color theme_secondary $(hex_css "$theme_secondary");
+@define-color theme_tertiary $(hex_css "$theme_tertiary");
+@define-color theme_warning $(hex_css "$THEME_WARNING");
+@define-color theme_danger $(hex_css "$THEME_DANGER");
+@define-color theme_border $(hex_css "$THEME_BORDER");
+@define-color theme_border_strong $(hex_css "$THEME_BORDER_STRONG");
+EOF
+}
+
+for target in \
+  "$HOME/.config/hyprshell/theme.generated.css" \
+  "$HOME/.config/swaync/theme.generated.css" \
+  "$HOME/.config/wlogout/theme.generated.css"
+do
+  write_css_var_theme "$target"
 done
+
+write_wofi_gtk_theme "$HOME/.config/wofi/theme.generated.css"
 
 apply_runtime_theme_preferences() {
   export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-qt6ct}"

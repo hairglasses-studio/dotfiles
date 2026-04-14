@@ -2,8 +2,61 @@
 
 # Shared launcher helpers for Hyprland-facing fallback surfaces.
 
+launcher_lib_dir="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" && pwd)"
+runtime_desktop_env_sh="$launcher_lib_dir/runtime-desktop-env.sh"
+
+if [[ -f "$runtime_desktop_env_sh" ]]; then
+  # shellcheck source=/dev/null
+  source "$runtime_desktop_env_sh"
+fi
+
+launcher_refresh_desktop_env() {
+  if declare -F refresh_desktop_runtime_env >/dev/null 2>&1; then
+    refresh_desktop_runtime_env
+  fi
+}
+
 launcher_hyprshell_running() {
+  launcher_refresh_desktop_env
   command -v hyprshell >/dev/null 2>&1 && pgrep -x hyprshell >/dev/null 2>&1
+}
+
+launcher_hyprshell_socat() {
+  local payload="$1"
+
+  launcher_refresh_desktop_env
+  command -v hyprshell >/dev/null 2>&1 || return 1
+  pgrep -x hyprshell >/dev/null 2>&1 || return 1
+
+  hyprshell socat "$payload" >/dev/null 2>&1
+}
+
+launcher_hyprshell_layer_visible() {
+  local namespace_pattern="${1:-hyprshell_(overview|launcher|switch)}"
+
+  launcher_refresh_desktop_env
+  command -v hyprctl >/dev/null 2>&1 || return 1
+  command -v jq >/dev/null 2>&1 || return 1
+
+  hyprctl layers -j 2>/dev/null | jq -e --arg pattern "$namespace_pattern" '
+    .. | objects | select((.namespace // "") | test($pattern))
+  ' >/dev/null 2>&1
+}
+
+launcher_wait_hyprshell_layer() {
+  local namespace_pattern="$1"
+  local attempts="${2:-10}"
+  local sleep_secs="${3:-0.05}"
+  local i
+
+  for (( i = 0; i < attempts; i += 1 )); do
+    if launcher_hyprshell_layer_visible "$namespace_pattern"; then
+      return 0
+    fi
+    sleep "$sleep_secs"
+  done
+
+  return 1
 }
 
 launcher_wofi_geometry() {
@@ -43,4 +96,8 @@ launcher_wofi_geometry() {
   fi
 
   printf '%s\t%s\t%s\n' "$width" "$height" "$monitor"
+}
+
+launcher_wofi_config_dir() {
+  printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/wofi"
 }
