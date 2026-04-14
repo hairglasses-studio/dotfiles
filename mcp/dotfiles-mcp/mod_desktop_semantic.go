@@ -267,8 +267,12 @@ func dotfilesSemanticHelperPath() (string, error) {
 }
 
 func desktopSemanticCapabilities() desktopSemanticCapabilitiesOutput {
+	waylandDisplay := strings.TrimSpace(os.Getenv("WAYLAND_DISPLAY"))
+	if waylandDisplay == "" {
+		waylandDisplay = dotfilesWaylandDisplay(dotfilesRuntimeDir())
+	}
 	out := desktopSemanticCapabilitiesOutput{
-		WaylandDisplay:    dotfilesWaylandDisplay(dotfilesRuntimeDir()),
+		WaylandDisplay:    waylandDisplay,
 		BusAddressPresent: strings.TrimSpace(os.Getenv("DBUS_SESSION_BUS_ADDRESS")) != "",
 	}
 

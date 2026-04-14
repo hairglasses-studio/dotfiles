@@ -227,9 +227,7 @@ print_linux_systemd_link_specs() {
 }
 
 print_linux_systemd_copy_specs() {
-    cat <<EOF
-$DOTFILES_DIR/systemd/foot-server.socket|$HOME/.config/systemd/user/foot-server.socket
-EOF
+    :
 }
 
 print_link_specs() {
@@ -255,6 +253,55 @@ $HOME/.local/state/kitty/sessions|kitty session state directory|dir|required
 $HOME/.local/state/dotfiles/desktop-control|desktop control state root|dir|optional
 $HOME/.local/state/dotfiles/desktop-control/notifications/history.jsonl|desktop notification history log|file|optional
 EOF
+}
+
+linux_live_wayland_session_ready() {
+    [[ -n "${XDG_RUNTIME_DIR:-}" ]] || return 1
+    [[ -n "${WAYLAND_DISPLAY:-}" ]] || return 1
+    [[ -S "${XDG_RUNTIME_DIR%/}/${WAYLAND_DISPLAY}" ]]
+}
+
+refresh_linux_desktop_user_environment() {
+    local env_vars=()
+    local var
+    for var in XDG_RUNTIME_DIR WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE DBUS_SESSION_BUS_ADDRESS; do
+        [[ -n "${!var:-}" ]] && env_vars+=("$var")
+    done
+    if [[ "${#env_vars[@]}" -eq 0 ]]; then
+        return 0
+    fi
+    systemctl --user import-environment "${env_vars[@]}" >/dev/null 2>&1 || true
+    if command -v dbus-update-activation-environment >/dev/null 2>&1; then
+        dbus-update-activation-environment --systemd "${env_vars[@]}" >/dev/null 2>&1 || true
+    fi
+}
+
+start_linux_desktop_units_if_live() {
+    local service_units=("$@")
+    local passive_units=(rg-status-bar.timer)
+
+    if ! linux_live_wayland_session_ready; then
+        log_info "Skipping live desktop unit start; no active Wayland session detected in current shell"
+        return 0
+    fi
+
+    refresh_linux_desktop_user_environment
+
+    if [[ "${#passive_units[@]}" -gt 0 ]]; then
+        if systemctl --user start "${passive_units[@]}" >/dev/null 2>&1; then
+            log_success "Started passive desktop units in live session"
+        else
+            log_warn "Failed to start one or more passive desktop units in live session"
+        fi
+    fi
+
+    if [[ "${#service_units[@]}" -gt 0 ]]; then
+        if systemctl --user reload-or-restart "${service_units[@]}" >/dev/null 2>&1; then
+            log_success "Reloaded desktop services for current live session"
+        else
+            log_warn "Failed to reload one or more desktop services; run 'systemctl --user reload-or-restart ${service_units[*]}' inside your desktop session"
+        fi
+    fi
 }
 
 resolve_physical_path() {
@@ -647,17 +694,19 @@ create_symlinks() {
         :
     elif [[ "$OS" == "Linux" ]]; then
         log_info "Installing systemd user services..."
-        systemctl --user daemon-reload
-
         local retired_units=(
             waybar.service
             eww-calendar-sync.service
             eww-calendar-sync.timer
+            foot-server.socket
+            foot-server.service
         )
         systemctl --user disable --now "${retired_units[@]}" >/dev/null 2>&1 || true
         rm -f \
             "$HOME/.config/systemd/user/eww-calendar-sync.service" \
-            "$HOME/.config/systemd/user/eww-calendar-sync.timer"
+            "$HOME/.config/systemd/user/eww-calendar-sync.timer" \
+            "$HOME/.config/systemd/user/foot-server.socket"
+        systemctl --user daemon-reload
         if [[ -L "$HOME/.config/eww" ]] && [[ "$(readlink "$HOME/.config/eww")" == "$DOTFILES_DIR/eww" ]]; then
             rm -f "$HOME/.config/eww"
             log_success "Removed retired Eww config symlink"
@@ -669,21 +718,24 @@ create_symlinks() {
         fi
         mkdir -p "$HOME/.local/state/kitty/sessions"
 
-        local desktop_units=(
+        local desktop_service_units=(
             ironbar.service
             dotfiles-hyprshell.service
             dotfiles-hypr-dock.service
             dotfiles-hyprdynamicmonitors.service
             dotfiles-hyprland-autoname-workspaces.service
             dotfiles-notification-history.service
-            rg-status-bar.timer
-            foot-server.socket
         )
+        local desktop_passive_units=(
+            rg-status-bar.timer
+        )
+        local desktop_units=("${desktop_service_units[@]}" "${desktop_passive_units[@]}")
         if systemctl --user enable "${desktop_units[@]}" >/dev/null 2>&1; then
             log_success "Enabled desktop systemd user units"
         else
             log_warn "Failed to enable one or more desktop user units; rerun 'systemctl --user enable ${desktop_units[*]}' inside your desktop session"
         fi
+        start_linux_desktop_units_if_live "${desktop_service_units[@]}"
 
         # Validate cross-repo symlinks (warn if sibling repos are missing)
         local cross_repo_links=(

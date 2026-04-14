@@ -65,6 +65,30 @@ func countString(items []string, want string) int {
 func writeDesktopStatusCommandFixtures(t *testing.T, binDir string) {
 	t.Helper()
 
+	writeTestExecutable(t, binDir, "systemctl", `#!/bin/sh
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --user|--quiet|--no-pager|--full)
+      shift
+      ;;
+    --machine=*)
+      shift
+      ;;
+    is-active)
+      shift
+      case "|${DOTFILES_TEST_SYSTEMCTL_ACTIVE_UNITS:-}|" in
+        *"|$1|"*) exit 0 ;;
+      esac
+      exit 3
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+exit 3
+`)
+
 	writeExitZeroCommands(t, binDir,
 		"ironbar",
 		"hyprshell",
@@ -226,6 +250,7 @@ func TestDotfilesDesktopStatusReadyWithFixtures(t *testing.T) {
 	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_EXACT", "hyprshell|hypr-dock|hyprdynamicmonitors|hyprland-autoname-workspaces|ironbar")
 	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_PATTERN", "notification-history-listener.py")
 	t.Setenv("DOTFILES_TEST_PGREP_IRONBAR_COUNT", "1")
+	t.Setenv("DOTFILES_TEST_SYSTEMCTL_ACTIVE_UNITS", "ironbar.service")
 
 	writeDesktopStatusFixtureTree(t, homeDir, dotfilesRoot, stateDir, runtimeDir)
 	writeDesktopStatusCommandFixtures(t, binDir)
@@ -284,6 +309,59 @@ func TestDotfilesDesktopStatusReadyWithFixtures(t *testing.T) {
 	}
 	if !detailContainsSubstring(out.Shader.Details, "kitty shader playlist script available") {
 		t.Fatalf("expected shader script detail, got %v", out.Shader.Details)
+	}
+}
+
+func TestDotfilesDesktopStatusResolvesRuntimeFromScanRoot(t *testing.T) {
+	homeDir := t.TempDir()
+	dotfilesRoot := t.TempDir()
+	stateDir := t.TempDir()
+	runtimeScanRoot := t.TempDir()
+	rootRuntime := filepath.Join(runtimeScanRoot, "0")
+	liveRuntime := filepath.Join(runtimeScanRoot, "1000")
+	binDir := t.TempDir()
+
+	t.Setenv("HOME", homeDir)
+	t.Setenv("DOTFILES_DIR", dotfilesRoot)
+	t.Setenv("DOTFILES_MCP_PROFILE", "desktop")
+	t.Setenv("XDG_STATE_HOME", stateDir)
+	t.Setenv("XDG_RUNTIME_DIR", "")
+	t.Setenv("WAYLAND_DISPLAY", "")
+	t.Setenv("HYPRLAND_INSTANCE_SIGNATURE", "")
+	t.Setenv("DBUS_SESSION_BUS_ADDRESS", "")
+	t.Setenv("DOTFILES_RUNTIME_SCAN_ROOT", runtimeScanRoot)
+	t.Setenv("PATH", binDir)
+	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_EXACT", "hyprshell|hypr-dock|hyprdynamicmonitors|hyprland-autoname-workspaces|ironbar")
+	t.Setenv("DOTFILES_TEST_PGREP_RUNNING_PATTERN", "notification-history-listener.py")
+	t.Setenv("DOTFILES_TEST_PGREP_IRONBAR_COUNT", "1")
+	t.Setenv("DOTFILES_TEST_SYSTEMCTL_ACTIVE_UNITS", "ironbar.service")
+
+	if err := os.MkdirAll(rootRuntime, 0o755); err != nil {
+		t.Fatalf("mkdir root runtime: %v", err)
+	}
+	writeDesktopStatusFixtureTree(t, homeDir, dotfilesRoot, stateDir, liveRuntime)
+	writeDesktopStatusCommandFixtures(t, binDir)
+	if err := os.WriteFile(filepath.Join(liveRuntime, "wayland-1"), []byte{}, 0o644); err != nil {
+		t.Fatalf("write wayland socket fixture: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(liveRuntime, "hypr", "fixture-hypr"), 0o755); err != nil {
+		t.Fatalf("mkdir hypr signature fixture: %v", err)
+	}
+
+	result := callDiscoveryTool(t, "dotfiles_desktop_status", map[string]any{})
+	out := unmarshalDesktopStatusResult(t, result)
+
+	if out.Status != "ok" {
+		t.Fatalf("status = %q, want ok", out.Status)
+	}
+	if out.Runtime.XDGRuntimeDir != liveRuntime {
+		t.Fatalf("runtime dir = %q, want %q", out.Runtime.XDGRuntimeDir, liveRuntime)
+	}
+	if out.Runtime.WaylandDisplay != "wayland-1" {
+		t.Fatalf("wayland display = %q, want wayland-1", out.Runtime.WaylandDisplay)
+	}
+	if out.Runtime.HyprlandInstanceSignature != "fixture-hypr" {
+		t.Fatalf("hyprland signature = %q, want fixture-hypr", out.Runtime.HyprlandInstanceSignature)
 	}
 }
 

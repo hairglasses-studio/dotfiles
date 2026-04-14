@@ -156,7 +156,14 @@ func ewwStateSnapshot() (map[string]any, string, error) {
 }
 
 func systemdUserUnitActive(name string) bool {
-	return exec.Command("systemctl", "--user", "--quiet", "is-active", name).Run() == nil
+	if exec.Command("systemctl", "--user", "--quiet", "is-active", name).Run() == nil {
+		return true
+	}
+	runtime := dotfilesResolveDesktopRuntime()
+	if machine := dotfilesRuntimeSystemdMachine(runtime.XDGRuntimeDir); machine != "" {
+		return exec.Command("systemctl", "--user", "--machine="+machine, "--quiet", "is-active", name).Run() == nil
+	}
+	return false
 }
 
 func hyprLayerBindings(namespaces ...string) []EwwLayerInfo {
@@ -300,9 +307,11 @@ func restartEwwBars() EwwRestartOutput {
 	_ = exec.Command("killall", "-9", "eww").Run()
 	time.Sleep(300 * time.Millisecond)
 
-	socketMatches, _ := filepath.Glob(filepath.Join(dotfilesRuntimeDir(), "eww-server_*"))
-	for _, match := range socketMatches {
-		_ = os.Remove(match)
+	if runtimeDir := dotfilesRuntimeDir(); runtimeDir != "" {
+		socketMatches, _ := filepath.Glob(filepath.Join(runtimeDir, "eww-server_*"))
+		for _, match := range socketMatches {
+			_ = os.Remove(match)
+		}
 	}
 
 	daemon := ewwCmd("daemon", "--restart")
