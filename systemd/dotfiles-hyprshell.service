@@ -2,14 +2,12 @@
 Description=dotfiles hyprshell launcher and switcher
 PartOf=graphical-session.target
 After=graphical-session.target
-ConditionEnvironment=WAYLAND_DISPLAY
 
 [Service]
 Type=simple
 Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 Environment=HYPRSHELL_RELOAD_TIMEOUT=3000
-ExecStartPre=/usr/bin/env sh -c '[ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] || exit 0'
-ExecStart=/usr/bin/env hyprshell -c %h/.config/hyprshell/config.toml -s %h/.config/hyprshell/styles.css run
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-wayland-session-command.sh -- hyprshell -c %h/.config/hyprshell/config.toml -s %h/.config/hyprshell/styles.css run
 # Hyprshell can accumulate large transient GTK/cache allocations over long
 # sessions; keep soft/hard cgroup ceilings so systemd can reclaim/restart
 # instead of letting the launcher grow unbounded.

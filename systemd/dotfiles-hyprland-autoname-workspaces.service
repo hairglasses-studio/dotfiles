@@ -2,11 +2,11 @@
 Description=dotfiles workspace autonamer for Hyprland
 PartOf=graphical-session.target
 After=graphical-session.target
-ConditionEnvironment=WAYLAND_DISPLAY
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/env hyprland-autoname-workspaces
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-wayland-session-command.sh -- hyprland-autoname-workspaces
 Restart=always
 RestartSec=10
 
