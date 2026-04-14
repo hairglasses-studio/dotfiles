@@ -151,18 +151,12 @@ This repository serves as the centralized MCP server for the AFTRS ecosystem, ag
 
 ## Phase 7: AI/ML Integrations (NEW)
 
-### 7.1 Local LLM (Ollama) (Priority: MEDIUM)
-- [ ] `ai_ollama_query` - Query local LLM
-- [ ] `ai_ollama_models` - List/manage local models
-- [ ] `ai_ollama_generate` - Text generation
-- [ ] Offline AI capability for network-restricted environments
-
-### 7.2 Audio Transcription (Priority: MEDIUM)
+### 7.1 Audio Transcription (Priority: MEDIUM)
 - [ ] `ai_transcribe_audio` - Whisper-based audio transcription
 - [ ] `ai_transcribe_video` - Video transcription
 - [ ] `ai_translate_audio` - Translation with transcription
 
-### 7.3 Visual AI (Priority: LOW)
+### 7.2 Visual AI (Priority: LOW)
 - [ ] `ai_generate_image` - Image generation (Stable Diffusion)
 - [ ] `ai_style_transfer` - Apply artistic styles
 - [ ] Integration with TouchDesigner for real-time visuals

@@ -437,30 +437,7 @@ internal/mcp/tools/
 
 ## Priority 5: AI/ML Integrations ✅ PARTIAL
 
-### 5.1 Local LLM (Ollama) ✅ IMPLEMENTED
-
-**Purpose:** Offline AI capability using local models
-
-**Tools Implemented (10):**
-| Tool | Description | Status |
-|------|-------------|--------|
-| `aftrs_ollama_status` | Service status | ✅ |
-| `aftrs_ollama_models` | List models | ✅ |
-| `aftrs_ollama_loaded` | Loaded model residency | ✅ |
-| `aftrs_ollama_show` | Model metadata | ✅ |
-| `aftrs_ollama_generate` | Text generation | ✅ |
-| `aftrs_ollama_structured` | Schema-constrained JSON | ✅ |
-| `aftrs_ollama_chat` | Chat completion | ✅ |
-| `aftrs_ollama_tool_chat` | Native tool-call inspection | ✅ |
-| `aftrs_ollama_health` | Service health | ✅ |
-| `aftrs_ollama_readiness` | Alias/model readiness | ✅ |
-
-**Implementation:**
-- Client: `internal/clients/ollama.go`
-- MCP: `internal/mcp/tools/ollama/module.go`
-- Recommended models: code-primary, code-fast, code-long, nomic-embed-text:v1.5
-
-### 5.2 Audio Transcription (Whisper) ✅ IMPLEMENTED
+### 5.1 Audio Transcription (Whisper) ✅ IMPLEMENTED
 
 **Tools Implemented (4):**
 | Tool | Description | Status |

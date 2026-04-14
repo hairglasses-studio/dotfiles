@@ -3,7 +3,6 @@
 packages = [
     { name = "claude-desktop-bin" },
     { name = "claude-cowork-service" },
-    { name = "ollama-cuda", hooks = { after_sync = ["sudo", "systemctl", "enable", "--now", "ollama.service"] } },
     { name = "python-pytorch-opt-cuda" },
     { name = "python-torchvision-cuda" },
 ]

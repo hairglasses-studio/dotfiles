@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
+source "$SCRIPT_DIR/lib/hg-agent-parity.sh"
 
 REPO_PATH=""
 REPO_NAME=""
@@ -167,12 +168,25 @@ ensure_skill_surface() {
   render_surface_manifest "$skills_json"
 }
 
+ensure_codex_config_baseline() {
+  local target="$REPO_PATH/.codex/config.toml"
+  [[ -f "$target" ]] && return 0
+
+  local template
+  template="$(hg_parity_codex_template_path "$REPO_NAME")"
+  [[ -f "$template" ]] || hg_die "Missing Codex template: $template"
+
+  mkdir -p "$(dirname "$target")"
+  cp "$template" "$target"
+}
+
 sync_args=("$REPO_PATH" "--repo-name" "$REPO_NAME")
 if $ALLOW_DIRTY; then
   sync_args+=("--allow-dirty")
 fi
 
 ensure_skill_surface
+ensure_codex_config_baseline
 
 if [[ -f "$REPO_PATH/AGENTS.md" || -f "$REPO_PATH/CLAUDE.md" ]]; then
   "$SCRIPT_DIR/hg-agent-docs.sh" "$REPO_PATH" >/dev/null

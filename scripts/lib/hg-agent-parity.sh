@@ -47,6 +47,20 @@ hg_parity_repo_scope() {
   jq -r --arg repo "$repo_name" 'first(.repos[] | select(.name == $repo) | .scope) // "active_first_party"' "$manifest"
 }
 
+hg_parity_repo_needs_full_codex_profile_pack() {
+  local repo_name="$1"
+  [[ "$(hg_parity_repo_scope "$repo_name")" == "active_operator" ]]
+}
+
+hg_parity_codex_template_path() {
+  local repo_name="$1"
+  local template_name="codex-config.lean.toml"
+  if hg_parity_repo_needs_full_codex_profile_pack "$repo_name"; then
+    template_name="codex-config.standard.toml"
+  fi
+  printf '%s/templates/%s\n' "$HG_AGENT_PARITY_DOTFILES_ROOT" "$template_name"
+}
+
 hg_parity_repo_objective_bool() {
   local repo_name="$1"
   local field="$2"

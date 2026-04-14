@@ -228,17 +228,6 @@ func handleDashboardFull(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 			if sys.Message != "" {
 				sb.WriteString(fmt.Sprintf("| | ↳ %s | | |\n", truncate(sys.Message, 40)))
 			}
-			if sys.Readiness != nil {
-				if line := formatOllamaReadinessLine("required", sys.Readiness.RequiredModels); line != "" {
-					sb.WriteString(fmt.Sprintf("| | ↳ %s | | |\n", truncate(line, 40)))
-				}
-				if line := formatOllamaReadinessLine("missing", sys.Readiness.MissingModels); line != "" {
-					sb.WriteString(fmt.Sprintf("| | ↳ %s | | |\n", truncate(line, 40)))
-				}
-				if line := formatOllamaAliasIssues(sys.Readiness); line != "" {
-					sb.WriteString(fmt.Sprintf("| | ↳ %s | | |\n", truncate(line, 40)))
-				}
-			}
 		}
 		sb.WriteString("\n")
 	}
@@ -446,30 +435,6 @@ func getHealthBar(score int) string {
 		return "█░░░░"
 	}
 	return "░░░░░"
-}
-
-func formatOllamaReadinessLine(label string, models []string) string {
-	if len(models) == 0 {
-		return ""
-	}
-	return fmt.Sprintf("%s: %s", label, strings.Join(models, ", "))
-}
-
-func formatOllamaAliasIssues(readiness *clients.OllamaReadiness) string {
-	if readiness == nil {
-		return ""
-	}
-	issues := make([]string, 0)
-	for _, check := range readiness.AliasChecks {
-		switch check.Status {
-		case "missing_alias", "alias_only", "digest_mismatch":
-			issues = append(issues, fmt.Sprintf("%s=%s", check.Alias, check.Status))
-		}
-	}
-	if len(issues) == 0 {
-		return ""
-	}
-	return fmt.Sprintf("alias issues: %s", strings.Join(issues, ", "))
 }
 
 // truncate truncates a string to max length.

@@ -192,35 +192,32 @@ func TestNewLLMClient_NoAPIKey(t *testing.T) {
 	}
 }
 
-func TestNewLLMClient_LocalOllamaUsesDummyKey(t *testing.T) {
-	t.Setenv("OLLAMA_API_KEY", "")
-	t.Setenv("OLLAMA_CHAT_MODEL", "")
-
+func TestNewLLMClient_UsesConfiguredAPIKeyEnv(t *testing.T) {
+	t.Setenv("CUSTOM_API_KEY", "custom-key")
 	client := NewLLMClient(LLMConfig{
-		APIKeyEnv: "OLLAMA_API_KEY",
-		BaseURL:   "http://127.0.0.1:11434",
+		APIKeyEnv: "CUSTOM_API_KEY",
+		BaseURL:   "https://api.example.invalid",
 	})
 	if client == nil {
-		t.Fatal("expected local Ollama client")
+		t.Fatal("expected client")
 	}
-	if client.APIKey != "ollama" {
-		t.Fatalf("client.APIKey = %q, want %q", client.APIKey, "ollama")
+	if client.APIKey != "custom-key" {
+		t.Fatalf("client.APIKey = %q, want %q", client.APIKey, "custom-key")
 	}
-	if client.Model != "code-primary" {
-		t.Fatalf("client.Model = %q, want %q", client.Model, "code-primary")
+	if client.Model != "claude-sonnet-4-6" {
+		t.Fatalf("client.Model = %q, want %q", client.Model, "claude-sonnet-4-6")
 	}
 }
 
-func TestNewLLMClient_LocalOllamaBaseURLFromEnv(t *testing.T) {
-	t.Setenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434/")
-
+func TestNewLLMClient_UsesAnthropicFallback(t *testing.T) {
+	t.Setenv("ANTHROPIC_API_KEY", "anthropic-key")
 	client := NewLLMClient(LLMConfig{
-		APIKeyEnv: "OLLAMA_API_KEY",
+		APIKeyEnv: "MISSING_KEY",
 	})
 	if client == nil {
-		t.Fatal("expected local Ollama client")
+		t.Fatal("expected client")
 	}
-	if client.BaseURL != "http://127.0.0.1:11434" {
-		t.Fatalf("client.BaseURL = %q, want %q", client.BaseURL, "http://127.0.0.1:11434")
+	if client.APIKey != "anthropic-key" {
+		t.Fatalf("client.APIKey = %q, want %q", client.APIKey, "anthropic-key")
 	}
 }

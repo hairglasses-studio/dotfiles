@@ -84,7 +84,6 @@ import (
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/notion"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/obs"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ola"
-	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ollama"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/opc"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/opnsense"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ossia"

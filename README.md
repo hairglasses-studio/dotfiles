@@ -19,7 +19,6 @@ Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware
 - **Theme System**: shared token pipeline for `ironbar`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`
 - **MCP Servers**: 1,400+ tools across 7 Go + 3 JS modules — desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
-- **Local LLM Ops**: shared Ollama defaults plus smoke tests, full validation, alias sync, and resumable long-pull helpers via `scripts/hg-ollama-*.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
 - **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
@@ -46,7 +45,7 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 3. Bootstraps lazy.nvim for Neovim
 4. Installs TPM (Tmux Plugin Manager)
 5. Symlinks all 60+ configs to their expected locations
-6. Links managed `~/.local/bin` wrappers for Kitty visuals, the shell-first `kitty-shell-launch`, the explicit tmux `kitty-dev-launch`, launcher fallback, app switcher, the resumable Ollama pull helper, the heavy-model verifier, and the canonical Codex/Claude/Gemini launchers on Linux
+6. Links managed `~/.local/bin` wrappers for Kitty visuals, the shell-first `kitty-shell-launch`, the explicit tmux `kitty-dev-launch`, launcher fallback, app switcher, and the canonical Codex/Claude/Gemini launchers on Linux
 7. Enables repo-managed systemd user services and packaged system services where applicable, while leaving the optional Kitty save-session timer disabled unless you explicitly opt in later
 8. Syncs the shared shell theme into writable config targets and bootstraps Hyprland plugins via `hyprpm`
 9. Builds bat theme cache
@@ -67,11 +66,6 @@ tmux new-session
 theme-sync
 hyprpm-bootstrap
 
-# Resume a long Ollama model pull across reconnects
-hg-ollama-pull-resume.sh qwen3-coder-next
-
-# Wait for the heavy lane, probe it, then run the strict heavy validation path
-hg-ollama-verify-heavy.sh
 ```
 
 ### Machine-specific config

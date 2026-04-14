@@ -53,7 +53,6 @@ import (
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ndicv"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/notion"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/obs"
-	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ollama"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/paramsync"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/plugins"
 	_ "github.com/hairglasses-studio/hg-mcp/internal/mcp/tools/ptz"

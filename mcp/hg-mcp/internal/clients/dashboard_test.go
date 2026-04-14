@@ -2,86 +2,78 @@ package clients
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 )
 
-func TestDashboardClientQuickStatusShowsDegradedOllama(t *testing.T) {
+func TestDashboardClientQuickStatusShowsDegradedHTTPSystem(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/api/version":
-			_, _ = w.Write([]byte(`{"version":"0.11.0"}`))
-		case "/api/tags":
-			_, _ = w.Write([]byte(`{"models":[{"name":"devstral-small-2"},{"name":"code-fast"},{"name":"qwen2.5-coder:7b"},{"name":"nomic-embed-text:v1.5"}]}`))
-		default:
-			http.NotFound(w, r)
-		}
+		http.Error(w, "not ready", http.StatusBadRequest)
 	}))
 	defer server.Close()
-
-	t.Setenv("OLLAMA_BASE_URL", server.URL)
-	t.Setenv("OLLAMA_CHAT_MODEL", "code-primary")
-	t.Setenv("OLLAMA_FAST_MODEL", "code-fast")
-	t.Setenv("OLLAMA_EMBED_MODEL", "nomic-embed-text:v1.5")
+	host, port, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	if err != nil {
+		t.Fatalf("SplitHostPort() error = %v", err)
+	}
 
 	client := &DashboardClient{
 		systems: map[string]*SystemConfig{
-			"ollama": {
-				Name:        "ollama",
-				Category:    "ai",
-				Host:        "localhost",
-				Port:        11434,
+			"test-api": {
+				Name:        "test-api",
+				Category:    "network",
+				Host:        host,
+				Port:        mustAtoi(t, port),
 				Protocol:    "http",
-				HealthPath:  "/api/tags",
-				Description: "Ollama local LLM",
+				Description: "HTTP health probe",
 			},
 		},
+		httpClient: server.Client(),
 	}
 
 	status := client.GetQuickStatus(context.Background())
 	if !strings.Contains(status, "1 degraded") {
-		t.Fatalf("quick status should report degraded ollama, got %q", status)
+		t.Fatalf("quick status should report one degraded system, got %q", status)
 	}
-	if !strings.Contains(status, "⚠ollama") {
-		t.Fatalf("quick status should flag ollama as degraded, got %q", status)
+	if !strings.Contains(status, "⚠test-api") {
+		t.Fatalf("quick status should flag test-api as degraded, got %q", status)
 	}
 }
 
-func TestCheckSystemDetailedIncludesOllamaReadiness(t *testing.T) {
+func TestCheckSystemDetailedReportsHTTPDegradation(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/api/version":
-			_, _ = w.Write([]byte(`{"version":"0.11.0"}`))
-		case "/api/tags":
-			_, _ = w.Write([]byte(`{"models":[{"name":"devstral-small-2"},{"name":"code-fast"},{"name":"qwen2.5-coder:7b"},{"name":"nomic-embed-text:v1.5"}]}`))
-		default:
-			http.NotFound(w, r)
-		}
+		http.Error(w, "not ready", http.StatusBadRequest)
 	}))
 	defer server.Close()
+	host, port, err := net.SplitHostPort(strings.TrimPrefix(server.URL, "http://"))
+	if err != nil {
+		t.Fatalf("SplitHostPort() error = %v", err)
+	}
 
-	t.Setenv("OLLAMA_BASE_URL", server.URL)
-	t.Setenv("OLLAMA_CHAT_MODEL", "code-primary")
-	t.Setenv("OLLAMA_FAST_MODEL", "code-fast")
-	t.Setenv("OLLAMA_EMBED_MODEL", "nomic-embed-text:v1.5")
-
-	client := &DashboardClient{}
+	client := &DashboardClient{httpClient: server.Client()}
 	status := client.checkSystemDetailed(context.Background(), &SystemConfig{
-		Name:     "ollama",
-		Category: "ai",
+		Name:     "test-api",
+		Category: "network",
+		Host:     host,
+		Port:     mustAtoi(t, port),
+		Protocol: "http",
 	})
 	if status.Status != "degraded" {
 		t.Fatalf("status = %q, want degraded", status.Status)
 	}
-	if status.Readiness == nil {
-		t.Fatal("expected readiness payload")
+	if status.Message != "HTTP 400" {
+		t.Fatalf("message = %q, want HTTP 400", status.Message)
 	}
-	if len(status.Readiness.MissingModels) != 1 || status.Readiness.MissingModels[0] != "code-primary" {
-		t.Fatalf("unexpected missing models %+v", status.Readiness.MissingModels)
+}
+
+func mustAtoi(t *testing.T, value string) int {
+	t.Helper()
+	port, err := strconv.Atoi(value)
+	if err != nil {
+		t.Fatalf("Atoi(%q) error = %v", value, err)
 	}
-	if !strings.Contains(status.Message, "code-primary") {
-		t.Fatalf("expected status message to mention missing alias/model, got %q", status.Message)
-	}
+	return port
 }
