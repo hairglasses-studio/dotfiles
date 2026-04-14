@@ -209,6 +209,7 @@ $DOTFILES_DIR/scripts/kitty-shader-playlist.sh|$HOME/.local/bin/kitty-shader-pla
 $DOTFILES_DIR/scripts/kitty-shell-launch.sh|$HOME/.local/bin/kitty-shell-launch
 $DOTFILES_DIR/scripts/kitty-dev-launch.sh|$HOME/.local/bin/kitty-dev-launch
 $DOTFILES_DIR/scripts/kitty-visual-launch.sh|$HOME/.local/bin/kitty-visual-launch
+$DOTFILES_DIR/scripts/jellyfin-stack-boot.sh|$HOME/.local/bin/jellyfin-stack-boot.sh
 $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/juhradial-mx.sh|$HOME/.local/bin/juhradial-mx
@@ -217,13 +218,14 @@ EOF
 }
 
 print_linux_systemd_link_specs() {
-    local src
-    for src in "$DOTFILES_DIR"/systemd/*; do
-        [[ -f "$src" ]] || continue
-        [[ "$(basename "$src")" == "makima.service" ]] && continue
-        [[ "$(basename "$src")" == "foot-server.socket" ]] && continue
-        printf '%s|%s\n' "$src" "$HOME/.config/systemd/user/$(basename "$src")"
-    done
+    local src rel base
+    while IFS= read -r -d '' src; do
+        rel="${src#"$DOTFILES_DIR/systemd/"}"
+        base="$(basename "$src")"
+        [[ "$base" == "makima.service" ]] && continue
+        [[ "$base" == "foot-server.socket" ]] && continue
+        printf '%s|%s\n' "$src" "$HOME/.config/systemd/user/$rel"
+    done < <(find "$DOTFILES_DIR/systemd" -type f -print0 | sort -z)
 }
 
 print_linux_systemd_copy_specs() {
