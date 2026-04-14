@@ -1,11 +1,7 @@
 {
   "mcpServers": {
     "dotfiles": {
-      "command": "bash",
-      "args": [
-        "-lc",
-        "exec ./scripts/run-dotfiles-mcp.sh"
-      ]
+      "command": "./scripts/run-dotfiles-mcp.sh"
     }
   }
 }

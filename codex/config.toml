@@ -6,9 +6,13 @@
 model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
 plan_mode_reasoning_effort = "xhigh"
-service_tier = "flex"
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 
 [features]
 fast_mode = false
+
+[profiles.deep]
+model_reasoning_effort = "xhigh"
+plan_mode_reasoning_effort = "xhigh"
+model_verbosity = "medium"
