@@ -1,0 +1,6 @@
+[Unit]
+Description=User Block Device Compatibility Target for %I
+Documentation=man:systemd.target(5)
+# User systemd can retain ordering edges to blockdev@.target instances for
+# mounts and swap-backed paths, even though no user template ships upstream.
+# Provide a no-op compatibility target so those references resolve cleanly.
