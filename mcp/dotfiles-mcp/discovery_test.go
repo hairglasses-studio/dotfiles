@@ -263,8 +263,8 @@ func TestDiscoveryModuleRegistration(t *testing.T) {
 	}
 
 	tools := m.Tools()
-	if len(tools) != 8 {
-		t.Fatalf("expected 8 discovery tools, got %d", len(tools))
+	if len(tools) != 10 {
+		t.Fatalf("expected 10 discovery tools, got %d", len(tools))
 	}
 
 	names := make(map[string]bool)
@@ -278,6 +278,8 @@ func TestDiscoveryModuleRegistration(t *testing.T) {
 		"dotfiles_tool_stats",
 		"dotfiles_server_health",
 		"dotfiles_desktop_status",
+		"dotfiles_launcher_audit",
+		"dotfiles_bar_audit",
 		"dotfiles_workstation_diagnostics",
 		"dotfiles_workspace_scene",
 	} {
@@ -438,8 +440,8 @@ func TestServerHealth_WithSurfaceRegistries(t *testing.T) {
 	if got, ok := prioritySummary["missing_front_door_count"].(float64); !ok || int(got) != 0 {
 		t.Fatalf("expected zero missing front doors in priority summary, got %#v", prioritySummary["missing_front_door_count"])
 	}
-	if len(out.DiscoveryTools) != 8 {
-		t.Fatalf("expected 8 discovery tools, got %d", len(out.DiscoveryTools))
+	if len(out.DiscoveryTools) != 10 {
+		t.Fatalf("expected 10 discovery tools, got %d", len(out.DiscoveryTools))
 	}
 }
 
