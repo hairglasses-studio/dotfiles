@@ -1,0 +1,13 @@
+diff --git a/overlay/juhradial-overlay.py b/overlay/juhradial-overlay.py
+index bf36ad3..c6e27cf 100755
+--- a/overlay/juhradial-overlay.py
++++ b/overlay/juhradial-overlay.py
+@@ -1273,7 +1273,7 @@ if __name__ == "__main__":
+     app = QApplication(sys.argv)
+     app.setQuitOnLastWindowClosed(False)
+     app.setApplicationName("JuhRadial MX")
+-    app.setDesktopFileName("juhradial-mx")
++    app.setDesktopFileName("org.juhlabs.JuhRadialMX")
+ 
+     # Show splash screen immediately (before heavy loading)
+     splash = SplashScreen()

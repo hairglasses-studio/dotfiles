@@ -35,6 +35,10 @@ if ! wait_for_wayland "$wait_secs"; then
   exit 1
 fi
 
+if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
+  rm -f "${XDG_RUNTIME_DIR%/}/ironbar-ipc.sock"
+fi
+
 exec /usr/bin/env ironbar \
   -c "${IRONBAR_CONFIG_PATH:-$HOME/.config/ironbar/config.toml}" \
   -t "${IRONBAR_STYLE_PATH:-$HOME/.config/ironbar/style.css}"
