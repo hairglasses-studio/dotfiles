@@ -8,9 +8,11 @@ action="${1:-}"
 
 case "$action" in
   overview)
+    export DOTFILES_LAUNCHER_PREFER_HYPRSHELL=1
     exec "$SCRIPT_DIR/app-launcher.sh"
     ;;
   switch)
+    export DOTFILES_LAUNCHER_PREFER_HYPRSHELL=1
     exec "$SCRIPT_DIR/app-switcher.sh"
     ;;
   *)

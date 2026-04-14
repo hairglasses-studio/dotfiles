@@ -5,7 +5,7 @@
 | Key | Action |
 |-----|--------|
 | `Super+Enter` | New terminal |
-| `Super+D` | Hyprshell overview + launcher, with socket-backed managed Wofi/Rofi fallback |
+| `Super+D` | App launcher (stable Wofi/Rofi path by default; hyprshell overview remains opt-in) |
 | `Super+`` | Keybind reference |
 | `Super+X` | Dropdown terminal |
 | `Super+P` | Power menu |
@@ -91,7 +91,7 @@
 |-----|--------|
 | `Super+Shift+Q` | Close window |
 | `Super+Tab` | Workspace overview |
-| `Alt+Tab` | Hyprshell app switcher, with socket-backed managed Wofi/Rofi fallback |
+| `Alt+Tab` | App switcher (stable Wofi/Rofi path by default; hyprshell switch remains opt-in) |
 | `Super+Shift+R` | Reload config |
 | `Super+Shift+Tab` | Send to other monitor |
 

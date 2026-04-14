@@ -3,9 +3,8 @@ set -euo pipefail
 
 # app-switcher.sh — fallback-aware app switcher for Hyprland
 #
-# When hyprshell is installed and running, ask its daemon to open or close the
-# switcher directly. Until that stack is present, keep the old wofi-based
-# switcher available.
+# Default to stable local switcher surfaces. Hyprshell switch is kept behind an
+# explicit opt-in so broken native overlays do not block daily Alt+Tab usage.
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]:-$0}")"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
@@ -28,17 +27,19 @@ case "$action" in
     ;;
 esac
 
-if launcher_hyprshell_socat "$hyprshell_payload"; then
-  case "$action" in
-    open|reverse)
-      if launcher_wait_hyprshell_layer 'hyprshell_switch'; then
+if launcher_prefer_hyprshell; then
+  if launcher_hyprshell_socat "$hyprshell_payload"; then
+    case "$action" in
+      open|reverse)
+        if launcher_wait_hyprshell_layer 'hyprshell_switch'; then
+          exit 0
+        fi
+        ;;
+      close)
         exit 0
-      fi
-      ;;
-    close)
-      exit 0
-      ;;
-  esac
+        ;;
+    esac
+  fi
 fi
 
 if [[ "$action" == "close" ]]; then
