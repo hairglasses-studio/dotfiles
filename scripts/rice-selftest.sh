@@ -155,6 +155,14 @@ test_services() {
   echo "── Running Services ──" >&2
   refresh_desktop_runtime_env 2>/dev/null || true
   for svc in ironbar swaync swww-daemon pypr swayosd-server; do
+    if [[ "$svc" == "pypr" ]]; then
+      if command -v pypr >/dev/null 2>&1 && pypr version >/dev/null 2>&1; then
+        add_result services "pypr" pass "daemon responding"
+      else
+        add_result services "pypr" warn "daemon not responding"
+      fi
+      continue
+    fi
     if pgrep -x "$svc" &>/dev/null; then
       add_result services "$svc" pass "running"
     else
