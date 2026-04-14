@@ -17,6 +17,7 @@ ensure_greeter_state() {
 
     echo "Ensuring greeter home and keyring dirs..."
     sudo install -d -m700 -o greeter -g greeter "$GREETER_HOME"
+    sudo install -d -m700 -o greeter -g greeter "$GREETER_HOME/.cache"
     sudo install -d -m700 -o greeter -g greeter "$GREETER_HOME/.local"
     sudo install -d -m700 -o greeter -g greeter "$GREETER_HOME/.local/share"
     sudo install -d -m700 -o greeter -g greeter "$GREETER_HOME/.local/share/keyrings"

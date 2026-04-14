@@ -4,17 +4,24 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/runtime-desktop-env.sh
+source "$SCRIPT_DIR/lib/runtime-desktop-env.sh"
+
 LOG_DIR="$HOME/.local/share/hyprland-boot-logs"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 REPORT="$LOG_DIR/boot-$TIMESTAMP.log"
+BOOT_DELAY_SECS="${HYPR_BOOT_LOG_DELAY_SECS:-45}"
 LOG_MATCH='(\[ERR\]|\[WRN\]|(^|[^[:alnum:]_])(ERR|WRN|error|warn|failed|critical)([^[:alnum:]_]|$))'
 ERROR_MATCH='(\[ERR\]|(^|[^[:alnum:]_])(ERR|error|failed|critical)([^[:alnum:]_]|$))'
 WARN_MATCH='(\[WRN\]|(^|[^[:alnum:]_])(WRN|warn)([^[:alnum:]_]|$))'
+HYPR_LOG_IGNORE_MATCH="Warning: you're using an NVIDIA GPU|ERR from aquamarine .*drm: getCurrentCRTC: No CRTC 0|ERR from aquamarine .*Wayland backend cannot start: wl_display_connect failed \\(is a wayland compositor running\\?\\)|ERR from aquamarine .*Requested backend \\(wayland\\) could not start, enabling fallbacks|ERR from aquamarine .*Implementation wayland failed, erasing\\.|ERR from aquamarine .*drm: Cannot commit when a page-flip is awaiting|ERR from aquamarine .*atomic drm request: failed to commit: Device or resource busy"
 
 mkdir -p "$LOG_DIR"
 
-# Wait for Hyprland IPC to be ready
-sleep 5
+# Wait for Hyprland IPC plus noisy boot services to settle.
+sleep "$BOOT_DELAY_SECS"
+refresh_desktop_runtime_env
 
 {
     echo "=== HYPRLAND BOOT LOG — $TIMESTAMP ==="
@@ -49,7 +56,17 @@ sleep 5
         sleep 2
     done
     if [ -f "$HYPR_LOG" ]; then
-        grep -iE "$LOG_MATCH" "$HYPR_LOG" | head -100 || echo "No errors/warnings found"
+        FILTERED_LOGS="$(
+            grep -iE "$LOG_MATCH" "$HYPR_LOG" \
+                | grep -viE "$HYPR_LOG_IGNORE_MATCH" \
+                | head -100 \
+                || true
+        )"
+        if [[ -n "$FILTERED_LOGS" ]]; then
+            printf '%s\n' "$FILTERED_LOGS"
+        else
+            echo "No actionable errors/warnings found"
+        fi
     else
         echo "Log not found: $HYPR_LOG"
     fi
@@ -72,16 +89,26 @@ sleep 5
 } > "$REPORT" 2>&1
 
 # Desktop notification with summary (exclude section headers and metadata lines)
-ERROR_COUNT=$(grep -viE "^===|^Log not found|^hyprctl|^0 loaded" "$REPORT" 2>/dev/null | grep -ciE "$ERROR_MATCH" 2>/dev/null || echo 0)
-WARN_COUNT=$(grep -viE "^===|^Log not found|^hyprctl|^0 loaded" "$REPORT" 2>/dev/null | grep -ciE "$WARN_MATCH" 2>/dev/null || echo 0)
+ERROR_COUNT="$(
+  grep -viE "^===|^Log not found|^hyprctl|^0 loaded|^No actionable errors/warnings found$" "$REPORT" 2>/dev/null \
+    | grep -ciE "$ERROR_MATCH" 2>/dev/null \
+    || true
+)"
+WARN_COUNT="$(
+  grep -viE "^===|^Log not found|^hyprctl|^0 loaded|^No actionable errors/warnings found$" "$REPORT" 2>/dev/null \
+    | grep -ciE "$WARN_MATCH" 2>/dev/null \
+    || true
+)"
+ERROR_COUNT="${ERROR_COUNT:-0}"
+WARN_COUNT="${WARN_COUNT:-0}"
 if (( ERROR_COUNT > 0 )); then
   notify-send -u critical -a "Hyprland Boot" \
       "Boot log: ${ERROR_COUNT} errors" \
       "${ERROR_COUNT} errors, ${WARN_COUNT} warnings — ${REPORT}" \
       2>/dev/null || true
-else
+elif (( WARN_COUNT > 0 )) && [[ "${HYPR_BOOT_LOG_NOTIFY_WARNINGS:-0}" =~ ^(1|true|TRUE|yes|YES|on|ON)$ ]]; then
   notify-send -u low -a "Hyprland Boot" \
-      "Boot log captured" \
+      "Boot log warnings" \
       "${WARN_COUNT} warnings — ${REPORT}" \
       2>/dev/null || true
 fi
