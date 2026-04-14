@@ -46,6 +46,7 @@ For the MX Master 4 stack specifically:
 - `scripts/hg input status`: fast runtime status for juhradial, ydotool, transport, and config drift
 - `scripts/hg input verify`: live runtime + patch-layer verification workflow
 - `scripts/juhradial-wheel-apply.sh`: recovery-only wheel-state bridge; Solaar is intentionally limited to this repair path until juhradial restores the full HID++ wheel state itself
+- runtime logs land under `~/.local/state/juhradial/` for the daemon and `~/.local/state/hyprdynamicmonitors/` for monitor-profile churn so journal noise can stay narrow
 
 ## Documentation parity helpers
 
