@@ -8,6 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/lib/kitty-config.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/lib/runtime-desktop-env.sh" 2>/dev/null || true
 
 JSON_MODE=false
 SECTION="all"
@@ -68,6 +69,7 @@ test_config() {
     add_result config "jq_dependency" fail "jq not found"
     return
   fi
+  refresh_desktop_runtime_env 2>/dev/null || true
   local raw errs stderr_raw stderr_file hypr_status
   stderr_file="$(mktemp)"
   hypr_status=0
@@ -100,6 +102,7 @@ test_keybinds() {
     add_result keybinds "jq_dependency" fail "jq not found"
     return
   fi
+  refresh_desktop_runtime_env 2>/dev/null || true
   local binds
   binds="$(hyprctl binds -j 2>/dev/null)"
 
@@ -131,6 +134,7 @@ test_keybinds() {
 # ── Section: Plugins ───────────────────────────────
 test_plugins() {
   echo "── Hyprland Plugins ──" >&2
+  refresh_desktop_runtime_env 2>/dev/null || true
   local plugins
   plugins="$(hyprctl plugins list 2>/dev/null | grep "^Plugin" | sed 's/Plugin //' | sed 's/ by.*//')"
   local count
@@ -149,6 +153,7 @@ test_plugins() {
 # ── Section: Services ──────────────────────────────
 test_services() {
   echo "── Running Services ──" >&2
+  refresh_desktop_runtime_env 2>/dev/null || true
   for svc in ironbar swaync swww-daemon pypr swayosd-server; do
     if pgrep -x "$svc" &>/dev/null; then
       add_result services "$svc" pass "running"
