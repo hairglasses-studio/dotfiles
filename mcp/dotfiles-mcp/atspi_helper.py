@@ -7,7 +7,7 @@ import time
 try:
     import pyatspi
 except ImportError:
-    print(json.dumps({"error": "pyatspi not found. Please install python-pyatspi or equivalent."}))
+    print(json.dumps({"error": "pyatspi not found. Please install python-atspi (Arch), python-pyatspi, or equivalent."}))
     sys.exit(1)
 
 
