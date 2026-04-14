@@ -1,46 +1,42 @@
 @import url("theme.generated.css");
 
-:root {
-  --border-radius: var(--radius-lg);
-}
-
 * {
-  font-family: var(--ui-font), var(--icon-font), monospace;
+  font-family: "Maple Mono NF CN", "Symbols Nerd Font Mono", monospace;
   font-size: 15px;
-  color: var(--theme-fg);
+  color: @theme_fg;
 }
 
 .window {
   padding: 30px;
-  border: 1px solid rgba(var(--theme-secondary-rgb), 0.32);
-  border-radius: var(--radius-lg);
+  border: 1px solid alpha(@theme_secondary, 0.32);
+  border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.08), transparent 36%),
-    linear-gradient(180deg, rgba(var(--theme-panel-rgb), 0.98), rgba(var(--theme-panel-strong-rgb), 0.98));
-  box-shadow: var(--shadow-panel);
+    linear-gradient(135deg, alpha(@theme_primary, 0.08), alpha(@theme_primary, 0) 36%),
+    linear-gradient(180deg, alpha(@theme_panel, 0.98), alpha(@theme_panel_strong, 0.98));
+  box-shadow: 0 24px 80px alpha(@theme_bg, 0.65);
 }
 
 entry {
   margin-bottom: 18px;
   padding: 16px 18px;
-  border: 1px solid rgba(var(--theme-border-strong-rgb), 0.9);
-  border-radius: var(--radius-md);
-  background: rgba(var(--theme-surface-rgb), 0.88);
-  color: var(--theme-fg);
-  box-shadow: inset 0 1px 0 rgba(var(--theme-fg-rgb), 0.05);
+  border: 1px solid alpha(@theme_border_strong, 0.9);
+  border-radius: 16px;
+  background: alpha(@theme_surface, 0.88);
+  color: @theme_fg;
+  box-shadow: inset 0 1px 0 alpha(@theme_fg, 0.05);
 }
 
 entry:focus {
-  border-color: rgba(var(--theme-primary-rgb), 0.7);
+  border-color: alpha(@theme_primary, 0.7);
   box-shadow:
-    inset 0 1px 0 rgba(var(--theme-fg-rgb), 0.06),
-    0 0 0 3px rgba(var(--theme-primary-rgb), 0.12);
+    inset 0 1px 0 alpha(@theme_fg, 0.06),
+    0 0 0 3px alpha(@theme_primary, 0.12);
 }
 
 list,
 row,
 button {
-  border-radius: var(--radius-md);
+  border-radius: 16px;
 }
 
 row,
@@ -48,19 +44,19 @@ button {
   margin: 4px 0;
   padding: 14px 16px;
   border: 1px solid transparent;
-  background: rgba(var(--theme-surface-alt-rgb), 0.78);
+  background: alpha(@theme_surface_alt, 0.78);
 }
 
 row:hover,
 button:hover,
 row:selected {
-  background: linear-gradient(135deg, rgba(var(--theme-primary-rgb), 0.18), rgba(var(--theme-secondary-rgb), 0.14));
-  border-color: rgba(var(--theme-primary-rgb), 0.5);
-  box-shadow: 0 12px 24px rgba(var(--theme-bg-rgb), 0.26);
+  background: linear-gradient(135deg, alpha(@theme_primary, 0.18), alpha(@theme_secondary, 0.14));
+  border-color: alpha(@theme_primary, 0.5);
+  box-shadow: 0 12px 24px alpha(@theme_bg, 0.26);
 }
 
 label {
-  color: var(--theme-fg);
+  color: @theme_fg;
 }
 
 .large-icons {
@@ -72,13 +68,13 @@ label {
 }
 
 .text-grayed {
-  color: rgba(var(--theme-muted-rgb), 0.95);
+  color: alpha(@theme_muted, 0.95);
 }
 
 tooltip {
   padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(var(--theme-secondary-rgb), 0.32);
-  background: rgba(var(--theme-panel-rgb), 0.96);
-  box-shadow: var(--shadow-panel);
+  border-radius: 16px;
+  border: 1px solid alpha(@theme_secondary, 0.32);
+  background: alpha(@theme_panel, 0.96);
+  box-shadow: 0 24px 80px alpha(@theme_bg, 0.65);
 }
