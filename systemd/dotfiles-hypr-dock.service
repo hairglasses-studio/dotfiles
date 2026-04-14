@@ -6,7 +6,7 @@ After=graphical-session.target
 [Service]
 Type=simple
 Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-wayland-session-command.sh -- hypr-dock -config %h/.config/hypr-dock/hypr-dock.conf
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-hypr-dock.sh -- -config %h/.config/hypr-dock/hypr-dock.conf
 SuccessExitStatus=143
 Restart=on-failure
 RestartSec=2

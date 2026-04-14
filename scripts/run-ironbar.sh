@@ -6,7 +6,28 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/runtime-desktop-env.sh"
 
 wait_secs="${IRONBAR_WAIT_SECS:-15}"
+audio_wait_secs="${IRONBAR_AUDIO_WAIT_SECS:-10}"
 mode="${1:-run}"
+
+default_audio_sink_ready() {
+  if ! command -v wpctl >/dev/null 2>&1; then
+    return 0
+  fi
+  wpctl get-volume @DEFAULT_AUDIO_SINK@ >/dev/null 2>&1
+}
+
+wait_for_default_audio_sink() {
+  local wait_secs="${1:-10}"
+  local waited=0
+  while (( waited <= wait_secs )); do
+    if default_audio_sink_ready; then
+      return 0
+    fi
+    sleep 1
+    ((waited += 1))
+  done
+  return 1
+}
 
 case "$mode" in
   --print-env)
@@ -35,6 +56,8 @@ if ! wait_for_wayland "$wait_secs"; then
   exit 1
 fi
 
+wait_for_default_audio_sink "$audio_wait_secs" || true
+
 state_root="${XDG_STATE_HOME:-$HOME/.local/state}/ironbar"
 mkdir -p "$state_root"
 raw_log_path="${IRONBAR_STDERR_LOG_PATH:-$state_root/ironbar.stderr.log}"
@@ -60,18 +83,25 @@ mkfifo "$stderr_fifo"
     case "$line" in
       *"Unable to locate workspace"*) continue ;;
       *"Unable to locate client"*) continue ;;
+      *"Couldn't find sink: "* ) continue ;;
+      *"Attempted to update menu at "* ) continue ;;
+      *"ignoring workspace event received before initialization"*) continue ;;
       *"[Gdk] MESSAGE: Vulkan: Loader Message:"*) continue ;;
+      *"[Gdk] vkQueuePresentKHR(): A swapchain no longer matches the surface properties exactly, but can still be used to present to the surface successfully. (VK_SUBOPTIMAL_KHR)"*) continue ;;
+      *"[Gdk] vkAcquireNextImageKHR(): A swapchain no longer matches the surface properties exactly, but can still be used to present to the surface successfully. (VK_SUBOPTIMAL_KHR)"*) continue ;;
     esac
     printf '%s\n' "$line"
   done <"$stderr_fifo"
 } &
 filter_pid=$!
 
+set +e
 /usr/bin/env ironbar \
   -c "${IRONBAR_CONFIG_PATH:-$HOME/.config/ironbar/config.toml}" \
   -t "${IRONBAR_STYLE_PATH:-$HOME/.config/ironbar/style.css}" \
   >"$stderr_fifo" 2>&1
 status=$?
+set -e
 
 wait "$filter_pid" || true
 exit "$status"
