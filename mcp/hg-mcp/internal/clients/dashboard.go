@@ -49,15 +49,14 @@ type SystemConfig struct {
 
 // SystemStatus represents the current status of a system.
 type SystemStatus struct {
-	Name        string           `json:"name"`
-	Category    string           `json:"category"`
-	Status      string           `json:"status"` // online, offline, degraded, unknown
-	Latency     time.Duration    `json:"latency"`
-	LastCheck   time.Time        `json:"last_check"`
-	Message     string           `json:"message,omitempty"`
-	Critical    bool             `json:"critical"`
-	HealthScore int              `json:"health_score"` // 0-100
-	Readiness   *OllamaReadiness `json:"readiness,omitempty"`
+	Name        string        `json:"name"`
+	Category    string        `json:"category"`
+	Status      string        `json:"status"` // online, offline, degraded, unknown
+	Latency     time.Duration `json:"latency"`
+	LastCheck   time.Time     `json:"last_check"`
+	Message     string        `json:"message,omitempty"`
+	Critical    bool          `json:"critical"`
+	HealthScore int           `json:"health_score"` // 0-100
 }
 
 // Alert represents a system alert.
@@ -217,16 +216,6 @@ func initDefaultSystems() map[string]*SystemConfig {
 			Protocol:    "http",
 			HealthPath:  "/api/config",
 			Description: "Philips Hue bridge",
-			Critical:    false,
-		},
-		"ollama": {
-			Name:        "ollama",
-			Category:    "ai",
-			Host:        "localhost",
-			Port:        11434,
-			Protocol:    "http",
-			HealthPath:  "/api/tags",
-			Description: "Ollama local LLM",
 			Critical:    false,
 		},
 	}
@@ -437,10 +426,6 @@ func (c *DashboardClient) checkSystemDetailed(ctx context.Context, sys *SystemCo
 		Critical:  sys.Critical,
 	}
 
-	if sys.Name == "ollama" {
-		return c.checkOllamaDetailed(ctx, status)
-	}
-
 	addr := net.JoinHostPort(sys.Host, strconv.Itoa(sys.Port))
 	start := time.Now()
 
@@ -507,42 +492,6 @@ func (c *DashboardClient) checkSystemDetailed(ctx context.Context, sys *SystemCo
 		status.HealthScore = calculateHealthScore(status.Latency)
 	}
 
-	return status
-}
-
-func (c *DashboardClient) checkOllamaDetailed(ctx context.Context, status SystemStatus) SystemStatus {
-	start := time.Now()
-	ollamaClient, err := NewOllamaClient()
-	if err != nil {
-		status.Status = "offline"
-		status.Message = err.Error()
-		status.HealthScore = 0
-		return status
-	}
-
-	readiness, err := ollamaClient.GetReadiness(ctx, false)
-	status.Latency = time.Since(start)
-	if err != nil {
-		status.Status = "offline"
-		status.Message = err.Error()
-		status.HealthScore = 0
-		return status
-	}
-	status.Readiness = readiness
-	switch {
-	case !readiness.Reachable:
-		status.Status = "offline"
-		status.Message = readiness.Error
-		status.HealthScore = 0
-	case readiness.Ready:
-		status.Status = "online"
-		status.Message = fmt.Sprintf("ready %d/%d required models; aliases clean", len(readiness.ReadyModels), len(readiness.RequiredModels))
-		status.HealthScore = calculateHealthScore(status.Latency)
-	default:
-		status.Status = "degraded"
-		status.Message = readiness.Error
-		status.HealthScore = 60
-	}
 	return status
 }
 

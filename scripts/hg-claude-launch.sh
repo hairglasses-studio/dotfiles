@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
-source "$SCRIPT_DIR/lib/hg-agent-launch.sh"
-
-hg_agent_launch_main \
-  "claude" \
-  "/home/hg/.local/bin/claude" \
-  "$0" \
-  --dangerously-skip-permissions \
-  -- \
-  "$@"
+# Keep Claude on the user-owned runtime/auth path; the managed root launcher
+# flow is for the other agent CLIs and breaks current Claude auth on this host.
+exec /home/hg/.local/bin/claude "$@"

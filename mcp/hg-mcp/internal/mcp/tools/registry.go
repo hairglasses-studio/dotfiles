@@ -84,7 +84,6 @@ var categoryToRuntimeGroup = map[string]string{
 	"ardour": RuntimeGroupAudioProduction, "puredata": RuntimeGroupAudioProduction,
 	"maxforlive": RuntimeGroupAudioProduction, "midi": RuntimeGroupAudioProduction,
 	"dante": RuntimeGroupAudioProduction, "whisper": RuntimeGroupAudioProduction,
-	"ollama": RuntimeGroupAudioProduction,
 
 	// Show Control
 	"showcontrol": RuntimeGroupShowControl, "showkontrol": RuntimeGroupShowControl,

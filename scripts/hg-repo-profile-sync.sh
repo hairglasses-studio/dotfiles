@@ -5,6 +5,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
+source "$SCRIPT_DIR/lib/hg-agent-parity.sh"
 source "$SCRIPT_DIR/lib/hg-workspace.sh"
 
 MODE="sync"
@@ -503,10 +504,11 @@ while IFS= read -r repo; do
 
   run_workflow_sync "$repo"
 
+  codex_template="$(hg_parity_codex_template_path "$repo")"
   sync_standard_file \
     "$repo" \
     "$repo_path" \
-    "$SCRIPT_DIR/../templates/codex-config.standard.toml" \
+    "$codex_template" \
     ".codex/config.toml" \
     "Codex config"
 

@@ -464,7 +464,7 @@ env | grep AFTRS
 **Audio**: dante, midi, whisper
 **Streaming**: twitch, youtube_live, streaming
 **Studio**: unraid, homeassistant, streamdeck, hwmonitor, tailscale
-**AI/ML**: ollama, whisper, videoai, ptztrack
+**AI/ML**: whisper, videoai, ptztrack
 **Knowledge**: vault, graph, learning, memory
 **Workflows**: chains, workflows, healing, showcontrol, showkontrol
 **Google**: gmail, gdrive, gtasks, calendar
