@@ -15,7 +15,6 @@
 **Visual Stack:**
 - Eww status bar replacing waybar (compositor-aware, dual-monitor, ralphglasses fleet segments, system tray)
 - 5 procgen wallpaper shaders (cyber-rain, neon-grid, plasma-flow, fractal-pulse, particle-aurora) via shaderbg
-- Cyberpunk hyprlock (blurred screenshot + glowing input + scanlines + system info labels)
 - wlogout power menu (5 neon-colored buttons with per-button glow)
 - Mako notifications (tighter, bar-aware, urgency-colored)
 - Wofi launcher (hover accents, selection glow)
