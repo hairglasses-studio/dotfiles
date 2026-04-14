@@ -5,14 +5,14 @@ After=graphical-session.target
 Wants=graphical-session.target
 PartOf=graphical-session.target
 Requires=dbus.socket
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 Type=simple
 ExecStart=%h/.local/bin/juhradiald
 Restart=on-abnormal
 RestartSec=5s
-StartLimitIntervalSec=60
-StartLimitBurst=5
 WatchdogSec=0
 Environment=RUST_LOG=info
 Environment=RUST_BACKTRACE=1
