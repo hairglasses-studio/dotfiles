@@ -75,8 +75,8 @@ Agent launch behavior is centralized in repo-managed launchers instead of shell-
 
 Operational contract:
 
-- launchers re-exec through `sudo -H` when needed
-- git repos launch into fresh managed worktrees under `/root/.codex/worktrees`
+- launchers run in the invoking user's identity (no sudo re-exec)
+- git repos launch into fresh managed worktrees under `$HOME/.codex/worktrees`
 - dirty tracked and untracked non-ignored state is carried into the fresh worktree
 - non-git directories run in place
 - sessions already inside a managed worktree do not nest another worktree

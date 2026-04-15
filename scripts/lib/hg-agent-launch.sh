@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# hg-agent-launch.sh — Shared root launch and managed worktree helpers for CLI agents.
+# hg-agent-launch.sh — Shared launch and managed worktree helpers for CLI agents.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/hg-core.sh"
 
-HG_AGENT_MANAGED_ROOT="${HG_AGENT_MANAGED_ROOT:-/root/.codex/worktrees}"
+HG_AGENT_USER_HOME="${HG_AGENT_USER_HOME:-${HOME:-/home/hg}}"
+HG_AGENT_MANAGED_ROOT="${HG_AGENT_MANAGED_ROOT:-${HG_AGENT_USER_HOME}/.codex/worktrees}"
 HG_AGENT_STATE_DIR="${HG_AGENT_MANAGED_ROOT}/.state"
-HG_AGENT_USER_HOME="${HG_AGENT_USER_HOME:-/home/hg}"
-HG_AGENT_CODEX_HOME_ROOT="${HG_AGENT_CODEX_HOME_ROOT:-/root/.codex}"
+HG_AGENT_CODEX_HOME_ROOT="${HG_AGENT_CODEX_HOME_ROOT:-${HG_AGENT_USER_HOME}/.codex}"
 HG_AGENT_BREAK_GLASS_ENV="${HG_AGENT_BREAK_GLASS_ENV:-CODEX_GLOBAL_WRAPPER_DISABLE}"
 
 # Force Claude-native subagents to Sonnet by default so Opus main-thread cost
@@ -109,8 +109,9 @@ hg_agent_align_codex_config_file() {
 
 hg_agent_align_codex_live_configs() {
   hg_agent_align_codex_config_file "${HG_AGENT_CODEX_HOME_ROOT}/config.toml"
-  hg_agent_align_codex_config_file "${HG_AGENT_USER_HOME}/.codex/config.toml"
-  chown hg:hg "${HG_AGENT_USER_HOME}/.codex/config.toml" 2>/dev/null || true
+  if [[ "${HG_AGENT_CODEX_HOME_ROOT}/config.toml" != "${HG_AGENT_USER_HOME}/.codex/config.toml" ]]; then
+    hg_agent_align_codex_config_file "${HG_AGENT_USER_HOME}/.codex/config.toml"
+  fi
 }
 
 hg_agent_find_state_file_for_worktree() {
@@ -203,10 +204,6 @@ hg_agent_launch_main() {
 
   if [[ "${!HG_AGENT_BREAK_GLASS_ENV:-0}" == "1" ]]; then
     hg_agent_exec_provider "$raw_bin" "${user_args[@]}"
-  fi
-
-  if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
-    exec sudo -H "$(hg_agent_realpath "$launcher_path")" "${user_args[@]}"
   fi
 
   hg_agent_align_codex_live_configs

@@ -1357,7 +1357,7 @@ sync_claude_home_context() {
     printf -- '- Canonical inventory: `%s`\n' "$MANIFEST_PATH"
     printf -- '- Use repo-local `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` first for repo-specific instructions.\n'
     printf -- '- Shared research repo: `%s/docs`\n' "$WORKSPACE_ROOT"
-    printf -- '- Provider launchers route `codex`, `claude`, and `gemini` through root-owned managed worktrees under `/root/.codex/worktrees`.\n'
+    printf -- '- Provider launchers route `codex`, `claude`, and `gemini` through managed worktrees under `$HOME/.codex/worktrees`.\n'
     printf '\n'
     printf '### Managed Global MCP Overlays\n\n'
     printf -- '- Claude workspace overlay: `%s` managed entries under project `%s` in `%s`.\n' "$claude_tool_count" "$CLAUDE_PROJECT_KEY" "$CLAUDE_JSON_PATH"

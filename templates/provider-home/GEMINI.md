@@ -3,7 +3,7 @@
 ## Launch Contract
 - Use the canonical dotfiles launchers for coding sessions: `hg-codex-launch.sh`, `hg-claude-launch.sh`, and `hg-gemini-launch.sh`.
 - Interactive shell wrappers route `codex`, `claude`, and `gemini` through those launchers automatically.
-- Git repos launch into fresh managed worktrees under `/root/.codex/worktrees`; non-git directories run in place.
+- Git repos launch into fresh managed worktrees under `$HOME/.codex/worktrees`; non-git directories run in place.
 - Gemini sessions should run in auto_edit approval mode with worktrees enabled so they match the Codex and Claude launch surface.
 
 ## Environment

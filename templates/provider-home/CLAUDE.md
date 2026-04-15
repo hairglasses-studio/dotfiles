@@ -3,8 +3,8 @@
 ## Launch Contract
 - Use the canonical dotfiles launchers for coding sessions: `hg-codex-launch.sh`, `hg-claude-launch.sh`, and `hg-gemini-launch.sh`.
 - Interactive shell wrappers route `codex`, `claude`, and `gemini` through those launchers automatically.
-- Git repos launch into fresh managed worktrees under `/root/.codex/worktrees`; non-git directories run in place.
-- If a session already starts inside `/root/.codex/worktrees`, keep working there instead of nesting another worktree.
+- Git repos launch into fresh managed worktrees under `$HOME/.codex/worktrees`; non-git directories run in place.
+- If a session already starts inside `$HOME/.codex/worktrees`, keep working there instead of nesting another worktree.
 
 ## Environment
 - OS: Manjaro Linux (Arch-based, rolling release), packages via pacman/yay
