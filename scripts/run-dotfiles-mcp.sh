@@ -32,7 +32,7 @@ fi
 export DOTFILES_DIR="${DOTFILES_DIR:-$REPO_ROOT}"
 
 SERVER_ROOT="$REPO_ROOT/mcp/dotfiles-mcp"
-BIN_PATH="$REPO_ROOT/.codex/bin/dotfiles-mcp"
+BIN_PATH="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles-mcp/bin/dotfiles-mcp"
 
 needs_build=false
 if [[ ! -x "$BIN_PATH" ]]; then
