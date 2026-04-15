@@ -10,4 +10,4 @@ LAUNCHER="${KITTY_SHELL_LAUNCHER:-$SCRIPT_DIR/kitty-visual-launch.sh}"
 # future startup session restore policy. Keep --session=none scoped here: Kitty
 # ignores program arguments when --session is set, so the shared visual
 # launcher cannot safely apply it for -e entrypoints.
-exec "$LAUNCHER" --single-instance=no --session=none --start-as=normal "$@"
+exec "$LAUNCHER" --session=none "$@"

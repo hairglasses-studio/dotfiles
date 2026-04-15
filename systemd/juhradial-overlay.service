@@ -2,9 +2,12 @@
 Description=JuhRadial MX Overlay
 After=graphical-session.target juhradialmx-daemon.service
 PartOf=graphical-session.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
 
 [Service]
 Type=simple
+ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"'
 ExecStartPre=/usr/bin/env sh -c 'mkdir -p "%h/.local/state/juhradial"'
 ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-juhradial-overlay.sh
 StandardOutput=append:%h/.local/state/juhradial/overlay.log

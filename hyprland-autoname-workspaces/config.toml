@@ -1,62 +1,93 @@
 version = "1.2.0"
 
-[format]
-dedup = true
-dedup_inactive_fullscreen = false
-delim = " "
-client = "{icon}{delim}"
-client_active = "<span color='#ff6ac1'>{icon}</span>{delim}"
-client_dup = "{icon}{counter_sup}{delim}"
-client_dup_fullscreen = "[{icon}]{delim}{icon}{counter_unfocused_sup}"
-client_fullscreen = "[{icon}]{delim}"
-workspace = "<b><span color='#57c7ff'>{id}:{name}</span></b>{delim}{clients}"
-workspace_empty = "<b><span color='#686868'>{id}:{name}</span></b>{delim}{clients}"
+# [format]
+# Deduplicate icons if enable.
+# A superscripted counter will be added.
+# dedup = false
+# dedup_inactive_fullscreen = false # dedup more
+# window delimiter
+# delim = " "
+# max_clients = 30 # you should not need this
 
-[class_active]
-DEFAULT = "<span color='#ff6ac1'>{icon}</span>"
+# available formatter:
+# {counter_sup} - superscripted count of clients on the workspace, and simple {counter}, {delim}
+# {icon}, {client}
+# workspace formatter
+# workspace = "{id}:{delim}{clients}" # {id}, {delim} and {clients} are supported
+# workspace_empty = "{id}" # {id}, {delim} and {clients} are supported
+# client formatter
+# client = "{icon}"
+# client_active = "*{icon}*"
 
-[workspaces_name]
-1 = "main"
-2 = "web"
-3 = "code"
-4 = "chat"
-5 = "media"
-6 = "ops"
-7 = "files"
-8 = "notes"
-9 = "misc"
-10 = "vertical"
-
-[title_in_class."(?i)kitty"]
-"zsh" = ""
-"tmux" = ""
-"nvim" = ""
-
-[title_in_class."(?i)(firefox|chrom.*)"]
-"(?i)youtube" = ""
-"(?i)twitch" = ""
-"(?i)github" = ""
-"(?i)calendar" = ""
+# deduplicate client formatter
+# client_fullscreen = "[{icon}]"
+# client_dup = "{client}{counter_sup}"
+# client_dup_fullscreen = "[{icon}]{delim}{icon}{counter_unfocused}"
+# client_dup_active = "*{icon}*{delim}{icon}{counter_unfocused}"
 
 [class]
-DEFAULT = ""
-"(?i)kitty" = ""
-"(?i)ghostty" = ""
-"(?i)alacritty" = ""
-"(?i)(firefox|librewolf)" = "<span color='#ff5c57'></span>"
-"(?i)(chromium|google-chrome|brave-browser)" = "<span color='#f3f99d'></span>"
-"(?i)code-oss" = ""
-"(?i)discord" = ""
-"(?i)(telegramdesktop|org-telegram-desktop)" = ""
-"(?i)slack" = ""
-"(?i)spotify" = ""
-"(?i)mpv" = ""
-"(?i)nemo" = ""
-"(?i)obsidian" = ""
-"(?i)pavucontrol" = ""
-"(?i)steam" = ""
-"(?i)virt-manager" = ""
-"(?i)zoom" = ""
+# Add your icons mapping
+# use double quote the key and the value
+# take class name from 'hyprctl clients'
+"DEFAULT" = " {class}: {title}"
+"(?i)Kitty" = "term"
+"[Ff]irefox" = "browser"
+"(?i)waydroid.*" = "droid"
 
+[class_active]
+DEFAULT = "*{icon}*"
+"(?i)ExampleOneTerm" = "<span foreground='red'>{icon}</span>"
+
+# [initial_class]
+# "DEFAULT" = " {class}: {title}"
+# "(?i)Kitty" = "term"
+
+# [initial_class_active]
+# "(?i)Kitty" = "*TERM*"
+
+[title_in_class."(?i)kitty"]
+"(?i)neomutt" = "neomutt"
+# regex captures support is supported
+# "emerge: (.+?/.+?)-.*" = "{match1}"
+
+[title_in_class_active."(?i)firefox"]
+"(?i)twitch" = "<span color='purple'>{icon}</span>"
+
+# [title_in_initial_class."(?i)kitty"]
+# "(?i)neomutt" = "neomutt"
+
+# [initial_title_in_class."(?i)kitty"]
+# "(?i)neomutt" = "neomutt"
+
+# [initial_title_in_initial_class."(?i)kitty"]
+# "(?i)neomutt" = "neomutt"
+
+# [initial_title."(?i)kitty"]
+# "zsh" = "Zsh"
+
+# [initial_title_active."(?i)kitty"]
+# "zsh" = "*Zsh*"
+
+# Add your applications that need to be exclude
+# The key is the class, the value is the title.
+# You can put an empty title to exclude based on
+# class name only, "" make the job.
 [exclude]
-"" = "^$"
+"" = "^$" # prevent displaying icon for empty class
+"(?i)fcitx" = ".*" # will match all title for fcitx
+"(?i)TestApp" = "" # will match all title for TestApp
+aProgram = "^$" # will match null title for aProgram
+"[Ss]team" = "^(Friends List.*)?$" # will match Steam friends list plus all popups (empty titles)
+
+[workspaces_name]
+0 = "zero"
+1 = "one"
+2 = "two"
+3 = "three"
+4 = "four"
+5 = "five"
+6 = "six"
+7 = "seven"
+8 = "eight"
+9 = "nine"
+10 = "ten"

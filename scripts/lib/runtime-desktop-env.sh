@@ -106,7 +106,7 @@ wayland_socket_ready() {
 }
 
 wait_for_wayland() {
-  local wait_secs="${1:-15}"
+  local wait_secs="${1:-30}"
   local waited=0
   while (( waited <= wait_secs )); do
     refresh_desktop_runtime_env

@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/lib/runtime-desktop-env.sh
 source "$SCRIPT_DIR/lib/runtime-desktop-env.sh"
 
-wait_secs="${IRONBAR_WAIT_SECS:-15}"
+wait_secs="${IRONBAR_WAIT_SECS:-30}"
 audio_wait_secs="${IRONBAR_AUDIO_WAIT_SECS:-10}"
 mode="${1:-run}"
 

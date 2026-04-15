@@ -95,7 +95,7 @@ do
 done
 
 apply_runtime_theme_preferences() {
-  local desktop_marker
+  local desktop_marker should_apply_plasma=false
 
   export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-qt6ct}"
   export QT_QUICK_CONTROLS_MATERIAL_THEME="${QT_QUICK_CONTROLS_MATERIAL_THEME:-Dark}"
@@ -116,10 +116,16 @@ apply_runtime_theme_preferences() {
     xfconf-query -c xsettings -p /Gtk/CursorThemeName -n -t string -s "Bibata-Modern-Classic" >/dev/null 2>&1 || true
   fi
 
-  if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" && ( "$desktop_marker" == *plasma* || "$desktop_marker" == *kde* ) ]] && command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+  if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" \
+        && ( -n "${WAYLAND_DISPLAY:-}" || -n "${DISPLAY:-}" ) \
+        && ( "$desktop_marker" == *plasma* || "$desktop_marker" == *kde* ) ]]; then
+    should_apply_plasma=true
+  fi
+
+  if $should_apply_plasma && command -v plasma-apply-colorscheme >/dev/null 2>&1; then
     plasma-apply-colorscheme BreezeDark >/dev/null 2>&1 || true
   fi
-  if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" && ( "$desktop_marker" == *plasma* || "$desktop_marker" == *kde* ) ]] && command -v plasma-apply-desktoptheme >/dev/null 2>&1; then
+  if $should_apply_plasma && command -v plasma-apply-desktoptheme >/dev/null 2>&1; then
     plasma-apply-desktoptheme breeze-dark >/dev/null 2>&1 || true
   fi
 
