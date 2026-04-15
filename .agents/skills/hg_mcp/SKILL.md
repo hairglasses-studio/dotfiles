@@ -21,7 +21,6 @@ Use this skill for studio system investigation, session summaries, and MCP tool 
 
 2. For `investigate`:
    - Check the requested system(s): `td` (TouchDesigner), `stream` (streaming), `unraid`, `all`
-   - Use consolidated tools when available (e.g., `aftrs_studio_health_full`)
    - Report status as Healthy/Degraded/Critical with metrics table
    - Provide recommendations and quick-fix commands
 
