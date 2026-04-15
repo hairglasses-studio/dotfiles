@@ -11,6 +11,12 @@ HG_AGENT_USER_HOME="${HG_AGENT_USER_HOME:-/home/hg}"
 HG_AGENT_CODEX_HOME_ROOT="${HG_AGENT_CODEX_HOME_ROOT:-/root/.codex}"
 HG_AGENT_BREAK_GLASS_ENV="${HG_AGENT_BREAK_GLASS_ENV:-CODEX_GLOBAL_WRAPPER_DISABLE}"
 
+# Force Claude-native subagents to Sonnet by default so Opus main-thread cost
+# does not fan out to every file-read / git-peek. Highest-priority model
+# resolution per https://code.claude.com/docs/en/sub-agents. User can override
+# by exporting CLAUDE_CODE_SUBAGENT_MODEL in the launching shell.
+export CLAUDE_CODE_SUBAGENT_MODEL="${CLAUDE_CODE_SUBAGENT_MODEL:-claude-sonnet-4-6}"
+
 hg_agent_require_tools() {
   hg_require git jq mktemp tar awk sed tr
 }
