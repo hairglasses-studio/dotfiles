@@ -705,8 +705,6 @@ create_symlinks() {
         log_info "Installing systemd user services..."
         local retired_units=(
             waybar.service
-            eww-calendar-sync.service
-            eww-calendar-sync.timer
             foot-server.socket
             foot-server.service
         )
@@ -717,15 +715,8 @@ create_symlinks() {
         )
         systemctl --user disable --now "${retired_units[@]}" >/dev/null 2>&1 || true
         systemctl --user mask "${obsolete_audio_compat_units[@]}" >/dev/null 2>&1 || true
-        rm -f \
-            "$HOME/.config/systemd/user/eww-calendar-sync.service" \
-            "$HOME/.config/systemd/user/eww-calendar-sync.timer" \
-            "$HOME/.config/systemd/user/foot-server.socket"
+        rm -f "$HOME/.config/systemd/user/foot-server.socket"
         systemctl --user daemon-reload
-        if [[ -L "$HOME/.config/eww" ]] && [[ "$(readlink "$HOME/.config/eww")" == "$DOTFILES_DIR/eww" ]]; then
-            rm -f "$HOME/.config/eww"
-            log_success "Removed retired Eww config symlink"
-        fi
 
         mkdir -p "$HOME/.local/state/hypr"
         if [[ ! -f "$HOME/.local/state/hypr/monitors.dynamic.conf" ]]; then
