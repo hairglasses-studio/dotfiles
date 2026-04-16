@@ -129,6 +129,11 @@
       "name": "content_marathon",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "canary_monitor",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
