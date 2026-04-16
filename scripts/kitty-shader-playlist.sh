@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# kitty-shader-playlist.sh — Kitty shader + theme rotation via Hypr-DarkWindow
-# Canonical shader assets live in kitty/shaders/darkwindow/ (pre-transpiled
-# from ghostty sources for the Hypr-DarkWindow plugin API) and are paired
-# with Kitty theme playlists for per-spawn visual variation. The active
-# shader is written to $_state_dir/darkwindow-active.glsl, which hyprland.conf
-# registers as the `kitty-shader` named shader. Cycling triggers an
-# `hyprctl reload` so DarkWindow re-compiles the updated file content.
+# kitty-shader-playlist.sh — Kitty theme rotation (legacy name retained)
+#
+# Historically this script wrapped kitty launches in `crtty -s <shader>` and
+# later drove the Hypr-DarkWindow plugin to apply CRT shaders per window.
+# Shaders are no longer applied to kitty at all — every new window instead
+# gets a unique dark theme pulled from a ~320-entry community playlist. The
+# script name is preserved only because hyprland, ironbar, install.sh, and
+# mod-shader.sh already reference it by path.
+#
+# All commands operate on `kitty/themes/playlists/<name>.txt`, which is
+# generated from `kitty/themes/themes.json` via
+# `scripts/gen-kitty-theme-playlist.sh`.
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]:-$0}")"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
@@ -15,19 +20,14 @@ source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/notify.sh"
 
 _dotfiles="$HG_DOTFILES"
-_shader_dir="$_dotfiles/kitty/shaders/darkwindow"
-_shader_playlist_dir="$_dotfiles/kitty/shaders/playlists"
 _theme_playlist_dir="$_dotfiles/kitty/themes/playlists"
 _state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/kitty-shaders"
 _theme_cache_dir="$_state_dir/theme-cache"
 _default_playlist="ambient"
-_current_shader="$_state_dir/current"
 _current_theme="$_state_dir/current-theme"
 _current_label="$_state_dir/current-label"
 _current_theme_conf="$_state_dir/current-theme.conf"
-_pending_theme="$_state_dir/pending-theme"
 _auto_rotate_playlist="$_state_dir/auto-rotate-playlist"
-_crtty_active="$_state_dir/darkwindow-active.glsl"
 _current_position="$_state_dir/current-position"
 _current_total="$_state_dir/current-total"
 _current_selection_mode="$_state_dir/current-selection-mode"
@@ -65,50 +65,22 @@ _dump_theme() {
   printf '%s\n' "$cache"
 }
 
-_shader_name() {
-  local name="$1"
-  [[ "$name" == *.glsl ]] || name="${name}.glsl"
-  printf '%s\n' "$name"
-}
-
-_shader_path() {
-  local name
-  name="$(_shader_name "$1")"
-  local path="$_shader_dir/$name"
-  [[ -f "$path" ]] || return 1
-  printf '%s\n' "$path"
-}
-
 _playlist_file() {
-  local kind="$1" playlist="$2"
-  local base
-  case "$kind" in
-    shader) base="$_shader_playlist_dir" ;;
-    theme) base="$_theme_playlist_dir" ;;
-    *) return 1 ;;
-  esac
-  if [[ -f "$base/${playlist}.txt" ]]; then
-    printf '%s/%s.txt\n' "$base" "$playlist"
+  local playlist="$1"
+  if [[ -f "$_theme_playlist_dir/${playlist}.txt" ]]; then
+    printf '%s/%s.txt\n' "$_theme_playlist_dir" "$playlist"
     return 0
   fi
-  if [[ "$kind" == "theme" && -f "$base/${_default_playlist}.txt" ]]; then
-    printf '%s/%s.txt\n' "$base" "$_default_playlist"
+  if [[ -f "$_theme_playlist_dir/${_default_playlist}.txt" ]]; then
+    printf '%s/%s.txt\n' "$_theme_playlist_dir" "$_default_playlist"
     return 0
   fi
   return 1
 }
 
-_queue_file() {
-  printf '%s/%s-%s.queue\n' "$_state_dir" "$1" "$2"
-}
-
-_idx_file() {
-  printf '%s/%s-%s.idx\n' "$_state_dir" "$1" "$2"
-}
-
-_hash_file() {
-  printf '%s/%s-%s.hash\n' "$_state_dir" "$1" "$2"
-}
+_queue_file() { printf '%s/theme-%s.queue\n' "$_state_dir" "$1"; }
+_idx_file()   { printf '%s/theme-%s.idx\n'   "$_state_dir" "$1"; }
+_hash_file()  { printf '%s/theme-%s.hash\n'  "$_state_dir" "$1"; }
 
 _shuffle_stdin() {
   local -a lines
@@ -117,9 +89,9 @@ _shuffle_stdin() {
   local i j tmp
   for (( i = n - 1; i > 0; i-- )); do
     j=$(( RANDOM % (i + 1) ))
-    tmp="${lines[$i]}"
-    lines[$i]="${lines[$j]}"
-    lines[$j]="$tmp"
+    tmp="${lines[i]}"
+    lines[i]="${lines[j]}"
+    lines[j]="$tmp"
   done
   printf '%s\n' "${lines[@]}"
 }
@@ -128,13 +100,17 @@ _playlist_hash() {
   md5sum "$1" | cut -d' ' -f1
 }
 
+_read_playlist() {
+  awk 'NF && $1 !~ /^#/' "$1"
+}
+
 _ensure_queue() {
-  local kind="$1" playlist="$2"
+  local playlist="$1"
   local source_file queue_file idx_file hash_file
-  source_file="$(_playlist_file "$kind" "$playlist")" || return 1
-  queue_file="$(_queue_file "$kind" "$playlist")"
-  idx_file="$(_idx_file "$kind" "$playlist")"
-  hash_file="$(_hash_file "$kind" "$playlist")"
+  source_file="$(_playlist_file "$playlist")" || return 1
+  queue_file="$(_queue_file "$playlist")"
+  idx_file="$(_idx_file "$playlist")"
+  hash_file="$(_hash_file "$playlist")"
 
   local current_hash stored_hash="" idx=0 queue_len=0
   current_hash="$(_playlist_hash "$source_file")"
@@ -144,28 +120,23 @@ _ensure_queue() {
   [[ -f "$queue_file" ]] && queue_len="$(wc -l < "$queue_file" | tr -d ' ')"
 
   if [[ ! -f "$queue_file" ]] || [[ "$queue_len" -eq 0 ]] || [[ "$current_hash" != "$stored_hash" ]] || [[ "$idx" -ge "$queue_len" ]]; then
-    awk 'NF && $1 !~ /^#/' "$source_file" | _shuffle_stdin > "$queue_file"
+    _read_playlist "$source_file" | _shuffle_stdin > "$queue_file"
     printf '0' > "$idx_file"
     printf '%s' "$current_hash" > "$hash_file"
   fi
 }
 
 _entry_valid() {
-  local kind="$1" entry="$2"
-  case "$kind" in
-    shader) _shader_path "$entry" >/dev/null ;;
-    theme) _dump_theme "$entry" >/dev/null ;;
-    *) return 1 ;;
-  esac
+  _dump_theme "$1" >/dev/null
 }
 
 _pick_next() {
-  local kind="$1" playlist="$2"
-  _ensure_queue "$kind" "$playlist" || return 1
+  local playlist="$1"
+  _ensure_queue "$playlist" || return 1
 
   local queue_file idx_file
-  queue_file="$(_queue_file "$kind" "$playlist")"
-  idx_file="$(_idx_file "$kind" "$playlist")"
+  queue_file="$(_queue_file "$playlist")"
+  idx_file="$(_idx_file "$playlist")"
 
   local idx queue_len entry attempts=0
   idx="$(< "$idx_file")"
@@ -173,14 +144,14 @@ _pick_next() {
 
   while (( attempts < queue_len + 4 )); do
     if (( idx >= queue_len )); then
-      awk 'NF && $1 !~ /^#/' "$(_playlist_file "$kind" "$playlist")" | _shuffle_stdin > "$queue_file"
+      _read_playlist "$(_playlist_file "$playlist")" | _shuffle_stdin > "$queue_file"
       idx=0
       queue_len="$(wc -l < "$queue_file" | tr -d ' ')"
     fi
     entry="$(sed -n "$((idx + 1))p" "$queue_file")"
     idx=$((idx + 1))
     printf '%s' "$idx" > "$idx_file"
-    if _entry_valid "$kind" "$entry"; then
+    if _entry_valid "$entry"; then
       printf '%s\n' "$entry"
       return 0
     fi
@@ -190,12 +161,12 @@ _pick_next() {
 }
 
 _pick_prev() {
-  local kind="$1" playlist="$2"
-  _ensure_queue "$kind" "$playlist" || return 1
+  local playlist="$1"
+  _ensure_queue "$playlist" || return 1
 
   local queue_file idx_file
-  queue_file="$(_queue_file "$kind" "$playlist")"
-  idx_file="$(_idx_file "$kind" "$playlist")"
+  queue_file="$(_queue_file "$playlist")"
+  idx_file="$(_idx_file "$playlist")"
 
   local idx queue_len entry attempts=0
   idx="$(< "$idx_file")"
@@ -205,7 +176,7 @@ _pick_prev() {
     idx=$(( (idx - 2 + queue_len) % queue_len ))
     entry="$(sed -n "$((idx + 1))p" "$queue_file")"
     printf '%s' "$((idx + 1))" > "$idx_file"
-    if _entry_valid "$kind" "$entry"; then
+    if _entry_valid "$entry"; then
       printf '%s\n' "$entry"
       return 0
     fi
@@ -215,22 +186,17 @@ _pick_prev() {
 }
 
 _pick_random() {
-  local kind="$1" playlist="$2"
+  local playlist="$1"
   local source_file
-  source_file="$(_playlist_file "$kind" "$playlist")" || return 1
+  source_file="$(_playlist_file "$playlist")" || return 1
 
   local -a entries
-  mapfile -t entries < <(awk 'NF && $1 !~ /^#/' "$source_file")
+  mapfile -t entries < <(_read_playlist "$source_file")
   local n=${#entries[@]}
   (( n > 0 )) || return 1
 
   local current="" entry attempts=0
-  if [[ "$kind" == "shader" && -f "$_current_shader" ]]; then
-    current="$(< "$_current_shader")"
-  fi
-  if [[ "$kind" == "theme" && -f "$_current_theme" ]]; then
-    current="$(< "$_current_theme")"
-  fi
+  [[ -f "$_current_theme" ]] && current="$(< "$_current_theme")"
 
   while (( attempts < n + 4 )); do
     entry="${entries[$(( RANDOM % n ))]}"
@@ -238,7 +204,7 @@ _pick_random() {
       attempts=$((attempts + 1))
       continue
     fi
-    if _entry_valid "$kind" "$entry"; then
+    if _entry_valid "$entry"; then
       printf '%s\n' "$entry"
       return 0
     fi
@@ -247,49 +213,27 @@ _pick_random() {
   return 1
 }
 
-_pick_shader() {
+_pick_direction() {
   local direction="$1" playlist="$2"
   case "$direction" in
-    next) _pick_next shader "$playlist" ;;
-    prev) _pick_prev shader "$playlist" ;;
-    random) _pick_random shader "$playlist" ;;
+    next) _pick_next "$playlist" ;;
+    prev) _pick_prev "$playlist" ;;
+    random) _pick_random "$playlist" ;;
     *) return 1 ;;
   esac
-}
-
-_pick_theme() {
-  local direction="$1" playlist="$2"
-  case "$direction" in
-    next) _pick_next theme "$playlist" ;;
-    prev) _pick_prev theme "$playlist" ;;
-    random) _pick_random theme "$playlist" ;;
-    *) return 1 ;;
-  esac
-}
-
-_state_label() {
-  local shader="$1" theme="$2"
-  if [[ -n "$shader" ]]; then
-    printf '%s · %s\n' "$theme" "${shader%.glsl}"
-  else
-    printf '%s\n' "$theme"
-  fi
 }
 
 _playlist_ordinal() {
-  local kind="$1" playlist="$2" entry="$3"
-  local source_file normalized idx=0 total=0 line
-  source_file="$(_playlist_file "$kind" "$playlist")" || return 1
-  normalized="${entry%.glsl}"
+  local playlist="$1" entry="$2"
+  local source_file idx=0 total=0 line
+  source_file="$(_playlist_file "$playlist")" || return 1
   while IFS= read -r line; do
     line="${line%%#*}"
     line="${line#"${line%%[![:space:]]*}"}"
     line="${line%"${line##*[![:space:]]}"}"
     [[ -n "$line" ]] || continue
     total=$((total + 1))
-    if [[ "${line%.glsl}" == "$normalized" ]]; then
-      idx=$total
-    fi
+    [[ "$line" == "$entry" ]] && idx=$total
   done < "$source_file"
   (( total > 0 )) || return 1
   printf '%s\t%s\n' "$idx" "$total"
@@ -298,8 +242,8 @@ _playlist_ordinal() {
 _queue_progress() {
   local playlist="$1"
   local queue_file idx_file idx total
-  queue_file="$(_queue_file shader "$playlist")"
-  idx_file="$(_idx_file shader "$playlist")"
+  queue_file="$(_queue_file "$playlist")"
+  idx_file="$(_idx_file "$playlist")"
   [[ -f "$queue_file" && -f "$idx_file" ]] || return 1
   idx="$(< "$idx_file")"
   [[ "$idx" =~ ^[0-9]+$ ]] || return 1
@@ -326,36 +270,13 @@ _write_selection_state() {
   printf '%s' "$mode" > "$_current_selection_mode"
 }
 
-_write_visual_state() {
-  local shader="$1" theme="$2" playlist="$3" theme_conf="$4" mode="${5:-queue}"
-  printf '%s' "$shader" > "$_current_shader"
+_write_theme_state() {
+  local theme="$1" playlist="$2" theme_conf="$3" mode="${4:-queue}"
   printf '%s' "$theme" > "$_current_theme"
-  _state_label "$shader" "$theme" > "$_current_label"
+  printf '%s\n' "$theme" > "$_current_label"
   cp "$theme_conf" "$_current_theme_conf"
-  # Legacy mutable active-shader file — still written so external tools that
-  # read it (rice-reload, shader-build checks, debug dumps) still see the
-  # intended shader name. Hypr-DarkWindow no longer reads this path; each
-  # kitty window has its own shader applied per-address via a dispatcher.
-  cp "$(_shader_path "$shader")" "$_crtty_active"
-  printf '%s' "$theme" > "$_pending_theme"
   printf '%s' "$playlist" > "$_auto_rotate_playlist"
   _write_selection_state "$mode" "$playlist"
-  # Dispatch the named shader to the focused window only. Requires the
-  # plugin:darkwindow shader registry in hyprland/darkwindow-shaders.conf
-  # to know this shader name; hyprctl errors are swallowed because shaders
-  # not in the registry (non-ambient entries) simply fall back to whatever
-  # the window was already showing.
-  if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl >/dev/null 2>&1; then
-    hyprctl dispatch darkwindow:shadeactive "${shader%.glsl}" >/dev/null 2>&1 || true
-  fi
-}
-
-_theme_only_state() {
-  local shader="${1:-}" theme="$2" theme_conf="$3"
-  [[ -n "$shader" ]] && printf '%s' "$shader" > "$_current_shader"
-  printf '%s' "$theme" > "$_current_theme"
-  _state_label "$shader" "$theme" > "$_current_label"
-  cp "$theme_conf" "$_current_theme_conf"
 }
 
 _try_apply_theme_to_active() {
@@ -364,101 +285,61 @@ _try_apply_theme_to_active() {
     kitten @ set-colors "$theme_conf" >/dev/null 2>&1 || true
     return
   fi
-  if [[ -n "${KITTY_LISTEN_ON:-}" ]]; then
-    kitten @ --to "$KITTY_LISTEN_ON" set-colors --match state:focused_os_window "$theme_conf" >/dev/null 2>&1 || true
-    return
-  fi
-  kitten @ --to unix:@mykitty set-colors --match state:focused_os_window "$theme_conf" >/dev/null 2>&1 || true
+  local listen="${KITTY_LISTEN_ON:-unix:@mykitty}"
+  kitten @ --to "$listen" set-colors --match state:focused "$theme_conf" >/dev/null 2>&1 || true
 }
 
-_choose_visual() {
+_choose_theme() {
   local direction="$1" playlist="$2"
-  local shader theme theme_conf
-  shader="$(_pick_shader "$direction" "$playlist")" || hg_die "No valid shaders in playlist: $playlist"
-  theme="$(_pick_theme "$direction" "$playlist")" || hg_die "No valid themes in playlist: $playlist"
-  theme_conf="$(_dump_theme "$theme")" || hg_die "Failed to resolve Kitty theme: $theme"
-  printf '%s\t%s\t%s\n' "$shader" "$theme" "$theme_conf"
+  local theme theme_conf
+  theme="$(_pick_direction "$direction" "$playlist")" || hg_die "No valid themes in playlist: $playlist"
+  theme_conf="$(_dump_theme "$theme")" || hg_die "Failed to resolve kitty theme: $theme"
+  printf '%s\t%s\n' "$theme" "$theme_conf"
 }
 
-cmd_next() {
-  local playlist="${1:-$(_active_playlist)}"
-  local shader theme theme_conf
-  IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual next "$playlist")
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" queue
+_cycle() {
+  local direction="$1" playlist mode theme theme_conf
+  playlist="$(_active_playlist)"
+  [[ "$direction" == "random" ]] && mode="random" || mode="queue"
+  IFS=$'\t' read -r theme theme_conf < <(_choose_theme "$direction" "$playlist")
+  _write_theme_state "$theme" "$playlist" "$theme_conf" "$mode"
   _try_apply_theme_to_active "$theme_conf"
-  hg_notify_low "Kitty Visual" "$(_state_label "$shader" "$theme")"
-  hg_ok "$(_state_label "$shader" "$theme")"
+  hg_notify_low "Kitty Theme" "$theme"
+  hg_ok "$theme"
 }
 
-cmd_prev() {
-  local playlist="${1:-$(_active_playlist)}"
-  local shader theme theme_conf
-  IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual prev "$playlist")
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" queue
-  _try_apply_theme_to_active "$theme_conf"
-  hg_notify_low "Kitty Visual" "$(_state_label "$shader" "$theme")"
-  hg_ok "$(_state_label "$shader" "$theme")"
-}
-
-cmd_random() {
-  local playlist="${1:-$(_active_playlist)}"
-  local shader theme theme_conf
-  IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual random "$playlist")
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" random
-  _try_apply_theme_to_active "$theme_conf"
-  hg_notify_low "Kitty Visual" "$(_state_label "$shader" "$theme")"
-  hg_ok "$(_state_label "$shader" "$theme")"
-}
+cmd_next()   { _cycle next;   }
+cmd_prev()   { _cycle prev;   }
+cmd_random() { _cycle random; }
 
 cmd_current() {
-  [[ -f "$_current_shader" ]] || return 0
-  local shader
-  shader="$(< "$_current_shader")"
-  printf '%s\n' "${shader%.glsl}"
-}
-
-cmd_theme_current() {
   [[ -f "$_current_theme" ]] || return 0
   cat "$_current_theme"
 }
 
+cmd_theme_current() { cmd_current; }
+
 cmd_status() {
-  local shader theme playlist label position total selection_mode
-  if [[ -f "$_current_shader" ]]; then
-    shader="$(< "$_current_shader")"
-  else
-    shader=""
-  fi
-  if [[ -f "$_current_theme" ]]; then
-    theme="$(< "$_current_theme")"
-  else
-    theme=""
-  fi
+  local theme playlist selection_mode
   playlist="$(_active_playlist)"
-  label="$(_state_label "$shader" "$theme")"
-  if [[ -f "$_current_selection_mode" ]]; then
-    selection_mode="$(< "$_current_selection_mode")"
-  else
-    selection_mode=""
-  fi
+  theme=""
+  [[ -f "$_current_theme" ]] && theme="$(< "$_current_theme")"
+  selection_mode=""
+  [[ -f "$_current_selection_mode" ]] && selection_mode="$(< "$_current_selection_mode")"
+
   hg_info "playlist: ${playlist:-$_default_playlist}"
-  hg_info "shader:   ${shader%.glsl}"
-  hg_info "theme:    $theme"
-  hg_info "label:    $label"
+  hg_info "theme:    ${theme:-<none>}"
   case "$selection_mode" in
     queue)
       if [[ -f "$_current_position" && -f "$_current_total" ]]; then
         hg_info "position: $(< "$_current_position")/$(< "$_current_total")"
       fi
       ;;
-    random)
-      hg_info "position: random"
-      ;;
-    manual)
-      hg_info "position: custom"
-      ;;
+    random) hg_info "position: random" ;;
+    manual) hg_info "position: custom" ;;
     *)
-      if [[ -n "$shader" ]] && IFS=$'\t' read -r position total < <(_playlist_ordinal shader "$playlist" "$shader" 2>/dev/null); then
+      local position total
+      if [[ -n "$theme" ]] && IFS=$'\t' read -r position total < <(_playlist_ordinal "$playlist" "$theme" 2>/dev/null); then
         hg_info "position: ${position}/${total}"
       fi
       ;;
@@ -466,63 +347,33 @@ cmd_status() {
 }
 
 cmd_set() {
-  local shader_input="${1:-}"
-  local theme_input="${2:-}"
-  [[ -n "$shader_input" ]] || hg_die "Usage: kitty-shader-playlist set <shader> [theme]"
-
-  local playlist="$(_active_playlist)"
-  local shader theme theme_conf
-  shader="$(_shader_name "$shader_input")"
-  _shader_path "$shader" >/dev/null || hg_die "Shader not found: $shader"
-
-  if [[ -n "$theme_input" ]]; then
-    theme="$theme_input"
-  elif [[ -f "$_current_theme" ]]; then
-    theme="$(< "$_current_theme")"
-  else
-    theme="$(_pick_theme next "$playlist")"
-  fi
-  theme_conf="$(_dump_theme "$theme")" || hg_die "Failed to resolve Kitty theme: $theme"
-
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" manual
+  local theme="${1:-}"
+  [[ -n "$theme" ]] || hg_die "Usage: kitty-shader-playlist set <theme>"
+  local theme_conf
+  theme_conf="$(_dump_theme "$theme")" || hg_die "Unknown kitty theme: $theme"
+  local playlist
+  playlist="$(_active_playlist)"
+  _write_theme_state "$theme" "$playlist" "$theme_conf" manual
   _try_apply_theme_to_active "$theme_conf"
-  hg_notify_low "Kitty Visual" "$(_state_label "$shader" "$theme")"
-  hg_ok "$(_state_label "$shader" "$theme")"
+  hg_notify_low "Kitty Theme" "$theme"
+  hg_ok "$theme"
 }
 
 cmd_list() {
   local playlist="${1:-$(_active_playlist)}"
-  local shader_file theme_file
-  shader_file="$(_playlist_file shader "$playlist")" || hg_die "Shader playlist not found: $playlist"
-  theme_file="$(_playlist_file theme "$playlist")" || theme_file="$(_playlist_file theme "$_default_playlist")"
-
-  printf '%s\n' "shader playlist: $playlist"
-  awk 'NF && $1 !~ /^#/' "$shader_file"
-  printf '\n%s\n' "theme playlist: ${playlist}"
-  awk 'NF && $1 !~ /^#/' "$theme_file"
+  local source_file
+  source_file="$(_playlist_file "$playlist")" || hg_die "Theme playlist not found: $playlist"
+  printf 'theme playlist: %s\n' "$playlist"
+  _read_playlist "$source_file"
 }
 
 cmd_reset() {
   local playlist="${1:-$(_active_playlist)}"
-  rm -f \
-    "$(_queue_file shader "$playlist")" "$(_idx_file shader "$playlist")" "$(_hash_file shader "$playlist")" \
-    "$(_queue_file theme "$playlist")" "$(_idx_file theme "$playlist")" "$(_hash_file theme "$playlist")"
+  rm -f "$(_queue_file "$playlist")" "$(_idx_file "$playlist")" "$(_hash_file "$playlist")"
   if [[ "$playlist" == "$(_active_playlist)" ]]; then
     rm -f "$_current_position" "$_current_total" "$_current_selection_mode"
   fi
-  hg_ok "Reset Kitty visual playlist state: $playlist"
-}
-
-cmd_engine() {
-  if command -v crtty >/dev/null 2>&1; then
-    printf 'crtty\n'
-  else
-    printf 'kitty-only\n'
-  fi
-}
-
-cmd_build() {
-  "$_dotfiles/kitty/shaders/bin/shader-build.sh" "${1:-build}"
+  hg_ok "Reset kitty theme playlist state: $playlist"
 }
 
 cmd_spawn() {
@@ -531,34 +382,18 @@ cmd_spawn() {
   if [[ "${1:-}" == "--" ]]; then
     shift || true
   fi
-
-  local shader theme theme_conf
-  IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual next "$playlist")
-  _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" queue
-  # Shader application is handled by the Hypr-DarkWindow windowrule in
-  # hyprland.conf — the new kitty window picks it up automatically once
-  # _write_visual_state has reloaded the plugin with the updated file.
+  _ensure_queue "$playlist" >/dev/null 2>&1 || true
   exec kitty "$@"
 }
 
 cmd_theme_for_window() {
   local _window_id="${1:-}"
   local playlist="${2:-$(_active_playlist)}"
-  local theme shader theme_conf
-  if [[ -f "$_pending_theme" ]]; then
-    theme="$(< "$_pending_theme")"
-    rm -f "$_pending_theme"
-  else
-    theme="$(_pick_theme next "$playlist")" || hg_die "No valid Kitty themes in playlist: $playlist"
-  fi
-  theme_conf="$(_dump_theme "$theme")" || hg_die "Failed to resolve Kitty theme: $theme"
-  if [[ -f "$_current_shader" ]]; then
-    shader="$(< "$_current_shader")"
-  else
-    shader=""
-  fi
-  _theme_only_state "$shader" "$theme" "$theme_conf"
-  printf '%s\t%s\t%s\n' "$theme" "$theme_conf" "$(_state_label "$shader" "$theme")"
+  local theme theme_conf
+  theme="$(_pick_next "$playlist")" || hg_die "No valid kitty themes in playlist: $playlist"
+  theme_conf="$(_dump_theme "$theme")" || hg_die "Failed to resolve kitty theme: $theme"
+  _write_theme_state "$theme" "$playlist" "$theme_conf" queue
+  printf '%s\t%s\t%s\n' "$theme" "$theme_conf" "$theme"
 }
 
 cmd_help() {
@@ -567,41 +402,34 @@ Usage: kitty-shader-playlist <command> [args]
 
 Commands:
   spawn [playlist] [-- kitty args...]
-      Launch kitty with the next shader in the playlist and queue the matching
-      theme for the first new window.
+      Launch a fresh kitty OS window. No shader is applied; a unique theme
+      is picked per newly created kitten Window by the random_theme watcher.
 
   next [playlist]
   prev [playlist]
   random [playlist]
-      Advance the shader + theme rotation and apply the theme to the active
-      kitty window when remote control is available.
+      Advance / rewind / randomize the theme rotation on the currently
+      focused kitty window.
 
-  set <shader> [theme]
-      Force a shader and optionally a Kitty theme.
+  set <theme>
+      Apply a specific theme (by display name) to the focused kitty window.
 
   current
-      Print the active shader name without the .glsl suffix.
-
   theme-current
-      Print the active Kitty theme name.
+      Print the active theme name.
 
   theme-for-window <window-id> [playlist]
-      Internal helper for the Kitty watcher.
+      Internal helper for kitty/watchers/random_theme.py. Picks the next
+      theme from the queue and returns: <theme>\t<conf-path>\t<label>.
 
   list [playlist]
-      Print the shader and theme entries for a playlist.
+      Print the theme entries in a playlist.
 
   status
-      Print the current playlist, shader, and theme.
+      Print the current playlist, theme, and queue position.
 
   reset [playlist]
-      Clear cached queue/index state for the playlist.
-
-  engine
-      Print either "crtty" or "kitty-only".
-
-  build [mode]
-      Run the Kitty shader build helper.
+      Clear the shuffled queue state for a playlist.
 EOF
 }
 
@@ -620,8 +448,6 @@ main() {
     list) cmd_list "$@" ;;
     status) cmd_status "$@" ;;
     reset) cmd_reset "$@" ;;
-    engine) cmd_engine "$@" ;;
-    build) cmd_build "$@" ;;
     help|-h|--help) cmd_help ;;
     *) hg_die "Unknown command: $cmd" ;;
   esac
