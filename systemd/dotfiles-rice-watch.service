@@ -1,0 +1,22 @@
+[Unit]
+Description=dotfiles rice watcher — propagate palette changes on file edit
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"'
+ExecStartPre=/usr/bin/sh -c 'command -v inotifywait >/dev/null || exit 1'
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/bash -c '\
+  PALETTE=%h/hairglasses-studio/dotfiles/theme/palette.env; \
+  TPL_DIR=%h/hairglasses-studio/dotfiles/matugen/templates; \
+  while inotifywait -q -e close_write,move,create "$PALETTE" "$TPL_DIR" 2>/dev/null; do \
+    sleep 0.2; \
+    %h/hairglasses-studio/dotfiles/scripts/palette-propagate.sh 2>/dev/null || true; \
+  done'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target
