@@ -855,7 +855,7 @@ alias icat='kitten icat'
 alias kdiff='kitten diff'
 alias kssh='kitten ssh'
 
-# Shader toolchain (canonical CRTty shaders live in kitty/shaders/)
+# Shader toolchain (canonical DarkWindow shaders live in kitty/shaders/)
 alias shader-meta='bash ~/dotfiles/kitty/shaders/bin/shader-meta.sh'
 alias shader-build='bash ~/dotfiles/kitty/shaders/bin/shader-build.sh'
 alias shader-test='bash ~/dotfiles/kitty/shaders/bin/shader-test.sh'

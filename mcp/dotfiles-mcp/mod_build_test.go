@@ -370,51 +370,6 @@ func TestBuildOutputTypes_JSONRoundTrip(t *testing.T) {
 				}
 			},
 		},
-		{
-			name: "EwwRestartOutput",
-			fn: func(t *testing.T) {
-				out := EwwRestartOutput{
-					Killed:    2,
-					WaybarOff: true,
-					DaemonPID: "12345",
-					BarsOpen:  []string{"bar-left", "bar-right"},
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					t.Fatalf("marshal: %v", err)
-				}
-				var decoded EwwRestartOutput
-				if err := json.Unmarshal(data, &decoded); err != nil {
-					t.Fatalf("unmarshal: %v", err)
-				}
-				if decoded.Killed != 2 {
-					t.Errorf("killed = %d, want 2", decoded.Killed)
-				}
-			},
-		},
-		{
-			name: "EwwStatusOutput",
-			fn: func(t *testing.T) {
-				out := EwwStatusOutput{
-					DaemonRunning: true,
-					DaemonCount:   1,
-					WaybarRunning: false,
-					Windows:       []string{"bar-left"},
-					Variables:     map[string]string{"workspace": "1"},
-				}
-				data, err := json.Marshal(out)
-				if err != nil {
-					t.Fatalf("marshal: %v", err)
-				}
-				var decoded EwwStatusOutput
-				if err := json.Unmarshal(data, &decoded); err != nil {
-					t.Fatalf("unmarshal: %v", err)
-				}
-				if !decoded.DaemonRunning {
-					t.Error("daemon_running should be true")
-				}
-			},
-		},
 	}
 
 	for _, tc := range tests {

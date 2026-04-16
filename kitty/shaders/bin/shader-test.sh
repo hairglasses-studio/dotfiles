@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-# ── Kitty CRTty Shader Test Runner ───────────────
+# ── Kitty DarkWindow Shader Test Runner ──────────
 # Two modes:
 #   --validate (default) — static GLSL analysis + glslangValidator if available
 #   --visual             — launches Ghostty with each shader for visual preview
@@ -15,7 +15,7 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHADER_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SHADERS_DIR="$SHADER_ROOT/crtty"
+SHADERS_DIR="$SHADER_ROOT/darkwindow"
 source "$SCRIPT_DIR/../../../scripts/lib/notify.sh"
 DURATION=3
 LOG_DIR="/tmp/kitty-shader-tests"
@@ -111,7 +111,7 @@ WARN_COUNT=0
 declare -a RESULTS=()
 
 if $VISUAL; then
-  MODE="visual (launching Kitty via CRTty, ${DURATION}s each)"
+  MODE="visual (launching Kitty via DarkWindow, ${DURATION}s each)"
   if [[ "$(uname)" == "Darwin" ]]; then
     KITTY_BIN="$(command -v kitty 2>/dev/null || echo "/Applications/kitty.app/Contents/MacOS/kitty")"
   else
@@ -131,7 +131,7 @@ else
 fi
 
 printf "\n"
-printf "  Kitty CRTty Shader Test Runner\n"
+printf "  Kitty DarkWindow Shader Test Runner\n"
 printf "  ──────────────────────────\n"
 printf "  Shaders dir: %s\n" "$SHADERS_DIR"
 printf "  Total: %d shaders\n" "$TOTAL"

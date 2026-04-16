@@ -5,7 +5,7 @@
 | Key | Action |
 |-----|--------|
 | `Super+Enter` | Default terminal |
-| `Super+Shift+Enter` | Persistent dev terminal |
+| `Super+Ctrl+Enter` | Persistent dev terminal |
 | `Super+Alt+Enter` | Raw terminal |
 | `Super+D` | App launcher |
 | `Super+`` | Keybind reference |

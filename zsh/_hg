@@ -152,7 +152,7 @@ _hg() {
     screenshot/open)
       _message 'screenshot number (1=most recent)' ;;
     shader/set|shader/info|shader/test)
-      local shader_dir="$HOME/hairglasses-studio/dotfiles/kitty/shaders/crtty"
+      local shader_dir="$HOME/hairglasses-studio/dotfiles/kitty/shaders/darkwindow"
       local -a shaders
       shaders=(${(f)"$(command ls "$shader_dir"/*.glsl 2>/dev/null | xargs -I{} basename {} .glsl)"})
       _describe 'shader' shaders ;;

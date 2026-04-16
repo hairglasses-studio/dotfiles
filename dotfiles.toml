@@ -17,12 +17,12 @@ nvim = true
 # ── Terminal emulators & tools ───────────────────
 [terminal]
 kitty = true
-ghostty = true
-foot = true
+ghostty = false
+foot = false
 bat = true
 fastfetch = true
 macchina = true
-ghosttyfetch = true
+ghosttyfetch = false
 kitty_smart_scroll = true
 kitty_save_session = true
 
@@ -32,7 +32,7 @@ hyprland = true
 sway = false
 ironbar = true
 waybar = false
-mako = true
+mako = false
 hyprshell = true
 hypr_dock = true
 hyprdynamicmonitors = true
@@ -64,7 +64,7 @@ gh = true
 # ── Visual effects ───────────────────────────────
 [visual]
 kitty-shaders = true
-ghostty-shaders = true
+ghostty-shaders = false
 wallpaper-shaders = true
 refind = false          # Manual deploy (needs sudo for EFI)
 plymouth = false        # Manual deploy (needs mkinitcpio rebuild)
@@ -88,7 +88,7 @@ sway-mcp = false
 enable = ["zsh", "git", "ssh", "starship", "nvim"]
 
 [profiles.dev]
-enable = ["zsh", "git", "ssh", "starship", "nvim", "tmux", "lazygit", "gh", "bat", "fastfetch", "kitty", "ghostty", "kitty-shaders", "ghostty-shaders"]
+enable = ["zsh", "git", "ssh", "starship", "nvim", "tmux", "lazygit", "gh", "bat", "fastfetch", "kitty", "kitty-shaders"]
 
 [profiles.full]
 enable = ["*"]

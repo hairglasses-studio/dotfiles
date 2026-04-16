@@ -88,9 +88,7 @@ hyprpm-bootstrap
 | `swaync/` | Notification center + control surface themed from the shared token pipeline |
 | `wofi/` | Responsive fallback launcher/switcher styling and emoji picker |
 | `wlogout/` | Power menu overlay aligned with the shell token system |
-| `kitty/` | GPU terminal write target with CRTty shaders, theme playlists, shuffled visuals, and watcher-driven retheming |
-| `ghostty/` | State-aware companion terminal config and shader compatibility surface for the shared desktop pipeline |
-| `foot/` | Lightweight terminal (dropdown/fallback) |
+| `kitty/` | GPU terminal with DarkWindow shaders, theme playlists, shuffled visuals, and watcher-driven retheming |
 | `zsh/` | Oh My Zsh, Starship prompt, 650+ aliases |
 | `starship/` | Fill-based right alignment, git metrics, cloud context |
 | `nvim/` | lazy.nvim, treesitter, LSP, telescope, Snazzy theme |
@@ -101,12 +99,10 @@ hyprpm-bootstrap
 | `tmux/` | TPM, 7 plugins, vim-tmux-navigator, Snazzy status bar |
 | `lazygit/` | Git TUI with Snazzy theme |
 | `bat/` | Cat replacement with Snazzy syntax theme |
-| `makima/` | Gamepad-to-keyboard remapper with per-app profiles |
-| `juhradial/` | Seed `config.json` + `profiles.json` for MX Master 4 via juhradial-mx |
 | `metapac/` | Declarative package management — 12 groups, paru backend |
 | `topgrade/` | System update orchestration |
 | `pypr/` | Hyprland scratchpads (terminal, volume, files) |
-| `systemd/` | Repo-managed user services; Makima remains a packaged system service |
+| `systemd/` | Repo-managed user services and timers |
 
 ### Directory layout
 
@@ -122,7 +118,6 @@ dotfiles/
 ├── swaync/         → ~/.config/swaync (notifications)
 ├── wofi/           → ~/.config/wofi (fallback launcher)
 ├── wlogout/        → ~/.config/wlogout (power menu)
-├── foot/           → ~/.config/foot (fallback terminal)
 ├── nvim/           → ~/.config/nvim (editor)
 ├── bat/            → ~/.config/bat (cat replacement)
 ├── btop/           → ~/.config/btop (system monitor)
@@ -130,13 +125,11 @@ dotfiles/
 ├── yazi/           → ~/.config/yazi (file manager)
 ├── k9s/            → ~/.config/k9s (kubernetes)
 ├── lazygit/        → ~/.config/lazygit (git TUI)
-├── juhradial/      → copied to ~/.config/juhradial (MX Master 4 seed config)
-├── makima/         → ~/.config/makima (gamepad mapping)
 ├── pypr/           → ~/.config/pypr (scratchpads)
 ├── metapac/        → ~/.config/metapac (package groups)
 ├── topgrade/       → ~/.config/topgrade (system updates)
-├── systemd/        → ~/.config/systemd/user/ (repo-managed user services; Makima stays system-scoped)
-├── zsh/            → ~/.zshrc + ~/.zshenv + ~/.p10k.zsh
+├── systemd/        → ~/.config/systemd/user/ (repo-managed user services and timers)
+├── zsh/            → ~/.zshrc + ~/.zshenv
 ├── git/            → ~/.gitconfig + ~/.config/delta + ~/.config/git/ignore
 ├── tmux/           → ~/.tmux.conf
 ├── starship/       → ~/.config/starship.toml

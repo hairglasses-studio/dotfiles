@@ -15,7 +15,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHADER_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SHADERS_DIR="$SHADER_ROOT/crtty"
+SHADERS_DIR="$SHADER_ROOT/darkwindow"
 MANIFEST="$SHADERS_DIR/shaders.toml"
 PLAYLISTS_DIR="$SHADER_ROOT/playlists"
 

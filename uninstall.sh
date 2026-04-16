@@ -35,14 +35,12 @@ echo ""
 
 # Remove individual file symlinks
 unlink_file "$HOME/.zshrc"
-unlink_file "$HOME/.p10k.zsh"
 unlink_file "$HOME/.zshenv"
 unlink_file "$HOME/.gitconfig"
 unlink_file "$HOME/.ssh/config"
 unlink_file "$HOME/.config/starship.toml"
 
 # Remove directory symlinks
-unlink_file "$HOME/.config/ghostty"
 unlink_file "$HOME/.config/nvim"
 unlink_file "$HOME/.config/bat"
 unlink_file "$HOME/.config/fastfetch"

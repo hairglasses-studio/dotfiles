@@ -2,21 +2,13 @@
 export XDG_CONFIG_HOME=$HOME/.config
 export PATH="$HOME/.local/bin:$HOME/bin:$HOME/.cargo/bin:$PATH"
 
-# make default editor Helix
-export EDITOR=helix
-
 # Most pure GTK3 apps use wayland by default, but some,
 # such as Firefox, require the backend to be explicitly selected.
 export MOZ_ENABLE_WAYLAND=1
 export MOZ_DBUS_REMOTE=1
 export GTK_CSD=0
 
-# qt wayland
-export QT_QPA_PLATFORM="wayland"
-export QT_QPA_PLATFORMTHEME=qt6ct
-export QT_QUICK_CONTROLS_MATERIAL_THEME=Dark
-export QT_QUICK_CONTROLS_UNIVERSAL_THEME=Dark
-export QT_WAYLAND_DISABLE_WINDOWDECORATION="1"
+# Qt vars are in environment.d/theme.conf (systemd user env)
 
 #Java XWayland blank screens fix
 export _JAVA_AWT_WM_NONREPARENTING=1

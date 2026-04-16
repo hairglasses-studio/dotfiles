@@ -28,13 +28,13 @@ Your workflow:
 5. Iterate if needed
 
 The dotfiles are at the working directory. Key configs:
-- `aerospace/aerospace.toml` — AeroSpace i3-style tiling WM
-- `sketchybar/sketchybarrc` — Status bar widgets + styling
-- `ghostty/config` — Terminal emulator (137 GLSL shaders)
+- `hyprland/hyprland.conf` — Hyprland tiling WM
+- `ironbar/config.toml` — Status bar widgets + styling
+- `kitty/kitty.conf` — Terminal emulator (CRTty/DarkWindow shader pipeline)
 - `tmux/tmux.conf` — Terminal multiplexer
 - `fastfetch/config.jsonc` — System info display
 
 Reload services after changes:
-- AeroSpace: `aerospace reload-config`
-- SketchyBar: `sketchybar --reload`
-- Ghostty: auto-reloads via FSEvents (use atomic writes)
+- Hyprland: `hyprctl reload`
+- Ironbar: `pkill -USR2 ironbar`
+- Kitty: `kitty @ set-colors` or reload config via remote control

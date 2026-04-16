@@ -64,7 +64,6 @@ var reloadCommands = map[string][]string{
 	"hyprland": {"hyprctl", "reload"},
 	"ironbar":  {"ironbar", "reload"},
 	"mako":     {"makoctl", "reload"},
-	"eww":      {"eww", "reload"},
 	"waybar":   {"pkill", "-SIGUSR2", "waybar"},
 	"sway":     {"swaymsg", "reload"},
 	"tmux":     {"tmux", "source-file", "~/.tmux.conf"},
@@ -126,7 +125,7 @@ type ValidateConfigOutput struct {
 // Tool 3: dotfiles_reload_service
 
 type ReloadServiceInput struct {
-	Service string `json:"service" jsonschema:"required,description=Service to reload,enum=hyprland,enum=ironbar,enum=mako,enum=eww,enum=waybar,enum=sway,enum=tmux"`
+	Service string `json:"service" jsonschema:"required,description=Service to reload,enum=hyprland,enum=ironbar,enum=mako,enum=waybar,enum=sway,enum=tmux"`
 }
 
 type ReloadServiceOutput struct {
@@ -555,47 +554,12 @@ type BulkPipelineOutput struct {
 	Results []PipelineResult `json:"results"`
 }
 
-// Tool 22: dotfiles_eww_restart
-
-type EwwRestartInput struct{}
-
-type EwwRestartOutput struct {
-	Killed    int      `json:"killed"`
-	WaybarOff bool     `json:"waybar_killed"`
-	DaemonPID string   `json:"daemon_pid,omitempty"`
-	BarsOpen  []string `json:"bars_opened"`
-	Error     string   `json:"error,omitempty"`
-}
-
-// Tool 9: dotfiles_eww_status
-
-type EwwStatusInput struct{}
+// EwwLayerInfo is kept for the desktop status capability struct.
 
 type EwwLayerInfo struct {
 	Monitor   string `json:"monitor"`
 	Namespace string `json:"namespace"`
 	Position  string `json:"position"`
-}
-
-type EwwStatusOutput struct {
-	DaemonRunning  bool              `json:"daemon_running"`
-	DaemonCount    int               `json:"daemon_count"`
-	WaybarRunning  bool              `json:"waybar_running"`
-	Windows        []string          `json:"windows"`
-	DefinedWindows []string          `json:"defined_windows,omitempty"`
-	Layers         []EwwLayerInfo    `json:"layers"`
-	Variables      map[string]string `json:"variables,omitempty"`
-}
-
-// Tool 10: dotfiles_eww_get
-
-type EwwGetInput struct {
-	Variable string `json:"variable" jsonschema:"required,description=eww variable name to query"`
-}
-
-type EwwGetOutput struct {
-	Variable string `json:"variable"`
-	Value    any    `json:"value"`
 }
 
 // Tool 11: dotfiles_onboard_repo
@@ -1081,47 +1045,6 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 				}
 
 				return GHRecreateForkOutput{Results: results}, nil
-			},
-		),
-
-		// ── dotfiles_eww_restart ──────────────────────
-		handler.TypedHandler[EwwRestartInput, EwwRestartOutput](
-			"dotfiles_eww_restart",
-			"Kill all eww and waybar processes, restart eww daemon, and open the primary eww surface (sidebar). Use after editing eww config files.",
-			func(_ context.Context, _ EwwRestartInput) (EwwRestartOutput, error) {
-				return restartEwwBars(), nil
-			},
-		),
-
-		// ── dotfiles_eww_status ───────────────────────
-		handler.TypedHandler[EwwStatusInput, EwwStatusOutput](
-			"dotfiles_eww_status",
-			"Show eww bar status: daemon health, open windows, layer surfaces, key variable values, and whether waybar is incorrectly running.",
-			func(_ context.Context, _ EwwStatusInput) (EwwStatusOutput, error) {
-				return currentEwwStatus(), nil
-			},
-		),
-
-		// ── dotfiles_eww_get ──────────────────────────
-		handler.TypedHandler[EwwGetInput, EwwGetOutput](
-			"dotfiles_eww_get",
-			"Get the current value of an eww variable. Useful for debugging bar widgets (e.g. bar_workspaces_dp1, bar_cpu, bar_shader, rg_fleet).",
-			func(_ context.Context, input EwwGetInput) (EwwGetOutput, error) {
-				if input.Variable == "" {
-					return EwwGetOutput{}, fmt.Errorf("[%s] variable name is required", handler.ErrInvalidParam)
-				}
-
-				value, err := runEww("get", input.Variable)
-				if err != nil {
-					return EwwGetOutput{}, err
-				}
-
-				var parsed any
-				if json.Unmarshal([]byte(value), &parsed) == nil {
-					return EwwGetOutput{Variable: input.Variable, Value: parsed}, nil
-				}
-
-				return EwwGetOutput{Variable: input.Variable, Value: value}, nil
 			},
 		),
 
@@ -2291,9 +2214,6 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 						}
 					case "ironbar":
 						healthy = processRunningExact("ironbar") || systemdUserUnitActive("ironbar.service")
-					case "eww":
-						checkCmd := exec.Command("eww", "ping")
-						healthy = checkCmd.Run() == nil
 					default:
 						healthy = true // No health check available.
 					}
@@ -2331,21 +2251,19 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					result.Compositor = "unknown"
 				}
 
-				// Active shader.
-				ghosttyConfig := filepath.Join(homeDir(), ".config", "ghostty", "config")
-				shaderCmd := exec.Command("grep", "-m1", "^custom-shader = ", ghosttyConfig)
-				var shaderOut bytes.Buffer
-				shaderCmd.Stdout = &shaderOut
-				if shaderCmd.Run() == nil {
-					line := strings.TrimSpace(shaderOut.String())
-					line = strings.TrimPrefix(line, "custom-shader = ")
-					if line != "" && line != "none" {
-						result.Shader = filepath.Base(strings.TrimSuffix(line, ".glsl"))
+				// Active shader — read from kitty shader state file.
+				{
+					stateFile := filepath.Join(homeDir(), ".local", "state", "kitty-shader", "current")
+					if data, err := os.ReadFile(stateFile); err == nil {
+						shaderName := filepath.Base(strings.TrimSuffix(strings.TrimSpace(string(data)), ".glsl"))
+						if shaderName != "" && shaderName != "none" {
+							result.Shader = shaderName
+						} else {
+							result.Shader = "none"
+						}
 					} else {
 						result.Shader = "none"
 					}
-				} else {
-					result.Shader = "none"
 				}
 
 				// Wallpaper.
@@ -2407,7 +2325,6 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 						filepath.Join(dir, "ironbar"),
 						filepath.Join(dir, "mako"),
 						filepath.Join(dir, "wofi"),
-						filepath.Join(dir, "foot"),
 					}
 
 					for _, scanDir := range scanDirs {
@@ -2577,7 +2494,7 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					localDir = filepath.Join(homeDir(), "hairglasses-studio")
 				}
 
-				mcpRepos := []string{"dotfiles-mcp", "process-mcp", "systemd-mcp", "tmux-mcp"}
+				mcpRepos := []string{"dotfiles-mcp"}
 				dryRun := !input.Execute
 
 				// Get latest mcpkit version from the first repo that has it.

@@ -29,7 +29,7 @@ show_tattoy_indicator = true
 scrollback_size = 1000
 
 # ── Shader (background effect) ──────────────────
-# Shaders live in the shaders/ subdirectory (symlinked to kitty/shaders/crtty).
+# Shaders live in the shaders/ subdirectory (symlinked to kitty/shaders/darkwindow).
 # Cycle between them at runtime with ALT+9 / ALT+0.
 [shader]
 enabled = false

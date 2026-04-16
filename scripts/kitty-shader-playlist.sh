@@ -3,9 +3,9 @@ set -euo pipefail
 
 # kitty-shader-playlist.sh — Kitty theme rotation (legacy name retained)
 #
-# Historically this script wrapped kitty launches in `crtty -s <shader>` and
-# later drove the Hypr-DarkWindow plugin to apply CRT shaders per window.
-# Shaders are no longer applied to kitty at all — every new window instead
+# Historically this script wrapped kitty launches in `crtty -s <shader>` (now
+# retired) and later drove the Hypr-DarkWindow plugin to apply CRT shaders per
+# window. Shaders are no longer applied to kitty at all — every new window instead
 # gets a unique dark theme pulled from a ~320-entry community playlist. The
 # script name is preserved only because hyprland, ironbar, install.sh, and
 # mod-shader.sh already reference it by path.

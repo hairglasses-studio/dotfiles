@@ -126,13 +126,11 @@ copy_file_if_present() {
 print_common_link_specs() {
     cat <<EOF
 $DOTFILES_DIR/zsh/zshrc|$HOME/.zshrc
-$DOTFILES_DIR/zsh/p10k.zsh|$HOME/.p10k.zsh
 $DOTFILES_DIR/zsh/zshenv|$HOME/.zshenv
 $DOTFILES_DIR/zsh/profile|$HOME/.profile
 $DOTFILES_DIR/git/gitconfig|$HOME/.gitconfig
 $DOTFILES_DIR/ssh/config|$HOME/.ssh/config
 $DOTFILES_DIR/starship/starship.toml|$HOME/.config/starship.toml
-$DOTFILES_DIR/ghostty|$HOME/.config/ghostty
 $DOTFILES_DIR/kitty|$HOME/.config/kitty
 $DOTFILES_DIR/nvim|$HOME/.config/nvim
 $DOTFILES_DIR/bat|$HOME/.config/bat
@@ -163,7 +161,6 @@ print_darwin_link_specs() {
     cat <<EOF
 $DOTFILES_DIR/borders|$HOME/.config/borders
 $DOTFILES_DIR/tattoy/tattoy.toml|$HOME/Library/Application Support/tattoy/tattoy.toml
-$DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist|$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist
 EOF
 }
 
@@ -182,7 +179,6 @@ $DOTFILES_DIR/wofi/style.css|$HOME/.config/wofi/style.css
 $DOTFILES_DIR/hyprland|$HOME/.config/hypr
 $DOTFILES_DIR/pypr/config.toml|$HOME/.config/pypr/config.toml
 $DOTFILES_DIR/helix/config.toml|$HOME/.config/helix/config.toml
-$DOTFILES_DIR/makima|$HOME/.config/makima
 $DOTFILES_DIR/environment.d/theme.conf|$HOME/.config/environment.d/theme.conf
 $DOTFILES_DIR/environment.d/ralphglasses.conf|$HOME/.config/environment.d/ralphglasses.conf
 $DOTFILES_DIR/fontconfig/conf.d/51-monospace.conf|$HOME/.config/fontconfig/conf.d/51-monospace.conf
@@ -207,8 +203,6 @@ $DOTFILES_DIR/scripts/kitty-visual-launch.sh|$HOME/.local/bin/kitty-visual-launc
 $DOTFILES_DIR/scripts/jellyfin-stack-boot.sh|$HOME/.local/bin/jellyfin-stack-boot.sh
 $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
-$DOTFILES_DIR/scripts/juhradial-mx.sh|$HOME/.local/bin/juhradial-mx
-$DOTFILES_DIR/scripts/juhradial-settings.sh|$HOME/.local/bin/juhradial-settings
 EOF
 }
 
@@ -217,8 +211,6 @@ print_linux_systemd_link_specs() {
     while IFS= read -r -d '' src; do
         rel="${src#"$DOTFILES_DIR/systemd/"}"
         base="$(basename "$src")"
-        [[ "$base" == "makima.service" ]] && continue
-        [[ "$base" == "foot-server.socket" ]] && continue
         printf '%s|%s\n' "$src" "$HOME/.config/systemd/user/$rel"
     done < <(find "$DOTFILES_DIR/systemd" -type f -print0 | sort -z)
 }
@@ -514,14 +506,6 @@ install_omz_plugins() {
         fi
     done
 
-    # Powerlevel10k theme
-    local p10k_dir="$ZSH_CUSTOM/themes/powerlevel10k"
-    if [[ -d "$p10k_dir" ]]; then
-        log_success "Theme already installed: powerlevel10k"
-    else
-        log_info "Installing theme: powerlevel10k"
-        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$p10k_dir" 2>/dev/null
-    fi
 }
 
 # ── Neovim ──────────────────────────────────────
@@ -580,26 +564,7 @@ install_retrovisor() {
 
 # ── Tattoy shader symlink (Ghostty-only, skipped for kitty) ──
 setup_tattoy_shaders() {
-    log_info "Tattoy shaders skipped (kitty uses CRTty/DarkWindow pipeline)"
-}
-
-install_juhradial_stack() {
-    if [[ "$OS" != "Linux" ]]; then
-        return 0
-    fi
-
-    local script="$DOTFILES_DIR/scripts/juhradial-install.sh"
-    if [[ ! -x "$script" ]]; then
-        log_warn "Skipping juhradial install — missing executable: $script"
-        return 0
-    fi
-
-    log_info "Installing juhradial-mx stack..."
-    if "$script" --quiet; then
-        log_success "juhradial-mx installed"
-    else
-        log_warn "juhradial-mx install reported an error — rerun: $script"
-    fi
+    log_info "Tattoy shaders skipped (kitty uses DarkWindow pipeline)"
 }
 
 deploy_linux_etc_configs() {
@@ -1003,7 +968,6 @@ main() {
     sync_visual_theme
     bootstrap_hyprland_plugins
     setup_tattoy_shaders
-    install_juhradial_stack
 
     # Build bat cache (custom themes)
     if command -v bat &>/dev/null; then

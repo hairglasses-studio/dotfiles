@@ -1,5 +1,0 @@
-cyber-grid.glsl
-cyberpunk-hud.glsl
-digital-mist.glsl
-film-grain-pro.glsl
-neon-glow.glsl

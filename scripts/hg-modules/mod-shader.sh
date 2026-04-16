@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # mod-shader.sh — hg shader module
-# Uses kitty-shader-playlist.sh for Kitty theme + CRTty shader management.
+# Uses kitty-shader-playlist.sh for Kitty theme + DarkWindow shader management.
 
 _SHADER_BIN="$HG_DOTFILES/kitty/shaders/bin"
-_SHADER_DIR="$HG_DOTFILES/kitty/shaders/crtty"
+_SHADER_DIR="$HG_DOTFILES/kitty/shaders/darkwindow"
 _KITTY_PLAYLIST="$HG_DOTFILES/scripts/kitty-shader-playlist.sh"
 
 if [[ ! -f "$_KITTY_PLAYLIST" ]]; then
@@ -13,7 +13,7 @@ if [[ ! -f "$_KITTY_PLAYLIST" ]]; then
 fi
 
 shader_description() {
-  echo "Kitty visual stack — CRTty shaders, theme rotation, playlist control"
+  echo "Kitty visual stack — DarkWindow shaders, theme rotation, playlist control"
 }
 
 shader_commands() {

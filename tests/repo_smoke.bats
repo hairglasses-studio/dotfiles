@@ -19,7 +19,6 @@ teardown() {
 @test "install.sh prints link specs for core runtime and launcher shims" {
     run bash "${DOTFILES_DIR}/install.sh" --print-link-specs
     assert_success
-    assert_output --partial "${DOTFILES_DIR}/ghostty|${HOME}/.config/ghostty"
     assert_output --partial "${DOTFILES_DIR}/kitty|${HOME}/.config/kitty"
     assert_output --partial "${DOTFILES_DIR}/ironbar|${HOME}/.config/ironbar"
     assert_output --partial "${DOTFILES_DIR}/scripts/kitty-shell-launch.sh|${HOME}/.local/bin/kitty-shell-launch"
@@ -38,7 +37,7 @@ teardown() {
 }
 
 @test "launcher consumers stay pinned to the managed kitty wrappers" {
-    run bash -lc "grep -F '\$HOME/.local/bin/kitty-dev-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/pypr/config.toml' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/hyprland/pyprland.toml' && grep -F 'kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh' '${DOTFILES_DIR}/juhradial/config.json' '${DOTFILES_DIR}/juhradial/profiles.json' && grep -F 'kitty-visual-launch' '${DOTFILES_DIR}/ironbar/config.toml' '${DOTFILES_DIR}/makima/Microsoft Xbox Series S|X Controller.toml'"
+    run bash -lc "grep -F '\$HOME/.local/bin/kitty-dev-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/pypr/config.toml' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/hyprland/pyprland.toml' && grep -F 'kitty-visual-launch' '${DOTFILES_DIR}/ironbar/config.toml' '${DOTFILES_DIR}/makima/Microsoft Xbox Series S|X Controller.toml'"
     assert_success
 }
 

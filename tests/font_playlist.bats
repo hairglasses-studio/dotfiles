@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # Tests for scripts/font-playlist.sh — Font management and cycling
 # Tests: list parsing, cycling logic, state persistence, entry parsing
-# Skips: actual font application, Ghostty config, desktop notifications
+# Skips: actual font application, kitty config, desktop notifications
 
 load 'test_helper'
 
@@ -12,7 +12,7 @@ setup() {
     export TEST_STATE="${BATS_TEST_TMPDIR}/state"
     export TEST_PLAYLIST_DIR="${BATS_TEST_TMPDIR}/fonts"
     export TEST_DOTFILES="${BATS_TEST_TMPDIR}/dotfiles"
-    export TEST_CONFIG="${TEST_DOTFILES}/ghostty/config"
+    export TEST_CONFIG="${TEST_DOTFILES}/kitty/kitty.conf"
     mkdir -p "$TEST_STATE" "$TEST_PLAYLIST_DIR" "$(dirname "$TEST_CONFIG")"
 
     # Create synthetic playlist
@@ -24,11 +24,14 @@ Fira Code|14
 Hack Nerd Font Mono|13
 EOF
 
-    # Create a minimal Ghostty config
+    # Create a minimal kitty config
     cat > "$TEST_CONFIG" << 'CFG'
-font-family = Hack Nerd Font
-font-size = 12
-background = #000000
+font_family      Hack Nerd Font
+bold_font        Hack Nerd Font Bold
+italic_font      Hack Nerd Font Italic
+bold_italic_font Hack Nerd Font Bold Italic
+font_size 12
+background #000000
 CFG
 
     # Create patched script
@@ -58,7 +61,7 @@ CFG
         echo "SCRIPT_DIR=\"${SCRIPTS_DIR}\""
         echo ""
         # Override the paths
-        echo "_ghostty_config=\"${TEST_CONFIG}\""
+        echo "_kitty_config=\"${TEST_CONFIG}\""
         echo "_playlist_dir=\"${TEST_PLAYLIST_DIR}\""
         echo "_state_dir=\"${TEST_STATE}\""
         echo '_default_playlist="test-playlist"'
@@ -108,20 +111,20 @@ teardown() {
     assert_output --partial "[2/4]"
 }
 
-@test "font-playlist: next updates Ghostty config font-family" {
+@test "font-playlist: next updates kitty config font_family" {
     bash "$PATCHED_SCRIPT" next
-    run grep '^font-family = ' "$TEST_CONFIG"
+    run grep '^font_family ' "$TEST_CONFIG"
     assert_success
-    assert_output "font-family = Iosevka Nerd Font Mono"
+    assert_output "font_family      Iosevka Nerd Font Mono"
 }
 
-@test "font-playlist: next updates Ghostty config font-size" {
+@test "font-playlist: next updates kitty config font_size" {
     # Advance twice to get to Fira Code|14
     bash "$PATCHED_SCRIPT" next
     bash "$PATCHED_SCRIPT" next
-    run grep '^font-size = ' "$TEST_CONFIG"
+    run grep '^font_size ' "$TEST_CONFIG"
     assert_success
-    assert_output "font-size = 14"
+    assert_output "font_size 14"
 }
 
 @test "font-playlist: next wraps around at end of playlist" {

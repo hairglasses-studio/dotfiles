@@ -236,7 +236,6 @@ test_palette() {
     "$SCRIPT_DIR/../wofi"
     "$SCRIPT_DIR/../wlogout"
     "$SCRIPT_DIR/../hyprland"
-    "$SCRIPT_DIR/../ghostty/config"
     "$SCRIPT_DIR/../kitty/kitty.conf"
     "$SCRIPT_DIR/../fontconfig/conf.d/51-monospace.conf"
     "$SCRIPT_DIR/../README.md"

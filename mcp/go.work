@@ -2,9 +2,5 @@ go 1.26.1
 
 use (
 	./dotfiles-mcp
-	./hg-mcp
 	./mapitall
-	./process-mcp
-	./systemd-mcp
-	./tmux-mcp
 )

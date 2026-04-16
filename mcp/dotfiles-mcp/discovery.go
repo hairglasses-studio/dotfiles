@@ -344,7 +344,7 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 
 	desktopStatus := handler.TypedHandler[dotfilesDesktopStatusInput, dotfilesDesktopStatusOutput](
 		"dotfiles_desktop_status",
-		"Report desktop control readiness, including Hyprland, AT-SPI semantic targeting, session helpers, screenshot/OCR, input injection, and the kitty-to-ghostty terminal shader pipeline.",
+		"Report desktop control readiness, including Hyprland, AT-SPI semantic targeting, session helpers, screenshot/OCR, input injection, and the kitty terminal shader pipeline.",
 		func(_ context.Context, _ dotfilesDesktopStatusInput) (dotfilesDesktopStatusOutput, error) {
 			desktopRuntime := dotfilesResolveDesktopRuntime()
 			runtimeDir := desktopRuntime.XDGRuntimeDir
@@ -605,28 +605,17 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 			}
 
 			kittyConfigPath := filepath.Join(dotfilesDir(), "kitty", "kitty.conf")
-			ghosttyConfigPath := filepath.Join(dotfilesDir(), "ghostty", "config")
 			terminalMissing := make([]string, 0)
 			terminalDetails := make([]string, 0)
 			kittyInstalled := hasCmd("kitty")
-			ghosttyInstalled := hasCmd("ghostty")
 			if kittyInstalled {
 				terminalDetails = append(terminalDetails, "kitty available")
 			} else {
 				terminalMissing = append(terminalMissing, "kitty")
 				missingCommands = append(missingCommands, "kitty")
 			}
-			if ghosttyInstalled {
-				terminalDetails = append(terminalDetails, "ghostty available")
-			} else {
-				terminalMissing = append(terminalMissing, "ghostty")
-				missingCommands = append(missingCommands, "ghostty")
-			}
 			if _, err := os.Stat(kittyConfigPath); err == nil {
 				terminalDetails = append(terminalDetails, "kitty config rooted at "+kittyConfigPath)
-			}
-			if _, err := os.Stat(ghosttyConfigPath); err == nil {
-				terminalDetails = append(terminalDetails, "ghostty state-aware config rooted at "+ghosttyConfigPath)
 			}
 
 			shaderScriptPath := filepath.Join(dotfilesDir(), "scripts", "kitty-shader-playlist.sh")
@@ -647,9 +636,6 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 				shaderDetails = append(shaderDetails, "kitty is the active shader write target")
 			} else {
 				shaderMissing = append(shaderMissing, "kitty")
-			}
-			if _, err := os.Stat(ghosttyConfigPath); err == nil {
-				shaderDetails = append(shaderDetails, "ghostty config present for state-aware terminal parity")
 			}
 
 			output := dotfilesDesktopStatusOutput{
@@ -711,7 +697,7 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 					Missing: uniqueSortedStrings(notificationMissing),
 				},
 				Terminal: dotfilesDesktopCapability{
-					Ready:   kittyInstalled || ghosttyInstalled,
+					Ready:   kittyInstalled,
 					Details: terminalDetails,
 					Missing: uniqueSortedStrings(terminalMissing),
 				},
@@ -742,10 +728,8 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 		"wayland env",
 		"ocr readiness",
 		"click automation",
-		"eww",
 		"notification history",
 		"kitty",
-		"ghostty",
 		"terminal shader",
 	}
 
@@ -813,7 +797,6 @@ func dotfilesModules() []registry.ToolModule {
 		&ClipboardModule{},
 		&NotifyModule{},
 		&NotificationModule{},
-		&EwwDesktopModule{},
 		&InputSimulateModule{},
 		&DesktopInteractModule{},
 		&DesktopSemanticModule{},
@@ -899,12 +882,7 @@ func isDesktopProfileTool(name string) bool {
 		"dotfiles_validate_config",
 		"dotfiles_reload_service",
 		"dotfiles_cascade_reload",
-		"dotfiles_rice_check",
-		"dotfiles_eww_status",
-		"dotfiles_eww_get",
-		"dotfiles_eww_restart",
-		"dotfiles_eww_inspect",
-		"dotfiles_eww_reload":
+		"dotfiles_rice_check":
 		return true
 	default:
 		return false

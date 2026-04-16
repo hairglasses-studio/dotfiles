@@ -107,7 +107,6 @@ _rice_palette() {
     "$HG_DOTFILES/swaync"
     "$HG_DOTFILES/wofi"
     "$HG_DOTFILES/wlogout"
-    "$HG_DOTFILES/ghostty"
     "$HG_DOTFILES/kitty"
     "$HG_DOTFILES/fontconfig"
   )

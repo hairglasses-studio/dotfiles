@@ -7,8 +7,7 @@ source "$SCRIPT_DIR/lib/compositor.sh"
 source "$SCRIPT_DIR/lib/kitty-config.sh"
 
 direction="${1:-}"
-config_file="${XDG_CONFIG_HOME:-$HOME/.config}/juhradial/config.json"
-state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/juhradial"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/kitty-font-wheel"
 state_file="$state_dir/kitty-font-size.state"
 
 active_window_json() {
@@ -24,13 +23,8 @@ state_key() {
 }
 
 read_cfg_number() {
-  local jq_expr="$1"
+  local _jq_expr="$1"
   local fallback="$2"
-  if [[ -f "$config_file" ]] && command -v jq >/dev/null 2>&1; then
-    jq -r "$jq_expr // $fallback" "$config_file" 2>/dev/null || printf '%s\n' "$fallback"
-    return 0
-  fi
-
   printf '%s\n' "$fallback"
 }
 

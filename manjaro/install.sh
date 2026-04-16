@@ -5,7 +5,6 @@
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "$0")/.." && pwd)"
-source "$DOTFILES/scripts/lib/juhradial.sh"
 BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 BACKUP_CREATED=false
 CHECK_ONLY=false
@@ -125,10 +124,9 @@ install_packages() {
         local -a aur_pkgs=(ttf-maple-nerd-font makima-bin)
         is_enabled hyprshell && aur_pkgs+=(hyprshell-bin)
         is_enabled ironbar && aur_pkgs+=(ironbar-bin)
-        kitty_visuals_enabled && aur_pkgs+=(crtty-git)
         yay -S --needed --noconfirm "${aur_pkgs[@]}"
     else
-        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, makima-bin, hyprshell-bin, ironbar-bin, crtty-git)"
+        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, makima-bin, hyprshell-bin, ironbar-bin)"
         warn "Install yay: https://github.com/Jguer/yay"
     fi
 }
@@ -207,7 +205,7 @@ install_tpm() {
 # ── Tattoy shader symlink ────────────────────────────────────
 setup_tattoy_shaders() {
     local tattoy_shaders="$HOME/.config/tattoy/shaders"
-    local kitty_shaders="$DOTFILES/kitty/shaders/crtty"
+    local kitty_shaders="$DOTFILES/kitty/shaders/darkwindow"
     if [[ -L "$tattoy_shaders" ]] && [[ "$(readlink "$tattoy_shaders")" == "$kitty_shaders" ]]; then
         success "Tattoy shaders already linked"
     elif [[ -d "$tattoy_shaders" ]]; then
@@ -215,7 +213,7 @@ setup_tattoy_shaders() {
     else
         mkdir -p "$(dirname "$tattoy_shaders")"
         ln -sf "$kitty_shaders" "$tattoy_shaders"
-        success "Linked Tattoy shaders to Kitty CRTty shader collection"
+        success "Linked Tattoy shaders to Kitty DarkWindow shader collection"
     fi
 }
 
@@ -223,22 +221,9 @@ setup_tattoy_shaders() {
 setup_input_devices() {
     info "Setting up input device configs..."
 
-    if [[ -x "$DOTFILES/scripts/juhradial-sync.sh" ]]; then
-        "$DOTFILES/scripts/juhradial-sync.sh" --quiet
-        success "Synced juhradial seed config"
-    fi
-
     # makima — symlink the config directory
     if is_enabled makima && [[ -d "$DOTFILES/makima" ]]; then
         link_file "$DOTFILES/makima" "$HOME/.config/makima"
-    fi
-
-    if [[ -x "$DOTFILES/scripts/juhradial-install.sh" ]]; then
-        if "$DOTFILES/scripts/juhradial-install.sh" --quiet; then
-            success "Installed juhradial stack"
-        else
-            warn "juhradial install reported an error — rerun ./scripts/juhradial-install.sh"
-        fi
     fi
 
     # udev rules (Keychron USB power, etc.)
@@ -417,35 +402,14 @@ check_install() {
     check_link "$DOTFILES/scripts/kitty-visual-launch.sh" "$HOME/.local/bin/kitty-visual-launch"
     check_link "$DOTFILES/scripts/app-launcher.sh" "$HOME/.local/bin/app-launcher"
     check_link "$DOTFILES/scripts/app-switcher.sh" "$HOME/.local/bin/app-switcher"
-    check_link "$DOTFILES/scripts/juhradial-mx.sh" "$HOME/.local/bin/juhradial-mx"
-    check_link "$DOTFILES/scripts/juhradial-settings.sh" "$HOME/.local/bin/juhradial-settings"
 
     # ── Input devices ──
     check_link "$DOTFILES/makima" "$HOME/.config/makima"
-
-    if juhradial_systemctl is-active juhradialmx-daemon.service &>/dev/null; then
-        success "juhradial daemon active"
-    else
-        error "juhradial daemon not active"
-        errors=$((errors + 1))
-    fi
-
-    if juhradial_systemctl is-active ydotool.service &>/dev/null; then
-        success "ydotool service active"
-    else
-        warn "ydotool service not active"
-    fi
 
     if systemctl is-enabled makima.service &>/dev/null; then
         success "makima service enabled"
     else
         warn "makima service not enabled"
-    fi
-
-    if [[ -f "$HOME/.config/juhradial/config.json" && -f "$HOME/.config/juhradial/profiles.json" ]]; then
-        success "juhradial config present"
-    else
-        warn "juhradial config missing"
     fi
 
     info "Checking pacman packages..."
