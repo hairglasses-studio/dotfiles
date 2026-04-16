@@ -1,0 +1,17 @@
+[
+  {
+    "prompt": "polish mcpkit for public viewing",
+    "expected_skill": "gh_repo_polish",
+    "notes": "Single-repo polish — should audit + propose fixes for mcpkit"
+  },
+  {
+    "prompt": "fix all stale descriptions across the org",
+    "expected_skill": "gh_repo_polish",
+    "notes": "Batch operation — should iterate all public repos and fix descriptions"
+  },
+  {
+    "prompt": "merge all dependabot PRs on ralphglasses",
+    "expected_skill": "gh_repo_polish",
+    "notes": "Targeted cleanup — should find and merge green Dependabot PRs"
+  }
+]

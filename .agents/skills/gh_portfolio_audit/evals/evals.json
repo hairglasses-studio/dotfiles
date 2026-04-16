@@ -1,0 +1,17 @@
+[
+  {
+    "prompt": "audit my github portfolio",
+    "expected_skill": "gh_portfolio_audit",
+    "notes": "Direct trigger — should run the full audit loop"
+  },
+  {
+    "prompt": "check if my repo descriptions are up to date",
+    "expected_skill": "gh_portfolio_audit",
+    "notes": "Partial trigger — should focus on description accuracy checks"
+  },
+  {
+    "prompt": "what would an interviewer see if they browsed my github",
+    "expected_skill": "gh_portfolio_audit",
+    "notes": "Indirect trigger — interview context should activate this skill"
+  }
+]

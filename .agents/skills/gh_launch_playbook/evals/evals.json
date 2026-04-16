@@ -1,0 +1,17 @@
+[
+  {
+    "prompt": "launch mcpkit on hacker news",
+    "expected_skill": "gh_launch_playbook",
+    "notes": "Should prepare Show HN content from docs/content/show-hn-mcpkit-v2.md"
+  },
+  {
+    "prompt": "submit my mcp servers to awesome lists",
+    "expected_skill": "gh_launch_playbook",
+    "notes": "Should draft PRs using docs/content/awesome-mcp-servers-submission.md"
+  },
+  {
+    "prompt": "execute the 14-day launch playbook",
+    "expected_skill": "gh_launch_playbook",
+    "notes": "Should run full orchestration from Phase 1 through Phase 4"
+  }
+]

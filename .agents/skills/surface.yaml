@@ -89,6 +89,21 @@
       "name": "github_stars_audit",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "gh_portfolio_audit",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "gh_repo_polish",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "gh_launch_playbook",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
