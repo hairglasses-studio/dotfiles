@@ -394,6 +394,27 @@ type ShaderTestOutput struct {
 	Failed  int                `json:"failed"`
 }
 
+type ShaderBenchmarkInput struct {
+	Name string `json:"name,omitempty" jsonschema:"description=Shader to benchmark (omit to benchmark all)"`
+}
+
+type ShaderBenchResult struct {
+	Name      string  `json:"name"`
+	CompileMs float64 `json:"compile_ms"`
+	SizeBytes int64   `json:"size_bytes"`
+	Category  string  `json:"category"`
+	Passed    bool    `json:"passed"`
+}
+
+type ShaderBenchmarkOutput struct {
+	Results   []ShaderBenchResult `json:"results"`
+	Count     int                 `json:"count"`
+	AvgMs     float64             `json:"avg_compile_ms"`
+	MaxMs     float64             `json:"max_compile_ms"`
+	MaxShader string              `json:"max_shader"`
+	TotalKB   float64             `json:"total_kb"`
+}
+
 type ShaderGetStateInput struct{}
 
 type ShaderGetStateOutput struct {
@@ -854,6 +875,81 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 					Results: results,
 					Passed:  passed,
 					Failed:  failed,
+				}, nil
+			},
+		),
+
+		// ── shader_benchmark ─────────────────────────
+		handler.TypedHandler[ShaderBenchmarkInput, ShaderBenchmarkOutput](
+			"shader_benchmark",
+			"Benchmark shader compilation time and file size via glslangValidator. Reports per-shader and aggregate stats.",
+			func(_ context.Context, input ShaderBenchmarkInput) (ShaderBenchmarkOutput, error) {
+				var targets []string
+				if input.Name != "" {
+					p, err := findShader(input.Name)
+					if err != nil {
+						return ShaderBenchmarkOutput{}, err
+					}
+					targets = append(targets, p)
+				} else {
+					files, err := listGLSL()
+					if err != nil {
+						return ShaderBenchmarkOutput{}, err
+					}
+					dir := shadersDir()
+					for _, f := range files {
+						targets = append(targets, filepath.Join(dir, f))
+					}
+				}
+
+				var results []ShaderBenchResult
+				var totalMs float64
+				var maxMs float64
+				var maxShader string
+				var totalBytes int64
+
+				for _, t := range targets {
+					name := strings.TrimSuffix(filepath.Base(t), ".glsl")
+					info, _ := os.Stat(t)
+					var sizeBytes int64
+					if info != nil {
+						sizeBytes = info.Size()
+					}
+
+					start := time.Now()
+					cmd := exec.Command("glslangValidator", "-S", "frag", t)
+					err := cmd.Run()
+					elapsed := time.Since(start).Seconds() * 1000
+
+					r := ShaderBenchResult{
+						Name:      name,
+						CompileMs: elapsed,
+						SizeBytes: sizeBytes,
+						Category:  inferCategory(name),
+						Passed:    err == nil,
+					}
+					results = append(results, r)
+					totalMs += elapsed
+					totalBytes += sizeBytes
+
+					if elapsed > maxMs {
+						maxMs = elapsed
+						maxShader = name
+					}
+				}
+
+				var avgMs float64
+				if len(results) > 0 {
+					avgMs = totalMs / float64(len(results))
+				}
+
+				return ShaderBenchmarkOutput{
+					Results:   results,
+					Count:     len(results),
+					AvgMs:     avgMs,
+					MaxMs:     maxMs,
+					MaxShader: maxShader,
+					TotalKB:   float64(totalBytes) / 1024,
 				}, nil
 			},
 		),
