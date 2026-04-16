@@ -11,6 +11,28 @@
   "transport": [
     "stdio"
   ],
+  "categories": [
+    "desktop-automation",
+    "linux",
+    "hyprland",
+    "wayland",
+    "developer-tools"
+  ],
+  "tags": [
+    "hyprland",
+    "mcp",
+    "wayland",
+    "desktop",
+    "linux",
+    "go",
+    "arch",
+    "kitty",
+    "shader",
+    "mcpkit"
+  ],
+  "install": {
+    "go": "go install github.com/hairglasses-studio/dotfiles-mcp@latest"
+  },
   "profiles": [
     "default",
     "desktop",

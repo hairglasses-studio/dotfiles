@@ -60,7 +60,7 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 - [x] [P1][S] GitHub Topics: add hyprland mcp wayland dotfiles desktop-automation linux go
 - [ ] [P2][S] Submit PR to awesome-hyprland (IPC section)
 - [ ] [P2][S] Submit PR to awesome-mcp-servers
-- [ ] [P2][S] Update .well-known/mcp.json with categories and tags
+- [x] [P2][S] Update .well-known/mcp.json with categories and tags
 - [ ] [P2][M] Record 30-sec demo GIF for README
 - [ ] [P3][M] Blog post: "Controlling Hyprland with an AI Agent via MCP"
 - [ ] [P3][S] Submit to PulseMCP, Glama, MCP Market directories
