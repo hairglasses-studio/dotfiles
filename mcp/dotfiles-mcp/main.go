@@ -18,6 +18,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/hairglasses-studio/dotfiles-mcp/internal/tracing"
@@ -133,6 +134,27 @@ type ReloadServiceOutput struct {
 	Success bool   `json:"success"`
 	Output  string `json:"output,omitempty"`
 	Error   string `json:"error,omitempty"`
+}
+
+// Tool: dotfiles_write_config
+
+type WriteConfigInput struct {
+	Path    string `json:"path" jsonschema:"required,description=Absolute path to the config file to write"`
+	Content string `json:"content" jsonschema:"required,description=New config file content"`
+	Format  string `json:"format" jsonschema:"description=Config format for validation (toml or json). Skips validation if empty."`
+	Service string `json:"service" jsonschema:"description=Service to reload after writing (hyprland or ironbar or tmux etc). Skips reload if empty."`
+	Execute bool   `json:"execute" jsonschema:"description=Actually write the file. Dry-run by default (shows what would happen without writing)."`
+}
+
+type WriteConfigOutput struct {
+	Path       string `json:"path"`
+	Written    bool   `json:"written"`
+	Validated  bool   `json:"validated"`
+	Valid      bool   `json:"valid"`
+	BackupPath string `json:"backup_path,omitempty"`
+	Reloaded   string `json:"reloaded,omitempty"`
+	Error      string `json:"error,omitempty"`
+	DryRun     bool   `json:"dry_run"`
 }
 
 // Tool 4: dotfiles_check_symlinks
@@ -785,6 +807,101 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 				}
 
 				return rr, nil
+			},
+		),
+
+		// ── dotfiles_write_config ────────────────────
+		handler.TypedHandler[WriteConfigInput, WriteConfigOutput](
+			"dotfiles_write_config",
+			"Atomic config write with optional validation, backup, and service reload. Dry-run by default.",
+			func(_ context.Context, input WriteConfigInput) (WriteConfigOutput, error) {
+				if input.Path == "" {
+					return WriteConfigOutput{}, fmt.Errorf("[%s] path is required", handler.ErrInvalidParam)
+				}
+				if input.Content == "" {
+					return WriteConfigOutput{}, fmt.Errorf("[%s] content is required", handler.ErrInvalidParam)
+				}
+
+				result := WriteConfigOutput{Path: input.Path, DryRun: !input.Execute}
+
+				// Validate if format is specified
+				if input.Format != "" {
+					result.Validated = true
+					switch strings.ToLower(input.Format) {
+					case "toml":
+						_, err := toml.NewDecoder(strings.NewReader(input.Content)).Decode(new(map[string]any))
+						if err != nil {
+							result.Valid = false
+							result.Error = fmt.Sprintf("validation failed: %v", err)
+							return result, nil
+						}
+						result.Valid = true
+					case "json":
+						var dst any
+						if err := json.NewDecoder(strings.NewReader(input.Content)).Decode(&dst); err != nil {
+							result.Valid = false
+							result.Error = fmt.Sprintf("validation failed: %v", err)
+							return result, nil
+						}
+						result.Valid = true
+					default:
+						return WriteConfigOutput{}, fmt.Errorf("[%s] unsupported format %q", handler.ErrInvalidParam, input.Format)
+					}
+				}
+
+				if !input.Execute {
+					result.Error = "dry-run: pass execute=true to write"
+					return result, nil
+				}
+
+				// Backup existing file
+				if _, err := os.Stat(input.Path); err == nil {
+					backupDir := filepath.Join(os.TempDir(), "dotfiles-config-backup")
+					os.MkdirAll(backupDir, 0o755)
+					ts := time.Now().Format("20060102-150405")
+					base := filepath.Base(input.Path)
+					backupPath := filepath.Join(backupDir, fmt.Sprintf("%s.%s.bak", base, ts))
+					if data, err := os.ReadFile(input.Path); err == nil {
+						os.WriteFile(backupPath, data, 0o644)
+						result.BackupPath = backupPath
+					}
+				}
+
+				// Atomic write: temp file + rename
+				dir := filepath.Dir(input.Path)
+				os.MkdirAll(dir, 0o755)
+				tmp, err := os.CreateTemp(dir, ".dotfiles-write-*.tmp")
+				if err != nil {
+					result.Error = fmt.Sprintf("create temp file: %v", err)
+					return result, nil
+				}
+				tmpPath := tmp.Name()
+				if _, err := tmp.WriteString(input.Content); err != nil {
+					tmp.Close()
+					os.Remove(tmpPath)
+					result.Error = fmt.Sprintf("write temp file: %v", err)
+					return result, nil
+				}
+				tmp.Close()
+				if err := os.Rename(tmpPath, input.Path); err != nil {
+					os.Remove(tmpPath)
+					result.Error = fmt.Sprintf("rename temp to target: %v", err)
+					return result, nil
+				}
+				result.Written = true
+
+				// Reload service if specified
+				if input.Service != "" {
+					cmdParts, ok := reloadCommands[strings.ToLower(input.Service)]
+					if ok {
+						cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
+						if err := cmd.Run(); err == nil {
+							result.Reloaded = input.Service
+						}
+					}
+				}
+
+				return result, nil
 			},
 		),
 

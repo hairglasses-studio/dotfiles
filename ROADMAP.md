@@ -49,7 +49,7 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 ### Phase 2 — Shader Pipeline
 - [ ] [P2][L] Shader: wallpaper expansion via papertoy/shaderbg procgen options
 - [ ] [P2][M] Shader: parameter presets exposing uniforms as config
-- [ ] [P2][S] MCP: `dotfiles_write_config` tool — atomic write + validate + backup + reload
+- [x] [P2][S] MCP: `dotfiles_write_config` tool — atomic write + validate + backup + reload
 - [ ] [P2][S] MCP: `shader_benchmark` tool — glslViewer perf test
 - [ ] [P2][S] MCP: `shader://categories` resource — category breakdown
 
