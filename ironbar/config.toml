@@ -171,18 +171,6 @@ type = "tray"
 icon_size = 18
 direction = "horizontal"
 
-# ── Bar 2: Keybind ticker (bottom) ──────────────
-[[monitors."DP-3"]]
-position = "bottom"
-height = 22
-anchor_to_edges = true
-name = "ticker"
-
-[[monitors."DP-3".center]]
-type = "script"
-class = "keybind-ticker"
-mode = "watch"
-cmd = "$HOME/hairglasses-studio/dotfiles/scripts/ironbar-keybind-ticker.sh"
 
 # ══════════════════════════════════════════════════
 # XEC portrait (DP-2) — single compact bar
