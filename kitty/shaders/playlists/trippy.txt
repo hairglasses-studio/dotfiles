@@ -1,5 +1,4 @@
 picom-cross.glsl
-picom-cube.glsl
 picom-cylinder.glsl
 picom-plane.glsl
 picom-sphere.glsl

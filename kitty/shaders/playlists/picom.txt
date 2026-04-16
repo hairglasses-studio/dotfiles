@@ -5,7 +5,6 @@ picom-chroma-key.glsl
 picom-chromatic.glsl
 picom-cross.glsl
 picom-crt-retro.glsl
-picom-cube.glsl
 picom-cylinder.glsl
 picom-dissolve.glsl
 picom-dither.glsl
@@ -17,5 +16,4 @@ picom-plane.glsl
 picom-shiny.glsl
 picom-sphere.glsl
 picom-value-fade.glsl
-picom-vignette.glsl
 picom-zoom.glsl
