@@ -86,7 +86,7 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 
 - [x] [P1][M] Post-compaction re-anchor hook — scripts/claude-post-compact.sh (52-line re-anchor, needs settings.json hook registration)
 - [x] [P1][M] File protection system — scripts/claude-file-protect.sh (PreToolUse hook blocking go.mod, pipeline.mk, .well-known, snapshots)
-- [ ] [P1][M] Circuit breaker for overnight loops — add failure counter to dev-loop, N-consecutive-failure stop, rate limit detection with backoff, spec-driven exit conditions. Ref: frankbria/ralph-claude-code (75+ tests)
+- [x] [P1][M] Circuit breaker for overnight loops — scripts/lib/circuit-breaker.sh (N-failure stop, no-ship streak, budget ceiling, rate limit detection)
 
 ### Tier 2 — Medium Priority Hooks
 
