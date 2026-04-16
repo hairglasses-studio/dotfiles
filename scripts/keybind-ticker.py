@@ -2,9 +2,9 @@
 """keybind-ticker.py — Cyberpunk keybind ticker for Hyprland.
 
 GTK4 DrawingArea with PangoCairo at 240Hz frame-clock sync.
-Full effect stack: water caustic background, neon glow, animated
-gradient, CRT scanlines, film grain, drop shadow, periodic glitch +
-chromatic aberration, breathing glow pulse.
+Effect stack (background → foreground for readability):
+  water caustic → scanlines → glow → shadow → crisp gradient text
+  + periodic glitch/chromatic aberration
 
 Usage:
   keybind-ticker.py              # regular window (tiles with hy3)
@@ -45,12 +45,10 @@ GLOW_KERNEL = 17        # horizontal blur kernel size
 GLOW_BASE_ALPHA = 0.35  # glow base intensity
 GLOW_PULSE_AMP = 0.15   # glow pulse amplitude (±)
 GLOW_PULSE_PERIOD = 3.5 # seconds per breathe cycle
-WATER_SKIP = 4          # compute water caustic every N frames (perf)
-GRAIN_OPACITY = 0.07    # film grain overlay opacity
-GRAIN_TILE_W = 512      # noise tile width
-SCANLINE_OPACITY = 0.18 # CRT scanline darkness
+WATER_SKIP = 4          # compute water caustic every N frames
+SCANLINE_OPACITY = 0.08 # subtle CRT scanlines (background only)
 SHADOW_OFFSET = 2       # drop shadow px offset
-SHADOW_ALPHA = 0.25     # drop shadow opacity
+SHADOW_ALPHA = 0.30     # drop shadow opacity
 GLITCH_PROB = 0.004     # per-frame probability (~1/sec at 240Hz)
 GLITCH_FRAMES = 4       # duration in frames
 GLITCH_STRIPS = 3       # number of displaced strips
@@ -82,8 +80,7 @@ GRADIENT_COLORS = [
     (0.161, 0.941, 1.000),  # #29f0ff cyan (wrap)
 ]
 
-BG = (0.020, 0.027, 0.051, 0.82)  # lowered alpha for frosted glass
-CYAN = (0.161, 0.941, 1.0)
+BG = (0.020, 0.027, 0.051, 0.82)
 
 
 # ── Helpers ───────────────────────────────────────
@@ -137,15 +134,12 @@ def make_gradient(x_start, total_width, phase):
 
 # ── Water caustic (ported from kitty/shaders/darkwindow/water.glsl) ──
 
-# Pre-compute UV grids at reduced resolution (1/4 scale for performance)
 _WATER_SCALE = 4
 _WATER_MAX_ITER = 6
 _WATER_TAU = 6.28318530718
 
 
 def compute_water_caustic(width, height, time_s):
-    """Compute water caustic pattern as a float32 brightness array [0..1].
-    Runs at 1/SCALE resolution and upscales for performance."""
     sw = width // _WATER_SCALE
     sh = max(height // _WATER_SCALE, 2)
     t = time_s * 0.5 + 23.0
@@ -177,7 +171,6 @@ def compute_water_caustic(width, height, time_s):
     brightness = np.power(np.abs(c), 15.0)
     brightness = np.clip(brightness * 1.2, 0, 1)
 
-    # Upscale to full resolution via nearest-neighbor repeat
     if _WATER_SCALE > 1:
         brightness = np.repeat(np.repeat(brightness, _WATER_SCALE, axis=0), _WATER_SCALE, axis=1)
         brightness = brightness[:height, :width]
@@ -186,17 +179,15 @@ def compute_water_caustic(width, height, time_s):
 
 
 def water_caustic_surface(width, height, time_s):
-    """Render water caustic as a tinted ARGB32 Cairo surface."""
     bright = compute_water_caustic(width, height, time_s)
 
-    # Tint with neon cyan/blue: mix between deep blue and bright cyan
     r = (bright * 0.10 * 255).astype(np.uint8)
     g = (bright * 0.55 * 255).astype(np.uint8)
     b = (bright * 0.75 * 255).astype(np.uint8)
-    a = (bright * 0.25 * 255).astype(np.uint8)  # translucent overlay
+    a = (bright * 0.25 * 255).astype(np.uint8)
 
     argb = np.zeros((height, width, 4), dtype=np.uint8)
-    argb[:, :, 0] = b  # BGRA order in Cairo
+    argb[:, :, 0] = b
     argb[:, :, 1] = g
     argb[:, :, 2] = r
     argb[:, :, 3] = a
@@ -205,24 +196,7 @@ def water_caustic_surface(width, height, time_s):
     stride = surf.get_stride()
     buf = surf.get_data()
     for row in range(height):
-        row_data = argb[row].tobytes()
-        buf[row * stride: row * stride + width * 4] = row_data
-    surf.mark_dirty()
-    return surf
-
-
-def make_noise_tile(w, h):
-    """Pre-bake a repeatable noise tile at startup."""
-    noise = np.random.randint(0, 50, (h, w), dtype=np.uint8)
-    # Pack into ARGB32: alpha=noise, RGB=white
-    argb = np.zeros((h, w, 4), dtype=np.uint8)
-    argb[:, :, 0] = noise  # B
-    argb[:, :, 1] = noise  # G
-    argb[:, :, 2] = noise  # R
-    argb[:, :, 3] = noise  # A
-    surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, w, h)
-    buf = surf.get_data()
-    buf[:] = argb.tobytes()
+        buf[row * stride: row * stride + width * 4] = argb[row].tobytes()
     surf.mark_dirty()
     return surf
 
@@ -271,15 +245,9 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.glitch_remaining = 0
         self.glitch_strips = []
 
-        # Water caustic cache (recomputed every WATER_SKIP frames)
+        # Water caustic cache
         self.water_surf = None
         self.water_frame = 0
-
-        # Pre-baked noise tile for film grain
-        self.noise_tile = make_noise_tile(GRAIN_TILE_W, BAR_H)
-        self.noise_pat = _cairo.SurfacePattern(self.noise_tile)
-        self.noise_pat.set_extend(_cairo.Extend.REPEAT)
-        self.noise_frame = 0
 
         self._rebuild()
         GLib.timeout_add_seconds(REFRESH_S, self._rebuild)
@@ -316,12 +284,11 @@ class TickerWindow(Gtk.ApplicationWindow):
                 ]
 
         self.last_us = now
-        self.noise_frame += 1
+        self.water_frame += 1
         widget.queue_draw()
         return GLib.SOURCE_CONTINUE
 
     def _render_text_surface(self, width, height):
-        """Render gradient text to a fresh offscreen surface (avoids snapshot reuse)."""
         surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
         tc = _cairo.Context(surf)
 
@@ -339,7 +306,6 @@ class TickerWindow(Gtk.ApplicationWindow):
         return surf
 
     def _compute_glow(self, text_surf, width, height):
-        """Extract alpha from text_surf, blur horizontally, return A8 surface."""
         stride = text_surf.get_stride()
         argb = np.frombuffer(text_surf.get_data(), dtype=np.uint8).reshape(height, stride // 4, 4)
         alpha = argb[:, :width, 3].astype(np.float32)
@@ -365,47 +331,61 @@ class TickerWindow(Gtk.ApplicationWindow):
             if self.half_w > 0:
                 self.offset = self.offset % self.half_w
 
-        # ── Layer 0: Background ──────────────────────
+        # ═══════════════════════════════════════════
+        # BACKGROUND LAYERS (effects live here)
+        # ═══════════════════════════════════════════
+
+        # ── BG: Dark panel ───────────────────────────
         cr.set_source_rgba(*BG)
         cr.paint()
 
-        # ── Layer 0.5: Water caustic overlay ─────────
-        self.water_frame += 1
+        # ── BG: Water caustic ────────────────────────
         if self.water_surf is None or self.water_frame % WATER_SKIP == 0:
             self.water_surf = water_caustic_surface(width, height, self.time_s)
         cr.set_source_surface(self.water_surf, 0, 0)
         cr.paint()
 
-        # ── Layer 1: Top border (animated gradient) ──
+        # ── BG: CRT scanlines (under text) ───────────
+        cr.set_source_rgba(0, 0, 0, SCANLINE_OPACITY)
+        for row in range(0, height, 2):
+            cr.rectangle(0, row, width, 1)
+        cr.fill()
+
+        # ── BG: Top border (animated gradient) ───────
         border_grad = make_gradient(0, width, self.gradient_phase)
         cr.set_source(border_grad)
         cr.rectangle(0, 0, width, 1)
         cr.fill()
 
-        # ── Render text to fresh offscreen surface ───
+        # ═══════════════════════════════════════════
+        # FOREGROUND LAYERS (text stays crisp here)
+        # ═══════════════════════════════════════════
+
+        # ── Render text to offscreen surface ─────────
         text_surf = self._render_text_surface(width, height)
 
-        # ── Layer 2: Neon glow (blurred halo) ────────
+        # ── FG: Neon glow (breathing halo) ───────────
         glow_a8 = self._compute_glow(text_surf, width, height)
         glow_alpha = GLOW_BASE_ALPHA + GLOW_PULSE_AMP * math.sin(
             self.time_s * (2 * math.pi / GLOW_PULSE_PERIOD)
         )
         glow_grad = make_gradient(0, width, self.gradient_phase)
-        cr.set_source(glow_grad)
-        cr.paint_with_alpha(0)  # reset
+        cr.save()
         cr.set_source(glow_grad)
         cr.mask_surface(glow_a8, 0, 0)
+        cr.restore()
 
-        # ── Layer 3: Drop shadow ─────────────────────
+        # ── FG: Drop shadow ──────────────────────────
         cr.set_source_rgba(0, 0, 0, SHADOW_ALPHA)
         cr.mask_surface(text_surf, SHADOW_OFFSET, SHADOW_OFFSET)
 
-        # ── Layer 4: Sharp gradient text ─────────────
+        # ── FG: Sharp gradient text (topmost) ────────
         cr.set_source_surface(text_surf, 0, 0)
         cr.paint()
 
-        # ── Layer 5: Chromatic aberration (during glitch) ──
+        # ── FG: Glitch effects (brief, periodic) ─────
         if self.glitch_remaining > 0:
+            # Chromatic aberration
             cr.save()
             cr.set_source_rgba(1, 0, 0, 0.3)
             cr.mask_surface(text_surf, CA_OFFSET, 0)
@@ -414,9 +394,7 @@ class TickerWindow(Gtk.ApplicationWindow):
             cr.set_source_rgba(0, 0.3, 1, 0.3)
             cr.mask_surface(text_surf, -CA_OFFSET, 0)
             cr.restore()
-
-        # ── Layer 6: Glitch strip displacement ───────
-        if self.glitch_remaining > 0:
+            # Strip displacement
             for strip_y, strip_h, shift in self.glitch_strips:
                 cr.save()
                 cr.rectangle(0, strip_y, width, strip_h)
@@ -424,19 +402,6 @@ class TickerWindow(Gtk.ApplicationWindow):
                 cr.set_source_surface(text_surf, shift, 0)
                 cr.paint()
                 cr.restore()
-
-        # ── Layer 7: CRT scanlines ───────────────────
-        cr.set_source_rgba(0, 0, 0, SCANLINE_OPACITY)
-        for row in range(0, height, 2):
-            cr.rectangle(0, row, width, 1)
-        cr.fill()
-
-        # ── Layer 8: Film grain (scrolling noise tile) ─
-        m = _cairo.Matrix()
-        m.translate(-(self.noise_frame * 1.3) % GRAIN_TILE_W, 0)
-        self.noise_pat.set_matrix(m)
-        cr.set_source(self.noise_pat)
-        cr.paint_with_alpha(GRAIN_OPACITY)
 
 
 class TickerApp(Gtk.Application):
