@@ -1,0 +1,5 @@
+[
+  {"prompt": "draft the blog post about MCP tool design patterns", "expected_skill": "content_writer", "notes": "Should read research source and edit into Dev.to format"},
+  {"prompt": "prepare today's content items", "expected_skill": "content_writer", "notes": "Should find today's items from calendar and draft them"},
+  {"prompt": "write content item #17 for Dev.to", "expected_skill": "content_writer", "notes": "Should write from scratch using resume + mcpkit/orchestrator code"}
+]

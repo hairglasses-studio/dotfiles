@@ -1,0 +1,5 @@
+[
+  {"prompt": "what's next to post", "expected_skill": "content_queue", "notes": "Should show next 2-4 unpublished items"},
+  {"prompt": "show me the content calendar", "expected_skill": "content_queue", "notes": "Should display full 14-day calendar table"},
+  {"prompt": "what have we posted so far", "expected_skill": "content_queue", "notes": "Should review past posts with URLs and PR statuses"}
+]

@@ -1,0 +1,5 @@
+[
+  {"prompt": "start the content marathon", "expected_skill": "content_marathon", "notes": "Should initialize calendar and create scheduled triggers"},
+  {"prompt": "run today's content schedule", "expected_skill": "content_marathon", "notes": "Should process current time slot's item"},
+  {"prompt": "catch up on overdue content posts", "expected_skill": "content_marathon", "notes": "Should find and process all overdue items"}
+]

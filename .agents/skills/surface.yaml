@@ -114,6 +114,21 @@
       "name": "screen_capture",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "content_queue",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "content_writer",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "content_marathon",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
