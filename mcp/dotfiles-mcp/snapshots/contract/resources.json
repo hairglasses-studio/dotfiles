@@ -217,6 +217,18 @@
     ]
   },
   {
+    "uri": "shader://categories",
+    "name": "Shader Category Breakdown",
+    "description": "Count of GLSL shaders per category (crt, neon, glitch, etc.) from the DarkWindow shader collection",
+    "mime_type": "application/json",
+    "category": "shader",
+    "tags": [
+      "shader",
+      "category",
+      "glsl"
+    ]
+  },
+  {
     "uri": "shader://current",
     "name": "Current Shader State",
     "description": "Currently active kitty shader, playlist position, auto-rotate status, and kitty theme",

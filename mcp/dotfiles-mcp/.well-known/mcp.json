@@ -11,28 +11,6 @@
   "transport": [
     "stdio"
   ],
-  "categories": [
-    "desktop-automation",
-    "linux",
-    "hyprland",
-    "wayland",
-    "developer-tools"
-  ],
-  "tags": [
-    "hyprland",
-    "mcp",
-    "wayland",
-    "desktop",
-    "linux",
-    "go",
-    "arch",
-    "kitty",
-    "shader",
-    "mcpkit"
-  ],
-  "install": {
-    "go": "go install github.com/hairglasses-studio/dotfiles-mcp@latest"
-  },
   "profiles": [
     "default",
     "desktop",
@@ -249,6 +227,10 @@
     {
       "name": "cliphist_list",
       "description": "List recent clipboard history entries via cliphist. Returns a structured JSON array of the most recent 50 entries, each with id, preview text, and detected type."
+    },
+    {
+      "name": "color_pipeline_apply",
+      "description": "Render all palette templates via scripts/palette-propagate.sh — fans out Hairglasses Neon to 12 consumers (5 GTK CSS + kitty + hyprland + hyprlock + btop + yazi + zsh-fzf + cava). Pass use_wallpaper=true for matugen-derived accents from current swww wallpaper."
     },
     {
       "name": "desktop_act",
@@ -519,6 +501,10 @@
       "description": "Build a publishable workstation diagnostics snapshot by composing machine health, desktop readiness, rice state, and actionable follow-up recommendations."
     },
     {
+      "name": "dotfiles_write_config",
+      "description": "Atomic config write with optional validation, backup, and service reload. Dry-run by default."
+    },
+    {
       "name": "gh_star_lists_delete",
       "description": "Delete GitHub star folders (user lists) by name. Dry-run by default."
     },
@@ -609,6 +595,10 @@
     {
       "name": "hypr_focus_window",
       "description": "Focus a window by its address or class name."
+    },
+    {
+      "name": "hypr_frame_overlay",
+      "description": "Toggle the Hyprland compositor FPS/frametime overlay (debug:overlay). Pass enable=true/false to set; omit to read current state."
     },
     {
       "name": "hypr_fullscreen_window",
@@ -731,6 +721,10 @@
       "description": "Run a Hyprland output subcommand such as create remove list or dpms through hyprctl output."
     },
     {
+      "name": "hypr_perf_mode",
+      "description": "Get or toggle the Hyprland perf-mode profile (quality or performance). `performance` reduces blur, disables shadows, enables VFR, and turns on the frame overlay — useful for 240Hz tuning on NVIDIA. `auto` toggles between the two. Omit `mode` to read current state."
+    },
+    {
       "name": "hypr_plugin",
       "description": "Run a Hyprland plugin subcommand through hyprctl plugin."
     },
@@ -793,6 +787,10 @@
     {
       "name": "hypr_type_text",
       "description": "Type text at the current cursor position using wtype (Wayland)."
+    },
+    {
+      "name": "hypr_vrr_status",
+      "description": "Report per-monitor VRR state via `hyprctl monitors -j`. Returns name, description, resolution, refresh rate, scale, and VRR enablement for each connected monitor."
     },
     {
       "name": "hypr_wait_for_event",
@@ -1499,6 +1497,10 @@
       "description": "View the raw, append-only shader change history log. Returns all recorded shader changes with timestamps and sources."
     },
     {
+      "name": "shader_benchmark",
+      "description": "Benchmark shader compilation time and file size via glslangValidator. Reports per-shader and aggregate stats."
+    },
+    {
       "name": "shader_build",
       "description": "Run glslangValidator to preprocess and validate shaders. Test a single shader or all shaders. Returns structured results."
     },
@@ -1535,6 +1537,14 @@
       "description": "List curated shader playlists or pick a random shader from one. Omit name to list all playlists."
     },
     {
+      "name": "shader_preset_apply",
+      "description": "Apply a named preset to a DarkWindow shader. Reads the preset from presets.toml, rewrites matching parameter tokens in a temporary copy of the GLSL source, then applies it via shader_set. The original shader source is never modified."
+    },
+    {
+      "name": "shader_preset_list",
+      "description": "List named parameter presets for DarkWindow shaders. Presets document the configurable #define values and top-level constants in each shader's GLSL source. Optionally filter to a specific shader name."
+    },
+    {
       "name": "shader_preview",
       "description": "Preview a shader for N seconds, then automatically revert to the previous shader. Cancels any in-progress preview."
     },
@@ -1553,6 +1563,10 @@
     {
       "name": "shader_test",
       "description": "Compile-test shaders via glslangValidator. If name is provided, test that shader; otherwise test all."
+    },
+    {
+      "name": "shader_tier",
+      "description": "List DarkWindow shaders grouped by perf tier (cheap/mid/heavy). Filter by tier, or pass regenerate=true to rebuild playlists from the current catalog first."
     },
     {
       "name": "system_disk",
@@ -1698,8 +1712,8 @@
     "fleet-management",
     "canonical-source"
   ],
-  "tool_count": 410,
-  "resource_count": 23,
+  "tool_count": 419,
+  "resource_count": 24,
   "prompt_count": 13,
   "categories": [
     "",
