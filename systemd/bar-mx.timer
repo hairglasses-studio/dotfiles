@@ -1,0 +1,15 @@
+# bar-mx.timer — Periodic MX Master battery cache refresh for Ironbar
+#
+# Triggers bar-mx.service every 5 minutes.
+#
+# Enable: systemctl --user enable --now bar-mx.timer
+
+[Unit]
+Description=Refresh Ironbar MX Master battery cache every 5 minutes
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=300
+
+[Install]
+WantedBy=timers.target

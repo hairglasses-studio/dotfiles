@@ -42,16 +42,12 @@ done
 # ---------------------------------------------------------------------------
 # Resolve geometry
 # ---------------------------------------------------------------------------
-# wf-recorder -g expects PHYSICAL pixel coords: "X,Y WxH"
-# hyprctl clients -j returns LOGICAL coords (pre-scale).
-# DP-3 scale is 2, so logical * 2 = physical.
-
-SCALE=2  # DP-3 scale factor
+# wf-recorder -g expects LOGICAL coords on Wayland (same as hyprctl).
+# Do NOT multiply by scale factor.
 
 if [[ "$PATTERN" == "ticker" ]]; then
     # Keybind-ticker: pinned at logical 0,692 with size 2560x28 on DP-3.
-    # Physical: 0,1384 5120x56
-    GEOMETRY="0,1384 5120x56"
+    GEOMETRY="0,692 2560x28"
     LABEL="ticker"
 else
     # Find window by title pattern
@@ -65,19 +61,13 @@ else
         exit 1
     fi
 
-    # Extract logical coordinates and multiply by scale
+    # Use logical coordinates directly (wf-recorder on Wayland)
     LX=$(echo "$WINDOW_JSON" | jq -r '.at[0]')
     LY=$(echo "$WINDOW_JSON" | jq -r '.at[1]')
     LW=$(echo "$WINDOW_JSON" | jq -r '.size[0]')
     LH=$(echo "$WINDOW_JSON" | jq -r '.size[1]')
 
-    # Convert to physical pixels
-    PX=$(( LX * SCALE ))
-    PY=$(( LY * SCALE ))
-    PW=$(( LW * SCALE ))
-    PH=$(( LH * SCALE ))
-
-    GEOMETRY="${PX},${PY} ${PW}x${PH}"
+    GEOMETRY="${LX},${LY} ${LW}x${LH}"
     LABEL=$(echo "$WINDOW_JSON" | jq -r '.title' | tr ' /' '_' | tr -cd '[:alnum:]_-' | head -c 32)
     [[ -z "$LABEL" ]] && LABEL="window"
 fi

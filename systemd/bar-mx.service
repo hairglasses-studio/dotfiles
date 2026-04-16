@@ -1,0 +1,16 @@
+# bar-mx.service — Refresh MX Master battery cache for Ironbar
+#
+# Reads MX Master 4 battery via bluetoothctl and writes a label to /tmp/bar-mx.txt.
+# Ironbar reads the cache file instead of blocking the GTK loop on BT IPC.
+#
+# Paired with bar-mx.timer (5-minute interval).
+
+[Unit]
+Description=Refresh Ironbar MX Master battery cache
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-mx-cache.sh
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
+MemoryMax=32M
+CPUQuota=5%

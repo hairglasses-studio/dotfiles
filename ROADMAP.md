@@ -75,3 +75,39 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 
 - **Status bar evolution**: Quickshell (C++/QML, native GLSL ShaderEffect) is the best GPU-capable alternative to ironbar — see `docs/STATUS-BAR-RESEARCH.md` for full evaluation of 7 alternatives. Ironbar stays short-term; prototype Quickshell on secondary monitor.
 - **Cross-repo semantic search**: evaluate CodeMCP for SCIP-based indexing across all 20 active repos
+
+---
+
+## Gap Research: Hook Infrastructure (2026-04-16)
+
+Identified from GitHub research across 25+ Claude Code repos (60K+ combined stars). See `docs/research/agents/claude-code-skill-gap-research-2026-04-16.md` for full citations.
+
+### Tier 1 — High Priority Hooks
+
+- [ ] [P1][M] Post-compaction re-anchor hook — on PostCompact event, re-inject AGENTS.md essentials (build commands, key patterns, active repo context). Ref: Continuous-Claude-v3 (3.7K stars), post_compact_reminder (41 stars)
+- [ ] [P1][M] File protection system — declarative `protected_files:` in SKILL.md frontmatter, enforced by PreToolUse hook blocking writes to listed files (go.mod, pipeline.mk, AGENTS.md). Ref: garrytan/gstack, diet103 showcase (9.5K stars)
+- [ ] [P1][M] Circuit breaker for overnight loops — add failure counter to dev-loop, N-consecutive-failure stop, rate limit detection with backoff, spec-driven exit conditions. Ref: frankbria/ralph-claude-code (75+ tests)
+
+### Tier 2 — Medium Priority Hooks
+
+- [ ] [P2][M] YAML ledger handoff hook — Stop hook writes structured YAML to `.claude/sessions/{id}.yaml` capturing session state, decisions, progress; SessionStart hook reads and injects. Ref: Continuous-Claude-v3 (3.7K stars)
+- [ ] [P2][S] TDD enforcement hook — PreToolUse file-write interception: if `*.go` (non-test) changes but no `*_test.go` changed in same session, inject TDD reminder context. Ref: nizos/tdd-guard
+- [ ] [P2][S] Verify-before-complete gate — hook preventing task completion without running tests first. Ref: obra/superpowers
+- [ ] [P2][M] PostToolUse hook wiring — marathon completion events sync to docs-mcp roadmap state. Ref: autonomy gap analysis
+
+### Tier 3 — Low Priority / Exploratory
+
+- [ ] [P3][M] Skill auto-activation hook — PreToolUse detects project context (Go files, MCP config, shader GLSL) and injects relevant skill automatically without manual slash command. Ref: diet103 showcase, obra/superpowers
+
+## Gap Research: New Skills (2026-04-16)
+
+### Tier 1 — High Priority Skills
+
+- [ ] [P1][L] Security audit skill — SAST, supply-chain audit, spec-to-code compliance, second-opinion pattern for pre-publish security review. Ref: trailofbits/skills (professional security firm)
+- [ ] [P1][S] Canary monitoring skill — post-deploy watch loop for MCP server health after git push / release. Ref: garrytan/gstack `/canary`
+
+### Tier 2 — Medium Priority Skills
+
+- [ ] [P2][M] Phase-gated pipeline — hard enforcement of plan -> human review -> implement -> verify phases in dev-loop; agents cannot skip steps. Ref: avifenesh/agentsys
+- [ ] [P2][S] Hidden assumption surfacer — `/common-ground` skill revealing Claude's implicit priors about the repo before starting work. Ref: jeffallan/claude-skills
+- [ ] [P2][S] Decision journal skill — auto-record architectural decisions with rationale, exportable for docs. Ref: pcatattacks/solopreneur-plugin

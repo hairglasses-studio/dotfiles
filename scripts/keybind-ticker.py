@@ -81,7 +81,7 @@ PRESETS = {
         "glow_pulse_period": 3.5, "water_skip": 120, "scanline_opacity": 0.08,
         "shadow_offset": 2, "shadow_alpha": 0.30,
         "glitch_prob": 0.004, "glitch_frames": 4, "ca_offset": 3,
-        "bg_alpha": 0.82,
+        "bg_alpha": 0.82, "outline_width": 0.8,
     },
     "cyberpunk": {
         "speed": 65.0, "gradient_speed": 55.0, "gradient_span": 600.0,
@@ -89,7 +89,7 @@ PRESETS = {
         "glow_pulse_period": 2.5, "water_skip": 80, "scanline_opacity": 0.14,
         "shadow_offset": 3, "shadow_alpha": 0.35,
         "glitch_prob": 0.008, "glitch_frames": 5, "ca_offset": 4,
-        "bg_alpha": 0.78,
+        "bg_alpha": 0.78, "outline_width": 1.0,
     },
     "minimal": {
         "speed": 45.0, "gradient_speed": 30.0, "gradient_span": 1000.0,
@@ -97,7 +97,7 @@ PRESETS = {
         "glow_pulse_period": 5.0, "water_skip": 0, "scanline_opacity": 0.0,
         "shadow_offset": 1, "shadow_alpha": 0.20,
         "glitch_prob": 0.0, "glitch_frames": 0, "ca_offset": 0,
-        "bg_alpha": 0.90,
+        "bg_alpha": 0.90, "outline_width": 0.5,
     },
     "clean": {
         "speed": 50.0, "gradient_speed": 35.0, "gradient_span": 900.0,
@@ -105,7 +105,7 @@ PRESETS = {
         "glow_pulse_period": 1.0, "water_skip": 0, "scanline_opacity": 0.0,
         "shadow_offset": 0, "shadow_alpha": 0.0,
         "glitch_prob": 0.0, "glitch_frames": 0, "ca_offset": 0,
-        "bg_alpha": 0.92,
+        "bg_alpha": 0.92, "outline_width": 0.0,
     },
 }
 
@@ -450,6 +450,23 @@ class TickerWindow(Gtk.ApplicationWindow):
         tc = _cairo.Context(surf)
         x = -self.offset
         y = (height - 14) / 2
+        p = self.preset
+
+        # Dark stroke outline for contrast over caustic background
+        if getattr(p, 'outline_width', 0.8) > 0:
+            ow = getattr(p, 'outline_width', 0.8)
+            tc.set_source_rgba(0.02, 0.03, 0.05, 0.6)
+            tc.set_line_width(ow)
+            tc.set_line_join(_cairo.LINE_JOIN_ROUND)
+            tc.move_to(x, y)
+            PangoCairo.update_layout(tc, self.layout)
+            PangoCairo.layout_path(tc, self.layout)
+            tc.move_to(x + self.half_w, y)
+            PangoCairo.update_layout(tc, self.layout)
+            PangoCairo.layout_path(tc, self.layout)
+            tc.stroke()
+
+        # Gradient-filled text on top
         text_grad = make_gradient(x, self.half_w, self.gradient_phase)
         tc.set_source(text_grad)
         tc.move_to(x, y)
