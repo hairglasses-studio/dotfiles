@@ -2,9 +2,9 @@
 """keybind-ticker.py — Cyberpunk keybind ticker for Hyprland.
 
 GTK4 DrawingArea with PangoCairo at 240Hz frame-clock sync.
-Full effect stack: neon glow, animated gradient, CRT scanlines,
-film grain, drop shadow, periodic glitch + chromatic aberration,
-breathing glow pulse. All effects combined use ~12% of frame budget.
+Full effect stack: water caustic background, neon glow, animated
+gradient, CRT scanlines, film grain, drop shadow, periodic glitch +
+chromatic aberration, breathing glow pulse.
 
 Usage:
   keybind-ticker.py              # regular window (tiles with hy3)
@@ -45,6 +45,7 @@ GLOW_KERNEL = 17        # horizontal blur kernel size
 GLOW_BASE_ALPHA = 0.35  # glow base intensity
 GLOW_PULSE_AMP = 0.15   # glow pulse amplitude (±)
 GLOW_PULSE_PERIOD = 3.5 # seconds per breathe cycle
+WATER_SKIP = 4          # compute water caustic every N frames (perf)
 GRAIN_OPACITY = 0.07    # film grain overlay opacity
 GRAIN_TILE_W = 512      # noise tile width
 SCANLINE_OPACITY = 0.18 # CRT scanline darkness
@@ -134,6 +135,82 @@ def make_gradient(x_start, total_width, phase):
     return grad
 
 
+# ── Water caustic (ported from kitty/shaders/darkwindow/water.glsl) ──
+
+# Pre-compute UV grids at reduced resolution (1/4 scale for performance)
+_WATER_SCALE = 4
+_WATER_MAX_ITER = 6
+_WATER_TAU = 6.28318530718
+
+
+def compute_water_caustic(width, height, time_s):
+    """Compute water caustic pattern as a float32 brightness array [0..1].
+    Runs at 1/SCALE resolution and upscales for performance."""
+    sw = width // _WATER_SCALE
+    sh = max(height // _WATER_SCALE, 2)
+    t = time_s * 0.5 + 23.0
+
+    ux = np.linspace(0, 1, sw, dtype=np.float32)
+    uy = np.linspace(0, 1, sh, dtype=np.float32)
+    u, v = np.meshgrid(ux, uy)
+
+    px = np.mod(u * _WATER_TAU, _WATER_TAU) - 250.0
+    py = np.mod(v * _WATER_TAU, _WATER_TAU) - 250.0
+    ix, iy = px.copy(), py.copy()
+
+    c = np.ones_like(px)
+    inten = 0.005
+
+    for n in range(_WATER_MAX_ITER):
+        tn = t * (1.0 - 3.5 / (n + 1))
+        ix_new = px + np.cos(tn - ix) + np.sin(tn + iy)
+        iy_new = py + np.sin(tn - iy) + np.cos(tn + ix)
+        ix, iy = ix_new, iy_new
+        denom = np.sqrt(
+            (px / (np.sin(ix + tn) / inten)) ** 2 +
+            (py / (np.cos(iy + tn) / inten)) ** 2
+        )
+        c += 1.0 / np.maximum(denom, 1e-6)
+
+    c /= _WATER_MAX_ITER
+    c = 1.17 - np.power(c, 1.4)
+    brightness = np.power(np.abs(c), 15.0)
+    brightness = np.clip(brightness * 1.2, 0, 1)
+
+    # Upscale to full resolution via nearest-neighbor repeat
+    if _WATER_SCALE > 1:
+        brightness = np.repeat(np.repeat(brightness, _WATER_SCALE, axis=0), _WATER_SCALE, axis=1)
+        brightness = brightness[:height, :width]
+
+    return brightness
+
+
+def water_caustic_surface(width, height, time_s):
+    """Render water caustic as a tinted ARGB32 Cairo surface."""
+    bright = compute_water_caustic(width, height, time_s)
+
+    # Tint with neon cyan/blue: mix between deep blue and bright cyan
+    r = (bright * 0.10 * 255).astype(np.uint8)
+    g = (bright * 0.55 * 255).astype(np.uint8)
+    b = (bright * 0.75 * 255).astype(np.uint8)
+    a = (bright * 0.25 * 255).astype(np.uint8)  # translucent overlay
+
+    argb = np.zeros((height, width, 4), dtype=np.uint8)
+    argb[:, :, 0] = b  # BGRA order in Cairo
+    argb[:, :, 1] = g
+    argb[:, :, 2] = r
+    argb[:, :, 3] = a
+
+    surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
+    stride = surf.get_stride()
+    buf = surf.get_data()
+    for row in range(height):
+        row_data = argb[row].tobytes()
+        buf[row * stride: row * stride + width * 4] = row_data
+    surf.mark_dirty()
+    return surf
+
+
 def make_noise_tile(w, h):
     """Pre-bake a repeatable noise tile at startup."""
     noise = np.random.randint(0, 50, (h, w), dtype=np.uint8)
@@ -193,6 +270,10 @@ class TickerWindow(Gtk.ApplicationWindow):
         # Glitch state machine
         self.glitch_remaining = 0
         self.glitch_strips = []
+
+        # Water caustic cache (recomputed every WATER_SKIP frames)
+        self.water_surf = None
+        self.water_frame = 0
 
         # Pre-baked noise tile for film grain
         self.noise_tile = make_noise_tile(GRAIN_TILE_W, BAR_H)
@@ -286,6 +367,13 @@ class TickerWindow(Gtk.ApplicationWindow):
 
         # ── Layer 0: Background ──────────────────────
         cr.set_source_rgba(*BG)
+        cr.paint()
+
+        # ── Layer 0.5: Water caustic overlay ─────────
+        self.water_frame += 1
+        if self.water_surf is None or self.water_frame % WATER_SKIP == 0:
+            self.water_surf = water_caustic_surface(width, height, self.time_s)
+        cr.set_source_surface(self.water_surf, 0, 0)
         cr.paint()
 
         # ── Layer 1: Top border (animated gradient) ──
