@@ -134,6 +134,11 @@
       "name": "canary_monitor",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "security_audit",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }

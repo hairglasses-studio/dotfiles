@@ -116,7 +116,7 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 
 ### Tier 1 — High Priority Skills
 
-- [ ] [P1][L] Security audit skill — SAST, supply-chain audit, spec-to-code compliance, second-opinion pattern for pre-publish security review. Ref: trailofbits/skills (professional security firm)
+- [x] [P1][L] Security audit skill — SAST, supply-chain audit, spec-to-code compliance, second-opinion pattern for pre-publish security review. Ref: trailofbits/skills (professional security firm). Deployed to `.agents/skills/security_audit/SKILL.md`
 - [x] [P1][S] Canary monitoring skill — post-deploy watch loop for MCP server health after git push / release. Ref: garrytan/gstack `/canary`. Deployed to `~/.claude/commands/canary.md` + `~/.agents/skills/canary/SKILL.md`
 
 ### Tier 2 — Medium Priority Skills
