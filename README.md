@@ -9,15 +9,15 @@
 [![Lint](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml)
 [![Scorecard](https://api.securityscorecards.dev/projects/github.com/hairglasses-studio/dotfiles/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hairglasses-studio/dotfiles)
 
-Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware `Voltage After Dark` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
+Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
-![Desktop — Hyprland + Ironbar menubar + tiled terminals (Voltage After Dark)](.github/assets/desktop.png)
+![Desktop — Hyprland + Ironbar menubar + tiled terminals (Hairglasses Neon)](.github/assets/desktop.png)
 
 ### Technical Highlights
 
-- **GPU Shaders**: 131 CRTty-ready GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
-- **Theme System**: shared token pipeline for `ironbar`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`
-- **MCP Servers**: 7 Go-based MCP servers under `mcp/` (dotfiles-mcp, hg-mcp, mapitall, mapping, process-mcp, systemd-mcp, tmux-mcp); hg-mcp ships an embedded JS web UI. Desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **GPU Shaders**: 139 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
+- **Theme System**: Hairglasses Neon token pipeline for `ironbar`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`
+- **MCP Servers**: 2 Go modules under `mcp/` (dotfiles-mcp with ~355 tools, mapitall); desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
@@ -41,7 +41,7 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 ### What the installer does
 
 1. Installs paru + metapac (declarative package management, 12 groups)
-2. Installs Oh My Zsh + 5 community plugins + Powerlevel10k theme
+2. Installs Oh My Zsh + 5 community plugins
 3. Bootstraps lazy.nvim for Neovim
 4. Installs TPM (Tmux Plugin Manager)
 5. Symlinks all 60+ configs to their expected locations
@@ -91,14 +91,14 @@ hyprpm-bootstrap
 | `kitty/` | GPU terminal with DarkWindow shaders, theme playlists, shuffled visuals, and watcher-driven retheming |
 | `zsh/` | Oh My Zsh, Starship prompt, 650+ aliases |
 | `starship/` | Fill-based right alignment, git metrics, cloud context |
-| `nvim/` | lazy.nvim, treesitter, LSP, telescope, Snazzy theme |
-| `btop/` | System monitor with Snazzy theme |
-| `yazi/` | Terminal file manager with Snazzy theme |
-| `cava/` | Audio visualizer — 8-color Snazzy gradient |
-| `k9s/` | Kubernetes TUI with Snazzy skin, 7 plugins, 18 aliases |
-| `tmux/` | TPM, 7 plugins, vim-tmux-navigator, Snazzy status bar |
-| `lazygit/` | Git TUI with Snazzy theme |
-| `bat/` | Cat replacement with Snazzy syntax theme |
+| `nvim/` | lazy.nvim, treesitter, LSP, telescope, Hairglasses Neon theme |
+| `btop/` | System monitor with Hairglasses Neon theme |
+| `yazi/` | Terminal file manager with Hairglasses Neon theme |
+| `cava/` | Audio visualizer — 8-color Hairglasses Neon gradient |
+| `k9s/` | Kubernetes TUI with Hairglasses Neon skin, 7 plugins, 18 aliases |
+| `tmux/` | TPM, 7 plugins, vim-tmux-navigator, Hairglasses Neon status bar |
+| `lazygit/` | Git TUI with Hairglasses Neon theme |
+| `bat/` | Cat replacement with Hairglasses Neon syntax theme |
 | `metapac/` | Declarative package management — 12 groups, paru backend |
 | `topgrade/` | System update orchestration |
 | `pypr/` | Hyprland scratchpads (terminal, volume, files) |
@@ -157,7 +157,7 @@ Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PAR
 
 ## Troubleshooting
 
-**Shaders don't animate:** Check shader configuration in kitty config and verify CRTty/Hypr-DarkWindow transpilation.
+**Shaders don't animate:** Check shader configuration in kitty config and verify DarkWindow shader pipeline.
 
 **Powerlevel10k prompt looks broken:** Ensure `Maple Mono NF CN` is installed for shell UI and `Monaspace` is installed for terminal surfaces.
 

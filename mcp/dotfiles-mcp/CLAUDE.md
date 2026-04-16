@@ -10,12 +10,14 @@ GOWORK=off go test ./... -count=1
 GOWORK=off go install .
 ```
 
-## Tools (100)
+## Tools (~355)
+
+This server has grown to 30+ modules with ~355 tools. Use the discovery tools (`dotfiles_tool_search`, `dotfiles_tool_catalog`, `dotfiles_tool_schema`) to browse the full live catalog. The sections below cover the core tools.
 
 ### Config Management (4)
 - `dotfiles_list_configs` — List dotfiles config directories with symlink health and format
 - `dotfiles_validate_config` — Validate TOML or JSON config syntax
-- `dotfiles_reload_service` — Reload desktop service (hyprland, ironbar, mako, sway, tmux; legacy eww/waybar still accepted)
+- `dotfiles_reload_service` — Reload desktop service (hyprland, ironbar, mako, sway, tmux)
 - `dotfiles_check_symlinks` — Check health of all expected dotfiles symlinks
 
 ### GitHub Org Lifecycle (12)
@@ -45,12 +47,9 @@ GOWORK=off go install .
 - `dotfiles_mcpkit_version_sync` — Sync mcpkit dependency across all thin MCP servers
 - `dotfiles_create_repo` — Scaffold new repo with standard files
 
-### Desktop (6)
+### Desktop (3)
 - `dotfiles_cascade_reload` — Ordered multi-service reload with health verification
-- `dotfiles_rice_check` — Compositor/shader/wallpaper/service status + Snazzy palette compliance
-- `dotfiles_eww_restart` — Legacy Eww restart helper retained for compatibility
-- `dotfiles_eww_status` — Legacy Eww status helper retained for compatibility
-- `dotfiles_eww_get` — Legacy Eww variable helper retained for compatibility
+- `dotfiles_rice_check` — Compositor/shader/wallpaper/service status + Hairglasses Neon palette compliance
 - `dotfiles_onboard_repo` — Add standard files to any repo (.editorconfig, CI, LICENSE)
 
 ### Hyprland Desktop (19)
@@ -76,7 +75,7 @@ GOWORK=off go install .
 
 ### Shader Pipeline (13)
 - `shader_list` — List GLSL shaders, optionally filter by category
-- `shader_set` — Apply a CRTty shader and keep the paired Kitty theme state in sync
+- `shader_set` — Apply a DarkWindow shader and keep the paired Kitty theme state in sync
 - `shader_cycle` — Advance the active Kitty visual playlist (next/prev)
 - `shader_random` — Pick and apply a random paired Kitty visual from the active playlist
 - `shader_status` — Current shader, Kitty theme, visual label, animation state, playlist position, auto-rotate
@@ -106,21 +105,8 @@ GOWORK=off go install .
 - `input_controller_test` — Detect controllers, generate missing profiles, optionally restart makima
 
 ### Input Services (2)
-- `input_status` — Show running state of juhradial mouse services, makima, and MX battery status
+- `input_status` — Show running state of input services and MX Master battery status
 - `input_restart_services` — Restart `mouse`, `controller`, or `all` input service groups
-
-### Makima Profiles (4)
-- `input_list_makima_profiles` — List all per-app button remapping profiles
-- `input_get_makima_profile` — Read a specific makima profile by name
-- `input_set_makima_profile` — Create or update a makima profile (validates TOML)
-- `input_delete_makima_profile` — Delete a makima profile
-
-### juhradial-mx (5)
-- `input_get_juhradial_config` — Read the tracked `juhradial/config.json`
-- `input_set_juhradial_config` — Write the tracked `juhradial/config.json` after JSON validation
-- `input_get_juhradial_profiles` — Read the tracked `juhradial/profiles.json`
-- `input_set_juhradial_profiles` — Write the tracked `juhradial/profiles.json` after JSON validation
-- `input_get_juhradial_battery` — Read MX battery status from juhradial D-Bus with bluetoothctl fallback
 
 ### MIDI (4)
 - `midi_list_devices` — Detect connected USB MIDI controllers via ALSA
@@ -174,6 +160,60 @@ GOWORK=off go install .
 - `sandbox_screenshot` — Capture Hyprland display via grim, return base64 PNG
 - `sandbox_visual_diff` — Compare screenshot against reference via ImageMagick
 - `sandbox_validate` — **Composed**: create → sync → test → screenshot → destroy
+
+### Discovery (10)
+- `dotfiles_tool_search` — Keyword search across the tool catalog
+- `dotfiles_tool_catalog` — Browse tools by category with deferred hints
+- `dotfiles_tool_schema` — Inspect one tool's full descriptor/schemas
+- `dotfiles_tool_stats` — Counts: total tools, modules, deferred, resources, prompts
+- `dotfiles_server_health` — Contract shape: profile, version, tool counts
+- `dotfiles_desktop_status` — Full desktop control readiness
+- `dotfiles_launcher_audit` — Launcher and switcher diagnostics
+- `dotfiles_bar_audit` — Status bar diagnostics
+- `dotfiles_workstation_diagnostics` — Workstation health check
+- `dotfiles_workspace_scene` — Live workspace state snapshot
+
+### Audio (5)
+- `audio_status`, `audio_volume`, `audio_mute`, `audio_devices`, `audio_device_switch`
+
+### Network (6)
+- `network_status`, `network_connections`, `network_dns`, `network_wifi_list`, `network_wifi_connect`, `network_vpn_toggle`
+
+### System (7)
+- `system_info`, `system_memory`, `system_disk`, `system_gpu`, `system_temps`, `system_uptime`, `system_health_check`
+
+### Systemd (11)
+- `systemd_status`, `systemd_start`, `systemd_stop`, `systemd_restart`, `systemd_enable`, `systemd_disable`, `systemd_logs`, `systemd_list_units`, `systemd_list_timers`, `systemd_failed`, `systemd_restart_verify`
+
+### Tmux (11)
+- `tmux_list_sessions`, `tmux_list_windows`, `tmux_list_panes`, `tmux_new_session`, `tmux_new_window`, `tmux_send_keys`, `tmux_capture_pane`, `tmux_kill_session`, `tmux_search_panes`, `tmux_wait_for_text`, `tmux_workspace`
+
+### Process (8)
+- `ps_list`, `ps_tree`, `port_list`, `investigate_port`, `investigate_service`, `kill_process`, `gpu_status`, `system_updates`
+
+### Claude Sessions (16)
+- Session scan, search, detail, logs, health, replay, compare, tag, crash detection, fleet recovery, workspace snapshots, repo status/diff/roadmap
+
+### Desktop Interaction (18)
+- Screenshot, OCR, click, find, type, form fill, accessibility tree, window management
+
+### Desktop Sessions (30)
+- AT-SPI automation: connect, start, stop, launch app, find/click/focus elements, type text, set values, read values, clipboard, screenshots, D-Bus calls, wait for elements
+
+### Arch Linux (13)
+- Package search/info, AUR search, updates, orphans, mirror status, file owner, pacman log, PKGBUILD audit, ArchWiki search/page, news
+
+### Prompt Registry (8)
+- `prompt_capture`, `prompt_search`, `prompt_get`, `prompt_improve`, `prompt_score`, `prompt_export`, `prompt_tag`, `prompt_stats`
+
+### Kitty Terminal (23)
+- Window/tab management, text send/get, layout, font size, theme, opacity, image display, remote commands, config
+
+### GitHub Stars (16)
+- Star list management, membership, audit, sync, taxonomy, cleanup, bootstrap
+
+### Mapping Engine (11)
+- Profile management, template generation, import/export, validation, diff, migration, daemon control, monitoring
 
 ## Key Patterns
 - All batch/write tools use dry-run by default (`execute: true` for live mode)

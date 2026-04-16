@@ -64,8 +64,8 @@ _parse_features() {
 }
 
 is_enabled() { [[ "${FEATURES[${1}]:-true}" == "true" ]]; }
-kitty_terminal_enabled() { is_enabled kitty || is_enabled ghostty; }
-kitty_visuals_enabled() { is_enabled kitty-shaders || is_enabled ghostty-shaders || kitty_terminal_enabled; }
+kitty_terminal_enabled() { is_enabled kitty; }
+kitty_visuals_enabled() { is_enabled kitty-shaders || kitty_terminal_enabled; }
 
 _parse_features
 
@@ -164,14 +164,6 @@ install_omz_plugins() {
         fi
     done
 
-    # Powerlevel10k theme
-    local p10k_dir="$ZSH_CUSTOM/themes/powerlevel10k"
-    if [[ -d "$p10k_dir" ]]; then
-        success "Theme already installed: powerlevel10k"
-    else
-        info "Installing theme: powerlevel10k"
-        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$p10k_dir" 2>/dev/null
-    fi
 }
 
 # ── Neovim ────────────────────────────────────────────────────
@@ -256,7 +248,6 @@ create_symlinks() {
 
     # ── Core ──
     is_enabled zsh      && link_file "$DOTFILES/zsh/zshrc"              "$HOME/.zshrc"
-    is_enabled zsh      && link_file "$DOTFILES/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
     is_enabled zsh      && link_file "$DOTFILES/zsh/zshenv"             "$HOME/.zshenv"
     is_enabled git      && link_file "$DOTFILES/git/gitconfig"          "$HOME/.gitconfig"
     is_enabled git      && link_file "$DOTFILES/git/delta"              "$HOME/.config/delta"
@@ -267,9 +258,7 @@ create_symlinks() {
     is_enabled nvim     && link_file "$DOTFILES/nvim"                   "$HOME/.config/nvim"
 
     # ── Terminal ──
-    is_enabled ghostty        && [[ -d "$DOTFILES/ghostty" ]] && link_file "$DOTFILES/ghostty" "$HOME/.config/ghostty"
     kitty_terminal_enabled    && [[ -d "$DOTFILES/kitty" ]]   && link_file "$DOTFILES/kitty"   "$HOME/.config/kitty"
-    is_enabled foot      && link_file "$DOTFILES/foot"      "$HOME/.config/foot"
     is_enabled bat       && link_file "$DOTFILES/bat"       "$HOME/.config/bat"
     is_enabled fastfetch && link_file "$DOTFILES/fastfetch" "$HOME/.config/fastfetch"
 
@@ -374,12 +363,10 @@ check_install() {
 
     info "Checking symlinks..."
     check_link "$DOTFILES/zsh/zshrc"              "$HOME/.zshrc"
-    check_link "$DOTFILES/zsh/p10k.zsh"           "$HOME/.p10k.zsh"
     check_link "$DOTFILES/zsh/zshenv"             "$HOME/.zshenv"
     check_link "$DOTFILES/git/gitconfig"          "$HOME/.gitconfig"
     check_link "$DOTFILES/ssh/config"             "$HOME/.ssh/config"
     check_link "$DOTFILES/starship/starship.toml" "$HOME/.config/starship.toml"
-    check_link "$DOTFILES/ghostty"    "$HOME/.config/ghostty"
     check_link "$DOTFILES/kitty"      "$HOME/.config/kitty"
     check_link "$DOTFILES/nvim"       "$HOME/.config/nvim"
     check_link "$DOTFILES/bat"        "$HOME/.config/bat"

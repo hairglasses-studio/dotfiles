@@ -1,17 +1,20 @@
-/* Cyberpunk Neon — ironbar GTK4 theme */
+/* Hairglasses Neon — ironbar GTK4 theme
+ * Colors imported from theme pipeline (theme-sync.sh -> theme.generated.css).
+ * Local aliases add translucent variants for bar compositing. */
+@import url("theme.generated.css");
 
-@define-color bg rgba(5, 7, 13, 0.90);
-@define-color bg_dark rgba(10, 12, 20, 0.96);
-@define-color panel rgba(18, 21, 34, 0.82);
-@define-color panel_alt rgba(29, 36, 64, 0.92);
-@define-color fg #f7fbff;
-@define-color dim #66708f;
-@define-color cyan #29f0ff;
-@define-color magenta #ff47d1;
-@define-color green #3dffb5;
-@define-color yellow #ffe45e;
-@define-color red #ff5c8a;
-@define-color blue #4aa8ff;
+@define-color bg alpha(@theme_bg, 0.90);
+@define-color bg_dark alpha(@theme_panel, 0.96);
+@define-color panel alpha(@theme_surface, 0.82);
+@define-color panel_alt alpha(@theme_surface_alt, 0.92);
+@define-color fg @theme_fg;
+@define-color dim @theme_muted;
+@define-color cyan @theme_primary;
+@define-color magenta @theme_secondary;
+@define-color green @theme_tertiary;
+@define-color yellow @theme_warning;
+@define-color red @theme_danger;
+@define-color blue @theme_blue;
 
 * {
   font-family: "Maple Mono NF CN", monospace;

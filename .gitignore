@@ -23,11 +23,11 @@ nvim/init.vim.bak
 clipse/clipboard_history.json
 clipse/clipse.log
 clipse/tmp_files/
-eww/theme-colors.scss
 hyprshell/theme.generated.css
 swaync/theme.generated.css
 wofi/theme.generated.css
 wlogout/theme.generated.css
+ironbar/theme.generated.css
 
 # Local env files
 .env

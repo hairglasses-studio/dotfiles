@@ -31,4 +31,4 @@ The control plane is uniquely orchestrated by an MCP server (`dotfiles-mcp`), al
 
 Many desktop behaviors rely on Unix sockets or IPC:
 - Hyprland's IPC socket is watched to trigger automatic workspace renames and desktop state refreshes when windows move.
-- D-Bus is used for battery metrics (`juhradial`) and media control.
+- D-Bus is used for media control.

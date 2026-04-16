@@ -2,15 +2,14 @@
 # mx-battery.sh — Waybar custom module for MX Master 4 battery
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/lib/juhradial.sh"
-
-status="$(juhradial_battery_status 2>/dev/null || true)"
+# Read MX Master battery via bluetoothctl
 battery=""
 charging="false"
-if [[ -n "$status" ]]; then
-    read -r battery charging <<<"$status"
-fi
+while IFS= read -r line; do
+    if [[ "$line" =~ Percentage:\ 0x([0-9a-fA-F]+) ]]; then
+        battery=$(( 16#${BASH_REMATCH[1]} ))
+    fi
+done < <(bluetoothctl info 2>/dev/null | grep -i "battery\|percentage" || true)
 
 if [[ -n "$battery" ]]; then
     class="normal"

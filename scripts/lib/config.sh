@@ -99,7 +99,7 @@ config_reload_service() {
       ;;
     swaync)        swaync-client --reload-config; rc=$? ;;
     tmux)          tmux source-file ~/.tmux.conf 2>/dev/null; rc=$? ;;
-    # ghostty and tattoy auto-reload via file watching
+    # tattoy auto-reload via file watching
   esac
   if ! $quiet; then
     if (( rc == 0 )); then

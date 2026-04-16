@@ -319,26 +319,6 @@ func (m *dotfilesResourceModule) Resources() []resources.ResourceDefinition {
 		},
 		{
 			Resource: mcp.NewResource(
-				"dotfiles://config/ghostty",
-				"Ghostty Config",
-				mcp.WithResourceDescription("Current Ghostty terminal configuration"),
-				mcp.WithMIMEType("text/plain"),
-			),
-			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-				path := filepath.Join(dotfilesDir(), "ghostty", "config")
-				data, err := os.ReadFile(path)
-				if err != nil {
-					return nil, fmt.Errorf("read ghostty config: %w", err)
-				}
-				return []mcp.ResourceContents{
-					mcp.TextResourceContents{URI: "dotfiles://config/ghostty", MIMEType: "text/plain", Text: string(data)},
-				}, nil
-			},
-			Category: "config",
-			Tags:     []string{"ghostty", "terminal", "config"},
-		},
-		{
-			Resource: mcp.NewResource(
 				"dotfiles://config/hyprland",
 				"Hyprland Config",
 				mcp.WithResourceDescription("Current Hyprland window manager configuration"),

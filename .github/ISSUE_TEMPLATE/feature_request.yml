@@ -55,8 +55,7 @@ body:
       description: Which area of dotfiles does this affect?
       options:
         - Hyprland / Sway (window manager)
-        - eww (status bar / widgets)
-        - Ghostty (terminal / shaders)
+        - ironbar (status bar)
         - Shell (zsh / starship)
         - Scripts (shell utilities)
         - MCP servers

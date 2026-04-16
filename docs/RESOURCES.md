@@ -15,7 +15,6 @@ Curated index of GitHub community repositories, awesome lists, and reference pro
 
 | Resource | Stars | Description |
 |----------|-------|-------------|
-| [awesome-ghostty](https://github.com/fearlessgeekmedia/Awesome-Ghostty) | 254 | Ghostty shaders, themes, tools (archived but high quality) |
 | [awesome-tmux](https://github.com/rothgar/awesome-tmux) | 9.7k | 100+ tmux plugins, themes, and tools |
 | [awesome-zsh-plugins](https://github.com/unixorn/awesome-zsh-plugins) | 17.5k | Oh-My-Zsh, Zinit, Prezto frameworks + 1000s of plugins |
 | [awesome-cli-apps](https://github.com/agarrharr/awesome-cli-apps) | 19.2k | Terminal applications for every use case |
@@ -76,8 +75,6 @@ Curated index of GitHub community repositories, awesome lists, and reference pro
 |----------|-------|-------------|
 | [awesome-glsl](https://github.com/vanrez-nez/awesome-glsl) | — | OpenGL shader learning resources |
 | [Open-Shaders](https://github.com/repalash/Open-Shaders) | — | Collection of open source GLSL/HLSL/CG shaders |
-| [ghostty-shaders](https://github.com/0xhckr/ghostty-shaders) | — | CRT, retro-terminal, and themed Ghostty shaders |
-
 ## Audio
 
 | Resource | Stars | Description |

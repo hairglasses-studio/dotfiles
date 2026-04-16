@@ -12,9 +12,7 @@ on:
       - 'pypr/**'
       - 'install.sh'
       - 'manjaro/install.sh'
-      - 'juhradial/**'
       - 'ironbar/**'
-      - 'makima/**'
       - '.github/workflows/ci-bats.yml'
   pull_request:
     branches: [main]
@@ -27,9 +25,7 @@ on:
       - 'pypr/**'
       - 'install.sh'
       - 'manjaro/install.sh'
-      - 'juhradial/**'
       - 'ironbar/**'
-      - 'makima/**'
       - '.github/workflows/ci-bats.yml'
 
 permissions:

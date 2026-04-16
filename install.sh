@@ -562,7 +562,7 @@ install_retrovisor() {
     fi
 }
 
-# ── Tattoy shader symlink (Ghostty-only, skipped for kitty) ──
+# ── Tattoy shader symlink ──
 setup_tattoy_shaders() {
     log_info "Tattoy shaders skipped (kitty uses DarkWindow pipeline)"
 }

@@ -63,7 +63,8 @@ mkdir -p \
   "$HOME/.config/hyprshell" \
   "$HOME/.config/swaync" \
   "$HOME/.config/wofi" \
-  "$HOME/.config/wlogout"
+  "$HOME/.config/wlogout" \
+  "$HOME/.config/ironbar"
 
 write_gtk_theme() {
   local target="$1"
@@ -82,6 +83,7 @@ write_gtk_theme() {
 @define-color theme_danger $(hex_css "$THEME_DANGER");
 @define-color theme_border $(hex_css "$THEME_BORDER");
 @define-color theme_border_strong $(hex_css "$THEME_BORDER_STRONG");
+@define-color theme_blue $(hex_css "${THEME_BLUE:-4aa8ff}");
 EOF
 }
 
@@ -89,7 +91,8 @@ for target in \
   "$HOME/.config/hyprshell/theme.generated.css" \
   "$HOME/.config/swaync/theme.generated.css" \
   "$HOME/.config/wofi/theme.generated.css" \
-  "$HOME/.config/wlogout/theme.generated.css"
+  "$HOME/.config/wlogout/theme.generated.css" \
+  "$HOME/.config/ironbar/theme.generated.css"
 do
   write_gtk_theme "$target"
 done

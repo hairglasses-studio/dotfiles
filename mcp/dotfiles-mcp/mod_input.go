@@ -844,7 +844,7 @@ type DetectControllersOutput struct {
 type GenerateProfileInput struct {
 	DeviceName string `json:"device_name" jsonschema:"required,description=Exact device name from input_detect_controllers"`
 	Template   string `json:"template" jsonschema:"required,description=Preset mapping template,enum=desktop,enum=claude-code,enum=gaming,enum=media,enum=macropad"`
-	AppID      string `json:"app_id,omitempty" jsonschema:"description=Per-app override ID (e.g. 'com.mitchellh.ghostty'). Creates DeviceName::app_id.toml"`
+	AppID      string `json:"app_id,omitempty" jsonschema:"description=Per-app override ID (e.g. 'kitty'). Creates DeviceName::app_id.toml"`
 	Force      bool   `json:"force,omitempty" jsonschema:"description=Overwrite existing profile if it exists. Default false."`
 }
 type GenerateProfileOutput struct {

@@ -13,16 +13,16 @@ These files decide how the repo is installed, linked, and verified on a machine.
 - `Brewfile`, `Pacfile`, `metapac/`, `paru/`, `topgrade/`: package and update surfaces.
 - `etc/`: repo-tracked system config intended to deploy into `/etc`.
 - `systemd/`: repo-managed user services linked into `~/.config/systemd/user/`.
-- `scripts/etc-deploy.sh`, `scripts/greetd-deploy.sh`, `scripts/juhradial-install.sh`, `scripts/refind-deploy.sh`, `scripts/plymouth-deploy.sh`: privileged or machine-scoped deployment helpers.
+- `scripts/etc-deploy.sh`, `scripts/greetd-deploy.sh`, `scripts/refind-deploy.sh`, `scripts/plymouth-deploy.sh`: privileged or machine-scoped deployment helpers.
 
 ### 2. Workstation runtime config
 
 These directories are the day-to-day desktop and shell runtime state managed by the installer.
 
 - Desktop control plane: `hyprland/`, `ironbar/`, `hyprshell/`, `hypr-dock/`, `hyprdynamicmonitors/`, `hyprland-autoname-workspaces/`, `swaync/`, `wofi/`, `wlogout/`, `greetd/`.
-- Terminal and shell stack: `kitty/`, `ghostty/`, `tmux/`, `zsh/`, `starship/`, `nvim/`.
+- Terminal and shell stack: `kitty/`, `tmux/`, `zsh/`, `starship/`, `nvim/`.
 - TUI theming and utilities: `bat/`, `btop/`, `cava/`, `glow/`, `k9s/`, `lazygit/`, `yazi/`, `fastfetch/`, `gh/`.
-- Device or hardware config: `keyboard/`, `juhradial/`, `makima/`, `environment.d/`, `udev/`.
+- Device or hardware config: `keyboard/`, `makima/`, `environment.d/`, `udev/`.
 - Visual and boot stack: `wallpaper-shaders/`, `refind/`, `plymouth/`.
 
 ### 3. Automation and MCP surface
@@ -66,7 +66,7 @@ Start narrow and escalate only when the change crosses surfaces.
 If you are searching the repo for a change target, start with these anchors.
 
 - Installer/bootstrap: `install.sh`, `dotfiles.toml`, `print_link_specs`, `create_symlinks`
-- Workstation runtime: `hyprland/`, `ironbar/`, `kitty/`, `ghostty/`, `systemd/`
+- Workstation runtime: `hyprland/`, `ironbar/`, `kitty/`, `systemd/`
 - Operator tooling: `scripts/hg*`, `scripts/lib/hg-*`, `.agents/skills/`
 - MCP packaging and parity: `mcp/`, `docs/MCP-MIRROR-PARITY.md`, `scripts/hg-mcp-mirror-parity.sh`, `scripts/hg-dotfiles-mcp-projection.sh`, `.mcp.json`, `scripts/hg-codex-mcp-sync.sh`, `scripts/hg-codex-audit.sh`
 

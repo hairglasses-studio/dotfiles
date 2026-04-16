@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - 'scripts/**'
-      - 'ghostty/shaders/bin/**'
       - 'install.sh'
       - 'docker/**'
       - '**/*.json'
@@ -15,7 +14,6 @@ on:
     branches: [main]
     paths:
       - 'scripts/**'
-      - 'ghostty/shaders/bin/**'
       - 'install.sh'
       - 'docker/**'
       - '**/*.json'
@@ -40,12 +38,6 @@ jobs:
         with:
           scandir: scripts
           additional_files: >-
-            ghostty/shaders/bin/shader-cycle.sh
-            ghostty/shaders/bin/shader-random.sh
-            ghostty/shaders/bin/shader-test.sh
-            ghostty/shaders/bin/shader-benchmark.sh
-            ghostty/shaders/bin/shader-build.sh
-            ghostty/shaders/bin/shader-meta.sh
             install.sh
           ignore_paths: scripts/ccg.sh
           severity: error

@@ -301,7 +301,7 @@ func (m *LearnModule) Tools() []registry.ToolDefinition {
 					{Name: "media", Type: "gamepad", Description: "Music/media control via playerctl — play/pause, skip, volume, brightness", Tags: []string{"media", "audio", "playerctl"}},
 					{Name: "macropad", Type: "gamepad", Description: "Generic USB keypad/macropad with rotary encoders (F13-F24 defaults)", Tags: []string{"macropad", "encoder", "keyboard"}},
 					{Name: "desktop-control", Type: "midi", Description: "MIDI faders for volume/brightness, pads for workspace switching", Tags: []string{"desktop", "volume", "workspace"}},
-					{Name: "shader-control", Type: "midi", Description: "MIDI controls for Ghostty shader cycling and wallpaper selection", Tags: []string{"shader", "wallpaper", "ghostty"}},
+					{Name: "shader-control", Type: "midi", Description: "MIDI controls for kitty shader cycling and wallpaper selection", Tags: []string{"shader", "wallpaper", "kitty"}},
 					{Name: "volume-mixer", Type: "midi", Description: "Per-sink audio control via PipeWire — one fader per audio source", Tags: []string{"audio", "pipewire", "mixer"}},
 					{Name: "vj-control", Type: "midi", Description: "VJ/DJ live performance — encoder-to-OSC for Resolume, TouchDesigner, OBS", Tags: []string{"vj", "dj", "resolume", "touchdesigner", "osc", "en16"}},
 					{Name: "en16-default", Type: "midi", Description: "Intech Studio Grid EN16 default layout — system, workspace, shader, media", Tags: []string{"intech", "grid", "en16", "encoder"}},

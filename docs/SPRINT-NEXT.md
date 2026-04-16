@@ -13,7 +13,6 @@
 - Feature-flag system (`dotfiles.toml` — 42 toggleable components, 4 profiles: minimal/dev/full/cyberpunk)
 
 **Visual Stack:**
-- Eww status bar replacing waybar (compositor-aware, dual-monitor, ralphglasses fleet segments, system tray)
 - 5 procgen wallpaper shaders (cyber-rain, neon-grid, plasma-flow, fractal-pulse, particle-aurora) via shaderbg
 - wlogout power menu (5 neon-colored buttons with per-button glow)
 - Mako notifications (tighter, bar-aware, urgency-colored)
@@ -36,7 +35,7 @@
 - 3 skills: `/rice-check`, `/screenshot-review`, `/shader-browse`
 - 2 agents: `rice-developer` (opus, autonomous iteration), `config-validator` (haiku, syntax check)
 - 3 rules: `hyprland.md` (0.54 syntax), `shaders.md` (self-contained GLSL), `snazzy-palette.md` (color enforcement)
-- PostToolUse hook (auto-reload Hyprland/mako/eww/waybar on config writes)
+- PostToolUse hook (auto-reload Hyprland/mako/waybar on config writes)
 - Notification hook (alert on task completion)
 
 **Keyboards:**
@@ -67,7 +66,6 @@ The dotfiles use a feature-flag system (dotfiles.toml) with 42 toggleable compon
 Key files:
 - hyprland/hyprland.conf — Hyprland compositor (0.54 block windowrule syntax)
 - sway/config — Sway fallback compositor
-- eww/eww.yuck + eww.scss — Status bar widgets + cyberpunk theme
 - scripts/lib/compositor.sh — Shared compositor detection library
 - .mcp.json — 4 MCP servers (hyprland, dotfiles, shader, sway)
 - .claude/skills/ — 3 skills (rice-check, screenshot-review, shader-browse)

@@ -154,9 +154,7 @@ _config_cmd_check() {
     printf "  %s%-18s%s %slauncher drift%s\n" "$HG_CYAN" "hypr surfaces" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
   fi
 
-  if grep -Fq 'kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh' "$HG_DOTFILES/juhradial/config.json" \
-    && grep -Fq 'kitty-visual-launch -e /home/hg/.local/bin/hg-codex-launch.sh' "$HG_DOTFILES/juhradial/profiles.json" \
-    && grep -Fq 'kitty-visual-launch' "$HG_DOTFILES/ironbar/config.toml" \
+  if grep -Fq 'kitty-visual-launch' "$HG_DOTFILES/ironbar/config.toml" \
     && grep -Fq 'kitty-visual-launch' "$HG_DOTFILES/makima/Microsoft Xbox Series S|X Controller.toml"; then
     printf "  %s%-18s%s %smanaged wrappers%s\n" "$HG_CYAN" "aux launchers" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
