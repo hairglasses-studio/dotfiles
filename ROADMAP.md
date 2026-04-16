@@ -41,16 +41,16 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 ## Planned
 
 ### Phase 1 — Ironbar Menubar Polish
-- [ ] [P1][M] Ironbar: cache-fed fleet widgets without blocking the GTK layer
+- [x] [P1][M] Ironbar: cache-fed fleet widgets via systemd timers (weather, updates, MX battery)
 - [x] [P1][M] Ironbar: workspace and focused-window modules legible on 5120x1440 ultrawide
 - [x] [P1][S] Ironbar: keybind ticker min-width to prevent layout jumps
-- [ ] [P1][S] Ironbar: power, weather, and update affordances remain theme-aligned
+- [x] [P1][S] Ironbar: widget colors aligned to semantic palette conventions
 
 ### Phase 2 — Shader Pipeline
 - [x] [P2][S] Shader CI: glslangValidator validation workflow for DarkWindow + wallpaper shaders
 - [x] [P2][S] Shader CI: README badge count verification gate
 - [x] [P2][M] Shader: 3 new wallpaper shaders (void-pulse, hex-matrix, nebula-drift)
-- [ ] [P2][M] Shader: parameter presets exposing uniforms as config
+- [x] [P2][M] Shader: parameter presets exposing uniforms as config (presets.toml + 2 MCP tools)
 - [x] [P2][S] MCP: `dotfiles_write_config` tool — atomic write + validate + backup + reload
 - [x] [P2][S] MCP: `shader_benchmark` tool — glslangValidator compile time + file size benchmarking
 - [x] [P2][S] MCP: `shader://categories` resource — category breakdown
@@ -61,7 +61,7 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 - [x] [P1][S] README: add skills table listing all 14 skills
 - [x] [P1][S] GitHub Topics: add hyprland mcp wayland dotfiles desktop-automation linux go
 - [x] [P2][S] Submit PR to awesome-hyprland (IPC section) — hyprland-community/awesome-hyprland#178
-- [ ] [P2][S] Submit PR to awesome-mcp-servers
+- [x] [P2][S] Submit PR to awesome-mcp-servers — punkpeye/awesome-mcp-servers#4958
 - [x] [P2][S] Update .well-known/mcp.json with categories and tags
 - [ ] [P2][M] Record 30-sec demo GIF for README
 - [ ] [P3][M] Blog post: "Controlling Hyprland with an AI Agent via MCP"
