@@ -62,6 +62,15 @@ else
   failed="${failed} swaync"
 fi
 
+# Keybind ticker — restart to pick up palette changes
+if systemctl --user is-active dotfiles-keybind-ticker.service >/dev/null 2>&1; then
+  if systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null; then
+    reloaded="${reloaded} ticker"
+  else
+    failed="${failed} ticker"
+  fi
+fi
+
 # Hyprland companion services
 for component in \
   hyprshell \

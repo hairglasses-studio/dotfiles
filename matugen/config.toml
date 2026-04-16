@@ -1,0 +1,68 @@
+# Matugen config — wallpaper-extracted accent override (opt-in).
+#
+# Usage:
+#   matugen --config matugen/config.toml image <wallpaper-path>
+#
+# By default, palette-propagate.sh renders templates via envsubst using values
+# from theme/palette.env (fixed "Hairglasses Neon"). This matugen config is a
+# SECONDARY path, fired only when the user opts into wallpaper-derived accents.
+#
+# Templates here use matugen's @{colors.*} syntax and overlay only the accent
+# tokens (primary/secondary/tertiary); neutrals always come from palette.env
+# via custom_colors overrides.
+
+[config]
+reload_gtk_theme = true
+
+# Lock neutrals to palette.env values even when extracting from wallpaper.
+# Matugen MD3 HCT fills primary/secondary/tertiary from the image; this block
+# pins surface/panel/bg/fg so the aesthetic stays cyberpunk-dark.
+[config.custom_colors.hg_bg]
+color  = "#05070d"
+blend  = false
+
+[config.custom_colors.hg_surface]
+color  = "#0f1219"
+blend  = false
+
+[config.custom_colors.hg_panel]
+color  = "#0d1018"
+blend  = false
+
+[config.custom_colors.hg_fg]
+color  = "#f7fbff"
+blend  = false
+
+[config.custom_colors.hg_muted]
+color  = "#66708f"
+blend  = false
+
+[config.custom_colors.hg_warning]
+color  = "#ffe45e"
+blend  = false
+
+[config.custom_colors.hg_danger]
+color  = "#ff5c8a"
+blend  = false
+
+[config.custom_colors.hg_blue]
+color  = "#4aa8ff"
+blend  = false
+
+# ──── Templates (matugen syntax) ────
+# These mirror matugen/templates/*.matugen — wallpaper-derived accent variants.
+
+[templates.gtk-colors-css]
+input_path  = "~/hairglasses-studio/dotfiles/matugen/templates/gtk-colors.css.matugen"
+output_path = "~/.cache/matugen/gtk-colors.css"
+
+[templates.kitty-colors]
+input_path  = "~/hairglasses-studio/dotfiles/matugen/templates/kitty-colors.conf.matugen"
+output_path = "~/.cache/matugen/kitty-colors.conf"
+
+[templates.hyprland-colors]
+input_path  = "~/hairglasses-studio/dotfiles/matugen/templates/hyprland-colors.conf.matugen"
+output_path = "~/.cache/matugen/hyprland-colors.conf"
+
+# After matugen renders into ~/.cache/matugen/, palette-propagate.sh copies
+# each file to its real target and fires the appropriate reload.

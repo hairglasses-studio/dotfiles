@@ -1,0 +1,15 @@
+@define-color theme_bg #${THEME_BG};
+@define-color theme_surface #${THEME_SURFACE};
+@define-color theme_surface_alt #${THEME_SURFACE_ALT};
+@define-color theme_panel #${THEME_PANEL};
+@define-color theme_panel_strong #${THEME_PANEL_STRONG};
+@define-color theme_fg #${THEME_FG};
+@define-color theme_muted #${THEME_MUTED};
+@define-color theme_primary #${THEME_PRIMARY};
+@define-color theme_secondary #${THEME_SECONDARY};
+@define-color theme_tertiary #${THEME_TERTIARY};
+@define-color theme_warning #${THEME_WARNING};
+@define-color theme_danger #${THEME_DANGER};
+@define-color theme_border #${THEME_BORDER};
+@define-color theme_border_strong #${THEME_BORDER_STRONG};
+@define-color theme_blue #${THEME_BLUE};
