@@ -18,6 +18,8 @@ nvim/init.vim.bak
 .claude-audit-report.md
 .claude/worktrees/
 .claude/settings.local.json
+.dev-loop-state.json
+.fleet-autopilot-state.json
 
 # Runtime/generated files (tracked apps)
 clipse/clipboard_history.json

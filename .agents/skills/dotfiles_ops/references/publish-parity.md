@@ -4,10 +4,10 @@ Use this reference when a change touches public docs, bundled MCP modules, skill
 
 ## Change Classes
 
-- Workstation-only: runtime config under `hyprland/`, `ironbar/`, `kitty/`, `ghostty/`, or `systemd/`; no public mirror action unless the operator contract changed.
+- Workstation-only: runtime config under `hyprland/`, `ironbar/`, `kitty/`, or `systemd/`; no public mirror action unless the operator contract changed.
 - Public operator surface: `install.sh`, `scripts/hg*`, `AGENTS.md`, compatibility docs, workflows, and public-facing docs; keep examples and verification current.
-- Mirror-managed MCP: `mcp/dotfiles-mcp`, `mcp/process-mcp`, `mcp/systemd-mcp`, and `mcp/tmux-mcp`; verify repo-local parity docs before touching standalone mirrors.
-- Bundled-only MCP: `mcp/hg-mcp`, `mcp/mapitall`, and `mcp/mapping`; do not invent standalone mirror obligations.
+- Mirror-managed MCP: `mcp/dotfiles-mcp` (consolidated — systemd, tmux, and process modules are now internal); verify repo-local parity docs before touching standalone mirrors.
+- Bundled-only MCP: `mcp/mapitall` and `mcp/mapping`; do not invent standalone mirror obligations.
 
 ## Default Loop
 

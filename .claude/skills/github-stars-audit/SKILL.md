@@ -1,0 +1,151 @@
+---
+name: github_stars_audit
+description: 'Audit GitHub stars for tools relevant to a domain (dotfiles, rice, Hyprland, Wayland, terminal, etc.), cross-reference against current repo state, and produce a phased implementation plan. Use this skill whenever the user asks to search their stars, find new tools, audit starred repos, assess tool viability, or wants to know what useful tools they have starred but not yet adopted. Also triggers on "what am I missing", "search my stars", "find tools for X", or any request to discover and integrate new tooling from GitHub stars.'
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - mcp__dotfiles__gh_stars_list
+  - mcp__dotfiles__gh_stars_summary
+  - mcp__dotfiles__gh_stars_audit_markdown
+  - mcp__dotfiles__gh_stars_set
+  - mcp__dotfiles__dotfiles_tool_search
+  - mcp__dotfiles__dotfiles_tool_catalog
+  - mcp__dotfiles__dotfiles_rice_check
+  - mcp__dotfiles__dotfiles_list_configs
+  - mcp__dotfiles__dotfiles_check_symlinks
+  - mcp__dotfiles__arch_package_search
+  - mcp__dotfiles__arch_aur_search
+---
+
+# GitHub Stars Audit
+
+Search the user's GitHub stars for tools relevant to a specific domain, assess each tool's viability against the current dotfiles repo state, and produce a concrete implementation plan with packaging, config, and MCP integration details.
+
+## Why This Exists
+
+GitHub stars accumulate over time and become a personal discovery backlog. The value is in systematically mining them against what's already installed — finding the gap between "starred because it looked cool" and "actually wired into my daily workflow." This skill automates a process that previously took a full session of manual cross-referencing.
+
+## Workflow
+
+### Phase 1: Discover
+
+Search stars across the user's full star collection. The MCP tools handle pagination and filtering.
+
+1. `gh_stars_summary` — get an overview of total stars, categories, recent activity
+2. `gh_stars_list` — fetch stars, filtering by domain keywords the user specifies
+3. If the user provides a specific domain (e.g., "dotfiles", "terminal", "audio"), use it as the filter. If not, use broad categories: dotfiles, rice, hyprland, wayland, terminal, shell, theming, bar, notification, wallpaper, compositor, tiling, keybinds
+4. `gh_stars_audit_markdown` — generate a structured audit if available
+
+Collect for each starred repo: name, description, star count, language, last updated.
+
+### Phase 2: Cross-Reference Against Current State
+
+For each discovered repo, check if it's already integrated:
+
+**Check metapac packages** (the definitive "is it installed?" source):
+```bash
+grep -ri "<tool-name>" metapac/groups/*.toml
+```
+
+**Check dotfiles.toml flags** (the "is it enabled?" source):
+```bash
+grep -i "<tool-name>" dotfiles.toml
+```
+
+**Check for config directories** (the "is it configured?" source):
+```bash
+ls -d <tool-name>/ 2>/dev/null  # repo root
+grep "<tool-name>" install.sh   # symlink specs
+```
+
+**Check systemd services** (the "is it running?" source):
+```bash
+ls systemd/*<tool-name>* 2>/dev/null
+```
+
+**Check MCP tools** (the "is it MCP-wired?" source):
+```
+dotfiles_tool_search query="<tool-name>"
+```
+
+**Check hyprland.conf** for keybinds or exec-once lines:
+```bash
+grep -i "<tool-name>" hyprland/hyprland.conf hyprland/plugin-binds.conf
+```
+
+### Phase 3: Categorize
+
+Sort every discovered repo into exactly one bucket:
+
+| Category | Criteria | Action |
+|----------|----------|--------|
+| **Already integrated** | Found in metapac + has config + has dotfiles.toml flag | Skip — document as evidence |
+| **Installed but incomplete** | In metapac but missing config, flag, service, or MCP tools | Wire up the gaps |
+| **Actionable** | Not installed, clearly valuable, no architectural conflict | Full implementation plan |
+| **Deferred** | Interesting but conflicts with current stack, or low priority | Document reason for deferral |
+| **Not viable** | User has explicitly rejected the approach, or tool is dead/unmaintained | Skip with note |
+
+The "installed but incomplete" category is the highest-ROI bucket — these tools are already on the system but not fully wired.
+
+### Phase 4: Implementation Plan
+
+For each actionable or incomplete item, document:
+
+1. **Packaging**: Is it in official Arch repos (`pacman -Ss`), AUR (`yay -Ss`), or needs manual build? Add to appropriate `metapac/groups/*.toml` file.
+
+2. **Config files**: What config files need to be created? Follow the repo's naming convention (tool directory at repo root, e.g., `kanshi/config`).
+
+3. **dotfiles.toml flag**: Add to the appropriate section (`[desktop.linux]`, `[terminal]`, `[theming]`, `[visual]`).
+
+4. **install.sh symlinks**: Add to `print_linux_link_specs()` following the pattern:
+   ```
+   $DOTFILES_DIR/<tool>/<config>|$HOME/.config/<tool>/<config>
+   ```
+
+5. **Systemd service**: If the tool runs as a daemon, create `systemd/dotfiles-<tool>.service` following the `dotfiles-pyprland.service` pattern. Add to `desktop_service_units` array in install.sh.
+
+6. **Hyprland keybinds**: If the tool has a toggle or launcher, add a `bindd` line (with description for ticker visibility). Use `keybinds_free_slots` to find available combos.
+
+7. **MCP tools**: If the tool has an IPC or CLI interface worth wrapping, plan a `mod_<tool>.go` module with appropriate tools. Follow the `mod_hyprshade.go` pattern.
+
+8. **wallpaper-mode.sh**: If it's a wallpaper tool, extend the wallpaper mode dispatcher.
+
+Group items into phases by dependency and complexity:
+- **Phase A**: Quick wins (S complexity, config-only)
+- **Phase B**: New adoptions (M complexity, install + config)
+- **Phase C**: MCP extensions (code changes)
+- **Phase D**: Deferred items with clear re-evaluation conditions
+
+### Phase 5: Present
+
+Produce a summary with:
+- Table of already-integrated tools (so the user knows what's covered)
+- Table of actionable items with phase, complexity, and what's needed
+- Table of deferred items with reasoning
+- Execution order with dependencies noted
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `metapac/groups/desktop-hyprland.toml` | Hyprland desktop packages |
+| `metapac/groups/terminal-shell.toml` | Terminal/shell packages (if exists) |
+| `dotfiles.toml` | Feature flags |
+| `install.sh` | Symlink specs, systemd units, OMZ plugins |
+| `hyprland/hyprland.conf` | Keybinds, exec-once, plugin config |
+| `scripts/wallpaper-mode.sh` | Wallpaper mode dispatcher |
+| `scripts/hyprpm-bootstrap.sh` | Hyprland plugin list |
+| `scripts/rice-selftest.sh` | Tool detection checklist |
+| `mcp/dotfiles-mcp/` | MCP module source |
+
+## Anti-Patterns
+
+- Do not recommend dotfile managers (dotter, chezmoi per-file mode) — the user has explicitly rejected these because they break directory symlinks. The current install.sh approach is intentional.
+- Do not recommend switching compositors (niri, sway) — committed to Hyprland.
+- Do not recommend switching terminals — committed to kitty.
+- Do not recommend switching notification daemons — already migrated to swaync.
+- Check star recency — repos not updated in 2+ years may be abandoned.
+- Verify AUR package existence before recommending — `arch_aur_search` or `yay -Ss`.

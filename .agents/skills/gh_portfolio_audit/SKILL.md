@@ -1,0 +1,93 @@
+---
+name: gh_portfolio_audit
+description: Audit the public-facing state of the hairglasses-studio GitHub org for interview readiness. Run when preparing for interviews, before content launches, or as a periodic portfolio health check. Checks repo descriptions vs README accuracy, CI badge status, topic coverage, release recency, open PR count, community health files, and org/personal profile README consistency. Also use when someone asks what an interviewer would see browsing your GitHub.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - Agent
+  - mcp__github__list_pull_requests
+  - mcp__github__get_file_contents
+  - mcp__github__search_code
+  - mcp__studio_desktop__dotfiles_gh_list_org_repos
+  - mcp__studio_desktop__dotfiles_oss_check
+  - mcp__studio_desktop__dotfiles_oss_score
+---
+
+# GitHub Portfolio Audit
+
+Audit all public repos in the hairglasses-studio org against a portfolio quality checklist. Produces a markdown report with severity-ranked findings.
+
+## Setup
+
+Source the GitHub PAT: `source /home/hg/hairglasses-studio/.env && export GH_TOKEN="$GITHUB_ORG_ADMIN_PAT"`
+
+## Default loop
+
+1. **Inventory**: List all public, non-archived repos via `gh api /orgs/hairglasses-studio/repos --paginate --jq '.[] | select(.private == false and .archived == false)'`. Collect: name, description, topics, license, stars, forks, open_issues, pushed_at, has_discussions, default_branch.
+
+2. **Per-repo checks** (for each repo):
+   - **Description**: Non-empty, matches the first non-badge paragraph of README.md
+   - **Topics**: At least 3 topics set; flag if fewer
+   - **License**: MIT or Apache-2.0 present
+   - **Release**: At least one GitHub Release exists; flag if tags exist but no Release
+   - **CI badge**: Each `badge.svg` URL in README points to an existing workflow file in `.github/workflows/`
+   - **Open PRs**: Count non-Dependabot PRs; flag if > 3
+   - **Staleness**: Last push within 30 days
+   - **Community files**: README.md, CONTRIBUTING.md, LICENSE, CODE_OF_CONDUCT.md all present
+   - **Counts accuracy**: Package/tool/test/shader counts in description match README numbers
+
+3. **Org profile README** (`hairglasses-studio/.github`, file `profile/README.md`):
+   - Every repo listed in the table still exists and is public
+   - Package/tool counts match current repo READMEs
+   - No deprecated or archived repos listed
+
+4. **Personal profile README** (`hairglasses/hairglasses`, file `README.md`):
+   - Stats (package counts, tool counts, coverage) match current repo state
+   - Pinned repos (query via GraphQL `pinnedItems`) are not archived or deprecated
+
+5. **Report**: Output a markdown table:
+   ```
+   | Repo | Issue | Severity |
+   |------|-------|----------|
+   | mcpkit | Description says "35 packages", README says "72" | critical |
+   | dotfiles | Only 2 topics set | warn |
+   ```
+   Severity levels: `critical` (interviewer would notice), `warn` (polish issue), `info` (minor)
+
+6. **Fix mode**: If `$ARGUMENTS` contains `--fix`, apply automated fixes:
+   - Update descriptions to match README headlines
+   - Add suggested topics
+   - Merge green Dependabot PRs
+   - Create GitHub Releases from existing tags
+   Report what was fixed and what needs manual action (UI-only items like pinning)
+
+## Shell fallback
+
+```bash
+source /home/hg/hairglasses-studio/.env && export GH_TOKEN="$GITHUB_ORG_ADMIN_PAT"
+
+# List all public repos with key fields
+gh api /orgs/hairglasses-studio/repos --paginate \
+  --jq '.[] | select(.private == false and .archived == false) | {name, description, topics, license: .license.spdx_id, open_issues, pushed_at}'
+
+# Check a single repo's community health
+gh api /repos/hairglasses-studio/{repo}/community/profile
+
+# List workflows to verify badge URLs
+gh api /repos/hairglasses-studio/{repo}/actions/workflows --jq '.workflows[].name'
+
+# Check releases
+gh release list --repo hairglasses-studio/{repo}
+
+# Check personal pinned repos
+gh api graphql -f query='{ user(login: "hairglasses") { pinnedItems(first: 6) { nodes { ... on Repository { nameWithOwner description archived } } } } }'
+```
+
+## Notes
+
+- Never commit `.env` contents or PAT values to output
+- Dry-run by default; only mutate with `--fix` flag
+- Focus findings on what a hiring manager would notice in a 2-minute browse

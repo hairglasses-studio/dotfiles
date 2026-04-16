@@ -17,7 +17,6 @@ nvim = true
 # ── Terminal emulators & tools ───────────────────
 [terminal]
 kitty = true
-foot = false
 bat = true
 fastfetch = true
 macchina = true
@@ -28,10 +27,7 @@ kitty_scrollback = true
 # ── Desktop (Linux — Hyprland) ─
 [desktop.linux]
 hyprland = true
-sway = false
 ironbar = true
-waybar = false
-mako = false
 hyprshell = true
 hypr_dock = true
 hyprdynamicmonitors = true
@@ -79,10 +75,7 @@ drop-ctrl = false           # Manual flash via VIA
 
 # ── MCP servers (separate repos, binaries) ───────
 [mcp]
-hyprland-mcp = true
 dotfiles-mcp = true
-shader-mcp = true
-sway-mcp = false
 
 # ── Profiles ─────────────────────────────────────
 # Use: ./manjaro/install.sh --profile <name>

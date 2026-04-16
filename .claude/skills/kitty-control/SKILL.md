@@ -90,7 +90,7 @@ The dotfiles have shader and theme playlists managed by `kitty-shader-playlist`:
 - `shader_status` — current shader, theme, playlist position
 
 For direct kitty appearance changes:
-1. `kitty_set_theme` — apply a named theme (e.g., "Snazzy", "Tokyo Night")
+1. `kitty_set_theme` — apply a named theme (e.g., "Hairglasses Neon", "Tokyo Night")
 2. `kitty_set_font_size` — adjust (delta: `+2`, `-1`, or absolute: `14`)
 3. `kitty_set_opacity` — e.g., `0.92` for slight transparency
 

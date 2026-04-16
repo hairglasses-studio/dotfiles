@@ -84,6 +84,11 @@
       "name": "hypr_config_tuning",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "github_stars_audit",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }

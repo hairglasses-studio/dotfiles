@@ -41,19 +41,36 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 ## Planned
 
 ### Phase 1 — Ironbar Menubar Polish
-- Cache-fed fleet widgets stay visible without blocking the GTK layer
-- Workspace and focused-window modules stay legible on 5120x1440 ultrawide
-- Keybind ticker stability and scroll performance
-- Power, weather, and update affordances remain theme-aligned
+- [ ] [P1][M] Ironbar: cache-fed fleet widgets without blocking the GTK layer
+- [ ] [P1][M] Ironbar: workspace and focused-window modules legible on 5120x1440 ultrawide
+- [ ] [P1][S] Ironbar: keybind ticker stability and scroll performance
+- [ ] [P1][S] Ironbar: power, weather, and update affordances remain theme-aligned
 
 ### Phase 2 — Shader Pipeline
-- DarkWindow shader performance benchmarks in CI (flag regressions above GPU budget — requires GPU runner)
-- Shader preview gallery (static renders for README/docs — requires headless rendering pipeline)
-- Wallpaper shader expansion (more procgen options via papertoy/shaderbg)
-- Shader parameter presets (expose uniforms as config)
+- [ ] [P2][L] Shader: wallpaper expansion via papertoy/shaderbg procgen options
+- [ ] [P2][M] Shader: parameter presets exposing uniforms as config
+- [ ] [P2][S] MCP: `dotfiles_write_config` tool — atomic write + validate + backup + reload
+- [ ] [P2][S] MCP: `shader_benchmark` tool — glslViewer perf test
+- [ ] [P2][S] MCP: `shader://categories` resource — category breakdown
+
+### Phase 3 — Public Content
+- [ ] [P1][S] README: add use-case section with 5 concrete workflow examples
+- [ ] [P1][S] README: add "Install MCP Server Only" section with go install one-liner
+- [ ] [P1][S] README: add skills table listing all 14 skills
+- [ ] [P1][S] GitHub Topics: add hyprland mcp wayland dotfiles desktop-automation linux go
+- [ ] [P2][S] Submit PR to awesome-hyprland (IPC section)
+- [ ] [P2][S] Submit PR to awesome-mcp-servers
+- [ ] [P2][S] Update .well-known/mcp.json with categories and tags
+- [ ] [P2][M] Record 30-sec demo GIF for README
+- [ ] [P3][M] Blog post: "Controlling Hyprland with an AI Agent via MCP"
+- [ ] [P3][S] Submit to PulseMCP, Glama, MCP Market directories
+
+### Blocked (needs external infrastructure)
+- [ ] [BLOCKED: needs GPU CI runner] Shader: DarkWindow performance benchmarks in CI
+- [ ] [BLOCKED: needs headless Hyprland] Shader: preview gallery with static renders
+- [ ] [BLOCKED: needs headless Hyprland] Automated rice screenshot CI comparison
 
 ## Future Considerations
 
 - **Status bar research**: evaluate GPU-capable alternatives to ironbar (ags, fabric, custom Wayland layer-shell bar)
-- **Automated rice screenshots**: Hyprland headless + screenshot comparison in CI (requires headless Hyprland setup)
 - **Cross-repo semantic search**: evaluate CodeMCP for SCIP-based indexing across all 20 active repos

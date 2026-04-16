@@ -66,7 +66,7 @@ func main() {
 			{name: "mcpkit", ci: "pass", tests: 450, latency: "12ms", errors: 0},
 			{name: "ralphglasses", ci: "pass", tests: 5972, latency: "45ms", errors: 2},
 			{name: "art-mcp", ci: "fail", tests: 12, latency: "800ms", errors: 5},
-			{name: "systemd-mcp", ci: "pass", tests: 34, latency: "5ms", errors: 0},
+			{name: "dotfiles-mcp", ci: "pass", tests: 120, latency: "8ms", errors: 0},
 		},
 	}
 
