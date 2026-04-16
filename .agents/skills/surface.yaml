@@ -109,6 +109,11 @@
       "name": "dotfiles_audit",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "screen_capture",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }

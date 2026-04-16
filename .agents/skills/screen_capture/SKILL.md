@@ -1,0 +1,179 @@
+---
+name: screen_capture
+description: "Wayland screen recording and GIF capture for Hyprland — record a specific window, a screen region, or the ticker bar as a GIF or short MP4. Use when the user asks to capture gif, record window, screen recording, capture video, gif of the ticker, record this window, or capture animation."
+allowed-tools:
+  - Bash
+  - Read
+  - mcp__dotfiles__screen_record_start
+  - mcp__dotfiles__screen_record_stop
+  - mcp__dotfiles__screen_record_status
+  - mcp__dotfiles__hypr_screenshot
+  - mcp__dotfiles__hypr_list_windows
+  - mcp__dotfiles__hypr_get_monitors
+---
+
+# Screen Capture
+
+Record windows, regions, or the ticker bar as GIF or MP4 on a Hyprland Wayland desktop. Uses `wf-recorder` for capture and `ffmpeg` palette-based conversion for high-quality GIFs.
+
+## Tools
+
+### MCP
+- `screen_record_start` — start a wf-recorder capture (geometry, output, duration)
+- `screen_record_stop` — stop capture, return file path
+- `screen_record_status` — check if a recording is active
+- `hypr_list_windows` — list open windows with class, title, geometry, workspace
+- `hypr_get_monitors` — get monitor names, resolutions, positions, scale
+
+### CLI (via Bash)
+- `wf-recorder` — Wayland screen recorder (already installed)
+- `ffmpeg` — video/GIF conversion
+- `hyprctl clients -j` — window geometry in JSON
+
+---
+
+## Workflows
+
+### 1. Capture a Specific Window as GIF
+
+Get geometry from Hyprland, record, convert to GIF.
+
+```bash
+# Step 1: find window geometry
+hyprctl clients -j | jq -r '.[] | select(.title | test("PATTERN"; "i")) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"'
+
+# Step 2: record (replace geometry and duration)
+wf-recorder -g "X,Y WxH" -f /tmp/capture.mp4 &
+WF_PID=$!
+sleep 3
+kill $WF_PID
+wait $WF_PID 2>/dev/null || true
+
+# Step 3: convert to GIF
+ffmpeg -i /tmp/capture.mp4 \
+  -vf "fps=30,scale=iw:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
+  /tmp/capture.gif
+```
+
+Or use the helper script (preferred):
+
+```bash
+~/hairglasses-studio/dotfiles/scripts/capture-window-gif.sh "window title pattern" [duration_seconds]
+```
+
+### 2. Capture a Region as GIF
+
+Manually specify coordinates when you know them (e.g., from a screenshot + region inspection).
+
+```bash
+# Record a region — X,Y = top-left corner, WxH = width x height
+wf-recorder -g "100,200 800x400" -f /tmp/region.mp4 &
+WF_PID=$!
+sleep 5
+kill $WF_PID
+wait $WF_PID 2>/dev/null || true
+
+ffmpeg -i /tmp/region.mp4 \
+  -vf "fps=30,scale=iw:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
+  /tmp/region.gif
+```
+
+### 3. Capture the Ticker Bar (Shortcut)
+
+The keybind-ticker lives at the bottom of DP-3 (5120x1440 logical, scale 2 → 2560x720 physical).
+The bar is 28px tall, pinned at `0,692` (logical Hyprland coordinates).
+
+```bash
+~/hairglasses-studio/dotfiles/scripts/capture-window-gif.sh ticker [duration_seconds]
+```
+
+This resolves to: `-g "0,1384 5120x56"` in physical pixel coordinates (scale 2).
+
+Or manually:
+```bash
+# DP-3 physical: 5120x1440; ticker is bottom 56px (28 logical * scale 2)
+wf-recorder -g "0,1384 5120x56" -f /tmp/ticker.mp4 &
+WF_PID=$!
+sleep 4
+kill $WF_PID
+wait $WF_PID 2>/dev/null || true
+
+ffmpeg -i /tmp/ticker.mp4 \
+  -vf "fps=30,scale=iw:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
+  /tmp/ticker.gif
+```
+
+### 4. Brief Video Clip (MP4, No Conversion)
+
+Skip GIF conversion for a quick shareable clip.
+
+```bash
+# 5-second MP4 of a specific geometry
+wf-recorder -g "X,Y WxH" -f /tmp/clip.mp4 &
+WF_PID=$!
+sleep 5
+kill $WF_PID
+wait $WF_PID 2>/dev/null || true
+echo "Saved: /tmp/clip.mp4"
+```
+
+Use `screen_record_start` / `screen_record_stop` MCP tools for MCP-managed recordings.
+
+### 5. Convert Existing MP4 to GIF
+
+High-quality, palette-based conversion. Produces compact, color-accurate GIFs.
+
+```bash
+ffmpeg -i /path/to/input.mp4 \
+  -vf "fps=30,scale=iw:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
+  /path/to/output.gif
+```
+
+Flags:
+- `fps=30` — smooth playback (lower to 15 to reduce file size)
+- `scale=iw:-1` — preserve aspect ratio (swap to `scale=800:-1` to cap width)
+- `flags=lanczos` — high-quality downscale filter
+- `palettegen` + `paletteuse` — two-pass palette extraction for color accuracy
+
+---
+
+## Monitor Geometry Reference
+
+| Monitor | Resolution (logical) | Resolution (physical) | Scale | Position |
+|---------|---------------------|-----------------------|-------|----------|
+| DP-3    | 2560x720            | 5120x1440             | 2     | 0,0      |
+| DP-2    | 720x1280 (rotated)  | 1440x2560 (rotated)   | 2     | 2560,0   |
+
+`wf-recorder -g` takes **physical pixel** coordinates. Hyprland's `at[]` and `size[]` in `hyprctl clients -j` are **logical** (pre-scale). Multiply by scale factor (2) to get physical coords for `-g`.
+
+```bash
+# Convert logical → physical for wf-recorder -g
+# Given: hyprctl logical at=[lx, ly], size=[lw, lh], scale=2
+# Physical: X=$((lx * 2)), Y=$((ly * 2)), W=$((lw * 2)), H=$((lh * 2))
+```
+
+---
+
+## Helper Script
+
+`~/hairglasses-studio/dotfiles/scripts/capture-window-gif.sh`
+
+```
+Usage: capture-window-gif.sh <title-pattern|"ticker"> [seconds]
+
+  title-pattern   Case-insensitive window title substring to match
+  ticker          Shortcut: captures the bottom 56px of DP-3
+  seconds         Recording duration in seconds (default: 3)
+
+Output: prints the path to the generated GIF on stdout
+```
+
+---
+
+## Anti-Patterns
+
+- Do NOT use `wl-screenrec` for this workflow — it has different geometry flags. Use `wf-recorder`.
+- Do NOT use logical Hyprland coordinates directly in `-g` — multiply by the monitor scale factor.
+- Do NOT skip the palette pass (`palettegen` + `paletteuse`) — the output will be washed out or banded.
+- Do NOT record at `fps=30` if the GIF needs to be small — drop to `fps=15` for half the size.
+- Always `kill` and `wait` on the wf-recorder PID before running ffmpeg to avoid a truncated MP4.
