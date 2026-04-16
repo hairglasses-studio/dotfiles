@@ -1,29 +1,19 @@
-
 *~
 *.bak
-# Build output
-credentials.json
-.DS_Store
 *.dylib
-# Editor temps
-.env
-.env.*
 *.log
-# Logs
-node_modules/
-nvim/init.vim.bak
 *.o
-# OS
-__pycache__/
-# Runtime artifacts
-# Secrets
 *.swo
 *.swp
-.terraform/
-Thumbs.db
 .*.un~
+.DS_Store
+.terraform/
 .vagrant/
-.envrc
+Thumbs.db
+__pycache__/
+credentials.json
+node_modules/
+nvim/init.vim.bak
 # Claude Code artifacts
 .claude-audit-report.md
 .claude/worktrees/

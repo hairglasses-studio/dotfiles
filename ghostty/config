@@ -66,9 +66,9 @@ window-padding-balance = true
 window-theme = dark
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/cursor_smear_rainbow_original.glsl
+custom-shader = shaders/tft.glsl
 custom-shader = shaders/focus-dim.glsl
-custom-shader-animation = true
+custom-shader-animation = false
 
 # ── Links ───────────────────────────────────────
 link-url = true

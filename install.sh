@@ -161,11 +161,8 @@ EOF
 
 print_darwin_link_specs() {
     cat <<EOF
-$DOTFILES_DIR/aerospace/aerospace.toml|$HOME/.aerospace.toml
-$DOTFILES_DIR/sketchybar|$HOME/.config/sketchybar
 $DOTFILES_DIR/borders|$HOME/.config/borders
 $DOTFILES_DIR/tattoy/tattoy.toml|$HOME/Library/Application Support/tattoy/tattoy.toml
-$DOTFILES_DIR/retrovisor/com.dirkwhoffmann.RetroVisor.plist|$HOME/Library/LaunchAgents/com.dirkwhoffmann.RetroVisor.plist
 $DOTFILES_DIR/ghostty/com.dotfiles.shader-rotate.plist|$HOME/Library/LaunchAgents/com.dotfiles.shader-rotate.plist
 EOF
 }
