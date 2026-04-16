@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # ironbar-keybind-ticker.sh — Scrolling stock-ticker for keybinds
-# Outputs a sliding window of the keybind string, one line per frame.
-# Designed for ironbar script module in watch mode.
+# Outputs a sliding window of keybind text at ~50fps for smooth scrolling.
+# Colors are handled by ironbar CSS, not Pango markup.
 set -euo pipefail
 
-# Decode modmask to human-readable (matches hypr-keybinds.sh format_mods)
 format_mods() {
   local m=$1 out=""
   (( m & 64 )) && out+="Super+"
@@ -14,37 +13,27 @@ format_mods() {
   printf '%s' "$out"
 }
 
-build_ticker() {
+# Build the full ticker string from live keybinds
+ticker=""
+while IFS=$'\t' read -r desc mask key; do
+  mods=$(format_mods "$mask")
+  ticker+="  ${desc}  ${mods}${key}  ·"
+done < <(
   hyprctl binds -j 2>/dev/null | jq -r '
     [.[] | select(.has_description == true and .submap == "" and .mouse == false)
-     | "\(.description)  \(.modmask):\(.key)"]
-    | .[]
-  ' | while IFS= read -r line; do
-    desc="${line%%  *}"
-    raw="${line##*  }"
-    mask="${raw%%:*}"
-    key="${raw##*:}"
-    mods=$(format_mods "$mask")
-    printf '  %s  %s%s  ' "$desc" "$mods" "$key"
-  done
-}
+     | "\(.description)\t\(.modmask)\t\(.key)"] | .[]'
+)
 
-# Build the full ticker string once at startup
-ticker=$(build_ticker)
-# Append a separator and duplicate for seamless wrapping
-sep="                    "
-ticker="${ticker}${sep}"
-len=${#ticker}
+[[ -z "$ticker" ]] && { echo "No keybinds"; exit 1; }
 
-# Sliding window: ~350 chars fills the ultrawide at 11px mono
-window=350
+# Double for seamless wrap
+ticker+="$ticker"
+half=$(( ${#ticker} / 2 ))
 offset=0
 
-# Double the string so substring extraction never goes out of bounds
-doubled="${ticker}${ticker}"
-
+# Scroll: 350-char window at 50fps (sleep 0.02)
 while true; do
-  printf '%s\n' "${doubled:$offset:$window}"
-  offset=$(( (offset + 1) % len ))
-  sleep 0.06
+  printf '%s\n' "${ticker:$offset:350}"
+  offset=$(( (offset + 1) % half ))
+  sleep 0.02
 done

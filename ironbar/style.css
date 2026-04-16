@@ -297,11 +297,24 @@
 
 /* ── Keybind ticker (bottom bar) ─────────── */
 
+@keyframes ticker-color-cycle {
+  0%   { color: @cyan;    text-shadow: 0 0 8px alpha(@cyan, 0.35); }
+  33%  { color: @magenta; text-shadow: 0 0 8px alpha(@magenta, 0.35); }
+  66%  { color: @green;   text-shadow: 0 0 8px alpha(@green, 0.35); }
+  100% { color: @cyan;    text-shadow: 0 0 8px alpha(@cyan, 0.35); }
+}
+
+@keyframes ticker-border-pulse {
+  0%, 100% { border-top-color: alpha(@cyan, 0.30); }
+  33%      { border-top-color: alpha(@magenta, 0.30); }
+  66%      { border-top-color: alpha(@green, 0.30); }
+}
+
 .keybind-ticker label {
-  color: @cyan;
   font-size: 11px;
   letter-spacing: 0.5px;
   padding: 0 8px;
+  animation: ticker-color-cycle 12s linear infinite;
 }
 
 /* ── Popups (shared) ─────────────────────── */
