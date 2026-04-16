@@ -26,10 +26,6 @@ Desktop automation, local workstation config, MCP server scaffolding, and org-wi
 - Workflow propagation: `bash ./scripts/hg-workflow-sync.sh --dry-run`
 - Repo doc generation: `bash ./scripts/hg-agent-docs.sh --source auto .`
 
-## Shared Research Repository
-
-Cross-project research lives at `~/hairglasses-studio/docs/` (git: hairglasses-studio/docs). When launching research agents, check existing docs first and write reusable research outputs back to the shared repo rather than local docs/.
-
 ## Explicit Skill Surface
 
 - `.agents/skills/` is the canonical workflow-skill surface for this repo.
