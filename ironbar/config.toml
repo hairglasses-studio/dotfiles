@@ -129,18 +129,18 @@ type = "label"
 class = "bar-bt"
 label = "{{10000:n=$(bluetoothctl devices Connected 2>/dev/null | wc -l); [ \"$n\" -gt 0 ] && echo \"󰂯 $n\" || echo ''}}"
 
-# Updates
+# Updates (cache-fed via bar-updates.timer — avoids pacman network I/O on GTK thread)
 [[monitors."DP-3".end]]
 type = "label"
 class = "bar-updates"
-label = "{{3600000:n=$(checkupdates 2>/dev/null | wc -l); [ \"$n\" -gt 0 ] && echo \" $n\" || echo ''}}"
+label = "{{300000:cat /tmp/bar-updates.txt 2>/dev/null || echo ''}}"
 on_click_left = "!$HOME/.local/bin/kitty-visual-launch -e yay"
 
-# MX mouse battery
+# MX mouse battery (cache-fed via bar-mx.timer — avoids bluetoothctl IPC on GTK thread)
 [[monitors."DP-3".end]]
 type = "label"
 class = "bar-mx"
-label = "{{300000:$HOME/hairglasses-studio/dotfiles/scripts/mx-battery.sh 2>/dev/null | jq -r 'if .percentage then \"󰂂 \\(.percentage)%\" else \"\" end' || echo ''}}"
+label = "{{60000:cat /tmp/bar-mx.txt 2>/dev/null || echo ''}}"
 
 # Volume
 [[monitors."DP-3".end]]
@@ -152,11 +152,11 @@ icons.volume_medium = "󰖀"
 icons.volume_low = "󰕿"
 icons.muted = "󰝟"
 
-# Weather
+# Weather (cache-fed via bar-weather.timer — avoids network I/O on GTK thread)
 [[monitors."DP-3".end]]
 type = "label"
 class = "bar-weather"
-label = "{{1800000:$HOME/hairglasses-studio/dotfiles/scripts/bar-weather.sh 2>/dev/null || echo ''}}"
+label = "{{300000:cat /tmp/bar-weather.txt 2>/dev/null || echo ''}}"
 
 # Network
 [[monitors."DP-3".end]]

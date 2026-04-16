@@ -241,6 +241,14 @@
   font-size: 11px;
 }
 
+.bar-mx.warning label {
+  color: @yellow;
+}
+
+.bar-mx.critical label {
+  color: @red;
+}
+
 /* ── Volume ──────────────────────────────── */
 
 .volume {
@@ -248,7 +256,7 @@
 }
 
 .volume .label {
-  color: @yellow;
+  color: @cyan;
   font-size: 11px;
 }
 
@@ -273,7 +281,7 @@
 /* ── Weather ─────────────────────────────── */
 
 .bar-weather label {
-  color: @blue;
+  color: @cyan;
   padding: 0 6px;
   font-size: 11px;
 }
@@ -281,7 +289,7 @@
 /* ── Network ─────────────────────────────── */
 
 .bar-net label {
-  color: @green;
+  color: @cyan;
   padding: 0 6px;
   font-size: 11px;
 }
