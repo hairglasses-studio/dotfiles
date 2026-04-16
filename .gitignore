@@ -68,10 +68,14 @@ id_ed25519*
 
 # Large binaries (prevent accidental commits)
 *.bin
+*.gif
 *.mp4
 
 # High-churn generated files
 links/_registry.json
+
+# StashApp runtime data (postgres, AI models, runtime env)
+stashapp-config/
 
 # Local Go workspace metadata
 mcp/go.work.sum

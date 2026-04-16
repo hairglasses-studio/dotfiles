@@ -115,7 +115,7 @@ resolve_standalone_repo_path() {
   if [[ "$canonical" =~ ^(/home/[^/]+)/hairglasses-studio/dotfiles/ ]]; then
     candidates+=("${BASH_REMATCH[1]}/hairglasses-studio/dotfiles-mcp")
   fi
-  candidates+=("/home/hg/hairglasses-studio/dotfiles-mcp")
+  candidates+=("${HOME}/hairglasses-studio/dotfiles-mcp")
 
   for candidate in "${candidates[@]}"; do
     if resolved="$(resolve_path_candidate "$candidate")"; then

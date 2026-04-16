@@ -66,7 +66,7 @@ window-padding-balance = true
 window-theme = dark
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/glazing-bg.glsl
+custom-shader = shaders/focus-dim.glsl
 custom-shader = shaders/focus-dim.glsl
 custom-shader-animation = false
 
