@@ -205,6 +205,7 @@ $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
 $DOTFILES_DIR/scripts/dev-console.sh|$HOME/.local/bin/dev-console
+$DOTFILES_DIR/scripts/pin-dev-console-session.sh|$HOME/.local/bin/pin-dev-console-session
 $DOTFILES_DIR/hyprland/hyprshade.toml|$HOME/.config/hyprshade/config.toml
 $DOTFILES_DIR/wluma/config.toml|$HOME/.config/wluma/config.toml
 $DOTFILES_DIR/kanshi/config|$HOME/.config/kanshi/config
