@@ -66,9 +66,9 @@ window-padding-balance = true
 window-theme = dark
 
 # ── Shader ──────────────────────────────────────
-custom-shader = shaders/tft.glsl
+custom-shader = shaders/green-crt.glsl
 custom-shader = shaders/focus-dim.glsl
-custom-shader-animation = false
+custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────
 link-url = true

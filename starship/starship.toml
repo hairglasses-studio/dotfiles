@@ -1,6 +1,8 @@
 # Snazzy-on-black Starship prompt — matches Ghostty rice
 # Full-featured config with contextual modules
 
+palette = "snazzy"
+
 format = """
 $username\
 $hostname\
@@ -22,54 +24,57 @@ $container\
 $kubernetes\
 $aws\
 $gcloud\
-$env_var\
-$custom\
+${env_var.VIRTUAL_ENV}\
 $cmd_duration\
 $jobs\
 $fill\
-$time\
 $line_break\
 $character"""
 
-right_format = ""
+right_format = """
+${custom.agent}\
+${custom.claude_fleet}\
+${custom.claude}\
+${custom.codex}\
+$time"""
 
 # ── Prompt ──────────────────────────────────────
 [character]
-success_symbol = "[](bold #5af78e)"
-error_symbol = "[](bold #ff5c57)"
+success_symbol = "[](bold green)"
+error_symbol = "[](bold red)"
 
 [username]
 show_always = false
-style_user = "#686868"
-style_root = "bold #ff5c57"
+style_user = "gray"
+style_root = "bold red"
 format = "[$user]($style) "
 
 [hostname]
 ssh_only = true
-style = "#686868"
+style = "gray"
 format = "[@$hostname]($style) "
 
 [directory]
-style = "bold #57c7ff"
+style = "bold cyan"
 truncation_length = 3
 truncation_symbol = "../"
 format = "[\\[$path\\]]($style)[$read_only]($read_only_style) "
 read_only = " 󰌾"
-read_only_style = "#ff5c57"
+read_only_style = "red"
 
 # ── Git ─────────────────────────────────────────
 [git_branch]
 symbol = " "
-style = "bold #ff6ac1"
+style = "bold magenta"
 
 [git_commit]
 tag_symbol = " 󰓹 "
-style = "#686868"
+style = "gray"
 commit_hash_length = 7
 only_detached = true
 
 [git_state]
-style = "bold #f3f99d"
+style = "bold yellow"
 rebase = "REBASING"
 merge = "MERGING"
 revert = "REVERTING"
@@ -78,12 +83,12 @@ bisect = "BISECTING"
 
 [git_metrics]
 disabled = false
-added_style = "#5af78e"
-deleted_style = "#ff5c57"
+added_style = "green"
+deleted_style = "red"
 format = '([+$added]($added_style) )([-$deleted]($deleted_style) )'
 
 [git_status]
-style = "bold #f3f99d"
+style = "bold yellow"
 ahead = "⇡${count}"
 behind = "⇣${count}"
 diverged = "⇕⇡${ahead_count}⇣${behind_count}"
@@ -96,65 +101,65 @@ conflicted = "=${count}"
 # ── Languages ───────────────────────────────────
 [package]
 symbol = "󰏗 "
-style = "#f3f99d"
+style = "yellow"
 format = "[$symbol$version]($style) "
 
 [golang]
 symbol = " "
-style = "bold #9aedfe"
+style = "bold lcyan"
 
 [nodejs]
 symbol = " "
-style = "bold #5af78e"
+style = "bold green"
 
 [python]
 symbol = " "
-style = "bold #f3f99d"
+style = "bold yellow"
 format = '[$symbol${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
 
 [rust]
 symbol = " "
-style = "bold #ff5c57"
+style = "bold red"
 
 [terraform]
 symbol = "󱁢 "
-style = "bold #9aedfe"
+style = "bold lcyan"
 format = "[$symbol$workspace]($style) "
 
 # ── Cloud / Infra ───────────────────────────────
 [docker_context]
 symbol = " "
-style = "bold #57c7ff"
+style = "bold cyan"
 only_with_files = true
 
 [kubernetes]
 disabled = false
 symbol = "󱃾 "
-style = "bold #57c7ff"
+style = "bold cyan"
 format = "[$symbol$context( \\($namespace\\))]($style) "
 
 [aws]
 disabled = false
 symbol = " "
-style = "bold #f3f99d"
+style = "bold yellow"
 format = "[$symbol($profile )(\\($region\\) )]($style)"
 
 [gcloud]
 disabled = false
 symbol = "󱇶 "
-style = "bold #57c7ff"
+style = "bold cyan"
 format = "[$symbol($project )]($style)"
 
 # ── Status / Meta ───────────────────────────────
 [cmd_duration]
 min_time = 2_000
-style = "#686868"
+style = "gray"
 format = "took [$duration]($style) "
 show_notifications = false
 
 [jobs]
 symbol = "+"
-style = "#f3f99d"
+style = "yellow"
 threshold = 1
 
 [fill]
@@ -162,44 +167,66 @@ symbol = " "
 
 [time]
 disabled = false
-style = "#686868"
+style = "gray"
 format = "[$time]($style)"
 time_format = "%H:%M"
 
 [helm]
 symbol = "⎈ "
-style = "bold #57c7ff"
+style = "bold cyan"
 format = "[$symbol$version]($style) "
 
 [container]
 symbol = "⬡ "
-style = "#57c7ff"
+style = "cyan"
 format = "[$symbol$name]($style) "
-
-[env_var.MCP_SERVER]
-symbol = "⚡"
-style = "bold #ff6ac1"
-format = "[$symbol $env_value]($style) "
-variable = "MCP_SERVER"
-default = ""
 
 [env_var.VIRTUAL_ENV]
 symbol = "🐍 "
-style = "#f3f99d"
+style = "yellow"
 format = "[$env_value]($style) "
 variable = "VIRTUAL_ENV"
 default = ""
 
-[env_var.CLAUDE_SESSION]
-symbol = "⚡"
-style = "bold #57c7ff"
-format = "[$symbol$env_value]($style) "
-variable = "CLAUDE_SESSION_NAME"
-default = ""
-
+# ── AI / Agent ──────────────────────────────────
 [custom.agent]
 command = "jq -r '\"\\(.name) $\\(.cost)\"' /tmp/ralphglasses-active.json 2>/dev/null"
 when = "test -f /tmp/ralphglasses-active.json"
 symbol = "󰪚 "
-style = "bold #ff6ac1"
+style = "bold magenta"
 format = "[$symbol$output]($style) "
+
+[custom.claude_fleet]
+when = 'test -z "$CLAUDECODE" && ls ~/.claude/sessions/*.json >/dev/null 2>&1'
+command = "ls ~/.claude/sessions/*.json 2>/dev/null | wc -l | tr -d ' '"
+symbol = " "
+style = "gray"
+format = "[$symbol$output]($style) "
+
+[custom.claude]
+when = 'test "$CLAUDECODE" = "1"'
+command = '''
+cost=$(awk '{printf "$%.2f",$1}' ~/.local/state/claude/burn-rate 2>/dev/null)
+echo "${CLAUDE_CODE_EFFORT_LEVEL:+$CLAUDE_CODE_EFFORT_LEVEL }${cost}"
+'''
+symbol = " "
+style = "bold green"
+format = "[$symbol$output]($style) "
+
+[custom.codex]
+when = "test -f ~/.codex/state_5.sqlite"
+command = '''sqlite3 ~/.codex/state_5.sqlite "SELECT (SELECT model FROM threads WHERE archived!=1 ORDER BY updated_at DESC LIMIT 1) || ' ×' || (SELECT COUNT(*) FROM threads WHERE archived!=1 AND updated_at > strftime('%s','now') - 86400)" 2>/dev/null'''
+symbol = "󰧑 "
+style = "bold lcyan"
+format = "[$symbol$output]($style) "
+
+# ── Palette ─────────────────────────────────────
+[palettes.snazzy]
+cyan    = "#57c7ff"
+magenta = "#ff6ac1"
+green   = "#5af78e"
+yellow  = "#f3f99d"
+red     = "#ff5c57"
+gray    = "#686868"
+lcyan   = "#9aedfe"
+fg      = "#f1f1f0"

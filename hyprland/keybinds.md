@@ -86,8 +86,9 @@
 | Key | Action |
 |-----|--------|
 | `Super+G` | Shader next |
-| `Super+Shift+G` | Shader random |
-| `Super+Shift+P` | Shader prev |
+| `Super+Shift+G` | Theme next |
+| `Super+Alt+G` | Shader toggle |
+| `Super+Shift+P` | Theme prev |
 | `Super+Ctrl+R` | Safe rice reload (hyprland+ironbar+hyprshell hot-reload+dock+kitty+gtk+shaders) |
 | `Super+Ctrl+G` | Reload kitty |
 | `Super+Alt+F` | Font next |
@@ -135,6 +136,7 @@
 | `Super+Shift+Enter` | Scratchpad: terminal |
 | `Super+Shift+V` | Scratchpad: volume |
 | `Super+Shift+F` | Scratchpad: files |
+| `Super+Shift+C` | Scratchpad: Claude Code |
 
 ## 󰍽 Mouse
 
