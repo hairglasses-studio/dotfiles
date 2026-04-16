@@ -1,12 +1,17 @@
 ---
 name: keybinds
 description: Read, search, audit, and update Hyprland keybinds with ticker integration
-triggers:
-  - keybind
-  - hotkey
-  - shortcut
-  - bind
-  - keyboard shortcut
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - mcp__dotfiles__keybinds_list
+  - mcp__dotfiles__keybinds_search
+  - mcp__dotfiles__keybinds_free_slots
+  - mcp__dotfiles__keybinds_conflicts
+  - mcp__dotfiles__keybinds_refresh_ticker
 ---
 
 # Keybind Management Workflow

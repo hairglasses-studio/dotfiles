@@ -1,14 +1,35 @@
 ---
 name: kitty_control
 description: Manage kitty terminal sessions — tabs, windows, themes, fonts, scrollback, images — via remote control MCP tools.
-triggers:
-  - kitty
-  - terminal tab
-  - terminal window
-  - terminal theme
-  - terminal font
-  - scrollback
-  - kitty layout
+allowed-tools:
+  - Bash
+  - Read
+  - mcp__dotfiles__kitty_status
+  - mcp__dotfiles__kitty_list_windows
+  - mcp__dotfiles__kitty_list_tabs
+  - mcp__dotfiles__kitty_launch
+  - mcp__dotfiles__kitty_focus_window
+  - mcp__dotfiles__kitty_focus_tab
+  - mcp__dotfiles__kitty_close_window
+  - mcp__dotfiles__kitty_close_tab
+  - mcp__dotfiles__kitty_set_title
+  - mcp__dotfiles__kitty_set_tab_title
+  - mcp__dotfiles__kitty_set_layout
+  - mcp__dotfiles__kitty_resize_window
+  - mcp__dotfiles__kitty_resize_os_window
+  - mcp__dotfiles__kitty_last_used_layout
+  - mcp__dotfiles__kitty_set_font_size
+  - mcp__dotfiles__kitty_set_theme
+  - mcp__dotfiles__kitty_set_opacity
+  - mcp__dotfiles__kitty_load_config
+  - mcp__dotfiles__kitty_send_text
+  - mcp__dotfiles__kitty_send_key
+  - mcp__dotfiles__kitty_get_text
+  - mcp__dotfiles__kitty_run_remote
+  - mcp__dotfiles__kitty_show_image
+  - mcp__dotfiles__shader_cycle
+  - mcp__dotfiles__shader_set
+  - mcp__dotfiles__shader_status
 ---
 
 # Kitty Terminal Remote Control

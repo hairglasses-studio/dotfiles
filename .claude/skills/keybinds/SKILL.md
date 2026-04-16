@@ -1,0 +1,79 @@
+---
+name: keybinds
+description: Read, search, audit, and update Hyprland keybinds with ticker integration
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - mcp__dotfiles__keybinds_list
+  - mcp__dotfiles__keybinds_search
+  - mcp__dotfiles__keybinds_free_slots
+  - mcp__dotfiles__keybinds_conflicts
+  - mcp__dotfiles__keybinds_refresh_ticker
+---
+
+# Keybind Management Workflow
+
+## MCP Tools
+
+Use the `keybinds_*` MCP tools for all keybind operations:
+
+- `keybinds_list` — Full inventory of described keybinds (matches ticker display)
+- `keybinds_search` — Find binds by description or key name
+- `keybinds_free_slots` — Show unbound Super+letter and Super+number keys
+- `keybinds_conflicts` — Detect duplicate key+modifier combinations
+- `keybinds_refresh_ticker` — Restart the scrolling ticker bar to pick up changes immediately
+
+## Adding New Keybinds
+
+1. Run `keybinds_free_slots` to identify available key combinations
+2. Run `keybinds_conflicts` to verify no existing conflicts
+3. Edit `hyprland/hyprland.conf` — add the bind in the appropriate `# ── Keybinds: <Section> ──` block
+4. **Always use `bindd` format** (not `bind`) so the description appears in the ticker bar
+5. Use `binddl` for binds that should work on the lock screen (media keys)
+6. Use `bindde` for binds that should auto-repeat while held (volume, resize)
+7. After editing, run `keybinds_refresh_ticker` to update the ticker immediately
+
+## Bind Format
+
+```
+bindd = $mod [SHIFT|CTRL|ALT], <key>, <Description for ticker>, <dispatcher>[, <args>]
+```
+
+## Section Convention
+
+Keybinds are grouped under section headers in `hyprland.conf`:
+```
+# ── Keybinds: <Section Name> ──────────────────
+```
+
+Existing sections: Launch, Layout, Window management, Window groups, Monitor focus, Minimize / Special workspace, Resize, Screenshots, System, Notification center, Scratchpads, Mouse, Claude Code, Media, Night light, Kitty shaders, Hyprshade, Visual/rice, Clipboard/Color, Rotary encoder
+
+## Modifier Conventions
+
+- `$mod` = SUPER (always the primary modifier)
+- HJKL = directional navigation (vim-style, via hy3 plugin)
+- Arrow keys = duplicate directional binds
+- Letter keys use mnemonics: Q=quit/kill, B=bundle(group), M=minimize, O=other(monitor), R=rearrange(layout)
+- Shift = "do more" variant (move vs focus, save vs clipboard)
+- Ctrl = "system" variant (reload, restart, config)
+- Alt = "alternate mode" (raw terminal, shader toggle, depth wallpaper)
+
+## Plugin Binds
+
+Plugin-specific binds (hy3, split-monitor-workspaces, hyprexpo) are in `hyprland/plugin-binds.conf`, loaded at runtime via `scripts/hypr-sync-plugin-binds.sh` after plugins register their dispatchers.
+
+## Ticker Integration
+
+The keybind ticker at the bottom of the screen reads from `hyprctl binds -j` every 5 minutes. Only `bindd` (described) top-level, non-mouse binds are shown. The ticker auto-generates Pango markup with cyan descriptions and magenta key combos in the Hairglasses Neon palette.
+
+## Research Workflow
+
+When researching new keybinds:
+1. `keybinds_list` — understand current coverage
+2. `keybinds_free_slots` — find available combos
+3. Check the Hyprland Wiki dispatchers page for available dispatchers
+4. Cross-reference with `scripts/hypr-keybinds.sh --md` for the rendered markdown cheatsheet
+5. After adding binds, run `scripts/hypr-keybinds.sh --md` to regenerate the cheatsheet

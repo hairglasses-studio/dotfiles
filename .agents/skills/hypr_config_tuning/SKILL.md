@@ -1,17 +1,22 @@
 ---
 name: hypr_config_tuning
 description: Live Hyprland config tuning via IPC — test changes instantly with hyprctl keyword, observe results, then persist to config file.
-triggers:
-  - hyprland config
-  - hyprland setting
-  - gaps
-  - border
-  - animation
-  - blur
-  - rounding
-  - opacity
-  - decoration
-  - compositor setting
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - mcp__dotfiles__hypr_get_option
+  - mcp__dotfiles__hypr_get_monitors
+  - mcp__dotfiles__hypr_get_system_info
+  - mcp__dotfiles__hypr_get_config_errors
+  - mcp__dotfiles__hypr_set_keyword
+  - mcp__dotfiles__hypr_set_prop
+  - mcp__dotfiles__hypr_set_monitor
+  - mcp__dotfiles__hypr_screenshot
+  - mcp__dotfiles__hypr_screenshot_window
+  - mcp__dotfiles__hypr_list_windows
+  - mcp__dotfiles__hypr_reload_config
+  - mcp__dotfiles__dotfiles_rice_check
 ---
 
 # Hyprland Config Tuning
@@ -55,7 +60,7 @@ Iterate on Hyprland configuration in real-time using IPC. The key insight: `hypr
 ### Gaps and borders
 ```
 general:gaps_in       # Inner gap between windows (default: 5)
-general:gaps_out      # Outer gap from screen edge (default: 16)  
+general:gaps_out      # Outer gap from screen edge (default: 16)
 general:border_size   # Window border width in px (default: 3)
 ```
 
@@ -77,13 +82,6 @@ decoration:blur:passes    # Blur passes (default: 3)
 decoration:blur:noise     # Noise overlay on blur (default: 0.015)
 decoration:blur:vibrancy  # Vibrancy (default: 0.22)
 ```
-
-### Animations
-```
-animations:enabled    # Global animation toggle
-```
-
-Individual animations are trickier to tune live — they use the `animation` keyword with bezier references. For these, edit the config and reload.
 
 ### Shadows
 ```

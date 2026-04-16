@@ -1,16 +1,28 @@
 ---
 name: rice_iteration
 description: Visual feedback loop for desktop rice iteration — screenshot, analyze, change config, reload, verify. Uses MCP screenshot + OCR + reload tools.
-triggers:
-  - rice
-  - rice iteration
-  - visual change
-  - desktop appearance
-  - theme change
-  - bar style
-  - notification style
-  - look and feel
-  - visual feedback
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - mcp__dotfiles__hypr_screenshot
+  - mcp__dotfiles__hypr_screenshot_window
+  - mcp__dotfiles__hypr_screenshot_monitors
+  - mcp__dotfiles__hypr_screenshot_region
+  - mcp__dotfiles__screen_screenshot
+  - mcp__dotfiles__screen_screenshot_annotated
+  - mcp__dotfiles__screen_ocr
+  - mcp__dotfiles__dotfiles_rice_check
+  - mcp__dotfiles__shader_status
+  - mcp__dotfiles__dotfiles_desktop_status
+  - mcp__dotfiles__dotfiles_reload_service
+  - mcp__dotfiles__hypr_reload_config
+  - mcp__dotfiles__kitty_load_config
+  - mcp__dotfiles__dotfiles_cascade_reload
+  - mcp__dotfiles__keybinds_list
+  - mcp__dotfiles__shader_test
 ---
 
 # Rice Iteration Loop
@@ -20,12 +32,12 @@ A structured visual feedback loop for iterating on desktop appearance: screensho
 ## The Loop
 
 ```
-1. CAPTURE  → screenshot current state
-2. ANALYZE  → identify what to change (colors, spacing, fonts, opacity, etc.)
-3. EDIT     → modify the config file
-4. RELOAD   → restart only the affected service
-5. VERIFY   → screenshot again and compare
-6. REPEAT   → until satisfied
+1. CAPTURE  -> screenshot current state
+2. ANALYZE  -> identify what to change (colors, spacing, fonts, opacity, etc.)
+3. EDIT     -> modify the config file
+4. RELOAD   -> restart only the affected service
+5. VERIFY   -> screenshot again and compare
+6. REPEAT   -> until satisfied
 ```
 
 ## MCP Tools by Phase
@@ -94,30 +106,6 @@ All visual changes must use the Hairglasses Neon palette. Source of truth: `them
 | `THEME_BORDER` | `#2a3246` | Inactive borders |
 
 Use `dotfiles://palette` MCP resource to get the full live palette as structured JSON.
-
-## Component-Specific Tips
-
-### Ironbar CSS
-- Inspector: `GTK_DEBUG=interactive ironbar` (but requires restart)
-- Classes follow `.workspaces`, `.clock`, `.tray`, `.custom` pattern
-- Font sizes should stay proportional to Maple Mono NF CN 11
-
-### Hyprland decoration
-- `rounding`, `gaps_in`, `gaps_out`, `border_size` in `general {}` and `decoration {}`
-- Active border uses gradient: `rgba(29f0ffee) rgba(ff47d1ee) 45deg`
-- Shadow: `rgba(05070d88)` matches the BG color with alpha
-- Test changes with `hyprctl keyword` before committing to config
-
-### kitty shaders
-- DarkWindow shaders in `kitty/shaders/darkwindow/` — 139 GLSL files
-- Current shader visible via `shader_status`
-- `shader_set` applies immediately without kitty restart
-- Shaders are pre-validated: `shader_test` runs glslangValidator
-
-### swaync notifications
-- Style uses the same palette via CSS custom properties
-- Test with `notify-send "Test" "Body text"` then screenshot
-- DND toggle: `swaync-client -d`
 
 ## Anti-Patterns
 

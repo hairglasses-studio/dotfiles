@@ -1,14 +1,29 @@
 ---
 name: hypr_layouts
 description: Orchestrate multi-window Hyprland layouts — dev setups, research environments, presentation modes — via live IPC dispatch and kitty terminal spawning.
-triggers:
-  - layout
-  - dev setup
-  - window arrangement
-  - workspace layout
-  - project layout
-  - open project
-  - arrange windows
+allowed-tools:
+  - Bash
+  - Read
+  - mcp__dotfiles__hypr_list_windows
+  - mcp__dotfiles__hypr_list_workspaces
+  - mcp__dotfiles__hypr_get_monitors
+  - mcp__dotfiles__hypr_get_active_window
+  - mcp__dotfiles__hypr_get_active_workspace
+  - mcp__dotfiles__hypr_focus_window
+  - mcp__dotfiles__hypr_move_window
+  - mcp__dotfiles__hypr_resize_window
+  - mcp__dotfiles__hypr_close_window
+  - mcp__dotfiles__hypr_toggle_floating
+  - mcp__dotfiles__hypr_fullscreen_window
+  - mcp__dotfiles__hypr_minimize_window
+  - mcp__dotfiles__hypr_switch_workspace
+  - mcp__dotfiles__hypr_dispatch
+  - mcp__dotfiles__hypr_layout_save
+  - mcp__dotfiles__hypr_layout_restore
+  - mcp__dotfiles__hypr_layout_list
+  - mcp__dotfiles__kitty_launch
+  - mcp__dotfiles__kitty_set_title
+  - mcp__dotfiles__kitty_set_layout
 ---
 
 # Hyprland Layout Orchestration
@@ -66,7 +81,7 @@ Compose multi-window layouts by combining Hyprland dispatchers, kitty terminal s
 - WS 7: browser + docs side-by-side
 - WS 1 (portrait): monitoring/logs
 
-**Research (single workspace, ultrawide)**  
+**Research (single workspace, ultrawide)**
 - 3-column: browser left, notes center, terminal right
 - All on WS 6 (ultrawide), hy3 equalizes with `$mod T`
 

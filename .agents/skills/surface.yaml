@@ -54,6 +54,36 @@
           "description": "MCP tool search and discovery for hg-mcp."
         }
       ]
+    },
+    {
+      "name": "keybinds",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "hypr_layouts",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "kitty_control",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "rice_iteration",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "screenshot_workflow",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "hypr_config_tuning",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }

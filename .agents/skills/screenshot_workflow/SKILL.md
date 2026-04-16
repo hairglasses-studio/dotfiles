@@ -1,14 +1,25 @@
 ---
 name: screenshot_workflow
 description: Wayland screenshot pipeline — capture, OCR, annotate, and integrate screenshots into development workflows (bug reports, PR descriptions, documentation).
-triggers:
-  - screenshot
-  - screen capture
-  - screen recording
-  - ocr
-  - annotate
-  - bug report screenshot
-  - visual documentation
+allowed-tools:
+  - Bash
+  - Read
+  - mcp__dotfiles__hypr_screenshot
+  - mcp__dotfiles__hypr_screenshot_window
+  - mcp__dotfiles__hypr_screenshot_region
+  - mcp__dotfiles__hypr_screenshot_monitors
+  - mcp__dotfiles__screen_screenshot
+  - mcp__dotfiles__screen_screenshot_annotated
+  - mcp__dotfiles__screen_ocr
+  - mcp__dotfiles__screen_color_pick
+  - mcp__dotfiles__screen_annotate
+  - mcp__dotfiles__screen_record_start
+  - mcp__dotfiles__screen_record_stop
+  - mcp__dotfiles__screen_record_status
+  - mcp__dotfiles__desktop_find_text
+  - mcp__dotfiles__ops_pr_create
+  - mcp__dotfiles__hypr_get_monitors
+  - mcp__dotfiles__hypr_list_windows
 ---
 
 # Screenshot Workflow
