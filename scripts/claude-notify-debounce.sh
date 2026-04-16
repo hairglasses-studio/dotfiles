@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/lib/notify.sh"
+
 CATEGORY="${1:-info}"
 TITLE="${2:-Claude Code}"
 BODY="${3:-}"
@@ -27,13 +30,8 @@ fi
 
 touch "$STAMP_FILE"
 
-command -v notify-send &>/dev/null || exit 0
-
 case "$CATEGORY" in
-  stop)     urgency="low" ;;
-  error)    urgency="critical" ;;
-  attention) urgency="normal" ;;
-  *)        urgency="low" ;;
+  error)    hg_notify_critical "Claude Code" "$BODY" ;;
+  attention) hg_notify "Claude Code" "$BODY" ;;
+  *)        hg_notify_low "Claude Code" "$BODY" ;;
 esac
-
-notify-send -u "$urgency" -a "Claude Code" "$TITLE" "$BODY" 2>/dev/null || true

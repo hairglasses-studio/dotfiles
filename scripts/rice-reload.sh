@@ -76,6 +76,14 @@ do
   fi
 done
 
+# Claude Code — clear stale state, reset ironvars
+_claude_state="${XDG_STATE_HOME:-$HOME/.local/state}/claude"
+if [[ -d "$_claude_state" ]]; then
+  rm -f "$_claude_state"/git-* "$_claude_state/burn-rate" 2>/dev/null
+  command -v ironbar &>/dev/null && ironbar var set claude_state "" 2>/dev/null && ironbar var set claude_cost "" 2>/dev/null
+  reloaded="${reloaded} claude"
+fi
+
 # Shader — rebuild transpiled shaders if build script exists
 if [[ -x "$SCRIPT_DIR/../kitty/shaders/bin/shader-build.sh" ]]; then
   "$SCRIPT_DIR/../kitty/shaders/bin/shader-build.sh" build 2>/dev/null

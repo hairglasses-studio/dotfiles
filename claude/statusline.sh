@@ -1,5 +1,5 @@
 #!/bin/bash
-# Living statusline — spinner, time-of-day palette, gradient bar, git, cost
+# Living statusline — theme-adaptive, time-of-day palette, gradient bar, git, cost
 input=$(cat)
 
 # ── Single jq parse (one field per line) ─────────
@@ -13,17 +13,31 @@ mapfile -t F < <(echo "$input" | jq -r '
 CWD="${F[0]}"; SESSION="${F[1]}"; PCT="${F[2]}"; COST="${F[3]}"; STYLE="${F[4]}"
 
 DIR="${CWD/#"$HOME"/\~}"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/claude"
+mkdir -p "$STATE_DIR" 2>/dev/null
 
 # ── ANSI helpers ─────────────────────────────────
 C_RESET=$'\033[0m'
 C_DIM=$'\033[2m'
 rgb() { printf '\033[38;2;%d;%d;%dm' "$1" "$2" "$3"; }
+hex2rgb() { printf '%d %d %d' "0x${1:0:2}" "0x${1:2:2}" "0x${1:4:2}"; }
 
-C_CYAN=$(rgb 87 199 255)
-C_MAGENTA=$(rgb 255 106 193)
-C_GREEN=$(rgb 90 247 142)
-C_YELLOW=$(rgb 243 249 157)
-C_RED=$(rgb 255 92 87)
+# ── Theme-adaptive colors from palette.env ───────
+_PALETTE="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}/theme/palette.env"
+if [[ -f "$_PALETTE" ]]; then
+  source "$_PALETTE"
+  C_CYAN=$(rgb $(hex2rgb "${THEME_PRIMARY:-6ae4ff}"))
+  C_MAGENTA=$(rgb $(hex2rgb "${THEME_SECONDARY:-ff6ad5}"))
+  C_GREEN=$(rgb $(hex2rgb "${THEME_TERTIARY:-86ffb2}"))
+  C_YELLOW=$(rgb $(hex2rgb "${THEME_WARNING:-ffd36e}"))
+  C_RED=$(rgb $(hex2rgb "${THEME_DANGER:-ff6b82}"))
+else
+  C_CYAN=$(rgb 87 199 255)
+  C_MAGENTA=$(rgb 255 106 193)
+  C_GREEN=$(rgb 90 247 142)
+  C_YELLOW=$(rgb 243 249 157)
+  C_RED=$(rgb 255 92 87)
+fi
 
 # ── Time-of-day palette ─────────────────────────
 HOUR=$(date +%H); HOUR=${HOUR#0}
@@ -65,7 +79,7 @@ if [[ -n "$CWD" ]] && git -C "$CWD" rev-parse --is-inside-work-tree &>/dev/null;
 
   # Cached branch + ahead/behind + stash
   CACHE_KEY=$(printf '%s' "$CWD" | md5sum | cut -c1-8)
-  GIT_CACHE="/tmp/.claude-sl-git-${CACHE_KEY}"
+  GIT_CACHE="${STATE_DIR}/git-${CACHE_KEY}"
   NOW=$(date +%s)
   REFRESH=1
 
@@ -139,7 +153,7 @@ COST_SEG=""
 if [[ -n "$COST" && "$COST" != "0" ]]; then
   COST_SEG="${C_DIM}$(printf '$%.2f' "$COST")${C_RESET}"
 
-  BURN_CACHE="/tmp/.claude-sl-burn"
+  BURN_CACHE="${STATE_DIR}/burn-rate"
   NOW_B=$(date +%s)
   if [[ -f "$BURN_CACHE" ]]; then
     read -r PREV_COST PREV_TIME < "$BURN_CACHE"

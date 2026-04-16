@@ -13,6 +13,8 @@ rg_cost = ""
 rg_models = ""
 rg_repos = ""
 rg_iters = ""
+claude_state = ""
+claude_cost = ""
 
 # Monitor-specific bars keep the 49" ultrawide fully featured while giving the
 # portrait side monitor a compact layout that does not clip or crowd modules.
@@ -62,19 +64,19 @@ type = "label"
 class = "rg-seg rg-cost"
 label = "{{30000:jq -r '\"$\\(.cost.total_spend_usd // 0)\"' /tmp/rg-status.json 2>/dev/null || echo ''}}"
 
-# Claude Code session
+# Claude Code session (live push via ironvar)
 [[monitors."DP-3".end]]
 type = "custom"
 class = "bar-claude"
 [[monitors."DP-3".end.bar]]
 type = "label"
 class = "claude-seg"
-label = "{{5000:jq -r 'if .state == \"working\" then \"  \\(.slug)\" elif .state == \"done\" then \"  \\(.slug)\" elif .state == \"error\" then \"  \\(.slug)\" else \"\" end' /tmp/claude-status.json 2>/dev/null || echo ''}}"
+label = "#claude_state"
 
 [[monitors."DP-3".end.bar]]
 type = "label"
 class = "claude-seg claude-cost"
-label = "{{5000:jq -r 'if .cost > 0 then \"$\\(.cost | tostring | .[0:5])\" else \"\" end' /tmp/claude-status.json 2>/dev/null || echo ''}}"
+label = "#claude_cost"
 
 # Shader indicator
 [[monitors."DP-3".end]]

@@ -135,6 +135,25 @@
   color: @green;
 }
 
+/* ── Claude Code session ─────────────────── */
+
+.bar-claude {
+  padding: 0 8px;
+}
+
+.bar-claude label {
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+.claude-seg {
+  color: @magenta;
+}
+
+.claude-cost {
+  color: @green;
+}
+
 /* ── Shader indicator ────────────────────── */
 
 .shader-indicator label {
