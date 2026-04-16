@@ -60,7 +60,7 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 - [x] [P1][S] README: add "Install MCP Server Only" section with go install one-liner
 - [x] [P1][S] README: add skills table listing all 14 skills
 - [x] [P1][S] GitHub Topics: add hyprland mcp wayland dotfiles desktop-automation linux go
-- [ ] [P2][S] Submit PR to awesome-hyprland (IPC section)
+- [x] [P2][S] Submit PR to awesome-hyprland (IPC section) — hyprland-community/awesome-hyprland#178
 - [ ] [P2][S] Submit PR to awesome-mcp-servers
 - [x] [P2][S] Update .well-known/mcp.json with categories and tags
 - [ ] [P2][M] Record 30-sec demo GIF for README
