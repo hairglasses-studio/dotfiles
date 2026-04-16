@@ -87,22 +87,33 @@ Set its opacity/alpha/probability to 0:
 
 The ticker cycles through 10 Maple Mono NF CN weight variants via Pango markup (`<span font_desc="...">`). The `FONTS` list in the config section controls the rotation. Text colors come from a Cairo LinearGradient (not Pango foreground), which allows the animated flowing gradient effect.
 
-## Content Streams (planned)
+## Content Streams
 
-The ticker currently shows only keybinds. Multi-stream support is planned:
-- `keybinds` — current, from `hyprctl binds -j`
-- `system` — CPU/GPU/RAM/temp metrics
-- `fleet` — ralphglasses fleet status from `/tmp/rg-status.json`
-- `weather` — from `scripts/bar-weather.sh`
-- `github` — notifications via `gh api /notifications`
-- `music` — MPRIS now-playing via `playerctl`
-- `notifications` — desktop notification history
+7 streams rotate every 5 minutes (REFRESH_S). Playlist state persists across restarts via `~/.local/state/keybind-ticker/current-stream`.
 
-When implementing new streams, add a `build_<stream>_markup()` function that returns Pango markup (same format as `build_ticker_markup()`). The `_rebuild()` method selects which stream to display.
+| Stream | Source | Badge Color | Notes |
+|--------|--------|-------------|-------|
+| `keybinds` | `hyprctl binds -j` | cyan | Click-to-copy via wl-copy |
+| `system` | sensors, nvidia-smi, free, /proc/uptime | yellow | CPU/GPU/RAM/uptime |
+| `fleet` | `/tmp/rg-status.json` | magenta | ralphglasses fleet status |
+| `weather` | `scripts/bar-weather.sh` | blue | Cache-fed |
+| `github` | `gh api /notifications` | green | PR/issue/release/discussion icons |
+| `notifications` | `~/.local/state/.../history.jsonl` | red | Urgency icons, last 30 entries |
+| `music` | `playerctl` | magenta | MPRIS now-playing with position |
+
+To add a new stream, create `build_<name>_markup()` returning `(markup_str, segments_list)` and add it to `STREAMS` and `STREAM_ORDER`.
+
+## Interactive Controls
+
+- **Scroll wheel**: adjust scroll speed (10-200 px/s)
+- **Click**: on keybinds stream, copies the keybind combo to clipboard via `wl-copy`
+- **Hover tooltip**: shows current stream, speed, and hovered keybind (if applicable)
 
 ## Hyprland Integration
 
-The window rule pins the ticker to DP-3 as a floating window:
+In **layer-shell mode** (default via systemd), the ticker uses `gtk4-layer-shell` to anchor to the bottom of DP-3 with exclusive zone. The systemd service sets `LD_PRELOAD=/usr/lib/libgtk4-layer-shell.so`.
+
+In **windowed mode** (no `--layer` flag), the windowrule pins it:
 ```
 windowrule {
     name = keybind-ticker
@@ -115,5 +126,3 @@ windowrule {
     decorate = false
 }
 ```
-
-If the ticker gets accidentally moved (e.g., Mod+[+/-]), restart the service to reset position.
