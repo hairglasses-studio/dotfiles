@@ -279,6 +279,68 @@ def build_github_markup():
     return single + single, []
 
 
+def build_notifications_markup():
+    URGENCY_ICONS = {"critical": "󰀦", "normal": "󰂚", "low": "󰂞"}
+    history = os.path.expanduser(
+        "~/.local/state/dotfiles/desktop-control/notifications/history.jsonl")
+    parts = [_badge("󰂚 NOTIFICATIONS", "#ff5c8a")]
+    try:
+        with open(history) as f:
+            lines = f.readlines()
+        recent = lines[-30:] if len(lines) > 30 else lines
+        recent.reverse()
+        fc = len(FONTS)
+        for i, line in enumerate(recent):
+            try:
+                n = json.loads(line)
+            except Exception:
+                continue
+            icon = URGENCY_ICONS.get(n.get("urgency", ""), "󰂚")
+            app = escape(n.get("app", "")[:20])
+            summary = escape(n.get("summary", "")[:40])
+            body = escape(n.get("body", "")[:40])
+            font = FONTS[i % fc]
+            text = f"{summary}: {body}" if body and body != summary else summary
+            parts.append(f'<span font_desc="{font}">  {icon} {app} {text}  \u00b7</span>')
+    except FileNotFoundError:
+        parts.append('<span font_desc="Maple Mono NF CN 11">  no notification history  \u00b7</span>')
+    except Exception:
+        parts.append('<span font_desc="Maple Mono NF CN 11">  notifications unavailable  \u00b7</span>')
+    single = "".join(parts)
+    return single + single, []
+
+
+def build_music_markup():
+    parts = [_badge(" MUSIC", "#ff47d1")]
+    try:
+        status = subprocess.run(
+            ["playerctl", "status"], capture_output=True, text=True, timeout=3
+        ).stdout.strip()
+        if status in ("Playing", "Paused"):
+            icon = "" if status == "Playing" else ""
+            meta = subprocess.run(
+                ["playerctl", "metadata", "--format",
+                 "{{artist}} — {{title}} [{{album}}]"],
+                capture_output=True, text=True, timeout=3,
+            ).stdout.strip()
+            pos = subprocess.run(
+                ["playerctl", "position", "--format", "{{duration(position)}}"],
+                capture_output=True, text=True, timeout=3,
+            ).stdout.strip()
+            dur = subprocess.run(
+                ["playerctl", "metadata", "--format", "{{duration(mpris:length)}}"],
+                capture_output=True, text=True, timeout=3,
+            ).stdout.strip()
+            parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">'
+                         f'  {icon} {escape(meta)}  {pos}/{dur}  \u00b7</span>')
+        else:
+            parts.append('<span font_desc="Maple Mono NF CN 11">  no media playing  \u00b7</span>')
+    except Exception:
+        parts.append('<span font_desc="Maple Mono NF CN 11">  no media playing  \u00b7</span>')
+    single = "".join(parts)
+    return single + single, []
+
+
 # Stream registry
 STREAMS = {
     "keybinds": build_keybinds_markup,
@@ -286,9 +348,11 @@ STREAMS = {
     "fleet": build_fleet_markup,
     "weather": build_weather_markup,
     "github": build_github_markup,
+    "notifications": build_notifications_markup,
+    "music": build_music_markup,
 }
 
-STREAM_ORDER = ["keybinds", "system", "fleet", "weather", "github"]
+STREAM_ORDER = ["keybinds", "system", "fleet", "weather", "github", "notifications", "music"]
 
 
 # ══════════════════════════════════════════════════
@@ -416,13 +480,23 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.glow_frame = 0
 
         # ── Content stream state ──────────────────
-        self.stream_idx = 0
         self.stream_order = list(STREAM_ORDER)
         random.shuffle(self.stream_order)
+        self.stream_idx = self._restore_stream_idx()
 
         self._rebuild_stream()
         GLib.timeout_add_seconds(REFRESH_S, self._advance_stream)
         self.da.add_tick_callback(self._tick)
+
+    def _restore_stream_idx(self):
+        try:
+            with open(os.path.join(STATE_DIR, "current-stream")) as f:
+                name = f.read().strip()
+            if name in self.stream_order:
+                return self.stream_order.index(name)
+        except (OSError, ValueError):
+            pass
+        return 0
 
     def _advance_stream(self):
         self.stream_idx = (self.stream_idx + 1) % len(self.stream_order)
