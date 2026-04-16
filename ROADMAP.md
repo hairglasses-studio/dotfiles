@@ -2,74 +2,59 @@
 
 ## Current State
 
-Manjaro Linux dotfiles with 60+ symlinked configs, 139+ DarkWindow GLSL shaders with shuffled playlists, Hairglasses Neon palette applied to 15+ tools, Hyprland-first compositor automation, an Ironbar-first menubar, and a full boot stack (rEFInd + Plymouth). Idempotent installer with backup/restore support.
+Manjaro Linux dotfiles with 90+ managed configs (chezmoi + install.sh), 139 DarkWindow GLSL shaders with shuffled playlists, Hairglasses Neon palette applied to 20+ tools, Hyprland-first compositor automation, an Ironbar menubar on the theme pipeline, and a full boot stack (rEFInd + Plymouth). Idempotent installer with chezmoi declarative management (134 managed entries, 6 lifecycle scripts).
 
-Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
+Single consolidated MCP server (dotfiles-mcp) with ~400 tools across 30+ modules. Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
 
 ## Recently Completed
 
-### GitHub Stars Integration (2026-04-16)
-Audited ~1,900 GitHub stars for dotfiles-relevant tools. Identified 10 already-integrated, 14 actionable, 10 deferred. Implemented:
+### Dotfiles Cleanup & Wiring (2026-04-16)
+Major cleanup removing -27k lines of accumulated config debt:
 
-- **hyprshade**: Config schedule + 5 MCP tools (`hyprshade_list/set/toggle/off/status`)
-- **wluma**: Adaptive brightness via ddcutil with time-of-day ALS config
-- **cliphist**: Clipboard history backend + 4 MCP tools (`cliphist_list/get/delete/clear`)
-- **zsh-auto-notify**: Long-running command notifications via swaync
-- **kanshi**: Declarative display config with home-dual/single/portable profiles
-- **kitty-scrollback.nvim**: Open kitty scrollback in Neovim (lazy.nvim plugin)
-- **hyprlax**: Parallax wallpaper mode in wallpaper-mode.sh
-- **papertoy**: Shadertoy-compatible animated wallpaper renderer
-- **glshell**: GLSL shader layershell overlay (cyberpunk rain effect)
-- **Hyprchroma**: Chroma key window transparency plugin
-- **MCP resources**: `shader://current`, `dotfiles://palette`, `validate-rice` prompt, `hypr_screenshot_region` tool
+- **Removed**: ghostty terminal (122 shaders), juhradial input device, makima gamepad remapper, CRTty shader catalog (131 files), p10k prompt engine (816 lines)
+- **Unified palette**: "Hairglasses Neon" replaces dual Snazzy/Voltage After Dark palettes across all 20+ consumers (FZF, cava, btop, yazi, kitty, hyprland, ironbar)
+- **Chezmoi migration**: declarative dotfile management with symlink_ entries, palette data in `.chezmoidata.toml`, 6 lifecycle scripts (run_once_ for OMZ/vim-plug/TPM, run_onchange_ for theme/bat/systemd)
+- **MCP consolidation**: tmux-mcp/systemd-mcp/process-mcp merged into dotfiles-mcp; eww/juhradial/makima tool handlers removed; CLAUDE.md updated to ~400 tools
+- **Boot ordering**: swww-daemon.service for supervised wallpaper daemon, readiness polls replace sleep workarounds, ironbar ExecStartPre hyprctl poll
+- **Ironbar theme pipeline**: wired into theme-sync.sh via `@import theme.generated.css`
+- **Contract snapshot**: regenerated .well-known/mcp.json (removed 14 stale tools, added 15 new)
+- **Stale reference sweep**: 50+ files cleaned across scripts, Go code, CI, docs, templates
+
+### GitHub Stars Integration (2026-04-16)
+Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
+
+- **hyprshade**: Config schedule + 5 MCP tools
+- **wluma**: Adaptive brightness via ddcutil
+- **cliphist**: Clipboard history + 4 MCP tools
+- **zsh-auto-notify**: Long-running command notifications
+- **kanshi**: Declarative display profiles
+- **kitty-scrollback.nvim**: Neovim scrollback integration
+- **glshell**: GLSL shader layershell overlay
+- **MCP resources**: `shader://current`, `dotfiles://palette`, `validate-rice` prompt
 
 ## Planned
 
-### Phase 1 — Linux Installer Hardening
-- Keep `install.sh` Linux-only and catch non-Manjaro drift early
-- Tighten package validation for pacman/yay/metapac
-- Hyprland-specific installer steps (ironbar, mako, wofi, wlogout setup)
-- Automated symlink validation in CI
+### Phase 1 — Chezmoi Hardening
+- CI gate: add `chezmoi verify --source home/` to GitHub Actions
+- Palette templates: template kitty/cava/btop/yazi configs from `.chezmoidata.toml` so palette changes auto-propagate
+- `make lint` should include chezmoi verify
 
 ### Phase 2 — Ironbar Menubar Polish
-- Menubar restart and recovery path stays reliable at login and hot reload time
 - Cache-fed fleet widgets stay visible without blocking the GTK layer
-- Workspace and focused-window modules stay legible on mixed-density monitors
-- Power, weather, and update affordances remain theme-aligned without writable bar config drift
+- Workspace and focused-window modules stay legible on 5120x1440 ultrawide
+- Keybind ticker stability and scroll performance
+- Power, weather, and update affordances remain theme-aligned
 
 ### Phase 3 — Shader Pipeline
-- Shader performance benchmarks in CI (flag regressions above GPU budget)
+- DarkWindow shader performance benchmarks in CI (flag regressions above GPU budget)
 - Shader preview gallery (static renders for README/docs)
-- Wallpaper shader expansion (more procgen options)
+- Wallpaper shader expansion (more procgen options via papertoy/shaderbg)
 - Shader parameter presets (expose uniforms as config)
 
 ## Future Considerations
-- NixOS or home-manager alternative for declarative config management
-- Neovim migration from vim-plug to lazy.nvim
-- Shared dotfiles module system (pick configs a la carte instead of all-or-nothing)
-- Automated rice screenshot CI (Hyprland headless + screenshot comparison)
 
-<!-- whiteclaw-rollout:start -->
-## Whiteclaw-Derived Improvements (2026-04-08)
-
-Recommendations seeded from the restored whiteclaw snapshot research, prompt-pack audit, MCP explorer packaging review, and current fleet gap scan.
-
-### Recommended Work
-- [x] Audit AGENTS.md against the actual build/test/release loop and keep `CLAUDE.md`, `GEMINI.md`, and Copilot instructions as thin mirrors of the canonical guidance.
-- [x] Write or refresh a searchable architecture/provenance note so future cross-repo research does not depend on raw code spelunking alone.
-- [x] Audit the existing `.agents/skills/` surface for stale workflows, missing references, and opportunities to split generic steps into sharper skills.
-- [x] Bootstrap a minimal `.ralph` loop with verification gates, cost observations, and improvement journaling so the repo can participate in controlled autonomous sweeps.
-- [x] Expand handler/CLI/MCP integration coverage around the most user-facing surfaces and add runnable examples for the public entrypoints.
-- [x] Prefer typed contracts for tools, commands, and workflow inputs at system boundaries instead of ad ad hoc maps or implicit structs.
-- [x] Add lightweight validation (shell lint, config checks, link checks, JSON/schema validation, or snapshot verification) that matches the actual artifact types in the repo.
-- [x] Harden public-facing docs, examples, and release notes so outside consumers can discover the intended workflow without org-private context.
-- [x] Add search-oriented architecture notes for installer flow, shader pipeline, and desktop control-plane integration so the repo is navigable without spelunking.
-
-### Rationale Snapshot
-- Tier: `tier-1`
-- Lifecycle: `active`
-- Language profile: `Go/Shell/Config`
-- Visibility / sensitivity: `PUBLIC` / `public`
-- Surface gaps: skills=`no`, codex=`no`, ralph=`yes`, roadmap=`no`
-
-<!-- whiteclaw-rollout:end -->
+- **Status bar research**: evaluate GPU-capable alternatives to ironbar (ags, fabric, custom Wayland layer-shell bar)
+- **hg-mcp extraction**: move `mcp/hg-mcp/` (319MB) to its own `hairglasses-studio/hg-mcp` repo
+- **Docker MCP adoption**: install mcp-server-docker for container management
+- **Automated rice screenshots**: Hyprland headless + screenshot comparison in CI
+- **Cross-repo semantic search**: evaluate CodeMCP for indexing all 20 active repos

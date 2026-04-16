@@ -1,242 +1,114 @@
 # MCP Tool Roadmap
 
-Research conducted 2026-04-02 across GitHub ecosystem. Evaluated against current
-dotfiles stack: Hyprland, Kitty (139 DarkWindow shaders), ironbar, Go/Python/Bash,
-5 custom MCP servers (86+ tools), mcpkit framework.
+Research conducted 2026-04-02, updated 2026-04-16 after major consolidation.
+Current stack: Hyprland, Kitty (139 DarkWindow shaders), ironbar, Go/Bash,
+dotfiles-mcp (~400 tools), mcpkit framework.
 
-## Current Fleet (5 servers, 86+ tools)
+## Current Fleet (2 modules, ~400 tools)
 
-| Server | Lang | Tools | Domain |
+| Module | Lang | Tools | Domain |
 |--------|------|-------|--------|
-| hyprland-mcp | Go | 12 | Compositor, screenshots, input, windows |
-| ~~sway-mcp~~ | ~~Node~~ | ~~12~~ | ~~Removed — Sway deprecated, Hyprland only~~ |
-| dotfiles-mcp | Go | 30 | Config, GitHub sync, ironbar, health, pipelines |
-| shader-mcp | Go | 11 | GLSL shaders, playlists, benchmarks |
-| input-mcp | Go | 29 | Bluetooth, controllers, MIDI, mouse, keyboard |
+| dotfiles-mcp | Go | ~400 | Config, Hyprland, Kitty, shaders, Bluetooth, input, mapping, systemd, tmux, process, ops, audio, network, Arch Linux, system, GitHub stars, sandbox, desktop interaction, desktop sessions, Claude sessions, prompt registry, screen, clipboard, notifications, hyprshade, theme |
+| mapitall | Go | — | Input device mapping daemon (udev rules, systemd service) |
+
+All previously separate servers (hyprland-mcp, sway-mcp, shader-mcp, input-mcp, systemd-mcp, tmux-mcp, process-mcp) are now consolidated into dotfiles-mcp as modules.
 
 ---
 
-## Tier 1 — Adopt Now (install from GitHub)
+## Tier 1 — Adopt (install from GitHub)
 
-### arch-mcp
-- **Repo:** https://github.com/nihalxkumar/arch-mcp (35 stars)
-- **Lang:** Python (uvx)
-- **Tools:** Arch Wiki search, AUR package lookup, official repo queries, update checking, PKGBUILD analysis
-- **Why:** Only Arch Linux MCP server in existence. Replaces manual `yay -Ss`, `pacman -Qi`, and wiki browsing during rice development. Directly useful for package discovery when adding new tools.
-- **Claude substitute:** Partial — `Bash` tool can run pacman/yay but can't search the Arch Wiki or analyze PKGBUILDs with structured output.
-- **Install:** `uvx arch-mcp` or pip
-- **Priority:** **High**
+### ~~arch-mcp~~ — Built In-House
+- **Status:** Completed as `ArchModule` in dotfiles-mcp (13 tools)
+- Tools: `arch_package_search`, `arch_aur_search`, `arch_package_info`, `arch_updates_dry_run`, `arch_orphans`, `arch_mirror_status`, `arch_file_owner`, `arch_pacman_log`, `arch_pkgbuild_audit`, `arch_news_latest`, `arch_news_critical`, `archwiki_search`, `archwiki_page`
 
 ### mcp-server-docker
 - **Repo:** https://github.com/ckreiling/mcp-server-docker (695 stars)
 - **Lang:** Python (uvx)
-- **Tools:** 16 tools — containers (list/create/run/stop/logs), images (pull/build/push), networks, volumes, compose via natural language
-- **Why:** Docker is part of the dev stack (lazydocker, dive, colima on macOS). This exposes full container lifecycle as MCP tools. The `docker_compose` prompt lets Claude compose multi-container setups conversationally.
-- **Claude substitute:** Partial — `Bash` tool can run docker commands but lacks structured container introspection, stats resources, and the compose prompt.
+- **Tools:** 16 — containers, images, networks, volumes, compose
+- **Why:** Docker is part of the dev stack. Full container lifecycle as MCP tools.
+- **Status:** Not adopted. Still valid.
 - **Install:** `uvx mcp-server-docker`
-- **Priority:** **High**
 
 ### mcp-server-kubernetes
 - **Repo:** https://github.com/Flux159/mcp-server-kubernetes (1,371 stars)
 - **Lang:** TypeScript (npx)
-- **Tools:** 20+ tools — kubectl CRUD, Helm install/upgrade/uninstall, port-forward, rollout management, pod cleanup, node management, k8s-diagnose prompt
-- **Why:** k9s, helm, stern, kubectx all in the dotfiles. Waybar has a k8s context module. This replaces manual kubectl for agent-driven cluster management. Non-destructive mode and secrets masking are important safety features.
-- **Claude substitute:** Partial — `Bash` can run kubectl but lacks structured output, secrets masking, and the diagnostic prompt.
+- **Tools:** 20+ — kubectl CRUD, Helm, port-forward, rollout management
+- **Status:** Not adopted. Valid if running K8s on homelab.
 - **Install:** `npx mcp-server-kubernetes`
-- **Priority:** **High** (if running K8s on homelab)
 
-### mcp-gopls
-- **Repo:** https://github.com/hloiseaufcms/mcp-gopls (75 stars)
-- **Lang:** Go
-- **Tools:** Go code analysis via gopls LSP — find references, implementations, call hierarchy, test execution, coverage reporting
-- **Why:** All custom MCP servers are Go. This wraps gopls to provide semantic Go analysis — find callers of a function, get coverage for a package, run specific tests. Complements `go vet`/`go test` with IDE-level intelligence.
-- **Claude substitute:** Limited — Claude can read Go code and run `go test` but can't do call graph analysis, find all callers, or get test coverage maps without gopls.
-- **Install:** `go install` from source
-- **Priority:** **High**
+### ~~mcp-gopls~~ — Deprioritized
+- Partially covered by Context7 MCP + built-in LSP tool.
 
-### godoc-mcp-server
-- **Repo:** https://github.com/yikakia/godoc-mcp-server (34 stars)
-- **Lang:** Go
-- **Tools:** Query Go package documentation from pkg.go.dev — search packages, get function signatures, read doc comments
-- **Why:** Frequently need to look up mcpkit, mcp-go, BurntSushi/toml API docs when writing MCP server code. This provides structured Go doc access without leaving the conversation.
-- **Claude substitute:** Partial — `WebFetch` can read pkg.go.dev pages but output is noisy. This gives clean structured doc access.
-- **Install:** `go install` from source
-- **Priority:** **Medium**
+### ~~godoc-mcp-server~~ — Deprioritized
+- Covered by Context7 MCP with pre-resolved library IDs.
 
 ---
 
-## Tier 2 — Evaluate (promising, may adopt)
-
-### mcp_server_notify
-- **Repo:** https://github.com/Cactusinhand/mcp_server_notify (51 stars)
-- **Lang:** Python
-- **Tools:** Desktop notifications with sound effects when agent tasks complete
-- **Why:** With ralphglasses orchestrating parallel agent sessions across repos, getting notified when long builds/tests finish would be valuable. Would fire through mako on Hyprland.
-- **Claude substitute:** Can `Bash` run `notify-send`, but this provides a clean MCP interface usable by any client.
-- **Priority:** **Medium**
-
-### mcp-server-desktop-notify
-- **Repo:** https://github.com/gbrigandi/mcp-server-desktop-notify (2 stars)
-- **Lang:** Rust
-- **Tools:** 5 notification tools — basic, urgent, with-icon, with-timeout, rich (urgency, category, app name)
-- **Why:** Richer API than mcp_server_notify. Linux gets the best feature set (XDG notifications). Rust binary = low overhead.
-- **Alternative to:** mcp_server_notify. Pick one.
-- **Priority:** **Medium**
+## Tier 2 — Evaluate
 
 ### CodeMCP
 - **Repo:** https://github.com/SimplyLiz/CodeMCP (80 stars)
 - **Lang:** Go
-- **Tools:** 80+ tools — semantic code search, impact analysis, call graphs, cross-language (Go, TS, Python, Rust, Java via SCIP indexing)
-- **Why:** Could index the entire hairglasses-studio org for cross-repo semantic search. Find all callers of a mcpkit function across 44 repos.
-- **Claude substitute:** Grep/Glob tools do text search but can't do semantic call graph analysis.
-- **Priority:** **Medium**
-
-### mcp-server-pacman (package registries)
-- **Repo:** https://github.com/oborchers/mcp-server-pacman (11 stars)
-- **Lang:** Python
-- **Tools:** Search PyPI, npm, crates.io, Docker Hub, Terraform Registry for packages
-- **Why:** Despite the name, this queries language-level package registries, not Arch pacman. Useful for discovering Go/Python/Node dependencies.
-- **Claude substitute:** `WebSearch` and `WebFetch` can browse registries but with more noise.
-- **Priority:** **Low**
-
-### stt-mcp-server-linux
-- **Repo:** https://github.com/marcindulak/stt-mcp-server-linux (22 stars)
-- **Lang:** Python (Docker)
-- **Tools:** Local speech-to-text via Whisper, push-to-talk (Right Ctrl), tmux text injection
-- **Why:** Voice-driven coding sessions. Linux-only. Requires Docker + `/dev/input` + `/dev/snd` access. Experimental but aligns with the cyberpunk aesthetic.
-- **Priority:** **Low**
+- **Tools:** 80+ — semantic code search, impact analysis, call graphs via SCIP
+- **Why:** Could index the entire hairglasses-studio org (20 active repos) for cross-repo semantic search.
+- **Status:** Not adopted. Evaluate when cross-repo refactoring becomes a bottleneck.
 
 ### terminator
 - **Repo:** https://github.com/mediar-ai/terminator (1,384 stars)
 - **Lang:** Rust
-- **Tools:** Desktop GUI automation via accessibility APIs — click, type, find elements by label/role, screenshot. No vision models needed.
-- **Why:** Could automate GUI apps (Firefox, Chromium) that aren't controllable via Hyprland IPC. Accessibility tree gives structured UI element access.
-- **Claude substitute:** hyprland-mcp provides ydotool/wtype for blind input but can't inspect GUI element trees.
-- **Priority:** **Low**
+- **Tools:** Desktop GUI automation via accessibility APIs
+- **Why:** Could automate GUI apps not controllable via Hyprland IPC.
+- **Status:** Partially covered by dotfiles-mcp DesktopSemanticModule (AT-SPI automation).
 
 ---
 
-## Tier 3 — Build In-House (zero competition, high value)
+## Tier 3 — Build In-House — ALL COMPLETED
 
-These don't exist in the MCP ecosystem. Build them using mcpkit.
-
-### systemd-mcp
-- **Tools to build:**
-  - `systemd_status` — `systemctl status <unit>` with structured output
-  - `systemd_start/stop/restart/enable/disable` — unit lifecycle
-  - `systemd_logs` — `journalctl -u <unit> --since` with filtering
-  - `systemd_list_timers` — active timer overview
-  - `systemd_list_failed` — failed units
-  - `systemd_user_services` — `--user` scope (shader-rotate, makima, ironbar, etc.)
-- **Why:** 8 systemd user services in the dotfiles. Zero MCP servers for systemd exist anywhere on GitHub. Unique competitive advantage.
-- **Effort:** Small (wrapper around systemctl/journalctl)
-- **Priority:** **High**
-
-### tmux-mcp
-- **Tools to build:**
-  - `tmux_list_sessions` — active sessions with window counts
-  - `tmux_send_keys` — send keystrokes to a pane
-  - `tmux_capture_pane` — read pane contents (structured output)
-  - `tmux_new_session/window/pane` — create layout
-  - `tmux_attach` — list attachable sessions
-- **Why:** tmux.service runs at boot. ralphglasses orchestrates agent sessions. No mature tmux MCP exists (only the STT server tangentially touches it).
-- **Effort:** Small
-- **Priority:** **Medium**
-
-### process-mcp
-- **Tools to build:**
-  - `ps_list` — processes with structured output (PID, CPU%, MEM%, CMD)
-  - `ps_tree` — process tree for a PID
-  - `kill_process` — SIGTERM/SIGKILL with confirmation
-  - `port_in_use` — what's listening on a port
-  - `gpu_status` — nvidia-smi structured output (temp, utilization, VRAM)
-- **Why:** Near-zero competition. `cuba-exec` (2 stars) and a Windows-only task manager are the only things that exist.
-- **Effort:** Small
-- **Priority:** **Low**
+| Server | Status | Module | Tools |
+|--------|--------|--------|-------|
+| ~~systemd-mcp~~ | Done | `SystemdModule` | 11 tools: status, start, stop, restart, enable, disable, logs, list_units, list_timers, failed, restart_verify |
+| ~~tmux-mcp~~ | Done | `TmuxModule` | 11 tools: list_sessions, list_windows, list_panes, new_session, new_window, send_keys, capture_pane, kill_session, search_panes, wait_for_text, workspace |
+| ~~process-mcp~~ | Done | `ProcessModule` | 8 tools: ps_list, ps_tree, port_list, investigate_port, investigate_service, kill_process, gpu_status, system_updates |
 
 ---
 
-## Already Covered (skip these)
+## Already Covered
 
-| Category | Covered By | GitHub alternatives |
-|----------|-----------|-------------------|
-| Screenshots | hyprland-mcp, sway-mcp | prosperity-solutions/mcp-server-screenshot (macOS only) |
-| Clipboard | sway-mcp (`clipboard_read/write`) | mcp-wayland-clipboard (1 tool, redundant) |
-| Bluetooth | input-mcp (10 bt_* tools) | Nothing exists |
-| Shaders | shader-mcp (11 tools) | Nothing exists |
-| Wayland/Compositor | hyprland-mcp, sway-mcp | wayland-mcp (kurojs), hyprmcp — both smaller |
-| Input devices | input-mcp (29 tools) | Nothing exists |
-| Config validation | dotfiles-mcp | Nothing comparable |
-| GitHub sync | dotfiles-mcp (10 gh_* tools) | github/github-mcp-server (complementary, not redundant) |
-
-## GitHub MCP vs Built-in gh CLI
-
-The official `github/github-mcp-server` (28,499 stars, Go) is the largest MCP server by stars. However, Claude Code already has deep `gh` CLI integration via the Bash tool, and your dotfiles-mcp has 10 `gh_*` tools for org sync, bulk operations, and fleet management. The official GitHub MCP would add:
-- Structured PR review with diff parsing
-- Code search across orgs (vs grep-based local search)
-- Workflow run management
-
-**Verdict:** Complementary but not essential. The `gh` CLI + dotfiles-mcp covers 90% of the use cases. Add only if you need cross-org code search or structured PR review beyond what `gh pr view` provides.
+| Category | Covered By | Notes |
+|----------|-----------|-------|
+| Screenshots | dotfiles-mcp (HyprlandModule, ScreenModule) | hypr_screenshot, hypr_screenshot_monitors, hypr_screenshot_window, hypr_screenshot_region, screen_screenshot, screen_ocr |
+| Clipboard | dotfiles-mcp (ClipboardModule) | clipboard_read, clipboard_write, clipboard_read_image, cliphist_list/get/delete/clear |
+| Bluetooth | dotfiles-mcp (BluetoothModule) | 9 bt_* tools + bt_discover_and_connect composed workflow |
+| Shaders | dotfiles-mcp (ShaderModule) | 18 shader_*/wallpaper_* tools |
+| Compositor | dotfiles-mcp (HyprlandModule + HyprlandExtModule) | 37 hypr_* tools |
+| Input devices | dotfiles-mcp (InputModule, ControllerModule, MidiModule) | 20 input_*/midi_* tools |
+| Config validation | dotfiles-mcp (DotfilesModule) | dotfiles_validate_config, dotfiles_check_symlinks |
+| GitHub sync | dotfiles-mcp (DotfilesModule) | 12 dotfiles_gh_* tools |
+| Arch Linux | dotfiles-mcp (ArchModule) | 13 arch_*/archwiki_* tools |
+| Audio | dotfiles-mcp (AudioModule) | 5 audio_* tools |
+| Network | dotfiles-mcp (NetworkModule) | 6 network_* tools |
+| System info | dotfiles-mcp (SystemModule) | 7 system_* tools |
+| Desktop automation | dotfiles-mcp (DesktopInteractModule, DesktopSemanticModule, DesktopSessionModule) | 48 desktop_*/session_* tools |
+| SDLC ops | dotfiles-mcp (OpsModule) | 21 ops_* tools |
 
 ---
 
-## Installation Plan
+## Remaining Adoption Plan
 
-### Phase 1 — Quick wins (pip/npx install)
+### Docker MCP (when needed)
 ```bash
-# arch-mcp
-pip install arch-mcp  # or uvx
-
-# Docker MCP
 uvx mcp-server-docker
-
-# K8s MCP (if running k8s)
-npx mcp-server-kubernetes
 ```
+Add to `.mcp.json` when container management becomes a daily workflow.
 
-Add to `.mcp.json`:
-```json
-{
-  "mcpServers": {
-    "arch": {
-      "command": "uvx",
-      "args": ["arch-mcp"]
-    },
-    "docker": {
-      "command": "uvx",
-      "args": ["mcp-server-docker"]
-    },
-    "kubernetes": {
-      "command": "npx",
-      "args": ["-y", "mcp-server-kubernetes"]
-    }
-  }
-}
-```
-
-### Phase 2 — Go servers (build from source)
-```bash
-# mcp-gopls
-cd ~/hairglasses-studio && git clone https://github.com/hloiseaufcms/mcp-gopls
-cd mcp-gopls && go build ./...
-
-# godoc-mcp-server
-git clone https://github.com/yikakia/godoc-mcp-server
-cd godoc-mcp-server && go build ./...
-```
-
-### Phase 3 — Build in-house
-```bash
-# systemd-mcp (new mcpkit server)
-cd ~/hairglasses-studio
-# Use dotfiles-mcp as template, add systemd module
-```
+### Cross-Repo Semantic Search (evaluate)
+Clone and test CodeMCP against the hairglasses-studio org to see if SCIP indexing provides value beyond Grep/Glob.
 
 ---
 
 ## Discovery Resources
 
-- **[awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)** — 84,106 stars, the definitive curated list
-- **[glama.ai/mcp/servers](https://glama.ai/mcp/servers)** — Web directory for MCP servers
-- **[github/github-mcp-server](https://github.com/github/github-mcp-server)** — 28,499 stars, official GitHub MCP
-- **[modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers)** — Official reference implementations
+- **[awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)** — curated MCP server list
+- **[glama.ai/mcp/servers](https://glama.ai/mcp/servers)** — web directory
+- **[github/github-mcp-server](https://github.com/github/github-mcp-server)** — official GitHub MCP
+- **[modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers)** — reference implementations
