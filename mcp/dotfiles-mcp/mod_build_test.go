@@ -202,28 +202,6 @@ func TestOnboardRepo_MissingRepoPath(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// dotfiles_eww_get — input validation
-// ---------------------------------------------------------------------------
-
-func TestEwwGet_MissingVariable(t *testing.T) {
-	m := &DotfilesModule{}
-	td := findTool(t, m, "dotfiles_eww_get")
-
-	req := registry.CallToolRequest{}
-	req.Params.Arguments = map[string]any{
-		"variable": "",
-	}
-
-	result, err := td.Handler(context.Background(), req)
-	if err != nil {
-		t.Fatalf("handler error: %v", err)
-	}
-	if result == nil || !result.IsError {
-		t.Fatal("expected error result for empty variable")
-	}
-}
-
-// ---------------------------------------------------------------------------
 // JSON round-trip tests for build/pipeline output types
 // ---------------------------------------------------------------------------
 

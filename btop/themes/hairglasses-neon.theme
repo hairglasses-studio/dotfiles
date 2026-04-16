@@ -1,0 +1,78 @@
+# Hairglasses Neon theme for btop
+
+# Main bg and fg
+theme[main_bg]="#05070d"
+theme[main_fg]="#f7fbff"
+
+# Title color
+theme[title]="#f7fbff"
+
+# Highlight color
+theme[hi_fg]="#29f0ff"
+
+# Selected items
+theme[selected_bg]="#0f1219"
+theme[selected_fg]="#f7fbff"
+
+# Inactive items
+theme[inactive_fg]="#66708f"
+
+# Misc UI
+theme[proc_misc]="#29f0ff"
+
+# Box outlines
+theme[cpu_box]="#29f0ff"
+theme[mem_box]="#3dffb5"
+theme[net_box]="#ff47d1"
+theme[proc_box]="#ffe45e"
+
+# Graph colors (gradient)
+theme[graph_text]="#f7fbff"
+
+# CPU
+theme[cpu_start]="#29f0ff"
+theme[cpu_mid]="#ff47d1"
+theme[cpu_end]="#ff5c8a"
+
+# Free mem
+theme[free_start]="#3dffb5"
+theme[free_mid]="#3dffb5"
+theme[free_end]="#29f0ff"
+
+# Cached mem
+theme[cached_start]="#29f0ff"
+theme[cached_mid]="#29f0ff"
+theme[cached_end]="#ff47d1"
+
+# Available mem
+theme[available_start]="#ffe45e"
+theme[available_mid]="#ffe45e"
+theme[available_end]="#3dffb5"
+
+# Used mem
+theme[used_start]="#ff47d1"
+theme[used_mid]="#ff5c8a"
+theme[used_end]="#ff5c8a"
+
+# Download
+theme[download_start]="#29f0ff"
+theme[download_mid]="#29f0ff"
+theme[download_end]="#ff47d1"
+
+# Upload
+theme[upload_start]="#3dffb5"
+theme[upload_mid]="#3dffb5"
+theme[upload_end]="#ffe45e"
+
+# Process
+theme[process_start]="#29f0ff"
+theme[process_mid]="#ff47d1"
+theme[process_end]="#ff5c8a"
+
+# Temperature
+theme[temp_start]="#3dffb5"
+theme[temp_mid]="#ffe45e"
+theme[temp_end]="#ff5c8a"
+
+# Divider line
+theme[div_line]="#66708f"

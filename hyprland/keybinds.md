@@ -60,7 +60,6 @@
 | Key | Action |
 |-----|--------|
 | `Super+V` | Clipboard history |
-| `Super+C` | Color picker |
 
 ## 󰎆 Media
 

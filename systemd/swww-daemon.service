@@ -1,15 +1,13 @@
 [Unit]
-Description=dotfiles Ironbar top bar
+Description=swww wallpaper daemon
 PartOf=graphical-session.target
 After=graphical-session.target
 
 [Service]
 Type=simple
 ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"'
-ExecStartPre=/usr/bin/sh -c 'for i in $(seq 1 20); do hyprctl version > /dev/null 2>&1 && exit 0; sleep 0.5; done; exit 1'
 Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=%h/hairglasses-studio/dotfiles/scripts/run-ironbar.sh
-SuccessExitStatus=143
+ExecStart=/usr/bin/swww-daemon
 Restart=on-failure
 RestartSec=2
 

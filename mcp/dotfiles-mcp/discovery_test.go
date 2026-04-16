@@ -99,7 +99,6 @@ func TestShouldDeferDotfilesTool(t *testing.T) {
 		{"desktop", "input_type_text", false},
 		{"desktop", "dotfiles_rice_check", false},
 		{"desktop", "hypr_monitor_preset_list", false},
-		{"desktop", "dotfiles_eww_inspect", false},
 		{"desktop", "dotfiles_fleet_audit", true},
 		{"desktop", "bt_connect", true},
 		{"desktop", "midi_list_devices", true},
@@ -232,7 +231,6 @@ func TestRegisterDotfilesModules_DesktopProfile(t *testing.T) {
 		"input_type_text",
 		"dotfiles_rice_check",
 		"hypr_monitor_preset_list",
-		"dotfiles_eww_inspect",
 	} {
 		if reg.IsDeferred(toolName) {
 			t.Fatalf("%s should NOT be deferred in desktop profile", toolName)

@@ -1,91 +1,91 @@
-# Yazi theme — Snazzy on black
+# Yazi theme — Hairglasses Neon
 
 [manager]
-cwd = { fg = "#57c7ff", bold = true }
-hovered = { bg = "#1a1a1a", fg = "#f1f1f0", bold = true }
+cwd = { fg = "#29f0ff", bold = true }
+hovered = { bg = "#0f1219", fg = "#f7fbff", bold = true }
 preview_hovered = { underline = true }
-find_keyword = { fg = "#f3f99d", bold = true, italic = true }
-find_position = { fg = "#ff6ac1", italic = true }
-marker_selected = { fg = "#5af78e", bg = "#5af78e" }
-marker_copied = { fg = "#f3f99d", bg = "#f3f99d" }
-marker_cut = { fg = "#ff5c57", bg = "#ff5c57" }
-tab_active = { fg = "#000000", bg = "#57c7ff" }
-tab_inactive = { fg = "#686868", bg = "#1a1a1a" }
-count_selected = { fg = "#000000", bg = "#5af78e" }
-count_copied = { fg = "#000000", bg = "#f3f99d" }
-count_cut = { fg = "#000000", bg = "#ff5c57" }
+find_keyword = { fg = "#ffe45e", bold = true, italic = true }
+find_position = { fg = "#ff47d1", italic = true }
+marker_selected = { fg = "#3dffb5", bg = "#3dffb5" }
+marker_copied = { fg = "#ffe45e", bg = "#ffe45e" }
+marker_cut = { fg = "#ff5c8a", bg = "#ff5c8a" }
+tab_active = { fg = "#05070d", bg = "#29f0ff" }
+tab_inactive = { fg = "#66708f", bg = "#0f1219" }
+count_selected = { fg = "#05070d", bg = "#3dffb5" }
+count_copied = { fg = "#05070d", bg = "#ffe45e" }
+count_cut = { fg = "#05070d", bg = "#ff5c8a" }
 border_symbol = "│"
-border_style = { fg = "#686868" }
+border_style = { fg = "#66708f" }
 
 [status]
 separator_open = ""
 separator_close = ""
-separator_style = { fg = "#1a1a1a", bg = "#1a1a1a" }
-mode_normal = { fg = "#000000", bg = "#57c7ff", bold = true }
-mode_select = { fg = "#000000", bg = "#5af78e", bold = true }
-mode_unset = { fg = "#000000", bg = "#ff6ac1", bold = true }
-progress_label = { fg = "#f1f1f0", bold = true }
-progress_normal = { fg = "#57c7ff", bg = "#1a1a1a" }
-progress_error = { fg = "#ff5c57", bg = "#1a1a1a" }
-permissions_t = { fg = "#57c7ff" }
-permissions_r = { fg = "#f3f99d" }
-permissions_w = { fg = "#ff5c57" }
-permissions_x = { fg = "#5af78e" }
-permissions_s = { fg = "#686868" }
+separator_style = { fg = "#0f1219", bg = "#0f1219" }
+mode_normal = { fg = "#05070d", bg = "#29f0ff", bold = true }
+mode_select = { fg = "#05070d", bg = "#3dffb5", bold = true }
+mode_unset = { fg = "#05070d", bg = "#ff47d1", bold = true }
+progress_label = { fg = "#f7fbff", bold = true }
+progress_normal = { fg = "#29f0ff", bg = "#0f1219" }
+progress_error = { fg = "#ff5c8a", bg = "#0f1219" }
+permissions_t = { fg = "#29f0ff" }
+permissions_r = { fg = "#ffe45e" }
+permissions_w = { fg = "#ff5c8a" }
+permissions_x = { fg = "#3dffb5" }
+permissions_s = { fg = "#66708f" }
 
 [input]
-border = { fg = "#57c7ff" }
-title = { fg = "#57c7ff" }
-value = { fg = "#f1f1f0" }
+border = { fg = "#29f0ff" }
+title = { fg = "#29f0ff" }
+value = { fg = "#f7fbff" }
 selected = { reversed = true }
 
 [pick]
-border = { fg = "#57c7ff" }
-active = { fg = "#ff6ac1", bold = true }
-inactive = { fg = "#686868" }
+border = { fg = "#29f0ff" }
+active = { fg = "#ff47d1", bold = true }
+inactive = { fg = "#66708f" }
 
 [confirm]
-border = { fg = "#57c7ff" }
-title = { fg = "#57c7ff" }
-content = { fg = "#f1f1f0" }
-list = { fg = "#f1f1f0" }
-btn_yes = { bg = "#5af78e", fg = "#000000" }
-btn_no = { bg = "#ff5c57", fg = "#000000" }
-btn_labels = { fg = "#f1f1f0" }
+border = { fg = "#29f0ff" }
+title = { fg = "#29f0ff" }
+content = { fg = "#f7fbff" }
+list = { fg = "#f7fbff" }
+btn_yes = { bg = "#3dffb5", fg = "#05070d" }
+btn_no = { bg = "#ff5c8a", fg = "#05070d" }
+btn_labels = { fg = "#f7fbff" }
 
 [completion]
-border = { fg = "#57c7ff" }
-active = { bg = "#1a1a1a", fg = "#f1f1f0", bold = true }
-inactive = { fg = "#686868" }
+border = { fg = "#29f0ff" }
+active = { bg = "#0f1219", fg = "#f7fbff", bold = true }
+inactive = { fg = "#66708f" }
 
 [tasks]
-border = { fg = "#57c7ff" }
-title = { fg = "#57c7ff" }
-hovered = { fg = "#ff6ac1", underline = true }
+border = { fg = "#29f0ff" }
+title = { fg = "#29f0ff" }
+hovered = { fg = "#ff47d1", underline = true }
 
 [help]
-on = { fg = "#57c7ff" }
-run = { fg = "#ff6ac1" }
-desc = { fg = "#686868" }
-hovered = { bg = "#1a1a1a", bold = true }
-footer = { fg = "#686868" }
+on = { fg = "#29f0ff" }
+run = { fg = "#ff47d1" }
+desc = { fg = "#66708f" }
+hovered = { bg = "#0f1219", bold = true }
+footer = { fg = "#66708f" }
 
 [filetype]
 rules = [
-    { mime = "image/*", fg = "#ff6ac1" },
-    { mime = "video/*", fg = "#f3f99d" },
-    { mime = "audio/*", fg = "#5af78e" },
-    { name = "*.go", fg = "#57c7ff" },
-    { name = "*.rs", fg = "#ff5c57" },
-    { name = "*.py", fg = "#f3f99d" },
-    { name = "*.js", fg = "#f3f99d" },
-    { name = "*.ts", fg = "#57c7ff" },
-    { name = "*.md", fg = "#f1f1f0" },
-    { name = "*.yml", fg = "#ff6ac1" },
-    { name = "*.yaml", fg = "#ff6ac1" },
-    { name = "*.toml", fg = "#ff6ac1" },
-    { name = "*.json", fg = "#f3f99d" },
-    { name = "*.sh", fg = "#5af78e" },
-    { name = "*Dockerfile*", fg = "#57c7ff" },
-    { name = "*Makefile*", fg = "#5af78e" },
+    { mime = "image/*", fg = "#ff47d1" },
+    { mime = "video/*", fg = "#ffe45e" },
+    { mime = "audio/*", fg = "#3dffb5" },
+    { name = "*.go", fg = "#29f0ff" },
+    { name = "*.rs", fg = "#ff5c8a" },
+    { name = "*.py", fg = "#ffe45e" },
+    { name = "*.js", fg = "#ffe45e" },
+    { name = "*.ts", fg = "#29f0ff" },
+    { name = "*.md", fg = "#f7fbff" },
+    { name = "*.yml", fg = "#ff47d1" },
+    { name = "*.yaml", fg = "#ff47d1" },
+    { name = "*.toml", fg = "#ff47d1" },
+    { name = "*.json", fg = "#ffe45e" },
+    { name = "*.sh", fg = "#3dffb5" },
+    { name = "*Dockerfile*", fg = "#29f0ff" },
+    { name = "*Makefile*", fg = "#3dffb5" },
 ]

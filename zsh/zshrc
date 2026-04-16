@@ -159,7 +159,7 @@ da=38;5;243:\
 *.md=37:*.json=33:*.yaml=33:*.yml=33:*.toml=33"
 
 # ── Autosuggestions styling ─────────────────────
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#686868'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#66708f'
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # ── Key bindings ────────────────────────────────
@@ -225,9 +225,9 @@ command -v direnv &>/dev/null && _cached_eval direnv direnv hook zsh
 _cached_eval fzf fzf --zsh
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='
-  --color=bg+:#1a1a1a,bg:#000000,spinner:#ff6ac1,hl:#57c7ff
-  --color=fg:#f1f1f0,header:#57c7ff,info:#f3f99d,pointer:#ff6ac1
-  --color=marker:#5af78e,fg+:#f1f1f0,prompt:#ff6ac1,hl+:#57c7ff
+  --color=bg+:#0f1219,bg:#05070d,spinner:#ff47d1,hl:#29f0ff
+  --color=fg:#f7fbff,header:#29f0ff,info:#ffe45e,pointer:#ff47d1
+  --color=marker:#3dffb5,fg+:#f7fbff,prompt:#ff47d1,hl+:#29f0ff
   --height=40% --layout=reverse --border=rounded --margin=0,1
   --preview "bat --color=always --style=numbers {} 2>/dev/null || cat {}"
   --preview-window right:50%:wrap

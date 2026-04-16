@@ -139,7 +139,6 @@ type dotfilesDesktopStatusOutput struct {
 	Accessibility   dotfilesDesktopCapability `json:"accessibility"`
 	DesktopSession  dotfilesDesktopCapability `json:"desktop_session"`
 	Ironbar         dotfilesDesktopCapability `json:"ironbar"`
-	Eww             dotfilesDesktopCapability `json:"eww"`
 	Notifications   dotfilesDesktopCapability `json:"notifications"`
 	Terminal        dotfilesDesktopCapability `json:"terminal"`
 	Shader          dotfilesDesktopCapability `json:"shader"`
@@ -560,16 +559,6 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 			}
 			ironbarDetails = append(ironbarDetails, fmt.Sprintf("%d visible layer surfaces", len(ironbarStatus.Layers)))
 
-			legacyBarDetails := []string{
-				"legacy Eww surface retired; ironbar is the active menubar runtime",
-			}
-			if hasCmd("eww") {
-				legacyBarDetails = append(legacyBarDetails, "legacy eww binary still present on PATH")
-			}
-			if pathExists(filepath.Join(homeDir(), ".config", "eww")) {
-				legacyBarDetails = append(legacyBarDetails, "legacy ~/.config/eww still present")
-			}
-
 			notificationMissing := make([]string, 0)
 			notificationDetails := make([]string, 0)
 			if hasCmd("swaync-client") {
@@ -687,10 +676,6 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 					Details: ironbarDetails,
 					Missing: uniqueSortedStrings(ironbarMissing),
 				},
-				Eww: dotfilesDesktopCapability{
-					Ready:   true,
-					Details: legacyBarDetails,
-				},
 				Notifications: dotfilesDesktopCapability{
 					Ready:   len(notificationMissing) == 0,
 					Details: notificationDetails,
@@ -786,7 +771,6 @@ func dotfilesModules() []registry.ToolModule {
 		&BluetoothModule{},
 		&ControllerModule{},
 		&MidiModule{},
-		&JuhradialModule{},
 		&WorkflowModule{},
 		&OSSModule{},
 		&MappingEngineModule{},

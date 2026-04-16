@@ -301,9 +301,6 @@ func TestDotfilesDesktopStatusReadyWithFixtures(t *testing.T) {
 	if !detailContainsSubstring(out.Ironbar.Details, "process running (1 instances)") {
 		t.Fatalf("expected ironbar detail to report process count, got %v", out.Ironbar.Details)
 	}
-	if !detailContainsSubstring(out.Eww.Details, "legacy Eww surface retired") {
-		t.Fatalf("expected legacy eww compatibility detail, got %v", out.Eww.Details)
-	}
 	if !detailContainsSubstring(out.Notifications.Details, "1 tracked notification entries") {
 		t.Fatalf("expected notification history detail, got %v", out.Notifications.Details)
 	}

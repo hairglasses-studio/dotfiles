@@ -197,7 +197,7 @@ func TestValidateConfig_EmptyJSON(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestReloadCommands_AllPresent(t *testing.T) {
-	expected := []string{"hyprland", "ironbar", "mako", "eww", "waybar", "sway", "tmux"}
+	expected := []string{"hyprland", "ironbar", "mako", "waybar", "sway", "tmux"}
 	for _, svc := range expected {
 		if _, ok := reloadCommands[svc]; !ok {
 			t.Errorf("missing reload command for %s", svc)
@@ -316,7 +316,7 @@ func TestDotfilesModules_Count(t *testing.T) {
 
 	expected := []string{
 		"dotfiles", "hyprland", "shader", "input", "bluetooth",
-		"controller", "midi", "juhradial", "workflow", "oss",
+		"controller", "midi", "workflow", "oss",
 		"mapping", "learn", "mapping_status", "mapping_daemon",
 		"screen", "input_simulate", "claude_session", "prompt_registry",
 	}
@@ -370,12 +370,6 @@ func TestAllModuleToolsValid(t *testing.T) {
 
 func TestInputPathHelpers(t *testing.T) {
 	t.Setenv("DOTFILES_DIR", "/tmp/test-dotfiles")
-	if got := juhradialConfigPath(); got != "/tmp/test-dotfiles/juhradial/config.json" {
-		t.Errorf("juhradialConfigPath() = %q", got)
-	}
-	if got := juhradialProfilesPath(); got != "/tmp/test-dotfiles/juhradial/profiles.json" {
-		t.Errorf("juhradialProfilesPath() = %q", got)
-	}
 	if got := makimaDir(); got != "/tmp/test-dotfiles/makima" {
 		t.Errorf("makimaDir() = %q", got)
 	}
