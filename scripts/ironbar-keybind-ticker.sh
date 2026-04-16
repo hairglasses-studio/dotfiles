@@ -31,9 +31,12 @@ ticker+="$ticker"
 half=$(( ${#ticker} / 2 ))
 offset=0
 
-# Scroll: 350-char window at 50fps (sleep 0.02)
+# Render at ~233fps (just under DP-3's 239.76Hz) but advance text slowly.
+# Scroll 1 char every 12 frames ≈ 19 chars/sec — readable stock-ticker pace.
+frame=0
+advance=12
 while true; do
   printf '%s\n' "${ticker:$offset:350}"
-  offset=$(( (offset + 1) % half ))
-  sleep 0.02
+  (( ++frame % advance == 0 )) && offset=$(( (offset + 1) % half ))
+  sleep 0.0043
 done
