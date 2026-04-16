@@ -46,8 +46,11 @@ done
 # Do NOT multiply by scale factor.
 
 if [[ "$PATTERN" == "ticker" ]]; then
-    # Keybind-ticker: pinned at logical 0,692 with size 2560x28 on DP-3.
-    GEOMETRY="0,692 2560x28"
+    # Keybind-ticker: layer-shell surface on DP-3 (bottom 28px).
+    # Use full-output capture + ffmpeg crop — layer surfaces aren't in hyprctl clients.
+    USE_OUTPUT_CROP=true
+    OUTPUT_NAME="DP-3"
+    CROP_FILTER="crop=iw:56:0:ih-56"  # bottom 28px logical = 56px physical at 2x
     LABEL="ticker"
 else
     # Find window by title pattern
@@ -85,9 +88,14 @@ trap 'rm -f "$TMP_MP4"' EXIT
 # ---------------------------------------------------------------------------
 # Record
 # ---------------------------------------------------------------------------
-echo "Recording: geometry=${GEOMETRY}, duration=${DURATION}s" >&2
 
-wf-recorder -g "$GEOMETRY" -f "$TMP_MP4" &
+if [[ "${USE_OUTPUT_CROP:-}" == "true" ]]; then
+    echo "Recording: output=${OUTPUT_NAME}, crop=${CROP_FILTER}, duration=${DURATION}s" >&2
+    wf-recorder -y -o "$OUTPUT_NAME" -f "$TMP_MP4" &
+else
+    echo "Recording: geometry=${GEOMETRY}, duration=${DURATION}s" >&2
+    wf-recorder -y -g "$GEOMETRY" -f "$TMP_MP4" &
+fi
 WF_PID=$!
 
 sleep "$DURATION"
@@ -104,8 +112,14 @@ fi
 # ---------------------------------------------------------------------------
 echo "Converting to GIF..." >&2
 
+VF_CHAIN="fps=30"
+if [[ -n "${CROP_FILTER:-}" ]]; then
+    VF_CHAIN="${VF_CHAIN},${CROP_FILTER}"
+fi
+VF_CHAIN="${VF_CHAIN},scale=iw:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse"
+
 ffmpeg -y -i "$TMP_MP4" \
-    -vf "fps=30,scale=iw:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
+    -vf "$VF_CHAIN" \
     "$OUT_GIF" 2>/dev/null
 
 if [[ ! -s "$OUT_GIF" ]]; then

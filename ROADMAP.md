@@ -55,6 +55,19 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 - [x] [P2][S] MCP: `shader_benchmark` tool — glslangValidator compile time + file size benchmarking
 - [x] [P2][S] MCP: `shader://categories` resource — category breakdown
 
+### Cyberpunk Ticker Bar (2026-04-16)
+Standalone GTK4 PangoCairo 240Hz scrolling ticker replacing ironbar script-based version:
+
+- [x] [P1][L] Pixel-smooth scrolling via DrawingArea + `add_tick_callback`
+- [x] [P1][M] 10-layer visual effects: water caustic, neon glow, gradient, scanlines, text outline, wave distortion, glitch/CA, shadow
+- [x] [P1][M] 7 content streams: keybinds, system, fleet, weather, github, notifications, music
+- [x] [P1][S] Click-to-copy keybinds via wl-copy, scroll wheel speed control
+- [x] [P1][S] Layer-shell production mode via gtk4-layer-shell (systemd service)
+- [x] [P1][S] 4 effect presets: ambient, cyberpunk, minimal, clean
+- [x] [P2][S] Playlist persistence across restarts
+- [x] [P2][S] `/ticker` skill for management
+- [x] [P2][S] `capture-window-gif.sh` helper with output-crop for layer-shell surfaces
+
 ### Phase 3 — Public Content
 - [x] [P1][S] README: add use-case section with 5 concrete workflow examples
 - [x] [P1][S] README: add "Install MCP Server Only" section with go install one-liner
