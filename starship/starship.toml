@@ -1,226 +1,26 @@
 # Snazzy-on-black Starship prompt — matches Ghostty rice
-# Full-featured config with contextual modules
 
 palette = "snazzy"
 
 format = """
-$username\
-$hostname\
 $directory\
-$git_branch\
-$git_commit\
-$git_state\
-$git_metrics\
-$git_status\
-$package\
-$golang\
-$nodejs\
-$python\
-$rust\
-$terraform\
-$helm\
-$docker_context\
-$container\
-$kubernetes\
-$aws\
-$gcloud\
-${env_var.VIRTUAL_ENV}\
-$cmd_duration\
-$jobs\
-$fill\
 $line_break\
 $character"""
 
-right_format = """
-${custom.agent}\
-${custom.claude_fleet}\
-${custom.claude}\
-${custom.codex}\
-$time"""
+right_format = ""
 
-# ── Prompt ──────────────────────────────────────
 [character]
 success_symbol = "[](bold green)"
 error_symbol = "[](bold red)"
 
-[username]
-show_always = false
-style_user = "gray"
-style_root = "bold red"
-format = "[$user]($style) "
-
-[hostname]
-ssh_only = true
-style = "gray"
-format = "[@$hostname]($style) "
-
 [directory]
 style = "bold cyan"
-truncation_length = 3
-truncation_symbol = "../"
-format = "[\\[$path\\]]($style)[$read_only]($read_only_style) "
+truncation_length = 5
+truncation_symbol = "…/"
+format = "[$path]($style)[$read_only]($read_only_style)"
 read_only = " 󰌾"
 read_only_style = "red"
 
-# ── Git ─────────────────────────────────────────
-[git_branch]
-symbol = " "
-style = "bold magenta"
-
-[git_commit]
-tag_symbol = " 󰓹 "
-style = "gray"
-commit_hash_length = 7
-only_detached = true
-
-[git_state]
-style = "bold yellow"
-rebase = "REBASING"
-merge = "MERGING"
-revert = "REVERTING"
-cherry_pick = "CHERRY-PICKING"
-bisect = "BISECTING"
-
-[git_metrics]
-disabled = false
-added_style = "green"
-deleted_style = "red"
-format = '([+$added]($added_style) )([-$deleted]($deleted_style) )'
-
-[git_status]
-style = "bold yellow"
-ahead = "⇡${count}"
-behind = "⇣${count}"
-diverged = "⇕⇡${ahead_count}⇣${behind_count}"
-modified = "!${count}"
-untracked = "?${count}"
-staged = "+${count}"
-stashed = "≡${count}"
-conflicted = "=${count}"
-
-# ── Languages ───────────────────────────────────
-[package]
-symbol = "󰏗 "
-style = "yellow"
-format = "[$symbol$version]($style) "
-
-[golang]
-symbol = " "
-style = "bold lcyan"
-
-[nodejs]
-symbol = " "
-style = "bold green"
-
-[python]
-symbol = " "
-style = "bold yellow"
-format = '[$symbol${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
-
-[rust]
-symbol = " "
-style = "bold red"
-
-[terraform]
-symbol = "󱁢 "
-style = "bold lcyan"
-format = "[$symbol$workspace]($style) "
-
-# ── Cloud / Infra ───────────────────────────────
-[docker_context]
-symbol = " "
-style = "bold cyan"
-only_with_files = true
-
-[kubernetes]
-disabled = false
-symbol = "󱃾 "
-style = "bold cyan"
-format = "[$symbol$context( \\($namespace\\))]($style) "
-
-[aws]
-disabled = false
-symbol = " "
-style = "bold yellow"
-format = "[$symbol($profile )(\\($region\\) )]($style)"
-
-[gcloud]
-disabled = false
-symbol = "󱇶 "
-style = "bold cyan"
-format = "[$symbol($project )]($style)"
-
-# ── Status / Meta ───────────────────────────────
-[cmd_duration]
-min_time = 2_000
-style = "gray"
-format = "took [$duration]($style) "
-show_notifications = false
-
-[jobs]
-symbol = "+"
-style = "yellow"
-threshold = 1
-
-[fill]
-symbol = " "
-
-[time]
-disabled = false
-style = "gray"
-format = "[$time]($style)"
-time_format = "%H:%M"
-
-[helm]
-symbol = "⎈ "
-style = "bold cyan"
-format = "[$symbol$version]($style) "
-
-[container]
-symbol = "⬡ "
-style = "cyan"
-format = "[$symbol$name]($style) "
-
-[env_var.VIRTUAL_ENV]
-symbol = "🐍 "
-style = "yellow"
-format = "[$env_value]($style) "
-variable = "VIRTUAL_ENV"
-default = ""
-
-# ── AI / Agent ──────────────────────────────────
-[custom.agent]
-command = "jq -r '\"\\(.name) $\\(.cost)\"' /tmp/ralphglasses-active.json 2>/dev/null"
-when = "test -f /tmp/ralphglasses-active.json"
-symbol = "󰪚 "
-style = "bold magenta"
-format = "[$symbol$output]($style) "
-
-[custom.claude_fleet]
-when = 'test -z "$CLAUDECODE" && ls ~/.claude/sessions/*.json >/dev/null 2>&1'
-command = "ls ~/.claude/sessions/*.json 2>/dev/null | wc -l | tr -d ' '"
-symbol = " "
-style = "gray"
-format = "[$symbol$output]($style) "
-
-[custom.claude]
-when = 'test "$CLAUDECODE" = "1"'
-command = '''
-cost=$(awk '{printf "$%.2f",$1}' ~/.local/state/claude/burn-rate 2>/dev/null)
-echo "${CLAUDE_CODE_EFFORT_LEVEL:+$CLAUDE_CODE_EFFORT_LEVEL }${cost}"
-'''
-symbol = " "
-style = "bold green"
-format = "[$symbol$output]($style) "
-
-[custom.codex]
-when = "test -f ~/.codex/state_5.sqlite"
-command = '''sqlite3 ~/.codex/state_5.sqlite "SELECT (SELECT model FROM threads WHERE archived!=1 ORDER BY updated_at DESC LIMIT 1) || ' ×' || (SELECT COUNT(*) FROM threads WHERE archived!=1 AND updated_at > strftime('%s','now') - 86400)" 2>/dev/null'''
-symbol = "󰧑 "
-style = "bold lcyan"
-format = "[$symbol$output]($style) "
-
-# ── Palette ─────────────────────────────────────
 [palettes.snazzy]
 cyan    = "#57c7ff"
 magenta = "#ff6ac1"
