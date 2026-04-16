@@ -66,6 +66,8 @@ id_ed25519*
 .claude/*
 !.claude/skills/
 !.claude/skills/*/SKILL.md
+!.claude/rules/
+!.claude/rules/*.md
 .ralph/
 
 # Large binaries (prevent accidental commits)
