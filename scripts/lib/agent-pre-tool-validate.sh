@@ -43,6 +43,15 @@ case "$file_path" in
       fi
     fi
     ;;
+  *.go)
+    if command -v gofmt >/dev/null 2>&1 && [[ -f "$file_path" ]]; then
+      if ! gofmt -e "$file_path" >/dev/null 2>&1; then
+        echo "[validate] Go syntax error in $file_path" >&2
+        gofmt -e "$file_path" 2>&1 | head -5 >&2
+        exit 1
+      fi
+    fi
+    ;;
 esac
 
 exit 0
