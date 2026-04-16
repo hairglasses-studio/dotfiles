@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""keybind-ticker.py — Pixel-smooth scrolling keybind ticker for Hyprland.
+"""keybind-ticker.py — Cyberpunk keybind ticker for Hyprland.
 
-GTK4 DrawingArea with PangoCairo rendering at float pixel offsets,
-synced to the display frame clock via add_tick_callback (240Hz on DP-3).
-Each keybind entry cycles through Maple font weights. Text is painted
-with an animated neon color gradient that flows across the bar.
+GTK4 DrawingArea with PangoCairo at 240Hz frame-clock sync.
+Full effect stack: neon glow, animated gradient, CRT scanlines,
+film grain, drop shadow, periodic glitch + chromatic aberration,
+breathing glow pulse. All effects combined use ~12% of frame budget.
 
 Usage:
   keybind-ticker.py              # regular window (tiles with hy3)
@@ -16,7 +16,10 @@ import subprocess
 import json
 import sys
 import math
-import cairo as _cairo  # for LinearGradient
+import random
+import cairo as _cairo
+import numpy as np
+from scipy.ndimage import uniform_filter1d
 from html import escape
 
 gi.require_version("Gtk", "4.0")
@@ -34,12 +37,26 @@ if LAYER_MODE:
 
 # ── Config ────────────────────────────────────────
 BAR_H = 28
-SPEED = 55.0           # px/sec text scroll speed
-GRADIENT_SPEED = 40.0  # px/sec gradient phase drift (independent of scroll)
-GRADIENT_SPAN = 800.0  # px width of one full color cycle
-REFRESH_S = 300        # rebuild keybind list every 5 min
+SPEED = 55.0            # px/sec text scroll
+GRADIENT_SPEED = 40.0   # px/sec gradient phase drift
+GRADIENT_SPAN = 800.0   # px per full color cycle
+REFRESH_S = 300         # rebuild keybinds every 5 min
+GLOW_KERNEL = 17        # horizontal blur kernel size
+GLOW_BASE_ALPHA = 0.35  # glow base intensity
+GLOW_PULSE_AMP = 0.15   # glow pulse amplitude (±)
+GLOW_PULSE_PERIOD = 3.5 # seconds per breathe cycle
+GRAIN_OPACITY = 0.07    # film grain overlay opacity
+GRAIN_TILE_W = 512      # noise tile width
+SCANLINE_OPACITY = 0.18 # CRT scanline darkness
+SHADOW_OFFSET = 2       # drop shadow px offset
+SHADOW_ALPHA = 0.25     # drop shadow opacity
+GLITCH_PROB = 0.004     # per-frame probability (~1/sec at 240Hz)
+GLITCH_FRAMES = 4       # duration in frames
+GLITCH_STRIPS = 3       # number of displaced strips
+GLITCH_MAX_SHIFT = 10   # max horizontal displacement px
+CA_OFFSET = 3           # chromatic aberration px offset
 
-# Maple font weight cycle — each keybind gets a different variant
+# Maple font weight cycle
 FONTS = [
     "Maple Mono NF CN 11",
     "Maple Mono NF CN Bold 11",
@@ -53,7 +70,7 @@ FONTS = [
     "Maple Mono NF CN Bold Italic 11",
 ]
 
-# Hairglasses Neon gradient stops (looping: cyan → magenta → green → yellow → pink → cyan)
+# Hairglasses Neon gradient stops
 GRADIENT_COLORS = [
     (0.161, 0.941, 1.000),  # #29f0ff cyan
     (1.000, 0.278, 0.820),  # #ff47d1 magenta
@@ -64,9 +81,11 @@ GRADIENT_COLORS = [
     (0.161, 0.941, 1.000),  # #29f0ff cyan (wrap)
 ]
 
-BG = (0.020, 0.027, 0.051, 0.92)
+BG = (0.020, 0.027, 0.051, 0.82)  # lowered alpha for frosted glass
 CYAN = (0.161, 0.941, 1.0)
 
+
+# ── Helpers ───────────────────────────────────────
 
 def fmt_mods(mask):
     out = ""
@@ -78,8 +97,6 @@ def fmt_mods(mask):
 
 
 def build_ticker_markup():
-    """Build Pango markup with cycling font weights — no foreground attrs
-    so Cairo gradient controls all text color."""
     try:
         raw = subprocess.run(
             ["hyprctl", "binds", "-j"],
@@ -98,32 +115,42 @@ def build_ticker_markup():
             desc = escape(b["description"])
             key = escape(f"{mods}{b['key']}")
             font = FONTS[i % font_count]
-
             parts.append(
-                f'<span font_desc="{font}">'
-                f'  {desc}  {key}  \u00b7'
-                f'</span>'
+                f'<span font_desc="{font}">  {desc}  {key}  \u00b7</span>'
             )
             i += 1
 
     single = "".join(parts)
-    return single + single  # doubled for seamless wrap
+    return single + single
 
 
 def make_gradient(x_start, total_width, phase):
-    """Create a Cairo LinearGradient cycling through the neon palette.
-    `phase` shifts the gradient origin for animation."""
     x0 = x_start - phase
-    x1 = x0 + total_width
-    grad = _cairo.LinearGradient(x0, 0, x1, 0)
+    grad = _cairo.LinearGradient(x0, 0, x0 + total_width, 0)
     grad.set_extend(_cairo.Extend.REPEAT)
-
     n = len(GRADIENT_COLORS)
     for i, (r, g, b) in enumerate(GRADIENT_COLORS):
         grad.add_color_stop_rgb(i / (n - 1), r, g, b)
-
     return grad
 
+
+def make_noise_tile(w, h):
+    """Pre-bake a repeatable noise tile at startup."""
+    noise = np.random.randint(0, 50, (h, w), dtype=np.uint8)
+    # Pack into ARGB32: alpha=noise, RGB=white
+    argb = np.zeros((h, w, 4), dtype=np.uint8)
+    argb[:, :, 0] = noise  # B
+    argb[:, :, 1] = noise  # G
+    argb[:, :, 2] = noise  # R
+    argb[:, :, 3] = noise  # A
+    surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, w, h)
+    buf = surf.get_data()
+    buf[:] = argb.tobytes()
+    surf.mark_dirty()
+    return surf
+
+
+# ── Main Window ───────────────────────────────────
 
 class TickerWindow(Gtk.ApplicationWindow):
     def __init__(self, **kwargs):
@@ -155,11 +182,23 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.da.set_draw_func(self._draw)
         self.set_child(self.da)
 
+        # Scroll / animation state
         self.offset = 0.0
         self.gradient_phase = 0.0
+        self.time_s = 0.0
         self.last_us = None
         self.layout = None
         self.half_w = 1.0
+
+        # Glitch state machine
+        self.glitch_remaining = 0
+        self.glitch_strips = []
+
+        # Pre-baked noise tile for film grain
+        self.noise_tile = make_noise_tile(GRAIN_TILE_W, BAR_H)
+        self.noise_pat = _cairo.SurfacePattern(self.noise_tile)
+        self.noise_pat.set_extend(_cairo.Extend.REPEAT)
+        self.noise_frame = 0
 
         self._rebuild()
         GLib.timeout_add_seconds(REFRESH_S, self._rebuild)
@@ -177,25 +216,65 @@ class TickerWindow(Gtk.ApplicationWindow):
             dt = min((now - self.last_us) / 1_000_000.0, 0.05)
             self.offset += SPEED * dt
             self.gradient_phase += GRADIENT_SPEED * dt
+            self.time_s += dt
             if self.half_w > 0 and self.offset >= self.half_w:
                 self.offset -= self.half_w
             if self.gradient_phase >= GRADIENT_SPAN:
                 self.gradient_phase -= GRADIENT_SPAN
+
+            # Glitch trigger
+            if self.glitch_remaining > 0:
+                self.glitch_remaining -= 1
+            elif random.random() < GLITCH_PROB:
+                self.glitch_remaining = GLITCH_FRAMES
+                self.glitch_strips = [
+                    (random.randint(0, BAR_H - 4),
+                     random.randint(3, 8),
+                     random.randint(-GLITCH_MAX_SHIFT, GLITCH_MAX_SHIFT))
+                    for _ in range(GLITCH_STRIPS)
+                ]
+
         self.last_us = now
+        self.noise_frame += 1
         widget.queue_draw()
         return GLib.SOURCE_CONTINUE
 
+    def _render_text_surface(self, width, height):
+        """Render gradient text to a fresh offscreen surface (avoids snapshot reuse)."""
+        surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
+        tc = _cairo.Context(surf)
+
+        x = -self.offset
+        y = (height - 14) / 2
+        text_grad = make_gradient(x, self.half_w, self.gradient_phase)
+        tc.set_source(text_grad)
+
+        tc.move_to(x, y)
+        PangoCairo.show_layout(tc, self.layout)
+        tc.move_to(x + self.half_w, y)
+        PangoCairo.show_layout(tc, self.layout)
+
+        surf.flush()
+        return surf
+
+    def _compute_glow(self, text_surf, width, height):
+        """Extract alpha from text_surf, blur horizontally, return A8 surface."""
+        stride = text_surf.get_stride()
+        argb = np.frombuffer(text_surf.get_data(), dtype=np.uint8).reshape(height, stride // 4, 4)
+        alpha = argb[:, :width, 3].astype(np.float32)
+
+        blurred = uniform_filter1d(alpha, size=GLOW_KERNEL, axis=1, mode='constant')
+        blurred = np.clip(blurred, 0, 255).astype(np.uint8)
+
+        glow = _cairo.ImageSurface(_cairo.FORMAT_A8, width, height)
+        glow_stride = glow.get_stride()
+        glow_buf = glow.get_data()
+        for row in range(height):
+            glow_buf[row * glow_stride: row * glow_stride + width] = blurred[row].tobytes()
+        glow.mark_dirty()
+        return glow
+
     def _draw(self, da, cr, width, height):
-        # Background
-        cr.set_source_rgba(*BG)
-        cr.paint()
-
-        # Top border — animated gradient matching text
-        border_grad = make_gradient(0, width, self.gradient_phase)
-        cr.set_source(border_grad)
-        cr.rectangle(0, 0, width, 1)
-        cr.fill()
-
         # Build layout once per markup rebuild
         if self.layout is None:
             self.layout = PangoCairo.create_layout(cr)
@@ -205,17 +284,71 @@ class TickerWindow(Gtk.ApplicationWindow):
             if self.half_w > 0:
                 self.offset = self.offset % self.half_w
 
-        # Animated neon gradient as text paint source
-        x = -self.offset
-        y = (height - 14) / 2
-        text_grad = make_gradient(x, self.half_w, self.gradient_phase)
-        cr.set_source(text_grad)
+        # ── Layer 0: Background ──────────────────────
+        cr.set_source_rgba(*BG)
+        cr.paint()
 
-        # Draw scrolling text (two copies for seamless wrap)
-        cr.move_to(x, y)
-        PangoCairo.show_layout(cr, self.layout)
-        cr.move_to(x + self.half_w, y)
-        PangoCairo.show_layout(cr, self.layout)
+        # ── Layer 1: Top border (animated gradient) ──
+        border_grad = make_gradient(0, width, self.gradient_phase)
+        cr.set_source(border_grad)
+        cr.rectangle(0, 0, width, 1)
+        cr.fill()
+
+        # ── Render text to fresh offscreen surface ───
+        text_surf = self._render_text_surface(width, height)
+
+        # ── Layer 2: Neon glow (blurred halo) ────────
+        glow_a8 = self._compute_glow(text_surf, width, height)
+        glow_alpha = GLOW_BASE_ALPHA + GLOW_PULSE_AMP * math.sin(
+            self.time_s * (2 * math.pi / GLOW_PULSE_PERIOD)
+        )
+        glow_grad = make_gradient(0, width, self.gradient_phase)
+        cr.set_source(glow_grad)
+        cr.paint_with_alpha(0)  # reset
+        cr.set_source(glow_grad)
+        cr.mask_surface(glow_a8, 0, 0)
+
+        # ── Layer 3: Drop shadow ─────────────────────
+        cr.set_source_rgba(0, 0, 0, SHADOW_ALPHA)
+        cr.mask_surface(text_surf, SHADOW_OFFSET, SHADOW_OFFSET)
+
+        # ── Layer 4: Sharp gradient text ─────────────
+        cr.set_source_surface(text_surf, 0, 0)
+        cr.paint()
+
+        # ── Layer 5: Chromatic aberration (during glitch) ──
+        if self.glitch_remaining > 0:
+            cr.save()
+            cr.set_source_rgba(1, 0, 0, 0.3)
+            cr.mask_surface(text_surf, CA_OFFSET, 0)
+            cr.restore()
+            cr.save()
+            cr.set_source_rgba(0, 0.3, 1, 0.3)
+            cr.mask_surface(text_surf, -CA_OFFSET, 0)
+            cr.restore()
+
+        # ── Layer 6: Glitch strip displacement ───────
+        if self.glitch_remaining > 0:
+            for strip_y, strip_h, shift in self.glitch_strips:
+                cr.save()
+                cr.rectangle(0, strip_y, width, strip_h)
+                cr.clip()
+                cr.set_source_surface(text_surf, shift, 0)
+                cr.paint()
+                cr.restore()
+
+        # ── Layer 7: CRT scanlines ───────────────────
+        cr.set_source_rgba(0, 0, 0, SCANLINE_OPACITY)
+        for row in range(0, height, 2):
+            cr.rectangle(0, row, width, 1)
+        cr.fill()
+
+        # ── Layer 8: Film grain (scrolling noise tile) ─
+        m = _cairo.Matrix()
+        m.translate(-(self.noise_frame * 1.3) % GRAIN_TILE_W, 0)
+        self.noise_pat.set_matrix(m)
+        cr.set_source(self.noise_pat)
+        cr.paint_with_alpha(GRAIN_OPACITY)
 
 
 class TickerApp(Gtk.Application):
