@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# kitty-shader-playlist.sh — Kitty-owned shader + theme rotation
-# Canonical shader assets live in kitty/shaders/crtty/ and are paired with
-# Kitty theme playlists for per-spawn visual variation.
+# kitty-shader-playlist.sh — Kitty shader + theme rotation via Hypr-DarkWindow
+# Canonical shader assets live in kitty/shaders/darkwindow/ (pre-transpiled
+# from ghostty sources for the Hypr-DarkWindow plugin API) and are paired
+# with Kitty theme playlists for per-spawn visual variation. The active
+# shader is written to $_state_dir/darkwindow-active.glsl, which hyprland.conf
+# registers as the `kitty-shader` named shader. Cycling triggers an
+# `hyprctl reload` so DarkWindow re-compiles the updated file content.
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]:-$0}")"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
@@ -11,7 +15,7 @@ source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/notify.sh"
 
 _dotfiles="$HG_DOTFILES"
-_shader_dir="$_dotfiles/kitty/shaders/crtty"
+_shader_dir="$_dotfiles/kitty/shaders/darkwindow"
 _shader_playlist_dir="$_dotfiles/kitty/shaders/playlists"
 _theme_playlist_dir="$_dotfiles/kitty/themes/playlists"
 _state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/kitty-shaders"
@@ -23,7 +27,7 @@ _current_label="$_state_dir/current-label"
 _current_theme_conf="$_state_dir/current-theme.conf"
 _pending_theme="$_state_dir/pending-theme"
 _auto_rotate_playlist="$_state_dir/auto-rotate-playlist"
-_crtty_active="$_state_dir/crtty-active.glsl"
+_crtty_active="$_state_dir/darkwindow-active.glsl"
 _current_position="$_state_dir/current-position"
 _current_total="$_state_dir/current-total"
 _current_selection_mode="$_state_dir/current-selection-mode"
@@ -332,6 +336,12 @@ _write_visual_state() {
   printf '%s' "$theme" > "$_pending_theme"
   printf '%s' "$playlist" > "$_auto_rotate_playlist"
   _write_selection_state "$mode" "$playlist"
+  # Re-compile the darkwindow named shader from the updated file. Skip during
+  # initial state-dir warm-up (no HYPRLAND_INSTANCE_SIGNATURE) so install and
+  # headless paths remain quiet.
+  if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl >/dev/null 2>&1; then
+    hyprctl reload >/dev/null 2>&1 || true
+  fi
 }
 
 _theme_only_state() {
@@ -516,18 +526,12 @@ cmd_spawn() {
     shift || true
   fi
 
-  local shader theme theme_conf shader_path
+  local shader theme theme_conf
   IFS=$'\t' read -r shader theme theme_conf < <(_choose_visual next "$playlist")
   _write_visual_state "$shader" "$theme" "$playlist" "$theme_conf" queue
-  shader_path="$(_shader_path "$shader")"
-
-  if command -v crtty >/dev/null 2>&1; then
-    if (( $# > 0 )); then
-      exec crtty -s "$shader_path" --app kitty -- "$@"
-    fi
-    exec crtty -s "$shader_path" --app kitty
-  fi
-
+  # Shader application is handled by the Hypr-DarkWindow windowrule in
+  # hyprland.conf — the new kitty window picks it up automatically once
+  # _write_visual_state has reloaded the plugin with the updated file.
   exec kitty "$@"
 }
 
