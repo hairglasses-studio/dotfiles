@@ -67,6 +67,7 @@ window-theme = dark
 
 # ── Shader ──────────────────────────────────────
 custom-shader = shaders/film-grain-pro.glsl
+custom-shader = shaders/focus-dim.glsl
 custom-shader-animation = true
 
 # ── Links ───────────────────────────────────────

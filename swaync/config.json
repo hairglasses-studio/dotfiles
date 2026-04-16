@@ -44,6 +44,10 @@
     "squelch-test-plugin": {
       "state": "ignored",
       "body": "plugin test notification"
+    },
+    "claude-code": {
+      "state": "enabled",
+      "app-name": "Claude Code"
     }
   },
   "widgets": [

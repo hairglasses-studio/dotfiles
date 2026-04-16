@@ -36,4 +36,4 @@ case "$CATEGORY" in
   *)        urgency="low" ;;
 esac
 
-notify-send -u "$urgency" -a "$TITLE" "$TITLE" "$BODY" 2>/dev/null || true
+notify-send -u "$urgency" -a "Claude Code" "$TITLE" "$BODY" 2>/dev/null || true

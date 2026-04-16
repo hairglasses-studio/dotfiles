@@ -1,0 +1,33 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-keybindings.json",
+  "$docs": "https://code.claude.com/docs/en/keybindings",
+  "bindings": [
+    {
+      "context": "Global",
+      "bindings": {
+        "ctrl+alt+r": "app:redraw"
+      }
+    },
+    {
+      "context": "Chat",
+      "bindings": {
+        "ctrl+j": "chat:newline",
+        "ctrl+alt+t": "chat:thinkingToggle",
+        "ctrl+alt+p": "chat:modelPicker"
+      }
+    },
+    {
+      "context": "Scroll",
+      "bindings": {
+        "ctrl+f": "scroll:fullPageDown",
+        "ctrl+b": "scroll:fullPageUp"
+      }
+    },
+    {
+      "context": "ThemePicker",
+      "bindings": {
+        "ctrl+alt+s": "theme:toggleSyntaxHighlighting"
+      }
+    }
+  ]
+}

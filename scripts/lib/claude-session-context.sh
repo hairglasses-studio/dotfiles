@@ -3,6 +3,9 @@
 # Output goes to additionalContext (advisory, not blocking)
 set -euo pipefail
 
+# Gradient welcome banner (visual only, not context)
+figlet -f slant -w 60 "hg studio" 2>/dev/null | lolcat -f -S 42 > /dev/tty 2>/dev/null || true
+
 context=""
 cwd="${CWD:-$PWD}"
 
