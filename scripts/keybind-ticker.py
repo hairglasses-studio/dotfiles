@@ -298,8 +298,10 @@ class TickerWindow(Gtk.ApplicationWindow):
         tc.set_source(text_grad)
 
         tc.move_to(x, y)
+        PangoCairo.update_layout(tc, self.layout)
         PangoCairo.show_layout(tc, self.layout)
         tc.move_to(x + self.half_w, y)
+        PangoCairo.update_layout(tc, self.layout)
         PangoCairo.show_layout(tc, self.layout)
 
         surf.flush()

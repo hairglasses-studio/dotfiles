@@ -1,0 +1,6 @@
+# Ticker content playlist — one stream ID per line
+# Streams rotate every 5 minutes (REFRESH_S in keybind-ticker.py)
+keybinds
+system
+fleet
+weather

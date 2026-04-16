@@ -4,143 +4,172 @@
 
 | Key | Action |
 |-----|--------|
-| `Super+Enter` | Default terminal |
-| `Super+Ctrl+Enter` | Persistent dev terminal |
-| `Super+Alt+Enter` | Raw terminal |
-| `Super+D` | App launcher |
-| `Super+`` | Keybind reference |
-| `Super+X` | Dropdown terminal |
-| `Super+Shift+E` | Power menu |
-| `Super+Ctrl+F` | Restart menubar |
+| `?` | Default terminal |
+| `?` | Persistent dev terminal |
+| `?` | Raw terminal |
+| `?` | App launcher |
+| `?` | Dev console |
+| `?` | Keybind reference |
+| `?` | Dropdown terminal |
+| `?` | Power menu |
+| `?` | Restart menubar |
 
 ##  Layout
 
 | Key | Action |
 |-----|--------|
-| `Super+F` | Fullscreen |
-| `Super+Shift+Space` | Toggle float |
-| `Super+Space` | Cycle focus |
-| `Super+A` | Focus urgent/last |
-| `Super+-` | Swap with next |
-| `Super+,` | Swap prev |
-| `Super+.` | Swap next |
+| `?` | Fullscreen |
+| `?` | Toggle float |
+| `?` | Cycle focus |
+| `?` | Focus urgent/last |
+| `?` | Swap with next |
+| `?` | Swap prev |
+| `?` | Toggle layout hy3/dwindle |
 
 ##  Window management
 
 | Key | Action |
 |-----|--------|
-| `Super+Shift+Q` | Close window |
-| `Alt+Tab` | App switcher |
-| `Super+Shift+R` | Reload config |
+| `?` | Close window |
+| `?` | Kill mode (click to kill) |
+| `?` | App switcher |
+| `?` | Expose all windows |
+| `?` | Reload config |
+| `?` | Pin window on top |
+
+## 󰆧 Window groups
+
+| Key | Action |
+|-----|--------|
+| `?` | Toggle window group |
+| `?` | Cycle group tab |
+| `?` | Lock groups |
+
+## 󰍹 Monitor focus
+
+| Key | Action |
+|-----|--------|
+| `?` | Focus other monitor |
+| `?` | Pull workspace to this monitor |
+
+## 󰘸 Minimize / Special workspace
+
+| Key | Action |
+|-----|--------|
+| `?` | Minimize to drawer |
+| `?` | Show minimized drawer |
 
 ## 󰩨 Resize
 
 | Key | Action |
 |-----|--------|
-| `Super+Shift+;` | Enter resize mode |
-| `H` | *resize:* Shrink width |
-| `J` | *resize:* Grow height |
-| `K` | *resize:* Shrink height |
-| `L` | *resize:* Grow width |
-| `Enter` | *resize:* Exit resize (Enter) |
-| `Esc` | *resize:* Exit resize (Esc) |
+| `?` | Enter resize mode |
+| `?` | *resize:* Shrink width |
+| `?` | *resize:* Grow height |
+| `?` | *resize:* Shrink height |
+| `?` | *resize:* Grow width |
+| `?` | *resize:* Exit resize (Enter) |
+| `?` | *resize:* Exit resize (Esc) |
 
 ##  Screenshots
 
 | Key | Action |
 |-----|--------|
-| `Super+S` | Screenshot full → clipboard |
-| `Super+Shift+S` | Screenshot region → clipboard |
-| `Super+Ctrl+S` | Screenshot crop → save + clipboard |
-| `Super+Alt+S` | Screenshot delay 3s |
-| `Super+Alt+R` | Toggle screen recording |
+| `?` | Screenshot full → clipboard |
+| `?` | Screenshot region → clipboard |
+| `?` | Screenshot crop → save + clipboard |
+| `?` | Screenshot delay 3s |
+| `?` | Toggle screen recording |
 
 ##  Clipboard & Color
 
 | Key | Action |
 |-----|--------|
-| `Super+V` | Clipboard history |
+| `?` | Clipboard history |
 
 ## 󰎆 Media
 
 | Key | Action |
 |-----|--------|
-| `XF86AudioPlay` | Play/pause |
-| `XF86AudioNext` | Next track |
-| `XF86AudioPrev` | Previous track |
-| `XF86AudioMute` | Toggle mute |
-| `XF86AudioRaiseVolume` | Volume up |
-| `XF86AudioLowerVolume` | Volume down |
-| `XF86MonBrightnessUp` | Brightness up |
-| `XF86MonBrightnessDown` | Brightness down |
+| `?` | Play/pause |
+| `?` | Next track |
+| `?` | Previous track |
+| `?` | Toggle mute |
+| `?` | Volume up |
+| `?` | Volume down |
+| `?` | Brightness up |
+| `?` | Brightness down |
 
 ##  Night light
 
 | Key | Action |
 |-----|--------|
-| `Super+Shift+T` | Toggle night light |
+| `?` | Toggle night light |
 
 ##  Kitty & Visual
 
 | Key | Action |
 |-----|--------|
-| `Super+G` | Shader next |
-| `Super+Shift+G` | Theme next |
-| `Super+Alt+G` | Shader toggle |
-| `Super+Shift+P` | Theme prev |
-| `Super+Ctrl+R` | Safe rice reload (hyprland+ironbar+hyprshell hot-reload+dock+kitty+gtk+shaders) |
-| `Super+Ctrl+G` | Reload kitty |
-| `Super+Alt+F` | Font next |
-| `Super+Shift+Alt+F` | Font prev |
+| `?` | Shader next |
+| `?` | Theme next |
+| `?` | Shader toggle |
+| `?` | Theme prev |
+| `?` | Safe rice reload (hyprland+ironbar+hyprshell hot-reload+dock+kitty+gtk+shaders) |
+| `?` | Reload kitty |
+| `?` | Font next |
+| `?` | Font prev |
 
 ##  Tools
 
 | Key | Action |
 |-----|--------|
-| `Super+C` | Color picker |
-| `Super+Print` | Screenshot annotate |
-| `Super+Shift+Print` | Screenshot full → save |
-| `Super+Ctrl+Print` | Screenshot OCR → clipboard |
-| `Super+Ctrl+D` | Toggle screen shader |
-| `Super+E` | Emoji picker |
+| `?` | Color picker |
+| `?` | Screenshot annotate |
+| `?` | Screenshot full → save |
+| `?` | Screenshot OCR → clipboard |
+| `?` | Toggle screen shader |
+| `?` | Emoji picker |
 
-##  Notification center
+## 󰂚 Notification center
 
 | Key | Action |
 |-----|--------|
-| `Super+N` | Toggle notification center |
-| `Super+Shift+N` | Dismiss all notifications |
+| `?` | Toggle notification center |
+| `?` | Dismiss all notifications |
+| `?` | Toggle Do Not Disturb |
 
 ## 󰚩 Claude Code
 
 | Key | Action |
 |-----|--------|
-| `Super+Ctrl+C` | Agent session picker |
+| `?` | Agent session picker |
 
 ##  System
 
 | Key | Action |
 |-----|--------|
-| `Super+Shift+W` | Wallpaper shader next |
-| `Super+Shift+Ctrl+W` | Wallpaper shader random |
-| `Super+Shift+Alt+W` | Wallpaper static random |
-| `Super+Ctrl+W` | Wallpaper video mode |
-| `Super+Alt+W` | Wallpaper depth mode |
-| `Super+Shift+E` | Power menu |
+| `?` | Wallpaper shader next |
+| `?` | Wallpaper shader random |
+| `?` | Wallpaper static random |
+| `?` | Wallpaper video mode |
+| `?` | Wallpaper depth mode |
+| `?` | Wallpaper parallax mode |
+| `?` | Wallpaper papertoy mode |
+| `?` | Toggle GLSL shader overlay |
 
 ## 󰎟 Scratchpads
 
 | Key | Action |
 |-----|--------|
-| `Super+Shift+Enter` | Scratchpad: terminal |
-| `Super+Shift+V` | Scratchpad: volume |
-| `Super+Shift+F` | Scratchpad: files |
-| `Super+Shift+C` | Scratchpad: Claude Code |
+| `?` | Scratchpad: terminal |
+| `?` | Scratchpad: volume |
+| `?` | Scratchpad: files |
+| `?` | Scratchpad: dev console |
 
 ## 󰍽 Mouse
 
 | Key | Action |
 |-----|--------|
-| `Super+LMB` | Move window (drag) |
-| `Super+RMB` | Resize window (drag) |
+| `?` | Move window (drag) |
+| `?` | Resize window (drag) |
 

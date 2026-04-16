@@ -1,0 +1,95 @@
+---
+name: gh_repo_polish
+description: Fix and polish GitHub repo presentation — update descriptions to match README, set topics, enable Discussions, create missing releases, archive deprecated repos, transfer repos between org and personal account, merge Dependabot PRs, and set homepage URLs. Use when a repo needs public-facing cleanup, when preparing repos for interviews, when descriptions are stale, or when you need to batch-fix repo metadata across the org.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - mcp__github__create_or_update_file
+  - mcp__github__get_file_contents
+  - mcp__github__list_pull_requests
+  - mcp__github__merge_pull_request
+  - mcp__studio_desktop__dotfiles_gh_bulk_settings
+  - mcp__studio_desktop__dotfiles_gh_transfer_repos
+  - mcp__studio_desktop__dotfiles_gh_bulk_archive
+---
+
+# GitHub Repo Polish
+
+Apply presentation fixes to one or more GitHub repos. Dry-run by default; mutate only with `--execute` or explicit user confirmation.
+
+## Setup
+
+Source the GitHub PAT: `source /home/hg/hairglasses-studio/.env && export GH_TOKEN="$GITHUB_ORG_ADMIN_PAT"`
+
+## Default loop
+
+1. **Target selection**: Parse `$ARGUMENTS` for repo name(s). If empty or "all", iterate all public non-archived repos in hairglasses-studio.
+
+2. **README extraction** (per repo): Read README.md first 20 lines to extract:
+   - Headline description (first non-badge, non-empty paragraph)
+   - Badge URLs (each `badge.svg` or `img.shields.io` link)
+   - Numeric claims (package count, tool count, coverage %, shader count, exercise count)
+
+3. **Description sync**: Compare README headline against GitHub repo description.
+   - If mismatch: propose updated description
+   - Truncate to 350 chars (GitHub limit)
+   - `gh repo edit hairglasses-studio/{repo} --description "..."`
+
+4. **Topic check**: If fewer than 3 topics, suggest topics from README keywords.
+   - `gh api -X PUT /repos/hairglasses-studio/{repo}/topics --input - <<< '{"names":[...]}'`
+
+5. **Dependabot PR cleanup**: List open PRs, filter for Dependabot.
+   - If green (mergeable, checks passing): merge with `gh pr merge {id} --squash --admin`
+   - Report count merged vs skipped
+
+6. **Release check**: If git tags exist but no GitHub Release, create one.
+   - Use latest tag: `gh release create {tag} --repo hairglasses-studio/{repo} --title "{tag}" --generate-notes --latest`
+
+7. **Feature toggles**: Check and optionally enable:
+   - Discussions (if repo has > 50 stars or is a framework)
+   - GitHub Pages (if `docs/` directory exists)
+   - `gh repo edit hairglasses-studio/{repo} --enable-discussions`
+
+8. **Archive/transfer**: If `$ARGUMENTS` contains `--archive {repo}`:
+   - `gh repo archive hairglasses-studio/{repo} --yes`
+   - If `--transfer-to-personal`: `gh api -X POST /repos/hairglasses-studio/{repo}/transfer -f new_owner=hairglasses`
+
+9. **Report**: Output what was changed, what was proposed (dry-run), and what needs manual action (UI-only: pinning, org pins).
+
+## Shell fallback
+
+```bash
+source /home/hg/hairglasses-studio/.env && export GH_TOKEN="$GITHUB_ORG_ADMIN_PAT"
+
+# Update description
+gh repo edit hairglasses-studio/{repo} --description "New description here"
+
+# Set topics
+gh api -X PUT /repos/hairglasses-studio/{repo}/topics \
+  --input - <<< '{"names":["go","mcp","ai"]}'
+
+# Merge a Dependabot PR
+gh pr merge {id} --repo hairglasses-studio/{repo} --squash --admin
+
+# Create release from tag
+gh release create v0.1.0 --repo hairglasses-studio/{repo} --generate-notes --latest
+
+# Archive
+gh repo archive hairglasses-studio/{repo} --yes
+
+# Transfer to personal
+gh api -X POST /repos/hairglasses-studio/{repo}/transfer -f new_owner=hairglasses
+
+# Enable discussions
+gh repo edit hairglasses-studio/{repo} --enable-discussions
+```
+
+## Notes
+
+- Dry-run by default — show proposed changes without applying
+- Apply with `--execute` flag or per-change user confirmation
+- Never change visibility (public/private) without explicit user request
+- Preserve existing topics when adding new ones (append, don't replace)

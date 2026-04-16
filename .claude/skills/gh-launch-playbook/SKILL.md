@@ -1,0 +1,101 @@
+---
+name: gh_launch_playbook
+description: Execute the community launch playbook for a hairglasses-studio repo. Coordinates awesome-list submissions, Show HN posts, Reddit posts, Dev.to articles, and Twitter threads using pre-drafted content from docs/content/ and docs/strategy/launch-content/. Use when launching a new public repo, executing a marketing push, preparing for a Show HN submission, submitting to awesome-lists, or wanting to maximize visibility for a project release.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - Agent
+  - mcp__github__create_pull_request
+  - mcp__github__create_or_update_file
+  - mcp__github__get_file_contents
+  - mcp__github__search_repositories
+---
+
+# GitHub Launch Playbook
+
+Orchestrate a multi-platform community launch for a hairglasses-studio repo. Follows the 14-day playbook pattern: awesome-lists first (social proof), then Show HN (traffic spike), then Reddit (sustained reach), then blog + social.
+
+## Setup
+
+Source the GitHub PAT: `source /home/hg/hairglasses-studio/.env && export GH_TOKEN="$GITHUB_ORG_ADMIN_PAT"`
+
+## Default loop
+
+1. **Target and readiness**: Identify the repo from `$ARGUMENTS`. Run pre-launch checks:
+   - README has a working quickstart (`go install` or equivalent)
+   - CI badges are green
+   - At least one release tag exists
+   - No stale open PRs (> 5 unreviewed)
+   - Go Report Card is A+ (for Go repos)
+   - pkg.go.dev is indexed (for Go repos)
+   Report readiness status before proceeding.
+
+2. **Content inventory**: Check for existing launch content:
+   - `~/hairglasses-studio/docs/content/` — published drafts
+   - `~/hairglasses-studio/docs/content/drafts/` — work in progress
+   - `~/hairglasses-studio/docs/strategy/launch-content/` — playbook and templates
+   Display what's ready vs what needs writing for each platform.
+
+3. **Phase 1 — Awesome-list submissions** (Day 0-1):
+   Read `docs/content/awesome-mcp-servers-submission.md` for pre-drafted entries.
+   For each target list:
+   - **Official MCP Registry**: Display `mcp-publisher publish` command
+   - **appcypher/awesome-mcp-servers**: Create PR via `mcp__github__create_pull_request`
+   - **wong2/awesome-mcp-servers**: Display mcpservers.org/submit URL
+   - **TensorBlock/awesome-mcp-servers**: Create PR via `mcp__github__create_pull_request`
+   - **avelino/awesome-go** (if Go): Create PR (wait for Show HN social proof first)
+   Confirm before each PR creation.
+
+4. **Phase 2 — Show HN** (Day 3-5):
+   Read `docs/content/show-hn-mcpkit-v2.md` for the post draft.
+   - Display recommended title, body, and first comment
+   - Reconcile any stale numbers against current README
+   - Recommend posting time: Sunday 0-2 UTC (Saturday 7-9 PM ET)
+   - HN has no API — display content for manual submission
+   - Prepare response templates for anticipated questions
+
+5. **Phase 3 — Reddit** (Day 7-10):
+   Read `docs/content/reddit-golang-post.md` and drafts.
+   - r/golang: technical focus, link to HN discussion
+   - r/LocalLLaMA: agent/MCP angle
+   - r/unixporn: desktop rice showcase (dotfiles only)
+   Display content for manual submission (Reddit API requires OAuth app).
+
+6. **Phase 4 — Blog + Social** (Day 5-6):
+   Read `docs/content/dev-to-mcpkit-final.md` and `twitter-launch-thread.md`.
+   - Dev.to: Display article with tags, check cover image
+   - Twitter/X: Display thread (10 tweets)
+   - Hashnode: Cross-post from Dev.to
+
+7. **Progress tracking**: Update `docs/strategy/launch-content/launch-progress.md`:
+   ```markdown
+   ## Launch: {repo} — {date}
+   - [x] awesome-mcp-servers PR #N submitted
+   - [ ] Show HN posted — {url}
+   - [ ] r/golang posted
+   ```
+
+Read `references/launch-checklist.md` for the compressed checklist when the full playbook is too verbose.
+
+## Shell fallback
+
+```bash
+# Create a PR to an awesome-list repo
+gh pr create --repo appcypher/awesome-mcp-servers \
+  --title "Add systemd-mcp" \
+  --body "$(cat docs/content/awesome-mcp-servers-submission.md | sed -n '/systemd-mcp/,/^---/p')"
+
+# Check if awesome-go accepts the repo (age/stars)
+gh api /repos/hairglasses-studio/mcpkit --jq '{created_at, stargazers_count}'
+```
+
+## Notes
+
+- Confirm before every external PR or submission
+- Never auto-post to HN, Reddit, or Twitter — display content for manual action
+- Track all submissions in launch-progress.md
+- awesome-go may require repo age (1+ year) or star count — check eligibility first
+- The playbook is designed for mcpkit but works for any repo with content in docs/

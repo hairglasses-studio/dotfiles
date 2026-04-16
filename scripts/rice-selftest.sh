@@ -112,6 +112,18 @@ test_keybinds() {
     "exec|E|Emoji picker" \
     "hyprexpo:expo|Tab|Workspace overview" \
     "split-workspace|1|Workspace 1" \
+    "killactive|Q|Kill active window" \
+    "exec|D|DND toggle (swaync)" \
+    "pin|P|Pin window (Super+Alt+P)" \
+    "exec|Tab|Pypr expose (Super+Alt+Tab)" \
+    "togglelayout|R|Layout toggle" \
+    "togglegroup|B|Window group toggle" \
+    "changegroupactive|B|Group cycle active (Super+Shift+B)" \
+    "lockgroups|B|Lock groups (Super+Ctrl+B)" \
+    "focusmonitor|O|Monitor focus" \
+    "movecurrentworkspacetomonitor|O|Move workspace to monitor (Super+Shift+O)" \
+    "movetoworkspacesilent|M|Minimize to special:magic" \
+    "togglespecialworkspace|M|Toggle special workspace (Super+Shift+M)" \
   ; do
     IFS='|' read -r dispatcher key label <<< "$check"
     if echo "$binds" | jq -e ".[] | select(.dispatcher == \"$dispatcher\" and .key == \"$key\")" &>/dev/null; then
@@ -154,12 +166,20 @@ test_plugins() {
 test_services() {
   echo "── Running Services ──" >&2
   refresh_desktop_runtime_env 2>/dev/null || true
-  for svc in ironbar swaync swww-daemon pypr swayosd-server; do
+  for svc in ironbar swaync swww-daemon pypr swayosd-server dotfiles-keybind-ticker; do
     if [[ "$svc" == "pypr" ]]; then
       if command -v pypr >/dev/null 2>&1 && pypr version >/dev/null 2>&1; then
         add_result services "pypr" pass "daemon responding"
       else
         add_result services "pypr" warn "daemon not responding"
+      fi
+      continue
+    fi
+    if [[ "$svc" == "dotfiles-keybind-ticker" ]]; then
+      if systemctl --user is-active --quiet dotfiles-keybind-ticker.service 2>/dev/null; then
+        add_result services "dotfiles-keybind-ticker" pass "active (systemd user)"
+      else
+        add_result services "dotfiles-keybind-ticker" warn "not active (systemd user)"
       fi
       continue
     fi

@@ -853,6 +853,26 @@
       "description": "Investigate a systemd service: get status, find its processes, check its ports, and fetch recent logs. Single tool replaces systemd_status + ps_list + port_list + systemd_logs."
     },
     {
+      "name": "keybinds_conflicts",
+      "description": "Check for conflicting or duplicate keybinds. Reports any key+modifier combinations bound more than once."
+    },
+    {
+      "name": "keybinds_free_slots",
+      "description": "Show unbound key combinations available for new keybinds. Reports free Super+letter, Super+number, and modifier combos."
+    },
+    {
+      "name": "keybinds_list",
+      "description": "List all Hyprland keybinds with descriptions, matching the ticker display. Returns structured JSON with modifiers, key, description, dispatcher, and args."
+    },
+    {
+      "name": "keybinds_refresh_ticker",
+      "description": "Restart the keybind ticker bar to pick up new keybinds immediately instead of waiting for the 5-minute poll."
+    },
+    {
+      "name": "keybinds_search",
+      "description": "Search keybinds by description or key name. Case-insensitive match against description and key fields."
+    },
+    {
       "name": "kill_process",
       "description": "Send a signal to a process. Supports TERM, KILL, HUP, INT, USR1, USR2, STOP, CONT."
     },
@@ -1656,7 +1676,7 @@
     "fleet-management",
     "canonical-source"
   ],
-  "tool_count": 405,
+  "tool_count": 410,
   "resource_count": 23,
   "prompt_count": 13,
   "categories": [
