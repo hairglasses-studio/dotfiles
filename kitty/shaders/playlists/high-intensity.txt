@@ -1,4 +1,3 @@
-animated-gradient-shader.glsl
 bettercrt.glsl
 blue-crt.glsl
 cineShader-Lava.glsl

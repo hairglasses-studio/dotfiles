@@ -332,15 +332,21 @@ _write_visual_state() {
   printf '%s' "$theme" > "$_current_theme"
   _state_label "$shader" "$theme" > "$_current_label"
   cp "$theme_conf" "$_current_theme_conf"
+  # Legacy mutable active-shader file — still written so external tools that
+  # read it (rice-reload, shader-build checks, debug dumps) still see the
+  # intended shader name. Hypr-DarkWindow no longer reads this path; each
+  # kitty window has its own shader applied per-address via a dispatcher.
   cp "$(_shader_path "$shader")" "$_crtty_active"
   printf '%s' "$theme" > "$_pending_theme"
   printf '%s' "$playlist" > "$_auto_rotate_playlist"
   _write_selection_state "$mode" "$playlist"
-  # Re-compile the darkwindow named shader from the updated file. Skip during
-  # initial state-dir warm-up (no HYPRLAND_INSTANCE_SIGNATURE) so install and
-  # headless paths remain quiet.
+  # Dispatch the named shader to the focused window only. Requires the
+  # plugin:darkwindow shader registry in hyprland/darkwindow-shaders.conf
+  # to know this shader name; hyprctl errors are swallowed because shaders
+  # not in the registry (non-ambient entries) simply fall back to whatever
+  # the window was already showing.
   if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]] && command -v hyprctl >/dev/null 2>&1; then
-    hyprctl reload >/dev/null 2>&1 || true
+    hyprctl dispatch darkwindow:shadeactive "${shader%.glsl}" >/dev/null 2>&1 || true
   fi
 }
 

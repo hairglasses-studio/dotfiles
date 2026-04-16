@@ -1,7 +1,5 @@
 amber-crt.glsl
-animated-gradient-shader.glsl
 bettercrt.glsl
-blackwall.glsl
 blue-crt.glsl
 cineShader-Lava.glsl
 computer-glitchy-2.glsl

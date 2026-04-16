@@ -1,0 +1,18 @@
+[Unit]
+Description=dotfiles per-kitty-window random shader applier
+PartOf=graphical-session.target
+After=graphical-session.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"'
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/hypr-kitty-shader-daemon.sh
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
