@@ -3,6 +3,7 @@
 
 GTK4 DrawingArea with PangoCairo rendering at float pixel offsets,
 synced to the display frame clock via add_tick_callback (240Hz on DP-3).
+Each keybind entry cycles through Maple font weights for visual variety.
 
 Usage:
   keybind-ticker.py              # regular window (tiles with hy3)
@@ -13,6 +14,7 @@ import gi
 import subprocess
 import json
 import sys
+from html import escape
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
@@ -30,15 +32,28 @@ if LAYER_MODE:
 # ── Config ────────────────────────────────────────
 BAR_H = 28
 SPEED = 55.0        # px/sec scroll speed
-FONT = "Maple Mono NF CN 11"
 REFRESH_S = 300     # rebuild keybind list every 5 min
 
-# Hairglasses Neon palette
-BG      = (0.020, 0.027, 0.051, 0.92)
-CYAN    = (0.161, 0.941, 1.0)
-MAGENTA = (1.0,   0.278, 0.820)
-GREEN   = (0.239, 1.0,   0.710)
-DIM     = (0.400, 0.440, 0.561)
+# Maple font weight cycle — each keybind gets a different variant
+FONTS = [
+    "Maple Mono NF CN 11",
+    "Maple Mono NF CN Bold 11",
+    "Maple Mono NF CN Italic 11",
+    "Maple Mono NF CN SemiBold 11",
+    "Maple Mono NF CN Light 11",
+    "Maple Mono NF CN Medium 11",
+    "Maple Mono NF CN ExtraBold 11",
+    "Maple Mono NF CN Thin 11",
+    "Maple Mono NF CN ExtraLight 11",
+    "Maple Mono NF CN Bold Italic 11",
+]
+
+# Hairglasses Neon palette (hex for Pango markup)
+CLR_DESC = "#29f0ff"   # cyan — descriptions
+CLR_KEY  = "#ff47d1"   # magenta — key combos
+CLR_SEP  = "#66708f"   # dim — separator dots
+BG       = (0.020, 0.027, 0.051, 0.92)
+CYAN     = (0.161, 0.941, 1.0)
 
 
 def fmt_mods(mask):
@@ -50,7 +65,7 @@ def fmt_mods(mask):
     return out
 
 
-def build_ticker_text():
+def build_ticker_markup():
     try:
         raw = subprocess.run(
             ["hyprctl", "binds", "-j"],
@@ -58,15 +73,29 @@ def build_ticker_text():
         ).stdout
         binds = json.loads(raw)
     except Exception:
-        return "  No keybinds loaded  \u00b7"
+        return '<span font_desc="Maple Mono NF CN 11" foreground="#29f0ff">  No keybinds loaded  \u00b7</span>'
 
     parts = []
+    font_count = len(FONTS)
+    i = 0
     for b in binds:
         if b.get("has_description") and not b.get("submap") and not b.get("mouse"):
             mods = fmt_mods(b["modmask"])
-            parts.append(f"  {b['description']}  {mods}{b['key']}  \u00b7")
-    text = "".join(parts)
-    return text + text  # doubled for seamless wrap
+            desc = escape(b["description"])
+            key = escape(f"{mods}{b['key']}")
+            font = FONTS[i % font_count]
+
+            parts.append(
+                f'<span font_desc="{font}">'
+                f'  <span foreground="{CLR_DESC}">{desc}</span>'
+                f'  <span foreground="{CLR_KEY}">{key}</span>'
+                f'  <span foreground="{CLR_SEP}">\u00b7</span>'
+                f'</span>'
+            )
+            i += 1
+
+    single = "".join(parts)
+    return single + single  # doubled for seamless wrap
 
 
 class TickerWindow(Gtk.ApplicationWindow):
@@ -104,12 +133,12 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.layout = None
         self.half_w = 1.0
 
-        self._rebuild_text()
-        GLib.timeout_add_seconds(REFRESH_S, self._rebuild_text)
+        self._rebuild()
+        GLib.timeout_add_seconds(REFRESH_S, self._rebuild)
         self.da.add_tick_callback(self._tick)
 
-    def _rebuild_text(self):
-        self.ticker_text = build_ticker_text()
+    def _rebuild(self):
+        self.ticker_markup = build_ticker_markup()
         self.layout = None
         self.da.queue_draw()
         return GLib.SOURCE_CONTINUE
@@ -135,21 +164,18 @@ class TickerWindow(Gtk.ApplicationWindow):
         cr.rectangle(0, 0, width, 1)
         cr.fill()
 
-        # Build layout once per text rebuild
+        # Build layout once per markup rebuild
         if self.layout is None:
             self.layout = PangoCairo.create_layout(cr)
-            fd = Pango.FontDescription.from_string(FONT)
-            self.layout.set_font_description(fd)
-            self.layout.set_text(self.ticker_text, -1)
+            self.layout.set_markup(self.ticker_markup, -1)
             _, logical = self.layout.get_pixel_extents()
             self.half_w = logical.width / 2.0
             if self.half_w > 0:
                 self.offset = self.offset % self.half_w
 
-        # Scrolling text at sub-pixel offset
-        cr.set_source_rgb(*CYAN)
+        # Scrolling text at sub-pixel offset (colors come from markup)
         x = -self.offset
-        y = (height - 14) / 2  # vertically center 11px font
+        y = (height - 14) / 2
         cr.move_to(x, y)
         PangoCairo.show_layout(cr, self.layout)
         cr.move_to(x + self.half_w, y)

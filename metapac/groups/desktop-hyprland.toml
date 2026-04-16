@@ -42,6 +42,8 @@ packages = [
     { name = "wl-screenrec" },
     { name = "wlsunset" },
     { name = "wluma" },
+    { name = "ddcutil" },
+    { name = "kanshi" },
     { name = "wayshot" },
     { name = "grim" },
     { name = "slurp" },
@@ -70,6 +72,8 @@ packages = [
     { name = "matugen" },
     { name = "mpvpaper" },
     { name = "shaderbg" },
+    { name = "papertoy-bin" },
+    { name = "hyprlax-bin" },
 
     # GTK/Qt theming
     { name = "gtk-cyberpunk-neon-theme-git" },

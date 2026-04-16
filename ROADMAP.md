@@ -6,6 +6,23 @@ Manjaro Linux dotfiles with 60+ symlinked configs, 138 GLSL shaders with shuffle
 
 Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
 
+## Recently Completed
+
+### GitHub Stars Integration (2026-04-16)
+Audited ~1,900 GitHub stars for dotfiles-relevant tools. Identified 10 already-integrated, 14 actionable, 10 deferred. Implemented:
+
+- **hyprshade**: Config schedule + 5 MCP tools (`hyprshade_list/set/toggle/off/status`)
+- **wluma**: Adaptive brightness via ddcutil with time-of-day ALS config
+- **cliphist**: Clipboard history backend + 4 MCP tools (`cliphist_list/get/delete/clear`)
+- **zsh-auto-notify**: Long-running command notifications via swaync
+- **kanshi**: Declarative display config with home-dual/single/portable profiles
+- **kitty-scrollback.nvim**: Open kitty scrollback in Neovim (lazy.nvim plugin)
+- **hyprlax**: Parallax wallpaper mode in wallpaper-mode.sh
+- **papertoy**: Shadertoy-compatible animated wallpaper renderer
+- **glshell**: GLSL shader layershell overlay (cyberpunk rain effect)
+- **Hyprchroma**: Chroma key window transparency plugin
+- **MCP resources**: `shader://current`, `dotfiles://palette`, `validate-rice` prompt, `hypr_screenshot_region` tool
+
 ## Planned
 
 ### Phase 1 — Linux Installer Hardening

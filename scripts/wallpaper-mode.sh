@@ -52,6 +52,9 @@ _stop_dynamic_wallpapers() {
     waydeeper stop >/dev/null 2>&1 || true
   fi
   pkill -x waydeeper 2>/dev/null || true
+  pkill -x hyprlax 2>/dev/null || true
+  pkill -x papertoy 2>/dev/null || true
+  pkill -x glshell 2>/dev/null || true
 }
 
 _ensure_swww() {
@@ -136,6 +139,47 @@ _switch_depth() {
   hg_notify_low "Wallpaper" "Depth mode: $(basename "$path")"
 }
 
+_switch_papertoy() {
+  command -v papertoy >/dev/null 2>&1 || _notify_missing "papertoy"
+  local shader="${1:-}"
+  _stop_dynamic_wallpapers
+
+  if [[ -z "$shader" ]]; then
+    local wp_dir
+    wp_dir="$(cd "$SCRIPT_DIR/.." && pwd)/wallpaper-shaders"
+    local shaders=("$wp_dir"/*.glsl)
+    if [[ "${#shaders[@]}" -eq 0 ]]; then
+      hg_die "No wallpaper shaders found in $wp_dir"
+    fi
+    shader="${shaders[RANDOM % ${#shaders[@]}]}"
+  fi
+
+  [[ -f "$shader" ]] || _notify_missing_file "Shadertoy shader" "$shader"
+
+  papertoy "$shader" >/dev/null 2>&1 &
+  disown
+
+  _set_state papertoy "$(basename "$shader")"
+  hg_notify_low "Wallpaper" "Papertoy mode: $(basename "$shader")"
+}
+
+_switch_parallax() {
+  command -v hyprlax >/dev/null 2>&1 || _notify_missing "hyprlax"
+  local path="${1:-}"
+  _ensure_swww
+  _stop_dynamic_wallpapers
+
+  if [[ -n "$path" && -f "$path" ]]; then
+    swww img "$path" --transition-type fade --transition-duration 1 >/dev/null 2>&1
+  fi
+
+  hyprlax >/dev/null 2>&1 &
+  disown
+
+  _set_state parallax "${path:-active}"
+  hg_notify_low "Wallpaper" "Parallax mode${path:+: $(basename "$path")}"
+}
+
 _restore() {
   local mode value
   mode="$(_state_mode)"
@@ -171,6 +215,16 @@ _restore() {
     depth)
       _switch_depth "$value"
       ;;
+    parallax)
+      _switch_parallax "$value"
+      ;;
+    papertoy)
+      if [[ -n "$value" && "$value" != "active" ]]; then
+        _switch_papertoy "$value"
+      else
+        _switch_papertoy
+      fi
+      ;;
     *)
       _switch_shader random
       ;;
@@ -188,7 +242,7 @@ _status() {
   fi
 
   case "$mode" in
-    video|depth)
+    video|depth|parallax|papertoy)
       printf '%s:%s\n' "$mode" "$(basename "${value:-unknown}")"
       ;;
     shader|static)
@@ -205,11 +259,13 @@ main() {
   shift || true
 
   case "$mode" in
-    shader) _switch_shader "${1:-random}" "${2:-}" ;;
-    static) _switch_static "${1:-random}" "${2:-}" ;;
-    video)  _switch_video "${1:-}" ;;
-    depth)  _switch_depth "${1:-}" ;;
-    stop)   _stop_dynamic_wallpapers ;;
+    shader)   _switch_shader "${1:-random}" "${2:-}" ;;
+    static)   _switch_static "${1:-random}" "${2:-}" ;;
+    video)    _switch_video "${1:-}" ;;
+    depth)    _switch_depth "${1:-}" ;;
+    parallax) _switch_parallax "${1:-}" ;;
+    papertoy) _switch_papertoy "${1:-}" ;;
+    stop)     _stop_dynamic_wallpapers ;;
     restore)
       if ! _restore; then
         hg_warn "Wallpaper restore failed, falling back to shader random"
@@ -218,7 +274,7 @@ main() {
       ;;
     status) _status ;;
     *)
-      hg_die "Usage: wallpaper-mode.sh [shader|static|video|depth|restore|status|stop]"
+      hg_die "Usage: wallpaper-mode.sh [shader|static|video|depth|parallax|papertoy|restore|status|stop]"
       ;;
   esac
 }

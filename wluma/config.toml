@@ -1,0 +1,14 @@
+# wluma — adaptive brightness for external monitors
+# Uses time-of-day ambient light estimation (no hardware ALS on desktop).
+# Requires ddcutil and DDC/CI enabled on monitors.
+
+[als.time]
+thresholds = { 0 = "night", 7 = "dark", 9 = "dim", 11 = "normal", 14 = "bright", 17 = "normal", 19 = "dim", 21 = "dark", 23 = "night" }
+
+[[output.ddcutil]]
+name = "Samsung Electric Company LC49G95T"
+capturer = "wayland"
+
+[[output.ddcutil]]
+name = "XEC ES-G32C1Q"
+capturer = "wayland"

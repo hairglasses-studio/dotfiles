@@ -90,6 +90,7 @@ plugins=(
     you-should-use
     fzf
     fzf-tab
+    auto-notify
 
     # Productivity
     vi-mode
@@ -211,6 +212,12 @@ elif [[ -f $realpath ]]; then
 fi'
 zstyle ':fzf-tab:*' insert-space false
 zstyle ':fzf-tab:complete:cd:*' extra-opts --preview='ls -la $realpath 2>/dev/null'
+
+# ── zsh-auto-notify (long command notifications) ─
+export AUTO_NOTIFY_THRESHOLD=30
+export AUTO_NOTIFY_TITLE="Done: %command"
+export AUTO_NOTIFY_BODY="Finished in %elapsed seconds (exit %exit_code)"
+export AUTO_NOTIFY_IGNORE=("vim" "nvim" "htop" "btop" "ssh" "tmux" "yazi" "less" "man" "claude" "codex" "gemini")
 
 # ── Zoxide (smart cd) ──────────────────────────
 _cached_eval zoxide zoxide init zsh

@@ -25,6 +25,7 @@ macchina = true
 ghosttyfetch = false
 kitty_smart_scroll = true
 kitty_save_session = true
+kitty_scrollback = true
 
 # ── Desktop (Linux — Hyprland) ─
 [desktop.linux]
@@ -41,6 +42,11 @@ mpvpaper = true
 waydeeper = true
 wofi = true
 wlogout = true
+hyprshade = true
+wluma = true
+kanshi = true
+hyprlax = true
+hyprchroma = true
 
 # ── Desktop (macOS) ──────────────────────────────
 [desktop.macos]

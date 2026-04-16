@@ -27,8 +27,9 @@ class = "thunar"
 size = "60% 60%"
 animation = "fromLeft"
 
-[scratchpads.claude]
-command = "ghostty -e claude --name scratchpad"
-class = "ghostty"
-size = "85% 80%"
+[scratchpads.dev-console]
+command = "$HOME/.local/bin/kitty-visual-launch --class=dev-console -e dev-console"
+class = "dev-console"
+size = "90% 70%"
 animation = "fromTop"
+lazy = true

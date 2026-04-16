@@ -1,0 +1,16 @@
+# kanshi — declarative Wayland display configuration
+# Profiles apply automatically when matching outputs are detected.
+# Complements hyprdynamicmonitors (which handles workspace redistribution).
+
+profile home-dual {
+    output "Samsung Electric Company LC49G95T *" mode 5120x1440@239.761Hz position 1810,280 scale 2
+    output "XEC ES-G32C1Q *" mode 2560x1440@179.999Hz position 4370,0 scale 2 transform 270
+}
+
+profile single-ultrawide {
+    output "Samsung Electric Company LC49G95T *" mode 5120x1440@239.761Hz position 0,0 scale 2
+}
+
+profile portable {
+    output "*" enable mode preferred position 0,0 scale 2
+}

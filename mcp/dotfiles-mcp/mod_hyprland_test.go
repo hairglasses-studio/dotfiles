@@ -14,8 +14,8 @@ import (
 func TestHyprlandModuleRegistration(t *testing.T) {
 	m := &HyprlandModule{}
 	tools := m.Tools()
-	if len(tools) != 53 {
-		t.Fatalf("expected 53 hyprland tools, got %d", len(tools))
+	if len(tools) != 54 {
+		t.Fatalf("expected 54 hyprland tools, got %d", len(tools))
 	}
 
 	reg := registry.NewToolRegistry()

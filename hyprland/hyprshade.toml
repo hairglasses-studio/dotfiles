@@ -1,0 +1,14 @@
+# hyprshade — screen shader schedule for Hyprland
+# Applies compositor-level GLSL screen effects on a time-of-day schedule.
+# Manual toggle: $mod CTRL, D (see hyprland.conf)
+# Manual override persists until next scheduled transition.
+
+[[shaders]]
+name = "cyberpunk-vignette"
+start_time = 20:00:00
+end_time = 06:00:00
+
+[[shaders]]
+name = "scanlines-subtle"
+start_time = 06:00:00
+end_time = 20:00:00

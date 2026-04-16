@@ -27,6 +27,7 @@ declare -a repos=(
   "hyprland-plugins|https://github.com/hyprwm/hyprland-plugins|borders-plus-plus hyprbars hyprexpo hyprfocus hyprwinwrap"
   "split-monitor-workspaces|https://github.com/Duckonaut/split-monitor-workspaces|split-monitor-workspaces"
   "dynamic-cursors|https://github.com/VirtCode/hypr-dynamic-cursors|dynamic-cursors"
+  "Hyprchroma|https://github.com/alexhulbert/Hyprchroma|Hyprchroma"
 )
 
 list_output="$(hyprpm list 2>/dev/null || true)"

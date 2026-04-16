@@ -960,6 +960,105 @@ func (m *HyprlandModule) Tools() []registry.ToolDefinition {
 			Handler:  handleHyprScreenshotWindow,
 			Category: "hyprland",
 		},
+
+		// ── hypr_screenshot_region ────────────────────
+		// Raw handler: returns mcp.ImageContent directly.
+		{
+			Tool: mcp.Tool{
+				Name:        "hypr_screenshot_region",
+				Description: "Capture a screenshot of a selected screen region using slurp + wayshot. Launches slurp for interactive region selection, then captures with wayshot.",
+				InputSchema: mcp.ToolInputSchema{
+					Type: "object",
+					Properties: map[string]any{
+						"save": map[string]any{
+							"type":        "boolean",
+							"description": "Save the screenshot to a file (default true).",
+							"default":     true,
+						},
+						"clipboard": map[string]any{
+							"type":        "boolean",
+							"description": "Copy the screenshot to the clipboard via wl-copy (default false).",
+							"default":     false,
+						},
+					},
+				},
+			},
+			Handler: func(_ context.Context, req registry.CallToolRequest) (*registry.CallToolResult, error) {
+				var input struct {
+					Save      *bool `json:"save"`
+					Clipboard bool  `json:"clipboard"`
+				}
+				// Default save to true
+				defaultSave := true
+				input.Save = &defaultSave
+				if req.Params.Arguments != nil {
+					b, _ := json.Marshal(req.Params.Arguments)
+					json.Unmarshal(b, &input)
+				}
+				doSave := input.Save == nil || *input.Save
+
+				// Run slurp to get region geometry
+				slurpCmd := exec.Command("slurp")
+				slurpOut, err := slurpCmd.Output()
+				if err != nil {
+					return handler.ErrorResult(fmt.Errorf("slurp failed (region selection cancelled or slurp not installed): %w", err)), nil
+				}
+				geometry := strings.TrimSpace(string(slurpOut))
+				if geometry == "" {
+					return handler.ErrorResult(fmt.Errorf("slurp returned empty geometry")), nil
+				}
+
+				ts := time.Now().UnixMilli()
+				outPath := fmt.Sprintf("/tmp/hypr-region-%d.png", ts)
+				if !doSave {
+					defer os.Remove(outPath)
+				}
+
+				// Capture region to file using wayshot
+				if err := screenshotCapture(outPath, geometry, ""); err != nil {
+					return handler.ErrorResult(fmt.Errorf("wayshot region capture failed: %w", err)), nil
+				}
+
+				// Optionally copy to clipboard via wl-copy
+				if input.Clipboard {
+					wlCopyCmd := exec.Command("wl-copy", "--type", "image/png")
+					f, openErr := os.Open(outPath)
+					if openErr != nil {
+						return handler.ErrorResult(fmt.Errorf("open screenshot for clipboard: %w", openErr)), nil
+					}
+					defer f.Close()
+					wlCopyCmd.Stdin = f
+					_ = wlCopyCmd.Run()
+				}
+
+				// Read and base64 encode for inline preview
+				data, err := os.ReadFile(outPath)
+				if err != nil {
+					return handler.ErrorResult(fmt.Errorf("failed to read region screenshot: %w", err)), nil
+				}
+				b64 := base64.StdEncoding.EncodeToString(data)
+
+				caption := fmt.Sprintf("Region: %s", geometry)
+				if doSave {
+					caption += fmt.Sprintf(" — saved to %s", outPath)
+				}
+				if input.Clipboard {
+					caption += " — copied to clipboard"
+				}
+
+				return &registry.CallToolResult{
+					Content: []mcp.Content{
+						mcp.TextContent{Type: "text", Text: caption},
+						mcp.ImageContent{
+							Type:     "image",
+							Data:     b64,
+							MIMEType: "image/png",
+						},
+					},
+				}, nil
+			},
+			Category: "hyprland",
+		},
 	}
 	tools = append(tools, hyprExtendedToolDefinitions()...)
 	tools = append(tools, hyprPersistenceToolDefinitions()...)

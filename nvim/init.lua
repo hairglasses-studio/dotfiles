@@ -88,6 +88,14 @@ require('lazy').setup({
   'christoomey/vim-tmux-navigator',
   'editorconfig/editorconfig-vim',
 
+  -- Kitty integration
+  { 'mikesmithgh/kitty-scrollback.nvim',
+    lazy = true,
+    cmd = { 'KittyScrollbackGenerateKittens', 'KittyScrollbackGenerateCommandLineEditing' },
+    event = { 'User KittyScrollbackLaunch' },
+    config = function() require('kitty-scrollback').setup() end,
+  },
+
   -- Modern enhancements
   { 'goolord/alpha-nvim', event = 'VimEnter' },
   { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },

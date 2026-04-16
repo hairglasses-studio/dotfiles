@@ -204,6 +204,10 @@ $DOTFILES_DIR/scripts/jellyfin-stack-boot.sh|$HOME/.local/bin/jellyfin-stack-boo
 $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
+$DOTFILES_DIR/hyprland/hyprshade.toml|$HOME/.config/hyprshade/config.toml
+$DOTFILES_DIR/wluma/config.toml|$HOME/.config/wluma/config.toml
+$DOTFILES_DIR/kanshi/config|$HOME/.config/kanshi/config
+$DOTFILES_DIR/glshell|$HOME/.config/glshell
 EOF
 }
 
@@ -493,6 +497,7 @@ install_omz_plugins() {
         "zsh-completions|https://github.com/zsh-users/zsh-completions.git"
         "you-should-use|https://github.com/MichaelAquilina/zsh-you-should-use.git"
         "fzf-tab|https://github.com/Aloxaf/fzf-tab.git"
+        "zsh-auto-notify|https://github.com/MichaelAquilina/zsh-auto-notify.git"
     )
 
     for entry in "${plugin_list[@]}"; do
@@ -695,6 +700,7 @@ create_symlinks() {
             dotfiles-hyprland-autoname-workspaces.service
             dotfiles-notification-history.service
             dotfiles-keybind-ticker.service
+            dotfiles-cliphist.service
         )
         local desktop_passive_units=(
             rg-status-bar.timer

@@ -796,6 +796,7 @@ func dotfilesModules() []registry.ToolModule {
 		&SystemdModule{},
 		&TmuxModule{},
 		&ProcessModule{},
+		&HyprshadeModule{},
 	}
 }
 
@@ -857,7 +858,8 @@ func isDesktopProfileTool(name string) bool {
 		strings.HasPrefix(name, "clipboard_"),
 		strings.HasPrefix(name, "notify_"),
 		strings.HasPrefix(name, "notification_"),
-		strings.HasPrefix(name, "input_"):
+		strings.HasPrefix(name, "input_"),
+		strings.HasPrefix(name, "hyprshade_"):
 		return true
 	}
 

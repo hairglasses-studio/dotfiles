@@ -635,6 +635,33 @@ func (m *dotfilesPromptModule) Prompts() []prompts.PromptDefinition {
 			Category: "workflow",
 			Tags:     []string{"claude", "sessions", "recovery"},
 		},
+		{
+			Prompt: mcp.NewPrompt(
+				"validate-rice",
+				mcp.WithPromptDescription("Comprehensive rice health check across compositor, shader, symlinks, and failed services"),
+			),
+			Handler: func(_ context.Context, _ mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
+				return mcp.NewGetPromptResult("Validate rice health", []mcp.PromptMessage{
+					mcp.NewPromptMessage(mcp.RoleUser, mcp.NewTextContent(strings.Join([]string{
+						"Run a comprehensive rice health check in the following sequence and summarize the results:",
+						"",
+						"1. Call `dotfiles_rice_check` to get the compositor, shader, wallpaper, and service status overview.",
+						"2. Call `dotfiles_check_symlinks` to verify all expected dotfiles symlinks are healthy.",
+						"3. Call `shader_status` to confirm the active kitty shader, theme, playlist position, and auto-rotate timer state.",
+						"4. Call `systemd_failed` to surface any failed systemd user units that may be degrading the desktop.",
+						"",
+						"After all four calls complete, provide a structured summary covering:",
+						"- Overall rice health (healthy / degraded / broken)",
+						"- Any symlink failures and their source/target paths",
+						"- Current shader and kitty theme state",
+						"- Any failed services and their names",
+						"- Recommended remediation steps for any issues found",
+					}, "\n"))),
+				}), nil
+			},
+			Category: "workflow",
+			Tags:     []string{"rice", "desktop", "health", "shader", "symlinks", "systemd"},
+		},
 	}
 }
 
@@ -642,6 +669,8 @@ func buildDotfilesResourceRegistry(reg *registry.ToolRegistry, promptReg *prompt
 	resReg := resources.NewResourceRegistry()
 	resReg.RegisterModule(&dotfilesResourceModule{reg: reg, promptReg: promptReg})
 	resReg.RegisterModule(&archResourceModule{})
+	resReg.RegisterModule(&ShaderModule{})
+	resReg.RegisterModule(&ThemeModule{})
 	return resReg
 }
 

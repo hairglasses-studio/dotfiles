@@ -16,6 +16,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/hairglasses-studio/mcpkit/handler"
 	"github.com/hairglasses-studio/mcpkit/registry"
+	"github.com/hairglasses-studio/mcpkit/resources"
+	"github.com/mark3labs/mcp-go/mcp"
 )
 
 // ---------------------------------------------------------------------------
@@ -1366,6 +1368,55 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 		),
 	}
 }
+
+// Resources returns the MCP resources provided by ShaderModule.
+func (m *ShaderModule) Resources() []resources.ResourceDefinition {
+	return []resources.ResourceDefinition{
+		{
+			Resource: mcp.NewResource(
+				"shader://current",
+				"Current Shader State",
+				mcp.WithResourceDescription("Currently active kitty shader, playlist position, auto-rotate status, and kitty theme"),
+				mcp.WithMIMEType("application/json"),
+			),
+			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+				state, err := readCurrentVisualState()
+				if err != nil {
+					return nil, fmt.Errorf("read shader state: %w", err)
+				}
+
+				autoRotate := false
+				cmd := exec.Command("systemctl", "--user", "is-active", "shader-rotate.timer")
+				if out, err := cmd.Output(); err == nil {
+					autoRotate = strings.TrimSpace(string(out)) == "active"
+				}
+
+				result := map[string]any{
+					"active_shader": state.ActiveShader,
+					"shader_name":   state.ShaderName,
+					"active_theme":  state.ActiveTheme,
+					"visual_label":  state.VisualLabel,
+					"playlist":      state.Playlist,
+					"position":      state.Position,
+					"total":         state.Total,
+					"auto_rotate":   autoRotate,
+				}
+				data, _ := json.MarshalIndent(result, "", "  ")
+				return []mcp.ResourceContents{
+					mcp.TextResourceContents{
+						URI:      "shader://current",
+						MIMEType: "application/json",
+						Text:     string(data),
+					},
+				}, nil
+			},
+			Category: "shader",
+			Tags:     []string{"shader", "kitty", "theme", "state"},
+		},
+	}
+}
+
+func (m *ShaderModule) Templates() []resources.TemplateDefinition { return nil }
 
 // ---------------------------------------------------------------------------
 // main
