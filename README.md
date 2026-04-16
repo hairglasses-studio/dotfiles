@@ -1,7 +1,7 @@
 # dotfiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Shaders](https://img.shields.io/badge/GLSL_Shaders-139-purple)](kitty/shaders/)
+[![Shaders](https://img.shields.io/badge/GLSL_Shaders-157-purple)](kitty/shaders/)
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 [![CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml)
@@ -15,7 +15,7 @@ Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware
 
 ### Technical Highlights
 
-- **GPU Shaders**: 139 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
+- **GPU Shaders**: 157 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
 - **Theme System**: Hairglasses Neon token pipeline for `ironbar`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`
 - **MCP Servers**: 2 Go modules under `mcp/` (dotfiles-mcp with ~400 tools, mapitall); desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
@@ -117,7 +117,7 @@ dotfiles/
 ├── hyprdynamicmonitors/ → ~/.config/hyprdynamicmonitors (dynamic monitor profiles)
 ├── hyprland-autoname-workspaces/ → ~/.config/hyprland-autoname-workspaces
 ├── ironbar/        → ~/.config/ironbar (GTK4 menubar)
-├── kitty/          → ~/.config/kitty (terminal + 139 shaders)
+├── kitty/          → ~/.config/kitty (terminal + 157 shaders)
 ├── swaync/         → ~/.config/swaync (notifications)
 ├── wofi/           → ~/.config/wofi (fallback launcher)
 ├── wlogout/        → ~/.config/wlogout (power menu)
