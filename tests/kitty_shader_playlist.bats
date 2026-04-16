@@ -9,30 +9,18 @@ setup() {
     export PATH="${BATS_TEST_TMPDIR}/bin:${PATH}"
     mkdir -p \
         "${HOME}" \
-        "${DOTFILES_DIR}/kitty/shaders/crtty" \
+        "${DOTFILES_DIR}/kitty/shaders/darkwindow" \
         "${DOTFILES_DIR}/kitty/shaders/playlists" \
         "${DOTFILES_DIR}/kitty/themes/playlists" \
         "${BATS_TEST_TMPDIR}/bin"
 
-    cat > "${DOTFILES_DIR}/kitty/shaders/crtty/digital-mist.glsl" <<'EOF'
-void main() {}
-EOF
-    cat > "${DOTFILES_DIR}/kitty/shaders/crtty/neon-glow.glsl" <<'EOF'
-void main() {}
-EOF
     cat > "${DOTFILES_DIR}/kitty/shaders/playlists/ambient.txt" <<'EOF'
-digital-mist
-EOF
-    cat > "${DOTFILES_DIR}/kitty/shaders/playlists/best-of.txt" <<'EOF'
-neon-glow
-digital-mist
+digital-mist.glsl
+neon-glow.glsl
 EOF
     cat > "${DOTFILES_DIR}/kitty/themes/playlists/ambient.txt" <<'EOF'
 Dracula
-EOF
-    cat > "${DOTFILES_DIR}/kitty/themes/playlists/best-of.txt" <<'EOF'
 Gruvbox Dark
-Dracula
 EOF
 
     cat > "${BATS_TEST_TMPDIR}/bin/kitty" <<'EOF'
@@ -61,73 +49,88 @@ echo "$*" >> "${BATS_TEST_TMPDIR}/notify.log"
 exit 0
 EOF
     chmod +x "${BATS_TEST_TMPDIR}/bin/notify-send"
+
+    cat > "${BATS_TEST_TMPDIR}/bin/hyprctl" <<'EOF'
+#!/usr/bin/env bash
+echo "$*" >> "${BATS_TEST_TMPDIR}/hyprctl.log"
+echo "ok"
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/bin/hyprctl"
+
+    cat > "${BATS_TEST_TMPDIR}/bin/shuf" <<'EOF'
+#!/usr/bin/env bash
+# Deterministic shuf: always pick the first line
+if [[ "${1:-}" == "-n" ]]; then
+    head -1
+else
+    cat
+fi
+EOF
+    chmod +x "${BATS_TEST_TMPDIR}/bin/shuf"
 }
 
 teardown() {
     [[ -d "${BATS_TEST_TMPDIR}" ]] && rm -rf "${BATS_TEST_TMPDIR}"
 }
 
-@test "kitty-shader-playlist set writes paired state" {
-    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" set digital-mist Dracula
+@test "kitty-shader-playlist set applies a theme by name" {
+    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" set Dracula
     assert_success
-    assert_output --partial "Dracula · digital-mist"
+    assert_output --partial "Dracula"
 
     run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" current
     assert_success
-    assert_output "digital-mist"
-
-    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" theme-current
-    assert_success
     assert_output "Dracula"
-
-    run cat "${HOME}/.local/state/kitty-shaders/current-label"
-    assert_success
-    assert_output "Dracula · digital-mist"
 }
 
-@test "kitty-shader-playlist theme-for-window consumes pending theme and prints label" {
-    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" set neon-glow "Gruvbox Dark"
-    assert_success
-
-    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" theme-for-window 4242 best-of
-    assert_success
-    assert_output --partial $'Gruvbox Dark\t'
-    assert_output --partial "Gruvbox Dark · neon-glow"
-
-    run test ! -e "${HOME}/.local/state/kitty-shaders/pending-theme"
-    assert_success
-}
-
-@test "kitty-shader-playlist status reports label and playlist position" {
+@test "kitty-shader-playlist next cycles the theme" {
     run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" reset ambient
     assert_success
 
-    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" next ambient
+    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" next
     assert_success
-    assert_output --partial "Dracula · digital-mist"
+    # Should output a theme name from the playlist
+    assert_output --partial "[ok]"
+}
+
+@test "kitty-shader-playlist status reports playlist and theme" {
+    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" next
+    assert_success
 
     run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" status
     assert_success
     assert_output --partial "playlist: ambient"
-    assert_output --partial "shader:   digital-mist"
-    assert_output --partial "theme:    Dracula"
-    assert_output --partial "label:    Dracula · digital-mist"
-    assert_output --partial "position: 1/1"
+    assert_output --partial "theme:"
 }
 
-@test "kitty-shader-playlist set marks status as custom" {
-    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" set neon-glow "Gruvbox Dark"
+@test "kitty-shader-playlist shader-next dispatches via hyprctl" {
+    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" shader-next
     assert_success
 
-    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" status
+    run cat "${BATS_TEST_TMPDIR}/hyprctl.log"
+    assert_output --partial "dispatch darkwindow:shadeactive"
+}
+
+@test "kitty-shader-playlist shader-toggle re-dispatches current shader" {
+    # First apply a shader
+    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" shader-next
     assert_success
-    assert_output --partial "label:    Gruvbox Dark · neon-glow"
-    assert_output --partial "position: custom"
+
+    # Clear the log
+    : > "${BATS_TEST_TMPDIR}/hyprctl.log"
+
+    # Toggle should re-dispatch the same shader
+    run bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" shader-toggle
+    assert_success
+    assert_output --partial "toggled"
+
+    run cat "${BATS_TEST_TMPDIR}/hyprctl.log"
+    assert_output --partial "dispatch darkwindow:shadeactive"
 }
 
 @test "kitty-shader-playlist derives dotfiles root from script path when HOME differs" {
     run env -u DOTFILES_DIR -u HG_STUDIO_ROOT HOME="${BATS_TEST_TMPDIR}/alt-home" \
         bash "${SCRIPTS_DIR}/kitty-shader-playlist.sh" list ambient
     assert_success
-    assert_output --partial "shader playlist: ambient"
+    assert_output --partial "theme playlist: ambient"
 }

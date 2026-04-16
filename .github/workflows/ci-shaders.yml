@@ -5,11 +5,17 @@ on:
     branches: [main]
     paths:
       - 'ghostty/shaders/**'
+      - 'kitty/shaders/**'
+      - 'scripts/lib/shader-transpile-darkwindow.sh'
+      - 'hyprland/darkwindow-shaders.conf'
       - '.github/workflows/ci-shaders.yml'
   pull_request:
     branches: [main]
     paths:
       - 'ghostty/shaders/**'
+      - 'kitty/shaders/**'
+      - 'scripts/lib/shader-transpile-darkwindow.sh'
+      - 'hyprland/darkwindow-shaders.conf'
       - '.github/workflows/ci-shaders.yml'
 
 permissions:
@@ -94,3 +100,18 @@ jobs:
             echo "::error::$FAIL shader(s) have structural errors"
             exit 1
           fi
+
+  validate-darkwindow:
+    name: DarkWindow Shader Validation
+    runs-on: [self-hosted, archglasses, optimized]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install glslang
+        run: sudo apt-get update && sudo apt-get install -y glslang-tools
+
+      - name: Validate DarkWindow shaders (baseline 120)
+        run: scripts/validate-darkwindow-shaders.sh --baseline 120
+
+      - name: Check playlist/registry consistency
+        run: scripts/check-shader-consistency.sh
