@@ -1,3 +1,4 @@
+#define WASH_HUE 0.6
 // Shader attribution: JRMeyer
 // (Watercolor) — Wet-on-wet watercolor blending
 
@@ -32,7 +33,7 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
-    float distToBg = distance(orig.rgb, vec4(0.0, 0.0, 0.0, 1.0));
+    float distToBg = distance(orig.rgb, vec3(0.0, 0.0, 0.0));
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -112,7 +113,7 @@ void windowShader(inout vec4 _wShaderOut) {
 
     if (isBg > 0.5) {
         if (inPaint > 0.5) {
-            result = mix(vec4(0.0, 0.0, 0.0, 1.0), washColor, 0.6);
+            result = mix(vec3(0.0, 0.0, 0.0), washColor, 0.6);
             alpha = 0.9;
         } else {
             alpha = 0.0;

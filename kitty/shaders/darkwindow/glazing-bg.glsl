@@ -1,3 +1,4 @@
+#define WASH_HUE 0.6
 // Glazing Watercolor Wash Background
 // Multiple transparent color layers stacked on each other.
 // Each layer is visible through the ones above, creating depth.
@@ -29,7 +30,7 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
-    float distToBg = distance(orig.rgb, vec4(0.0, 0.0, 0.0, 1.0));
+    float distToBg = distance(orig.rgb, vec3(0.0, 0.0, 0.0));
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -82,7 +83,7 @@ void windowShader(inout vec4 _wShaderOut) {
 
     // Stack glazes: each layer is semi-transparent over what's below
     // Start with paper
-    vec3 washColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec3 washColor = vec3(0.0, 0.0, 0.0);
 
     // Layer 1 (bottom, most visible)
     washColor = mix(washColor, glaze1, m1 * 0.4);

@@ -4,7 +4,7 @@ float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)
     return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
-vec2 normalize(vec2 value, float isPosition) {
+vec2 norm2(vec2 value, float isPosition) {
     return (value * 2.0 - (x_WindowSize * isPosition)) / x_WindowSize.y;
 }
 
@@ -44,11 +44,11 @@ void windowShader(inout vec4 _wShaderOut)
     _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
     
-    vec2 vu = normalize(x_PixelPos, 1.);
+    vec2 vu = norm2(x_PixelPos, 1.);
     vec2 offsetFactor = vec2(-.5, 0.5);
 
-    vec4 currentCursor = vec4(normalize(x_CursorPos.xy, 1.), normalize(x_CursorPos.zw, 0.));
-    vec4 previousCursor = vec4(normalize(x_CursorPos.xy, 1.), normalize(x_CursorPos.zw, 0.));
+    vec4 currentCursor = vec4(norm2(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm2(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
+    vec4 previousCursor = vec4(norm2(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm2(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
 
     vec2 centerCC = getRectangleCenter(currentCursor);
     vec2 centerCP = getRectangleCenter(previousCursor);
@@ -112,11 +112,11 @@ void windowShader(inout vec4 _wShaderOut)
                 
                 if (colorChance < 0.15) {
                     // Random bright colors for 15% of particles
-                    float hue = hash(particleId * 6.0 + x_Time * 1000.0) * 6.28318; // 2*PI
+                    float hue = hash(particleId * 6.0 + x_Time * 1000.0) * 6.28318; // 2.0*PI
                     vec3 brightColor = vec3(
                         0.5 + 0.5 * cos(hue),
-                        0.5 + 0.5 * cos(hue + 2.094), // 2*PI/3
-                        0.5 + 0.5 * cos(hue + 4.188)  // 4*PI/3
+                        0.5 + 0.5 * cos(hue + 2.094), // 2.0*PI/3
+                        0.5 + 0.5 * cos(hue + 4.188)  // 4.0*PI/3
                     );
                     trailColor = brightColor;
                 } else {

@@ -4,7 +4,7 @@ float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)
     return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
-vec2 normalize(vec2 value, float isPosition) {
+vec2 norm2(vec2 value, float isPosition) {
     return (value * 2.0 - (x_WindowSize * isPosition)) / x_WindowSize.y;
 }
 
@@ -39,11 +39,11 @@ void windowShader(inout vec4 _wShaderOut)
     _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
     
-    vec2 vu = normalize(x_PixelPos, 1.);
+    vec2 vu = norm2(x_PixelPos, 1.);
     vec2 offsetFactor = vec2(-.5, 0.5);
 
-    vec4 currentCursor = vec4(normalize(x_CursorPos.xy, 1.), normalize(x_CursorPos.zw, 0.));
-    vec4 previousCursor = vec4(normalize(x_CursorPos.xy, 1.), normalize(x_CursorPos.zw, 0.));
+    vec4 currentCursor = vec4(norm2(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm2(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
+    vec4 previousCursor = vec4(norm2(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm2(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
 
     vec2 centerCC = getRectangleCenter(currentCursor);
     vec2 centerCP = getRectangleCenter(previousCursor);
@@ -63,7 +63,7 @@ void windowShader(inout vec4 _wShaderOut)
     // Draw each bird
     for (int i = 0; i < NUM_BIRDS; i++) {
         float birdId = float(i);
-        float birdOffset = birdId * 1.2566; // 2*PI / 5 for even spacing
+        float birdOffset = birdId * 1.2566; // 2.0*PI / 5 for even spacing
         
         vec2 birdPos;
         

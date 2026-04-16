@@ -97,9 +97,9 @@ float sdTrail(vec2 p, vec2 currPos, vec2 currSize, vec2 prevPos, vec2 prevSize, 
         return rectDist;
 
     // Draw trail and cursor
-    vec2[4] corners = { currTopLeft, currTopRight, currBottomRight, currBottomLeft };
+    vec2[] corners = vec2[]( currTopLeft, currTopRight, currBottomRight, currBottomLeft );
     vec2 triB = corners[0], triC = corners[0], dir = normalize(currCenter - prevCenter);
-    float minRel = 1/EPS, maxRel = -minRel;
+    float minRel = 1.0/EPS, maxRel = -minRel;
 
     for (int i = 0; i < 4; ++i) {
         vec2 delta = corners[i] - prevCenter;
@@ -129,8 +129,8 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
     _wShaderOut = x_Texture(uv);
 
-    vec2 currPos = x_CursorPos.xy / x_WindowSize, currSize = x_CursorPos.zw / x_WindowSize;
-    vec2 prevPos = x_CursorPos.xy / x_WindowSize, prevSize = x_CursorPos.zw / x_WindowSize;
+    vec2 currPos = vec4(x_CursorPos, 10.0, 20.0).xy / x_WindowSize, currSize = vec4(x_CursorPos, 10.0, 20.0).zw / x_WindowSize;
+    vec2 prevPos = vec4(x_CursorPos, 10.0, 20.0).xy / x_WindowSize, prevSize = vec4(x_CursorPos, 10.0, 20.0).zw / x_WindowSize;
     vec2 currCenter = currPos + currSize * vec2(0.5, -0.5);
     vec2 prevCenter = prevPos + prevSize * vec2(0.5, -0.5);
 

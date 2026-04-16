@@ -167,7 +167,7 @@
 #ifdef BLOOM_SPREAD
 // Golden spiral samples used for bloom.
 //   [x, y, weight] weight is inverse of distance.
-const vec3[24] bloomSamples = {
+const vec3[] bloomSamples = vec3[](
     vec3( 0.1693761725038636,  0.9855514761735895,  1),
     vec3(-1.333070830962943,   0.4721463328627773,  0.7071067811865475),
     vec3(-0.8464394909806497, -1.51113870578065,    0.5773502691896258),
@@ -192,7 +192,7 @@ const vec3[24] bloomSamples = {
     vec3( 3.8639122286635708, -2.6589814382925123,  0.21320071635561041),
     vec3( 3.3486228404946234,  3.4331800232609,     0.20851441405707477),
     vec3(-2.8769733643574344,  3.9652268864187157,  0.20412414523193154)
-};
+);
 #endif
 
 
@@ -248,7 +248,7 @@ void windowShader(inout vec4 _wShaderOut) {
     // Add scan lines effect
     _wShaderOut.rgb *= mix(
         1.0,
-        SCAN_LINES_VARIANCE/2.0*(1.0 + sin(2*PI* uv.y * x_WindowSize.y/SCAN_LINES_PERIOD)),
+        SCAN_LINES_VARIANCE/2.0*(1.0 + sin(2.0*PI* uv.y * x_WindowSize.y/SCAN_LINES_PERIOD)),
         SCAN_LINES_STRENGTH
     );
 
@@ -270,7 +270,7 @@ void windowShader(inout vec4 _wShaderOut) {
 
 
     // Add flicker
-    _wShaderOut *= 1.0 - FLICKER_STRENGTH/2.0*(1.0 + sin(2*PI*FLICKER_FREQUENCY*x_Time));
+    _wShaderOut *= 1.0 - FLICKER_STRENGTH/2.0*(1.0 + sin(2.0*PI*FLICKER_FREQUENCY*x_Time));
 
 
     // Add noise

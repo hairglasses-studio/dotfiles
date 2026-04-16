@@ -95,8 +95,8 @@ void windowShader(inout vec4 _wShaderOut)
     vec2 offsetFactor = vec2(-.5, 0.5);
 
     // Normalization for cursor position and size;
-    vec4 currentCursor = vec4(norm(x_CursorPos.xy, 1.), norm(x_CursorPos.zw, 0.));
-    vec4 previousCursor = vec4(norm(x_CursorPos.xy, 1.), norm(x_CursorPos.zw, 0.));
+    vec4 currentCursor = vec4(norm(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
+    vec4 previousCursor = vec4(norm(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
 
     float sdfCurrentCursor = getSdfRectangle(vu, currentCursor.xy - (currentCursor.zw * offsetFactor), currentCursor.zw * 0.5);
 

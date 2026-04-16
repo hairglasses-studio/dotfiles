@@ -79,7 +79,7 @@ void windowShader(inout vec4 _wShaderOut) {
     float fadeOut = 1.0 - smoothstep(duration - fadeOutTime, duration, elapsed);
     float fade = clamp(fadeIn * fadeOut, 0.0, 1.0);
 
-    vec2 center = norm(x_CursorPos.xy, 1.);
+    vec2 center = norm(vec4(x_CursorPos, 10.0, 20.0).xy, 1.);
     vec2 vu = norm(x_PixelPos, 1.);
     float c0 = 0., c1 = 0.;
 
@@ -91,8 +91,8 @@ void windowShader(inout vec4 _wShaderOut) {
         v = 20. * v.x * vec2(cos(v.y), sin(v.y));
 
         vec2 p = center + t * v - x_PixelPos;
-        p.x = p.x + x_CursorPos.x + x_CursorPos.z * 0.5;
-        p.y = p.y + x_CursorPos.y - x_CursorPos.w * 0.5;
+        p.x = p.x + vec4(x_CursorPos, 10.0, 20.0).x + vec4(x_CursorPos, 10.0, 20.0).z * 0.5;
+        p.y = p.y + vec4(x_CursorPos, 10.0, 20.0).y - vec4(x_CursorPos, 10.0, 20.0).w * 0.5;
         c0 += 4. * (1. - t) / (1. + 0.3 * dot(p, p));
 
         p = p.yx;

@@ -1,3 +1,4 @@
+#define WASH_HUE 0.6
 // Shader attribution: JRMeyer
 // (Watercolor) — Salt texture on watercolor wash
 
@@ -32,7 +33,7 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
-    float distToBg = distance(orig.rgb, vec4(0.0, 0.0, 0.0, 1.0));
+    float distToBg = distance(orig.rgb, vec3(0.0, 0.0, 0.0));
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -78,7 +79,7 @@ void windowShader(inout vec4 _wShaderOut) {
     float pigmentPresence = saltTexture * 0.6 + saltDensity * 0.4;
 
     // Soft mapping to color — wide smoothstep avoids hard camo edges
-    vec3 washColor = mix(vec4(0.0, 0.0, 0.0, 1.0), pigment,
+    vec3 washColor = mix(vec3(0.0, 0.0, 0.0), pigment,
                          smoothstep(0.2, 0.65, pigmentPresence) * 0.75);
 
     // Minimal paper grain

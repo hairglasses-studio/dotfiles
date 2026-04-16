@@ -24,8 +24,8 @@ void windowShader(inout vec4 _wShaderOut)
         return;
     }
     
-    float moveX = x_CursorPos.x - x_CursorPos.x;
-    float moveY = x_CursorPos.y - x_CursorPos.y;
+    float moveX = vec4(x_CursorPos, 10.0, 20.0).x - vec4(x_CursorPos, 10.0, 20.0).x;
+    float moveY = vec4(x_CursorPos, 10.0, 20.0).y - vec4(x_CursorPos, 10.0, 20.0).y;
     
     // Must be on the same line (approximate check for y movement)
     if (abs(moveY) > 1.0) {
@@ -47,17 +47,17 @@ void windowShader(inout vec4 _wShaderOut)
     // Target Area Calculation
     // We want the area strictly between the two cursor positions.
     // Center X is average of previous and current X.
-    float centerX = (x_CursorPos.x + x_CursorPos.x) * 0.5;
+    float centerX = (vec4(x_CursorPos, 10.0, 20.0).x + vec4(x_CursorPos, 10.0, 20.0).x) * 0.5;
     
     // Y coordinate in these uniforms refers to the TOP edge.
     // Center Y is top - height/2.
-    float centerY = x_CursorPos.y - x_CursorPos.w * 0.5; 
+    float centerY = vec4(x_CursorPos, 10.0, 20.0).y - vec4(x_CursorPos, 10.0, 20.0).w * 0.5; 
     
     vec2 centerPos = vec2(centerX, centerY);
     
     // The size of the box to zoom is the character width we traversed, 
     // and the height of the cursor.
-    vec2 targetSize = vec2(charWidth, x_CursorPos.w);
+    vec2 targetSize = vec2(charWidth, vec4(x_CursorPos, 10.0, 20.0).w);
     
     // Define the zoom lens size.
     // We make it slightly smaler than the character to prevent grabing unwanted pixels

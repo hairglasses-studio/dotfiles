@@ -29,8 +29,8 @@ void windowShader(inout vec4 _wShaderOut)
         return;
     }
     
-    float moveX = x_CursorPos.x - x_CursorPos.x;
-    float moveY = x_CursorPos.y - x_CursorPos.y;
+    float moveX = vec4(x_CursorPos, 10.0, 20.0).x - vec4(x_CursorPos, 10.0, 20.0).x;
+    float moveY = vec4(x_CursorPos, 10.0, 20.0).y - vec4(x_CursorPos, 10.0, 20.0).y;
     
     // Only animate on horizontal movement
     if (abs(moveY) > 1.0) return;
@@ -42,11 +42,11 @@ void windowShader(inout vec4 _wShaderOut)
     float intensity = 1.0 - easeOutCubic(progress); // Strong at start, fades out
     
     // Calculate center of the previous character
-    float centerX = (x_CursorPos.x + x_CursorPos.x) * 0.5;
-    float centerY = x_CursorPos.y - x_CursorPos.w * 0.5; 
+    float centerX = (vec4(x_CursorPos, 10.0, 20.0).x + vec4(x_CursorPos, 10.0, 20.0).x) * 0.5;
+    float centerY = vec4(x_CursorPos, 10.0, 20.0).y - vec4(x_CursorPos, 10.0, 20.0).w * 0.5; 
     
     vec2 centerPos = vec2(centerX, centerY);
-    vec2 targetSize = vec2(charWidth, x_CursorPos.w);
+    vec2 targetSize = vec2(charWidth, vec4(x_CursorPos, 10.0, 20.0).w);
     
     // Lens/Crop area
     vec2 zoomSize = targetSize * 0.9; // Slightly smaller to avoid edges

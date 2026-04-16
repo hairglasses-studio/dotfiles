@@ -1,3 +1,4 @@
+#define WASH_HUE 0.6
 // Shader attribution: JRMeyer
 // (Watercolor) — Paint splatter effect
 
@@ -32,7 +33,7 @@ float fbm(vec2 p) {
 // cellSize: pixel size of each grid cell
 // density: 0-1, chance a cell has a drop
 // maxRadius: max drop radius in cell-fraction units
-float splatDrops(vec2 x_PixelPos, float cellSize, float density, float maxRadius) {
+float splatDrops(vec2 _fc, float cellSize, float density, float maxRadius) {
     vec2 grid = x_PixelPos / cellSize;
     vec2 cell = floor(grid);
     vec2 local = fract(grid);
@@ -58,7 +59,7 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
-    float distToBg = distance(orig.rgb, vec4(0.0, 0.0, 0.0, 1.0));
+    float distToBg = distance(orig.rgb, vec3(0.0, 0.0, 0.0));
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -95,7 +96,7 @@ void windowShader(inout vec4 _wShaderOut) {
     // Light base wash underneath the splatter
     vec2 p = x_PixelPos * 0.001 + vec2(hue * 100.0, hue * 73.0);
     float baseWash = fbm(p * 1.5 + vec2(5.0, 3.0));
-    vec3 washColor = mix(vec4(0.0, 0.0, 0.0, 1.0), pigment, smoothstep(0.3, 0.6, baseWash) * 0.25);
+    vec3 washColor = mix(vec3(0.0, 0.0, 0.0), pigment, smoothstep(0.3, 0.6, baseWash) * 0.25);
 
     // Splatter at three scales: large drops, medium drops, fine spray
     float largeDrop = splatDrops(x_PixelPos, 80.0, 0.25, 0.25);

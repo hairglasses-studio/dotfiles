@@ -1,3 +1,4 @@
+#define WASH_HUE 0.6
 // Cauliflower / Bloom Watercolor Wash Background
 // Backruns where wet paint creeps into drying areas.
 // Fractal-edged shapes with dark pigment concentrated at the boundary.
@@ -29,7 +30,7 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
-    float distToBg = distance(orig.rgb, vec4(0.0, 0.0, 0.0, 1.0));
+    float distToBg = distance(orig.rgb, vec3(0.0, 0.0, 0.0));
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -66,7 +67,7 @@ void windowShader(inout vec4 _wShaderOut) {
     // Base wash that was drying when the backruns happened
     vec2 p = x_PixelPos * 0.001 + vec2(hue * 100.0, hue * 73.0);
     float baseWash = fbm(p * 1.5 + vec2(2.0, 4.0));
-    vec3 washColor = mix(vec4(0.0, 0.0, 0.0, 1.0), pigment, smoothstep(0.25, 0.55, baseWash) * 0.5);
+    vec3 washColor = mix(vec3(0.0, 0.0, 0.0), pigment, smoothstep(0.25, 0.55, baseWash) * 0.5);
 
     // Bloom 1: heavily domain-warped noise creates fractal cauliflower edges
     vec2 q1 = vec2(fbm(p * 3.0 + vec2(1.7, 9.2)), fbm(p * 3.0 + vec2(8.3, 2.8)));

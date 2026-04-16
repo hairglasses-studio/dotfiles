@@ -129,7 +129,7 @@ void windowShader(inout vec4 _wShaderOut)
     }
 
     // Make a mask that is 1.0 where the terminal content is not black
-    float mask = 1 - step(threshold, luminance(terminalColor.rgb));
+    float mask = 1.0 - step(threshold, luminance(terminalColor.rgb));
 
     vec3 blendedColor = mix(terminalColor.rgb, col, mask);
 

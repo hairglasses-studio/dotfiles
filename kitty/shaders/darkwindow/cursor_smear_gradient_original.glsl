@@ -97,8 +97,8 @@ void windowShader(inout vec4 _wShaderOut)
     // Normalization for cursor position and size;
     // cursor xy has the postion in a space of -1 to 1;
     // zw has the width and height
-    vec4 currentCursor = vec4(norm(x_CursorPos.xy, 1.), norm(x_CursorPos.zw, 0.));
-    vec4 previousCursor = vec4(norm(x_CursorPos.xy, 1.), norm(x_CursorPos.zw, 0.));
+    vec4 currentCursor = vec4(norm(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
+    vec4 previousCursor = vec4(norm(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
 
     // When drawing a parellelogram between cursors for the trail i need to determine where to start at the top-left or top-right vertex of the cursor
     float vertexFactor = determineStartVertexFactor(currentCursor.xy, previousCursor.xy);

@@ -76,7 +76,7 @@ float sinPulse(float t) {
     return sin(t * 3.1415916);
 }
 
-vec2 normalize(vec2 value, float isPosition) {
+vec2 norm2(vec2 value, float isPosition) {
     return (value * 2.0 - (x_WindowSize * isPosition)) / x_WindowSize.y;
 }
 
@@ -86,11 +86,11 @@ void windowShader(inout vec4 _wShaderOut){
     #endif
 
     // Normalization & setup (-1 to 1 coords)
-    vec2 vu = normalize(x_PixelPos, 1.);
+    vec2 vu = norm2(x_PixelPos, 1.);
     vec2 offsetFactor = vec2(-.5, 0.5);
 
-    vec4 currentCursor = vec4(normalize(x_CursorPos.xy, 1.), normalize(x_CursorPos.zw, 0.));
-    vec4 previousCursor = vec4(normalize(x_CursorPos.xy, 1.), normalize(x_CursorPos.zw, 0.));
+    vec4 currentCursor = vec4(norm2(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm2(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
+    vec4 previousCursor = vec4(norm2(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm2(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
 
     vec2 centerCC = currentCursor.xy - (currentCursor.zw * offsetFactor);
 
@@ -139,7 +139,7 @@ void windowShader(inout vec4 _wShaderOut){
         float sdfCircle = dist - rippleRadius;
         
         // Antialias (1-pixel width in normalized coords)
-        float antiAliasSize = normalize(vec2(BLUR, BLUR), 0.0).x;
+        float antiAliasSize = norm2(vec2(BLUR, BLUR), 0.0).x;
         float ripple = (1.0 - smoothstep(-antiAliasSize, antiAliasSize, sdfCircle)) * fade;
         
         // Apply ripple effect

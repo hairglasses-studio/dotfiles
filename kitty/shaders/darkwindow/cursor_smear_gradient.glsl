@@ -137,10 +137,10 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 normOffset = x_WindowSize * invResY;
 
     // Normalize cursor positions and sizes to screen-independent coordinates
-    vec2 currentPos = x_CursorPos.xy * scale - normOffset;
-    vec2 previousPos = x_CursorPos.xy * scale - normOffset;
-    vec2 currentSize = x_CursorPos.zw * scale;
-    vec2 previousSize = x_CursorPos.zw * scale;
+    vec2 currentPos = vec4(x_CursorPos, 10.0, 20.0).xy * scale - normOffset;
+    vec2 previousPos = vec4(x_CursorPos, 10.0, 20.0).xy * scale - normOffset;
+    vec2 currentSize = vec4(x_CursorPos, 10.0, 20.0).zw * scale;
+    vec2 previousSize = vec4(x_CursorPos, 10.0, 20.0).zw * scale;
 
     // Determine movement direction and construct cursor quads
     vec2 deltaPos = currentPos - previousPos;

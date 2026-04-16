@@ -1,3 +1,4 @@
+#define WASH_HUE 0.6
 // Flat Watercolor Wash Background
 // Uniform color with organic, irregular edges like real watercolor on paper.
 
@@ -28,7 +29,7 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
-    float distToBg = distance(orig.rgb, vec4(0.0, 0.0, 0.0, 1.0));
+    float distToBg = distance(orig.rgb, vec3(0.0, 0.0, 0.0));
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -79,7 +80,7 @@ void windowShader(inout vec4 _wShaderOut) {
     if (isBg > 0.5) {
         if (inPaint > 0.5) {
             // Inside the wash — opaque with wash color
-            result = mix(vec4(0.0, 0.0, 0.0, 1.0), washColor, 0.6);
+            result = mix(vec3(0.0, 0.0, 0.0), washColor, 0.6);
             alpha = 0.9;
         } else {
             // Outside the wash — fully transparent

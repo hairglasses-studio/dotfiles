@@ -120,12 +120,12 @@ float getSdfParallelogram(in vec2 p, in vec2 v0, in vec2 v1, in vec2 v2, in vec2
     return s * sqrt(d);
 }
 
-vec2 normalize(vec2 value, float isPosition) {
+vec2 norm2(vec2 value, float isPosition) {
     return (value * 2.0 - (x_WindowSize * isPosition)) / x_WindowSize.y;
 }
 
 float antialising(float distance) {
-	return 1. - smoothstep(0., normalize(vec2(BLUR, BLUR), 0.).x, distance);
+	return 1. - smoothstep(0., norm2(vec2(BLUR, BLUR), 0.).x, distance);
 }
 
 float determineIfTopRightIsLeading(vec2 a, vec2 b) {
@@ -147,11 +147,11 @@ void windowShader(inout vec4 _wShaderOut){
     #endif
 
     // normalization & setup(-1, 1 coords)
-    vec2 vu = normalize(x_PixelPos, 1.);
+    vec2 vu = norm2(x_PixelPos, 1.);
     vec2 offsetFactor = vec2(-.5, 0.5);
     
-    vec4 currentCursor = vec4(normalize(x_CursorPos.xy, 1.), normalize(x_CursorPos.zw, 0.));
-    vec4 previousCursor = vec4(normalize(x_CursorPos.xy, 1.), normalize(x_CursorPos.zw, 0.));
+    vec4 currentCursor = vec4(norm2(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm2(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
+    vec4 previousCursor = vec4(norm2(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm2(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
 
     vec2 centerCC = currentCursor.xy - (currentCursor.zw * offsetFactor);
     vec2 centerCP = previousCursor.xy - (previousCursor.zw * offsetFactor);

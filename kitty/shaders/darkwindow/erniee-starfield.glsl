@@ -116,7 +116,7 @@ void windowShader(inout vec4 _wShaderOut)
     vec4 terminalColor = x_Texture(uv);
 
     // Make a mask that is 1.0 where the terminal content is not black
-    float mask = 1 - step(0.5, dot(terminalColor.rgb, vec3(1.0)));
+    float mask = 1.0 - step(0.5, dot(terminalColor.rgb, vec3(1.0)));
     vec3 blendedColor = mix(terminalColor.rgb, col, mask);
 
     // Apply terminal's alpha to control overall opacity

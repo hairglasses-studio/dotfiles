@@ -1,7 +1,7 @@
 // Shader attribution: erniee
 // (Background) — Matrix digital rain
 
-float text(vec2 x_PixelPos)
+float text(vec2 _fc)
 {
     vec2 uv = mod(x_PixelPos.xy, 16.)*.0625;
     vec2 block = x_PixelPos*.0625 - uv;
@@ -12,7 +12,7 @@ float text(vec2 x_PixelPos)
     return x_Texture(uv).r;
 }
 
-vec3 rain(vec2 x_PixelPos)
+vec3 rain(vec2 _fc)
 {
 	x_PixelPos.x -= mod(x_PixelPos.x, 16.);
     //x_PixelPos.y -= mod(x_PixelPos.y, 16.);

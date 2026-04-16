@@ -1,3 +1,4 @@
+#define WASH_HUE 0.6
 // Granulating Watercolor Wash Background
 // Pigment settles into paper texture, creating a speckled, grainy look.
 // Dense pigment clusters in paper valleys, bare paper on the peaks.
@@ -29,7 +30,7 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
-    float distToBg = distance(orig.rgb, vec4(0.0, 0.0, 0.0, 1.0));
+    float distToBg = distance(orig.rgb, vec3(0.0, 0.0, 0.0));
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
@@ -84,7 +85,7 @@ void windowShader(inout vec4 _wShaderOut) {
     pigmentDensity *= smoothstep(0.2, 0.6, washAmount);
 
     // Color: dense areas are saturated pigment, sparse areas show paper
-    vec3 washColor = mix(vec4(0.0, 0.0, 0.0, 1.0), pigment, pigmentDensity * 0.7);
+    vec3 washColor = mix(vec3(0.0, 0.0, 0.0), pigment, pigmentDensity * 0.7);
 
     // Slight color separation — granulating pigments often split into
     // warm and cool components as they settle
@@ -92,7 +93,7 @@ void windowShader(inout vec4 _wShaderOut) {
     vec3 warmPigment = pigment * vec3(1.15, 1.0, 0.85);
     vec3 coolPigment = pigment * vec3(0.85, 1.0, 1.15);
     vec3 splitColor = mix(warmPigment, coolPigment, separation);
-    washColor = mix(washColor, mix(vec4(0.0, 0.0, 0.0, 1.0), splitColor, pigmentDensity * 0.7), 0.3);
+    washColor = mix(washColor, mix(vec3(0.0, 0.0, 0.0), splitColor, pigmentDensity * 0.7), 0.3);
 
     // --- Composite ---
     vec3 result = orig.rgb;

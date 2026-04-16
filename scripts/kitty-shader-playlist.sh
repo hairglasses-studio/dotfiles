@@ -297,6 +297,9 @@ _choose_theme() {
   printf '%s\t%s\n' "$theme" "$theme_conf"
 }
 
+_shader_playlist="$_dotfiles/kitty/shaders/playlists/ambient.txt"
+_current_shader="$_state_dir/current-shader"
+
 _cycle() {
   local direction="$1" playlist mode theme theme_conf
   playlist="$(_active_playlist)"
@@ -311,6 +314,33 @@ _cycle() {
 cmd_next()   { _cycle next;   }
 cmd_prev()   { _cycle prev;   }
 cmd_random() { _cycle random; }
+
+cmd_shader_next() {
+  [[ -f "$_shader_playlist" ]] || hg_die "Shader playlist not found"
+  command -v hyprctl >/dev/null 2>&1 || hg_die "hyprctl not available"
+  local shader
+  shader="$(awk 'NF && $1 !~ /^#/ { sub(/\.glsl$/, ""); print }' "$_shader_playlist" | shuf -n 1)"
+  [[ -n "$shader" ]] || hg_die "No shaders in playlist"
+  hyprctl dispatch darkwindow:shadeactive "$shader" >/dev/null 2>&1 || true
+  printf '%s' "$shader" > "$_current_shader"
+  hg_notify_low "Shader" "$shader"
+  hg_ok "$shader"
+}
+
+cmd_shader_toggle() {
+  command -v hyprctl >/dev/null 2>&1 || hg_die "hyprctl not available"
+  local shader=""
+  [[ -f "$_current_shader" ]] && shader="$(< "$_current_shader")"
+  if [[ -z "$shader" ]]; then
+    # No shader tracked — apply a random one
+    cmd_shader_next
+    return
+  fi
+  # Dispatching the same shader name toggles it off/on in DarkWindow
+  hyprctl dispatch darkwindow:shadeactive "$shader" >/dev/null 2>&1 || true
+  hg_notify_low "Shader toggle" "$shader"
+  hg_ok "toggled $shader"
+}
 
 cmd_current() {
   [[ -f "$_current_theme" ]] || return 0
@@ -445,6 +475,8 @@ main() {
     current) cmd_current "$@" ;;
     theme-current) cmd_theme_current "$@" ;;
     theme-for-window) cmd_theme_for_window "$@" ;;
+    shader-next) cmd_shader_next "$@" ;;
+    shader-toggle) cmd_shader_toggle "$@" ;;
     list) cmd_list "$@" ;;
     status) cmd_status "$@" ;;
     reset) cmd_reset "$@" ;;

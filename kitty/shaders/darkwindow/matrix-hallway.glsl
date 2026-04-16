@@ -17,7 +17,7 @@
 
 #define R fract(1e2 * sin(p.x * 8. + p.y))
 
-void mainImage(out vec4 _wShaderOut, vec2 x_PixelPos) {
+void windowShader(inout vec4 _wShaderOut) {
     vec3 v = vec3(x_PixelPos, 1) / vec3(x_WindowSize, 1.0) - .5;
     // vec3 s = .5 / abs(v);
     // scale?

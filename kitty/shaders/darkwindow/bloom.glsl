@@ -1,7 +1,7 @@
 // source: https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f
 // credits: https://github.com/qwerasd205
 // Golden spiral samples, [x, y, weight] weight is inverse of distance.
-const vec3[24] samples = {
+const vec3[] samples = vec3[](
   vec3(0.1693761725038636, 0.9855514761735895, 1),
   vec3(-1.333070830962943, 0.4721463328627773, 0.7071067811865475),
   vec3(-0.8464394909806497, -1.51113870578065, 0.5773502691896258),
@@ -26,7 +26,7 @@ const vec3[24] samples = {
   vec3(3.8639122286635708, -2.6589814382925123, 0.21320071635561041),
   vec3(3.3486228404946234, 3.4331800232609, 0.20851441405707477),
   vec3(-2.8769733643574344, 3.9652268864187157, 0.20412414523193154)
-  };
+  );
 
 float lum(vec4 c) {
   return 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;

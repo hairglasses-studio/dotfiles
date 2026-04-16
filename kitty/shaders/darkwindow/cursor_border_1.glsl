@@ -47,8 +47,8 @@ void windowShader(inout vec4 _wShaderOut)
             1.
         );
 
-    vec4 normalizedCursor = vec4(normalizePosition(x_CursorPos.xy), normalizeSize(x_CursorPos.zw));
-    vec2 rectCenterPx = x_CursorPos.xy + x_CursorPos.zw * OFFSET;
+    vec4 normalizedCursor = vec4(normalizePosition(vec4(x_CursorPos, 10.0, 20.0).xy), normalizeSize(vec4(x_CursorPos, 10.0, 20.0).zw));
+    vec2 rectCenterPx = vec4(x_CursorPos, 10.0, 20.0).xy + vec4(x_CursorPos, 10.0, 20.0).zw * OFFSET;
 
     float sdfCurrentCursor = getSdfRectangle(vu, normalizePosition(rectCenterPx), normalizedCursor.zw * 0.5);
 

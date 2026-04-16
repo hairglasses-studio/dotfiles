@@ -80,7 +80,7 @@ void windowShader(inout vec4 _wShaderOut) {
     float fadeOut = 1.0 - smoothstep(duration - fadeOutTime, duration, elapsed);
     float fade = clamp(fadeIn * fadeOut, 0.0, 1.0);
 
-    vec2 center = norm(x_CursorPos.xy, 1.);
+    vec2 center = norm(vec4(x_CursorPos, 10.0, 20.0).xy, 1.);
     vec2 vu = norm(x_PixelPos, 1.);
     float v1v = sin(vu.x * 10.0 + x_Time);
     float v2v = sin(vu.y * 10.0 + x_Time * 4.5);
@@ -100,7 +100,7 @@ void windowShader(inout vec4 _wShaderOut) {
     const float PARTICLE_SEPARATION = 20.0; // default 20
     const float RANDOM_SEED_OFFSET = 50.0; // default 50
     const float TIME_MULTIPLIER = 5.0; // Default 5
-    const float TWO_PI = 6.283185; // 2 * PI
+    const float TWO_PI = 6.283185; // 2.0 * PI
     const float GAUSSIAN_SCALE = -2.0; // default -2.0
     const float COLOR_INTENSITY = 4.0; // default 4.0
     const float COLOR_FADE_FACTOR = 0.3; // default 0.3
@@ -113,8 +113,8 @@ void windowShader(inout vec4 _wShaderOut) {
         v = PARTICLE_SEPARATION * v.x * vec2(cos(v.y), sin(v.y));
 
         vec2 p = center + t * v - x_PixelPos;
-        p.x = p.x + x_CursorPos.x + x_CursorPos.z * 0.5;
-        p.y = p.y + x_CursorPos.y - x_CursorPos.w * 0.5;
+        p.x = p.x + vec4(x_CursorPos, 10.0, 20.0).x + vec4(x_CursorPos, 10.0, 20.0).z * 0.5;
+        p.y = p.y + vec4(x_CursorPos, 10.0, 20.0).y - vec4(x_CursorPos, 10.0, 20.0).w * 0.5;
         c0 += COLOR_INTENSITY * (1. - t) / (1. + COLOR_FADE_FACTOR * dot(p, p));
 
         p = p.yx;
@@ -130,8 +130,8 @@ void windowShader(inout vec4 _wShaderOut) {
     // Normalization for cursor position and size;
     // cursor xy has the postion in a space of -1 to 1;
     // zw has the width and height
-    vec4 currentCursor = vec4(norm(x_CursorPos.xy, 1.), norm(x_CursorPos.zw, 0.));
-    vec4 previousCursor = vec4(norm(x_CursorPos.xy, 1.), norm(x_CursorPos.zw, 0.));
+    vec4 currentCursor = vec4(norm(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
+    vec4 previousCursor = vec4(norm(vec4(x_CursorPos, 10.0, 20.0).xy, 1.), norm(vec4(x_CursorPos, 10.0, 20.0).zw, 0.));
     float sdfCurrentCursor = getSdfRectangle(vu, currentCursor.xy - (currentCursor.zw * offsetFactor), currentCursor.zw * 0.5);
     // vec3 rgb = c0 * base_color + c1 * base_color * blue_shift;
     // rgb += hash33(vec3(x_PixelPos, x_Time * 256.)) / 512.;
