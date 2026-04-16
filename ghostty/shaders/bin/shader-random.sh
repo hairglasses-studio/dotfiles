@@ -40,9 +40,13 @@ anim="false"
 grep -qE '(ghostty_time|iTime|u_time)' "$pick" 2>/dev/null && anim="true"
 
 # Atomic config update: write to temp file, then replace
+# Only replace the FIRST custom-shader line (preserve stacked shaders like focus-dim.glsl)
 tmp="$(mktemp "${CONFIG}.XXXXXX")"
 relative_pick="shaders/$(basename "$pick")"
-sed "s|^custom-shader = .*|custom-shader = ${relative_pick}|" "$CONFIG" \
+awk -v new="custom-shader = ${relative_pick}" '
+  /^custom-shader = / && !done { print new; done=1; next }
+  1
+' "$CONFIG" \
   | sed "s|^custom-shader-animation = .*|custom-shader-animation = ${anim}|" \
   > "$tmp"
 mv "$tmp" "$CONFIG"

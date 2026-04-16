@@ -115,10 +115,11 @@ shader-playlist-next() {
   local tmp
   tmp="$(mktemp "${_ghostty_config}.XXXXXX")"
   local relative_path="shaders/$shader_name"
-  sed -e "s|^custom-shader = .*|custom-shader = $relative_path|" \
-      -e "s|^# custom-shader.*|custom-shader = $relative_path|" \
-      -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
-      "$_ghostty_config" > "$tmp"
+  awk -v new="custom-shader = ${relative_path}" \
+    '/^#? *custom-shader = / && !done { print new; done=1; next } 1' \
+    "$_ghostty_config" \
+    | sed "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
+    > "$tmp"
   command mv -f "$tmp" "$_ghostty_config"
 
   # Write state for menubar consumers

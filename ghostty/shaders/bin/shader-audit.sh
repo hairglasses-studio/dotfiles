@@ -93,9 +93,11 @@ restore_config() {
   local tmp
   tmp="$(mktemp "${CONFIG_FILE}.XXXXXX")"
   local s="$ORIGINAL_SHADER" a="$ORIGINAL_ANIM"
-  sed -e "s|^custom-shader = .*|${s:-# custom-shader = disabled}|" \
-      -e "s|^custom-shader-animation = .*|${a:-custom-shader-animation = false}|" \
-      "$CONFIG_FILE" > "$tmp"
+  awk -v new="${s:-# custom-shader = disabled}" \
+    '/^custom-shader = / && !done { print new; done=1; next } 1' \
+    "$CONFIG_FILE" \
+    | sed "s|^custom-shader-animation = .*|${a:-custom-shader-animation = false}|" \
+    > "$tmp"
   mv "$tmp" "$CONFIG_FILE"
 }
 
@@ -107,9 +109,11 @@ swap_shader() {
   local needs_anim="$2"
   local tmp
   tmp="$(mktemp "${CONFIG_FILE}.XXXXXX")"
-  sed -e "s|^custom-shader = .*|custom-shader = $shader_path|" \
-      -e "s|^custom-shader-animation = .*|custom-shader-animation = $needs_anim|" \
-      "$CONFIG_FILE" > "$tmp"
+  awk -v new="custom-shader = $shader_path" \
+    '/^custom-shader = / && !done { print new; done=1; next } 1' \
+    "$CONFIG_FILE" \
+    | sed "s|^custom-shader-animation = .*|custom-shader-animation = $needs_anim|" \
+    > "$tmp"
   mv "$tmp" "$CONFIG_FILE"
 }
 

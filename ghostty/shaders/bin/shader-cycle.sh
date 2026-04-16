@@ -79,9 +79,11 @@ apply_ghostty_shader() {
   local tmp
   tmp="$(mktemp "${GHOSTTY_CONFIG}.XXXXXX")"
   local relative_path="shaders/$(basename "$shader_path")"
-  sed -e "s|^#* *custom-shader = .*|custom-shader = $relative_path|" \
-      -e "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
-      "$GHOSTTY_CONFIG" > "$tmp"
+  awk -v new="custom-shader = ${relative_path}" \
+    '/^#* *custom-shader = / && !done { print new; done=1; next } 1' \
+    "$GHOSTTY_CONFIG" \
+    | sed "s|^custom-shader-animation = .*|custom-shader-animation = $anim|" \
+    > "$tmp"
   mv -f "$tmp" "$GHOSTTY_CONFIG"
 }
 
