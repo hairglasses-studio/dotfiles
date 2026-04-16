@@ -121,7 +121,7 @@ interval.memory = 5
 [[monitors."DP-3".end]]
 type = "label"
 class = "bar-gpu"
-label = "{{10000:nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null | awk '{printf \"%.0fW\", $1}' || echo ''}}"
+label = "{{10000:cat /tmp/bar-gpu.txt 2>/dev/null || echo ''}}"
 
 # Bluetooth
 [[monitors."DP-3".end]]

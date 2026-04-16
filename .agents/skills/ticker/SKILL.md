@@ -3,129 +3,126 @@ name: ticker
 description: "Manage the keybind-ticker visual effects bar — restart, debug, tune effects, switch content streams, and iterate on the cyberpunk visual stack. Use when the user mentions the ticker, scrolling bar, keybind bar, bottom bar, visual effects tuning, stock ticker, or wants to adjust scroll speed, glow, scanlines, gradients, water caustic, glitch effects, or content streams on the ticker."
 ---
 
-# Keybind Ticker
+# Keybind Ticker (v3)
 
-The keybind-ticker is a standalone GTK4 PangoCairo app that renders a pixel-smooth scrolling bar at the bottom of the Samsung ultrawide (DP-3). It displays keybindings with a cyberpunk visual effects stack (water caustic, neon glow, gradient, scanlines, glitch).
+The keybind-ticker is a standalone GTK4 PangoCairo app rendering a pixel-smooth scrolling bar at the bottom of the Samsung ultrawide (DP-3). 12 content streams rotate with per-stream refresh intervals. Multi-layer cyberpunk visual effects stack.
 
 ## Architecture
 
-- **App**: `scripts/keybind-ticker.py` — Python GTK4 DrawingArea with `add_tick_callback` for 240Hz frame-clock sync
-- **Service**: `systemd/dotfiles-keybind-ticker.service` — Wayland-gated, hyprctl-ready, auto-restarts
-- **Window rule**: `hyprland/hyprland.conf` matches `title = ^(keybind-ticker)$` — pinned floating on DP-3, `decorate = false`
-- **Layer rule**: `hyprland/hyprland.conf` matches `namespace = ^keybind-ticker$` for frosted glass blur in `--layer` mode
-- **Ironbar**: The old bash-based ticker was removed from `ironbar/config.toml`. The standalone Python app replaced it.
+- **App**: `scripts/keybind-ticker.py` — GTK4 DrawingArea + `add_tick_callback` for 240Hz frame-clock sync
+- **Service**: `systemd/dotfiles-keybind-ticker.service` — Wayland-gated, sets `LD_PRELOAD` for layer-shell
+- **Layer rule**: `hyprland/hyprland.conf` matches `namespace = ^keybind-ticker$` for blur
+- **Playlist**: `ticker/content-playlists/main.txt` — one stream ID per line, read at startup
+- **State**: `~/.local/state/keybind-ticker/` — `current-stream`, `paused`, `pinned-stream`
 
 ## Operations
 
-### Restart the ticker
+### Restart
 ```bash
 systemctl --user restart dotfiles-keybind-ticker.service
 ```
 
-### Launch in windowed debug mode (tiled, visible errors)
+### Windowed debug mode
 ```bash
 pkill -f keybind-ticker.py; sleep 0.3
 GSK_RENDERER=gl python3 ~/hairglasses-studio/dotfiles/scripts/keybind-ticker.py
+# with preset: ... --preset cyberpunk
+# different monitor: ... --monitor DP-2
 ```
 
-### Check if running
+### Check status
 ```bash
 systemctl --user status dotfiles-keybind-ticker.service
-# or
-pgrep -fa keybind-ticker
+journalctl --user -u dotfiles-keybind-ticker.service --since "1 min ago"
 ```
 
-### Screenshot the ticker bar region
-Use `mcp__dotfiles__hypr_screenshot` with `output: DP-3` and look at the bottom 28px.
+### Screenshot
+`mcp__dotfiles__hypr_screenshot` with `output: DP-3` and look at the bottom 28px. Or `scripts/capture-window-gif.sh ticker 3` for a 3-second GIF.
 
-## Visual Effects Stack (compositing order)
+## Visual Effects Stack (v3)
 
-All effects render in the BACKGROUND, text stays crisp on top:
+| Layer | Effect | Key Config | Notes |
+|-------|--------|------------|-------|
+| BG-0 | Dark panel | `bg_alpha` | Base fill |
+| BG-1 | Water caustic | `water_skip` | Ported from darkwindow/water.glsl |
+| BG-2 | Scanlines | `scanline_opacity` | Under text |
+| BG-3 | Holo shimmer | `holo_shimmer` | Phase 6 |
+| BG-4 | Top border (synthwave sweep) | `synthwave_border` | Hot-pink→purple sweep |
+| FG-5 | Text outline (solid or pulse) | `outline_width`, `outline_pulse` | Pulse = lit edge via gradient stroke |
+| FG-6 | Wave distortion | `wave_amp`, `wave_freq`, `wave_speed` | Strip sine displacement |
+| FG-7 | Typewriter clip | (on stream change) | Reveals text on rotation |
+| FG-8 | Phosphor decay trail | `phosphor_trail` | CRT afterimage ring buffer |
+| FG-9 | Ghost echo | `ghost_echo` | VHS double-image |
+| FG-10 | Neon glow (breathing) | `glow_kernel`, `glow_base_alpha`, `glow_pulse_*` | Blur + sine breathing |
+| FG-11 | Drop shadow | `shadow_offset`, `shadow_alpha` | Dark offset |
+| FG-12 | Gradient text | `gradient_speed`, `gradient_span` | Flowing neon palette |
+| FG-13 | Chromatic aberration | `ca_offset` | During glitch only |
+| FG-14 | Glitch strips | `glitch_prob`, `glitch_frames` | Random displacement |
+| POST | Edge fade vignette | `edge_fade` | Dark gradient mask on L/R edges |
+| POST | Progress bar | `progress_bar` | 1px bottom bar = time in stream |
 
-| Layer | Effect | Config Constant | Notes |
-|-------|--------|-----------------|-------|
-| 0 | Dark panel BG | `BG = (0.02, 0.03, 0.05, 0.82)` | Alpha < 1 for frosted glass |
-| 0.5 | Water caustic | `WATER_SKIP = 4` | Ported from `kitty/shaders/darkwindow/water.glsl` |
-| 1 | CRT scanlines | `SCANLINE_OPACITY = 0.08` | Under text for readability |
-| 2 | Top border | Animated gradient | 1px neon gradient line |
-| 3 | Neon glow | `GLOW_KERNEL=17`, `GLOW_BASE_ALPHA=0.35`, `GLOW_PULSE_*` | Breathing halo via sine wave |
-| 4 | Drop shadow | `SHADOW_OFFSET=2`, `SHADOW_ALPHA=0.30` | Dark offset for depth |
-| 4.5 | Text outline | `OUTLINE_WIDTH=0.8` | Dark stroke via `layout_path()` |
-| 5 | Wave distortion | `WAVE_AMP=1.5`, `WAVE_FREQ=0.015`, `WAVE_SPEED=2.0` | Sine wave strip displacement |
-| 6 | Gradient text | `GRADIENT_SPEED=40`, `GRADIENT_SPAN=800` | Flowing neon palette |
-| 7 | Chromatic aberration | `CA_OFFSET=3` | During glitch only |
-| 8 | Glitch strips | `GLITCH_PROB=0.004`, `GLITCH_FRAMES=4` | ~1/sec random displacement |
+### Presets
 
-### Tuning effects
+- `ambient` (default) — subtle, breathing, readable
+- `cyberpunk` — aggressive, more glitch, phosphor trail, hue sweep
+- `minimal` — clean, no wave, no glitch, light effects
+- `clean` — bare minimum, no effects
 
-All tunables are constants at the top of `keybind-ticker.py`. To adjust:
+Per-stream preset override via `STREAM_META` dict:
+- `fleet` → cyberpunk
+- `weather` → ambient
+- `music` → minimal
 
-1. Edit the constant in `scripts/keybind-ticker.py`
-2. Restart: `pkill -f keybind-ticker.py && systemctl --user restart dotfiles-keybind-ticker.service`
-3. Screenshot to verify: use `mcp__dotfiles__hypr_screenshot output=DP-3`
+### Tuning
 
-**Common adjustments:**
-- Scroll speed: `SPEED` (px/sec, default 55)
-- Glow intensity: `GLOW_BASE_ALPHA` (0.0–1.0)
-- Glow breathing: `GLOW_PULSE_AMP` and `GLOW_PULSE_PERIOD`
-- Scanline visibility: `SCANLINE_OPACITY` (0.0 = off, 0.08 = subtle)
-- Glitch frequency: `GLITCH_PROB` (0.0 = off, 0.004 = ~1/sec at 240Hz)
-- Water caustic: set `WATER_SKIP` higher for less CPU, or remove the layer entirely
-- Text outline: `OUTLINE_WIDTH` (0.0 = off, 0.8 = subtle, 1.0+ = bold)
-- Wave distortion: `WAVE_AMP` (px, 0 = off, 1.5 = gentle, 2.0 = noticeable)
-- Background transparency: `BG` alpha value (lower = more frosted glass visible)
+All tunables are constants at the top of `keybind-ticker.py` inside the `PRESETS` dict. Edit, then restart the service.
 
-### Disabling an effect
+## Content Streams (12 total)
 
-Set its opacity/alpha/probability to 0:
-- No glow: `GLOW_BASE_ALPHA = 0`
-- No scanlines: `SCANLINE_OPACITY = 0`
-- No glitch: `GLITCH_PROB = 0`
-- No water caustic: comment out the water caustic layer in `_draw()`
-- No shadow: `SHADOW_ALPHA = 0`
-- No outline: `OUTLINE_WIDTH = 0`
-- No wave: `WAVE_AMP = 0`
+Each stream has its own refresh interval (see `STREAM_META`). Slow streams (github, music, updates) run on background threads to avoid blocking the render loop.
 
-## Font System
+| Stream | Source | Refresh | Badge | Click action |
+|--------|--------|---------|-------|--------------|
+| `keybinds` | `hyprctl binds -j` | 5 min | cyan | Copy keybind |
+| `system` | sensors / nvidia-smi / free / uptime | 10 s | yellow | — |
+| `fleet` | `/tmp/rg-status.json` | 30 s | magenta | — |
+| `weather` | `/tmp/bar-weather.txt` (cached) | 30 min | blue | — |
+| `github` | `gh api /notifications` (threaded) | 2 min | green | Open URL in browser |
+| `notifications` | `~/.local/state/.../history.jsonl` | 1 min | red | — |
+| `music` | `playerctl` (threaded) | 10 s | magenta | — |
+| `updates` | `/tmp/bar-updates.txt` + `checkupdates` | 30 min | cyan | — |
+| `mx-battery` | `/tmp/bar-mx.txt` | 5 min | yellow | — |
+| `disk` | `df -h` | 1 min | blue | — |
+| `load` | `/proc/loadavg` | 5 s | green | Sparkline |
+| `workspace` | `hyprctl activeworkspace/activewindow/workspaces -j` | 5 s | magenta | — |
 
-The ticker cycles through 10 Maple Mono NF CN weight variants via Pango markup (`<span font_desc="...">`). The `FONTS` list in the config section controls the rotation. Text colors come from a Cairo LinearGradient (not Pango foreground), which allows the animated flowing gradient effect.
-
-## Content Streams
-
-7 streams rotate every 5 minutes (REFRESH_S). Playlist state persists across restarts via `~/.local/state/keybind-ticker/current-stream`.
-
-| Stream | Source | Badge Color | Notes |
-|--------|--------|-------------|-------|
-| `keybinds` | `hyprctl binds -j` | cyan | Click-to-copy via wl-copy |
-| `system` | sensors, nvidia-smi, free, /proc/uptime | yellow | CPU/GPU/RAM/uptime |
-| `fleet` | `/tmp/rg-status.json` | magenta | ralphglasses fleet status |
-| `weather` | `scripts/bar-weather.sh` | blue | Cache-fed |
-| `github` | `gh api /notifications` | green | PR/issue/release/discussion icons |
-| `notifications` | `~/.local/state/.../history.jsonl` | red | Urgency icons, last 30 entries |
-| `music` | `playerctl` | magenta | MPRIS now-playing with position |
-
-To add a new stream, create `build_<name>_markup()` returning `(markup_str, segments_list)` and add it to `STREAMS` and `STREAM_ORDER`.
+To add a new stream, create `build_<name>_markup()` returning `(markup_str, segments_list)`, add to `STREAMS`, `STREAM_META`, and `main.txt`.
 
 ## Interactive Controls
 
-- **Scroll wheel**: adjust scroll speed (10-200 px/s)
-- **Click**: on keybinds stream, copies the keybind combo to clipboard via `wl-copy`
-- **Hover tooltip**: shows current stream, speed, and hovered keybind (if applicable)
+| Input | Action |
+|-------|--------|
+| **Scroll wheel** | Adjust speed (10-200 px/s) |
+| **Shift + scroll** | Switch streams |
+| **Left-click** | Copy segment (keybinds) or open URL in browser (github) |
+| **Middle-click** | Toggle pause (persists to `STATE_DIR/paused`) |
+| **Right-click** | Context menu: streams / presets / pause / pin |
+| **Hover** | Adaptive speed (slows to 20%); tooltip shows stream+preset+segment |
+
+### Pin a stream
+Right-click → "Pin current stream" → stops auto-rotation. Persists to `STATE_DIR/pinned-stream`. Unpin from the same menu.
+
+### Priority interrupts
+A DBus-driven watcher polls the notification history every 3 s. If a `critical`-urgency notification arrives, the ticker jumps to the notifications stream immediately and enters urgent mode (amplified glitch, CA, for 10 s).
+
+## CLI Flags
+
+- `--layer` — layer-shell mode (bottom-anchored, exclusive zone). Used by systemd.
+- `--preset <name>` — start with `ambient|cyberpunk|minimal|clean`
+- `--monitor <name>` — target a specific output (default `DP-3`)
 
 ## Hyprland Integration
 
-In **layer-shell mode** (default via systemd), the ticker uses `gtk4-layer-shell` to anchor to the bottom of DP-3 with exclusive zone. The systemd service sets `LD_PRELOAD=/usr/lib/libgtk4-layer-shell.so`.
+In **layer-shell mode** (default via systemd), the ticker uses `gtk4-layer-shell` to anchor to the bottom of the monitor with exclusive zone. The systemd service sets `LD_PRELOAD=/usr/lib/libgtk4-layer-shell.so`.
 
-In **windowed mode** (no `--layer` flag), the windowrule pins it:
-```
-windowrule {
-    name = keybind-ticker
-    match:title = ^(keybind-ticker)$
-    monitor = DP-3
-    float = yes
-    size = 2560 28
-    move = 0 692
-    pin = yes
-    decorate = false
-}
-```
+In **windowed mode** (no `--layer` flag), the ticker runs as a floating window. Hyprland windowrule pins it to DP-3 at 2560x28 at the bottom.

@@ -1,0 +1,15 @@
+# bar-gpu.service — Refresh GPU power cache for Ironbar
+#
+# Reads nvidia-smi power draw and writes a label to /tmp/bar-gpu.txt.
+# Ironbar reads the cache file with `cat`, never blocking the GTK main loop.
+#
+# Paired with bar-gpu.timer (10s interval).
+
+[Unit]
+Description=Refresh Ironbar GPU power cache
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-gpu-cache.sh
+MemoryMax=32M
+CPUQuota=5%

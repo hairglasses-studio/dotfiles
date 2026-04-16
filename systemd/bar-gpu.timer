@@ -1,0 +1,16 @@
+# bar-gpu.timer — Periodic GPU power cache refresh
+#
+# Triggers bar-gpu.service every 10 seconds to keep Ironbar's GPU widget
+# fresh without forking nvidia-smi on the GTK main thread.
+#
+# Enable: systemctl --user enable --now bar-gpu.timer
+
+[Unit]
+Description=Refresh Ironbar GPU power cache every 10s
+
+[Timer]
+OnBootSec=5
+OnUnitActiveSec=10
+
+[Install]
+WantedBy=timers.target

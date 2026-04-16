@@ -310,3 +310,45 @@ if [[ -d "$HOME/Android/Sdk" ]]; then
 fi
 
 # Claude uses browser authentication now; do not inject Anthropic API keys here.
+
+# ═══════════════════════════════════════════════════════════════════════
+#  Claude Code — Opus 4.7 global defaults
+# ═══════════════════════════════════════════════════════════════════════
+
+# ── Model pinning ─────────────────────────────────────────────────────
+export ANTHROPIC_MODEL="claude-opus-4-7[1m]"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="claude-opus-4-7[1m]"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="claude-sonnet-4-6"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="claude-haiku-4-5-20251001"
+
+# ── Reasoning & output budget ────────────────────────────────────────
+export CLAUDE_CODE_EFFORT_LEVEL="max"
+export MAX_THINKING_TOKENS=31999
+export CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000
+
+# ── Context management (92% of 1M ≈ 920K before auto-compact) ────────
+export CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=92
+
+# ═══════════════════════════════════════════════════════════════════════
+#  Claude Code — Opus 4.7 capability flags (researched 2026-04-16)
+# ═══════════════════════════════════════════════════════════════════════
+
+# ── Prompt caching ───────────────────────────────────────────────────
+export ENABLE_PROMPT_CACHING_1H=1
+
+# ── Agent teams + resilience ─────────────────────────────────────────
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+export CLAUDE_CODE_RESUME_INTERRUPTED_TURN=1
+
+# ── Streaming / rendering ────────────────────────────────────────────
+export CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING=1
+export CLAUDE_CODE_ENABLE_AWAY_SUMMARY=1
+export CLAUDE_CODE_NO_FLICKER=1
+export CLAUDE_STREAM_IDLE_TIMEOUT_MS=300000
+
+# ── MCP / tool concurrency ───────────────────────────────────────────
+export MCP_CONNECTION_NONBLOCKING=true
+export CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY=20
+
+# ── Skill description budget (fits hairglasses-studio's many skills) ─
+export SLASH_COMMAND_TOOL_CHAR_BUDGET=16000
