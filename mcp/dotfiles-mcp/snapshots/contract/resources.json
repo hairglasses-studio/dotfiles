@@ -60,18 +60,6 @@
     ]
   },
   {
-    "uri": "dotfiles://config/ghostty",
-    "name": "Ghostty Config",
-    "description": "Current Ghostty terminal configuration",
-    "mime_type": "text/plain",
-    "category": "config",
-    "tags": [
-      "ghostty",
-      "terminal",
-      "config"
-    ]
-  },
-  {
     "uri": "dotfiles://config/hyprland",
     "name": "Hyprland Config",
     "description": "Current Hyprland window manager configuration",
@@ -84,15 +72,16 @@
     ]
   },
   {
-    "uri": "dotfiles://palette/snazzy",
-    "name": "Snazzy Color Palette",
-    "description": "Snazzy terminal color palette as JSON",
+    "uri": "dotfiles://palette",
+    "name": "Hairglasses Neon Palette",
+    "description": "Hairglasses Neon color palette tokens parsed from theme/palette.env",
     "mime_type": "application/json",
-    "category": "config",
+    "category": "theme",
     "tags": [
       "palette",
       "colors",
-      "snazzy"
+      "theme",
+      "neon"
     ]
   },
   {
@@ -106,18 +95,6 @@
       "desktop",
       "fleet",
       "overview"
-    ]
-  },
-  {
-    "uri": "dotfiles://shader/current",
-    "name": "Active Shader",
-    "description": "Currently active Ghostty shader name and path",
-    "mime_type": "application/json",
-    "category": "config",
-    "tags": [
-      "shader",
-      "ghostty",
-      "glsl"
     ]
   },
   {
@@ -237,6 +214,19 @@
       "health",
       "services",
       "workflow"
+    ]
+  },
+  {
+    "uri": "shader://current",
+    "name": "Current Shader State",
+    "description": "Currently active kitty shader, playlist position, auto-rotate status, and kitty theme",
+    "mime_type": "application/json",
+    "category": "shader",
+    "tags": [
+      "shader",
+      "kitty",
+      "theme",
+      "state"
     ]
   }
 ]

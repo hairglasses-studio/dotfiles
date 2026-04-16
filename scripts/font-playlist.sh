@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# font-playlist.sh — Sequential font auditioning for Ghostty
-# Cycles through font playlists, updating Ghostty config atomically.
-# Ghostty auto-reloads on config change — no restart needed.
+# font-playlist.sh — Sequential font auditioning for Kitty
+# Cycles through font playlists, updating Kitty config atomically.
+# Kitty auto-reloads on config change — no restart needed.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"

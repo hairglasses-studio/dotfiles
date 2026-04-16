@@ -2,7 +2,7 @@
 set -euo pipefail
 # en16-session-focus.sh — Focus the Nth Claude Code agent session window.
 # Called by mapitall EN16 profile (Grid.toml) when an encoder button is pushed.
-# Uses the same Ghostty window discovery as agent-session-picker.sh.
+# Uses the same Kitty window discovery as agent-session-picker.sh.
 #
 # Usage: en16-session-focus.sh <session_number> [page_offset]
 #   session_number: 1-12 (encoder position)

@@ -1,7 +1,7 @@
 # MCP Tool Roadmap
 
 Research conducted 2026-04-02 across GitHub ecosystem. Evaluated against current
-dotfiles stack: Hyprland/Sway, Ghostty (144 shaders), eww, Go/Python/Bash,
+dotfiles stack: Hyprland, Kitty (139 DarkWindow shaders), ironbar, Go/Python/Bash,
 5 custom MCP servers (86+ tools), mcpkit framework.
 
 ## Current Fleet (5 servers, 86+ tools)
@@ -10,7 +10,7 @@ dotfiles stack: Hyprland/Sway, Ghostty (144 shaders), eww, Go/Python/Bash,
 |--------|------|-------|--------|
 | hyprland-mcp | Go | 12 | Compositor, screenshots, input, windows |
 | ~~sway-mcp~~ | ~~Node~~ | ~~12~~ | ~~Removed — Sway deprecated, Hyprland only~~ |
-| dotfiles-mcp | Go | 30 | Config, GitHub sync, eww, health, pipelines |
+| dotfiles-mcp | Go | 30 | Config, GitHub sync, ironbar, health, pipelines |
 | shader-mcp | Go | 11 | GLSL shaders, playlists, benchmarks |
 | input-mcp | Go | 29 | Bluetooth, controllers, MIDI, mouse, keyboard |
 
@@ -127,7 +127,7 @@ These don't exist in the MCP ecosystem. Build them using mcpkit.
   - `systemd_logs` — `journalctl -u <unit> --since` with filtering
   - `systemd_list_timers` — active timer overview
   - `systemd_list_failed` — failed units
-  - `systemd_user_services` — `--user` scope (shader-rotate, makima, eww-calendar-sync, etc.)
+  - `systemd_user_services` — `--user` scope (shader-rotate, makima, ironbar, etc.)
 - **Why:** 8 systemd user services in the dotfiles. Zero MCP servers for systemd exist anywhere on GitHub. Unique competitive advantage.
 - **Effort:** Small (wrapper around systemctl/journalctl)
 - **Priority:** **High**
@@ -168,7 +168,6 @@ These don't exist in the MCP ecosystem. Build them using mcpkit.
 | Input devices | input-mcp (29 tools) | Nothing exists |
 | Config validation | dotfiles-mcp | Nothing comparable |
 | GitHub sync | dotfiles-mcp (10 gh_* tools) | github/github-mcp-server (complementary, not redundant) |
-| eww widgets | dotfiles-mcp (3 eww_* tools) | Nothing exists |
 
 ## GitHub MCP vs Built-in gh CLI
 

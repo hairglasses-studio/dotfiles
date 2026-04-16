@@ -9,7 +9,7 @@
 ## Environment
 - OS: Manjaro Linux (Arch-based, rolling release), packages via pacman/yay
 - WM: Hyprland (Wayland) with Sway fallback
-- Terminal: foot and Ghostty
+- Terminal: Kitty
 - Shell: zsh with starship prompt
 - Workspace root: `/home/hg/hairglasses-studio`
 - Shared research repo: `/home/hg/hairglasses-studio/docs`
@@ -17,6 +17,5 @@
 ## Operating Rules
 - Prefer repo-local `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` before global instructions.
 - Use `wl-copy` and `wl-paste` for clipboard work.
-- Keep Ghostty writes atomic with `mktemp` plus `mv`.
 - Keep US QWERTY keyboard layout in window-manager configs.
 - Treat `.agents/skills/` as the canonical skill surface. Compatibility mirrors are generated.

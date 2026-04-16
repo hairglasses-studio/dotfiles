@@ -337,66 +337,6 @@ func (m *dotfilesResourceModule) Resources() []resources.ResourceDefinition {
 			Category: "config",
 			Tags:     []string{"hyprland", "wm", "config"},
 		},
-		{
-			Resource: mcp.NewResource(
-				"dotfiles://palette/snazzy",
-				"Snazzy Color Palette",
-				mcp.WithResourceDescription("Snazzy terminal color palette as JSON"),
-				mcp.WithMIMEType("application/json"),
-			),
-			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-				palette := map[string]string{
-					"bg":      "#000000",
-					"fg":      "#f1f1f0",
-					"cyan":    "#57c7ff",
-					"magenta": "#ff6ac1",
-					"green":   "#5af78e",
-					"yellow":  "#f3f99d",
-					"red":     "#ff5c57",
-					"blue":    "#57c7ff",
-				}
-				data, _ := json.MarshalIndent(palette, "", "  ")
-				return []mcp.ResourceContents{
-					mcp.TextResourceContents{URI: "dotfiles://palette/snazzy", MIMEType: "application/json", Text: string(data)},
-				}, nil
-			},
-			Category: "config",
-			Tags:     []string{"palette", "colors", "snazzy"},
-		},
-		{
-			Resource: mcp.NewResource(
-				"dotfiles://shader/current",
-				"Active Shader",
-				mcp.WithResourceDescription("Currently active Ghostty shader name and path"),
-				mcp.WithMIMEType("application/json"),
-			),
-			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-				configPath := filepath.Join(dotfilesDir(), "ghostty", "config")
-				data, err := os.ReadFile(configPath)
-				if err != nil {
-					return nil, fmt.Errorf("read ghostty config: %w", err)
-				}
-				shaderPath := ""
-				for _, line := range strings.Split(string(data), "\n") {
-					if strings.HasPrefix(strings.TrimSpace(line), "custom-shader") {
-						parts := strings.SplitN(line, "=", 2)
-						if len(parts) == 2 {
-							shaderPath = strings.TrimSpace(parts[1])
-						}
-					}
-				}
-				result := map[string]string{
-					"path": shaderPath,
-					"name": filepath.Base(shaderPath),
-				}
-				out, _ := json.MarshalIndent(result, "", "  ")
-				return []mcp.ResourceContents{
-					mcp.TextResourceContents{URI: "dotfiles://shader/current", MIMEType: "application/json", Text: string(out)},
-				}, nil
-			},
-			Category: "config",
-			Tags:     []string{"shader", "ghostty", "glsl"},
-		},
 	}
 }
 

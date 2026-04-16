@@ -2,7 +2,7 @@
 
 ## Current State
 
-Manjaro Linux dotfiles with 60+ symlinked configs, 138 GLSL shaders with shuffled playlists, Snazzy-on-black palette applied to 15+ tools, Hyprland-first compositor automation, an Ironbar-first menubar, and a full boot stack (rEFInd + Plymouth). Idempotent installer with backup/restore support.
+Manjaro Linux dotfiles with 60+ symlinked configs, 139+ DarkWindow GLSL shaders with shuffled playlists, Hairglasses Neon palette applied to 15+ tools, Hyprland-first compositor automation, an Ironbar-first menubar, and a full boot stack (rEFInd + Plymouth). Idempotent installer with backup/restore support.
 
 Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
 

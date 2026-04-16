@@ -46,12 +46,16 @@ section_icon() {
     *Master*|*Layout*|*layout*) echo "" ;;
     *Workspace*)    echo "" ;;
     *Window*manage*) echo "" ;;
+    *Window*group*) echo "󰆧" ;;
+    *Monitor*focus*) echo "󰍹" ;;
+    *Minimize*|*Special*work*) echo "󰘸" ;;
+    *Notification*) echo "󰂚" ;;
     *Resize*)       echo "󰩨" ;;
     *Screenshot*)   echo "" ;;
     *Clipboard*|*Color*) echo "" ;;
     *Media*)        echo "󰎆" ;;
     *Night*|*light*) echo "" ;;
-    *Shader*|*Ghostty*) echo "" ;;
+    *Shader*|*Kitty*) echo "" ;;
     *Claude*)       echo "󰚩" ;;
     *System*|*Lock*|*wallpaper*|*dashboard*) echo "" ;;
     *Scratchpad*)   echo "󰎟" ;;

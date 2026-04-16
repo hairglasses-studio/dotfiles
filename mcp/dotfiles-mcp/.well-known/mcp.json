@@ -213,6 +213,22 @@
       "description": "Write text to the Wayland clipboard. Uses wl-copy. Optionally specify a MIME type."
     },
     {
+      "name": "cliphist_clear",
+      "description": "Clear all clipboard history via cliphist wipe. Dry-run by default — set execute to true to actually wipe. This is a destructive operation and cannot be undone."
+    },
+    {
+      "name": "cliphist_delete",
+      "description": "Delete clipboard history entries matching a query via cliphist delete-query. Dry-run by default — set execute to true to actually delete."
+    },
+    {
+      "name": "cliphist_get",
+      "description": "Retrieve a specific clipboard history entry by ID via cliphist decode. Returns the full content of the entry."
+    },
+    {
+      "name": "cliphist_list",
+      "description": "List recent clipboard history entries via cliphist. Returns a structured JSON array of the most recent 50 entries, each with id, preview text, and detected type."
+    },
+    {
       "name": "desktop_act",
       "description": "Invoke a specific AT-SPI action on a semantic element, such as activate, press, select, or grab focus."
     },
@@ -305,6 +321,10 @@
       "description": "Poll screenshot+OCR until text appears on screen or timeout. Returns coordinates and final screenshot when found. Use to wait for UI state changes (dialogs, loading, notifications)."
     },
     {
+      "name": "dotfiles_bar_audit",
+      "description": "Audit Ironbar layout readiness by checking live monitors, monitor-specific config coverage, service state, and recent bar log noise."
+    },
+    {
       "name": "dotfiles_bulk_pipeline",
       "description": "Run build+test pipeline across multiple repos. Detects language and runs appropriate build/test steps. Returns per-repo pass/fail with output."
     },
@@ -330,27 +350,7 @@
     },
     {
       "name": "dotfiles_desktop_status",
-      "description": "Report desktop control readiness, including Hyprland, AT-SPI semantic targeting, session helpers, screenshot/OCR, input injection, and the kitty-to-ghostty terminal shader pipeline."
-    },
-    {
-      "name": "dotfiles_eww_get",
-      "description": "Get the current value of an eww variable. Useful for debugging bar widgets (e.g. bar_workspaces_dp1, bar_cpu, bar_shader, rg_fleet)."
-    },
-    {
-      "name": "dotfiles_eww_inspect",
-      "description": "Inspect the current eww daemon state, active and defined windows, visible layer bindings, and parsed variable map."
-    },
-    {
-      "name": "dotfiles_eww_reload",
-      "description": "Reload eww narrowly when possible by reopening one target window, falling back to full eww reload and then daemon restart only when needed."
-    },
-    {
-      "name": "dotfiles_eww_restart",
-      "description": "Kill all eww and waybar processes, restart eww daemon, and open the primary eww surface (sidebar). Use after editing eww config files."
-    },
-    {
-      "name": "dotfiles_eww_status",
-      "description": "Show eww bar status: daemon health, open windows, layer surfaces, key variable values, and whether waybar is incorrectly running."
+      "description": "Report desktop control readiness, including Hyprland, AT-SPI semantic targeting, session helpers, screenshot/OCR, input injection, and the kitty terminal shader pipeline."
     },
     {
       "name": "dotfiles_fleet_audit",
@@ -415,6 +415,10 @@
     {
       "name": "dotfiles_health_check",
       "description": "Run org-wide health dashboard across all hairglasses-studio repos. Shows build status, Go version, pipeline.mk inclusion, and CI workflow presence for every repo."
+    },
+    {
+      "name": "dotfiles_launcher_audit",
+      "description": "Audit the launcher stack by checking wrapper scripts, hyprshell socket readiness, fallback launchers, and recent hyprshell journal signals."
     },
     {
       "name": "dotfiles_list_configs",
@@ -729,6 +733,10 @@
       "description": "Capture separate screenshots of each monitor. Returns multiple images, one per active monitor, each resized individually for better detail than a single combined capture. Also captures a cropped menubar view (top 48px) of each monitor for bar inspection."
     },
     {
+      "name": "hypr_screenshot_region",
+      "description": "Capture a screenshot of a selected screen region using slurp + wayshot. Launches slurp for interactive region selection, then captures with wayshot."
+    },
+    {
       "name": "hypr_screenshot_window",
       "description": "Take a screenshot of a specific window by address or class name. Returns the image inline for LLM vision."
     },
@@ -769,16 +777,32 @@
       "description": "Wait for a specific Hyprland IPC event on .socket2.sock."
     },
     {
+      "name": "hyprshade_list",
+      "description": "List available Hyprshade screen shaders. Runs `hyprshade ls` and returns a structured list of shader names."
+    },
+    {
+      "name": "hyprshade_off",
+      "description": "Disable the currently active Hyprshade screen shader. Runs `hyprshade off`."
+    },
+    {
+      "name": "hyprshade_set",
+      "description": "Activate a Hyprshade screen shader by name. Runs `hyprshade on \u003cshader\u003e`."
+    },
+    {
+      "name": "hyprshade_status",
+      "description": "Get the currently active Hyprshade screen shader. Runs `hyprshade current` and returns structured status."
+    },
+    {
+      "name": "hyprshade_toggle",
+      "description": "Toggle a Hyprshade screen shader on or off by name. Runs `hyprshade toggle \u003cshader\u003e`."
+    },
+    {
       "name": "input_auto_setup_controller",
       "description": "Detect all connected controllers, generate makima profiles for each, and optionally restart makima. Single tool replaces detect + generate + restart."
     },
     {
       "name": "input_controller_test",
       "description": "Read events from a controller for 3 seconds to verify it works. Returns last 10 button/axis events."
-    },
-    {
-      "name": "input_delete_makima_profile",
-      "description": "Delete a makima per-app profile."
     },
     {
       "name": "input_detect_controllers",
@@ -789,28 +813,8 @@
       "description": "Generate a starter makima TOML profile for a controller with preset mappings (desktop, claude-code, gaming, media). Includes brand-aware button label comments."
     },
     {
-      "name": "input_get_juhradial_battery",
-      "description": "Read MX battery status from the juhradial D-Bus daemon, falling back to bluetoothctl when D-Bus is unavailable."
-    },
-    {
-      "name": "input_get_juhradial_config",
-      "description": "Read the tracked juhradial config.json from dotfiles."
-    },
-    {
-      "name": "input_get_juhradial_profiles",
-      "description": "Read the tracked juhradial profiles.json from dotfiles."
-    },
-    {
-      "name": "input_get_makima_profile",
-      "description": "Read a specific makima per-app profile by name."
-    },
-    {
       "name": "input_key_press",
       "description": "DESTRUCTIVE: Press a key combination (e.g. ctrl+shift+t, Return, super) using wtype -k or ydotool key. Simulates real key events — requires explicit approval."
-    },
-    {
-      "name": "input_list_makima_profiles",
-      "description": "List all makima per-app button remapping profiles with their remap and command bindings."
     },
     {
       "name": "input_mouse_click",
@@ -826,27 +830,15 @@
     },
     {
       "name": "input_restart_services",
-      "description": "Restart juhradial mouse services or the makima controller service. Restarting the controller service may require elevated systemd permissions."
+      "description": "Restart the ydotool or makima service groups. Restarting the controller service may require elevated systemd permissions."
     },
     {
       "name": "input_screenshot_click",
       "description": "DESTRUCTIVE: Take a screenshot, then click at the specified coordinates. Combines screenshot capture for agent visual context with coordinate-based clicking. Requires explicit approval."
     },
     {
-      "name": "input_set_juhradial_config",
-      "description": "Write dotfiles juhradial config.json after validating that the content is valid JSON."
-    },
-    {
-      "name": "input_set_juhradial_profiles",
-      "description": "Write dotfiles juhradial profiles.json after validating that the content is valid JSON."
-    },
-    {
-      "name": "input_set_makima_profile",
-      "description": "Create or update a makima per-app profile. Validates TOML before writing."
-    },
-    {
       "name": "input_status",
-      "description": "Show running state of juhradial mouse services, the makima controller service, and MX battery status when available."
+      "description": "Show running state of the ydotool and makima controller services."
     },
     {
       "name": "input_type_text",
@@ -1664,9 +1656,9 @@
     "fleet-management",
     "canonical-source"
   ],
-  "tool_count": 407,
-  "resource_count": 24,
-  "prompt_count": 12,
+  "tool_count": 405,
+  "resource_count": 23,
+  "prompt_count": 13,
   "categories": [
     "",
     "desktop",

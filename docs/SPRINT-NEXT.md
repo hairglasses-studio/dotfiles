@@ -57,7 +57,7 @@ Paste this into a new Claude Code session:
 ---
 
 ```
-You are continuing development on my cross-platform cyberpunk dotfiles rice at ~/hairglasses-studio/dotfiles. This is a 90-commit, 35-component Manjaro Linux + macOS setup with Hyprland (primary) and Sway (fallback) on Wayland, 132+ GLSL shaders, the Voltage After Dark shell palette, and 4 Go MCP servers (27 tools total).
+You are continuing development on my cross-platform cyberpunk dotfiles rice at ~/hairglasses-studio/dotfiles. This is a 90-commit, 35-component Manjaro Linux + macOS setup with Hyprland (primary) on Wayland, 139+ DarkWindow GLSL shaders, the Hairglasses Neon palette, and Go MCP servers (~400 tools total).
 
 Read CLAUDE.md for architecture. Read docs/RESOURCES.md for community reference links. Read docs/SPRINT-NEXT.md for full session history and context.
 
@@ -65,9 +65,8 @@ The dotfiles use a feature-flag system (dotfiles.toml) with 42 toggleable compon
 
 Key files:
 - hyprland/hyprland.conf — Hyprland compositor (0.54 block windowrule syntax)
-- sway/config — Sway fallback compositor
 - scripts/lib/compositor.sh — Shared compositor detection library
-- .mcp.json — 4 MCP servers (hyprland, dotfiles, shader, sway)
+- .mcp.json — MCP servers (hyprland, dotfiles, shader, input)
 - .claude/skills/ — 3 skills (rice-check, screenshot-review, shader-browse)
 - .claude/agents/ — 2 agents (rice-developer, config-validator)
 - .claude/rules/ — 3 rules (hyprland, shaders, snazzy-palette)
@@ -75,11 +74,11 @@ Key files:
 - docs/RESOURCES.md — 40+ awesome-list community indexes
 
 MCP servers are Go binaries in sibling repos:
-- ~/hairglasses-studio/hyprland-mcp/ (9 tools: screenshot, windows, workspaces, input, config)
-- ~/hairglasses-studio/dotfiles-mcp/ (4 tools: list, validate, reload, symlinks)
-- ~/hairglasses-studio/shader-mcp/ (5 tools: list, set, random, test, state)
+- ~/hairglasses-studio/hyprland-mcp/ (12 tools: screenshot, windows, workspaces, input, config)
+- ~/hairglasses-studio/dotfiles-mcp/ (~400 tools: list, validate, reload, symlinks, and more)
+- ~/hairglasses-studio/shader-mcp/ (11 tools: list, set, random, test, state)
 
-Hardware: AMD Ryzen 9 7950X, RTX 3080, 128GB RAM, dual monitors (Samsung 5120x1440 ultrawide + XEC 2560x1440), 7.3TB NVMe.
+Hardware: AMD Ryzen 9 7950X, RTX 3090, 96GB RAM, dual monitors (Samsung 5120x1440 ultrawide + XEC 2560x1440), 7.3TB NVMe.
 
 Remaining work tracked in memory (mcp_tool_ideas.md):
 - MCP server enhancements: add resources (dotfiles://palette, shader://current), prompts (validate-rice, check-palette), new tools (shader_cycle, shader_benchmark, hypr_screenshot_region)
@@ -96,9 +95,9 @@ Start by: pulling latest changes, taking a screenshot to assess the current visu
 ## Key Patterns to Preserve
 
 - **Atomic config writes**: `mktemp + mv` pattern (scripts/lib/config.sh)
-- **Compositor detection**: `compositor_type` function returns hyprland/sway/aerospace
+- **Compositor detection**: `compositor_type` function returns hyprland/aerospace
 - **Hyprland 0.54 syntax**: Block windowrules with `name =` field, `windowrulev2` is deprecated
-- **Ghostty terminal**: Use `--gtk-single-instance=false` in all compositor keybinds
+- **Kitty terminal**: Primary terminal; use `kitty` class in all compositor window rules
 - **GPG signing**: Currently disabled (`git -c commit.gpgsign=false`) due to key migration — re-enable when new key is configured
 - **MCP env vars**: Servers need `WAYLAND_DISPLAY` and `HYPRLAND_INSTANCE_SIGNATURE` injected via .mcp.json bash wrappers
-- **Voltage After Dark shell palette**: deep graphite surfaces, Maple shell UI, Monaspace terminals, and cyan/magenta/green accents with optional wallpaper-derived overlays
+- **Hairglasses Neon palette**: deep near-black surfaces, cyan/magenta/green neon accents — source of truth at theme/palette.env

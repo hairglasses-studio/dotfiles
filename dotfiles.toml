@@ -17,12 +17,10 @@ nvim = true
 # ── Terminal emulators & tools ───────────────────
 [terminal]
 kitty = true
-ghostty = false
 foot = false
 bat = true
 fastfetch = true
 macchina = true
-ghosttyfetch = false
 kitty_smart_scroll = true
 kitty_save_session = true
 kitty_scrollback = true
@@ -70,7 +68,6 @@ gh = true
 # ── Visual effects ───────────────────────────────
 [visual]
 kitty-shaders = true
-ghostty-shaders = false
 wallpaper-shaders = true
 refind = false          # Manual deploy (needs sudo for EFI)
 plymouth = false        # Manual deploy (needs mkinitcpio rebuild)

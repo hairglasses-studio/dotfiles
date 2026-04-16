@@ -112,7 +112,7 @@ Creates: go.mod, Makefile (with pipeline.mk include), .editorconfig (symlink), .
 
 - **`/pipeline [check|ship|loop]`** — 6-step pipeline skill: build → test → reconnect MCP → verify → push → loop/propose
 - **`/go-check`** — Quick health check: build + vet + test + lint in parallel
-- **PostToolUse hook** — Auto-reloads Hyprland/mako/eww/waybar when config files are written
+- **PostToolUse hook** — Auto-reloads Hyprland/ironbar/swaync when config files are written
 
 ## Provider Notes
 

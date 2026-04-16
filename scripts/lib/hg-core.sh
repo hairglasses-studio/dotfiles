@@ -2,7 +2,7 @@
 # hg-core.sh — Shared framework for the hg CLI
 # Source this file: source "$(dirname "$0")/lib/hg-core.sh"
 
-# ── Snazzy palette (24-bit true color) ─────────
+# ── Hairglasses Neon palette (24-bit true color) ─────────
 HG_CYAN=$'\033[38;2;87;199;255m'
 HG_GREEN=$'\033[38;2;90;247;142m'
 HG_MAGENTA=$'\033[38;2;255;106;193m'

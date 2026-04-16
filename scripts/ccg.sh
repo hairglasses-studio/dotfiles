@@ -22,7 +22,7 @@ readonly CACHE_FILE="$CLAUDE_DIR/cache/ccg-index.jsonl"
 readonly SELF="${0:a}"
 readonly CLAUDE_LAUNCHER="${HG_CLAUDE_LAUNCHER:-${SELF:h}/hg-claude-launch.sh}"
 
-# Snazzy palette ANSI codes
+# Hairglasses Neon palette ANSI codes
 readonly C_RESET=$'\033[0m'
 readonly C_GREEN=$'\033[38;2;90;247;142m'    # #5af78e
 readonly C_CYAN=$'\033[38;2;87;199;255m'     # #57c7ff

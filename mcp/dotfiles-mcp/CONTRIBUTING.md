@@ -44,9 +44,7 @@ Core files:
 - `main.go` -- Server setup, tool registration
 - `discovery.go` -- Discovery-first search, schema, stats, and health entrypoints
 - `contract_snapshot.go` -- Public contract bundle generation for the canonical module
-- `mod_hyprland.go` -- Hyprland compositor tools
-- `mod_shader.go` -- Kitty visual pipeline (CRTty shaders + Kitty themes)
-- `mod_input.go` -- Input device management (juhradial-mx, makima, MIDI)
+- `mod_*.go` -- Feature modules (30+ total; run `ls mod_*.go` for the full list). Key examples: `mod_hyprland.go` (compositor tools), `mod_shader.go` (Kitty visual pipeline), `mod_input.go` (input device management)
 - `oss.go` -- Open-source readiness scoring
 
 All tools are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) using `handler.TypedHandler` generics and `registry.ToolDefinition`.

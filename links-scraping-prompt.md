@@ -6,7 +6,7 @@ You are a research agent building a comprehensive search index of the Linux rici
 
 ## My Stack (for relevance scoring)
 
-I run: Hyprland, eww bar, foot terminal, Ghostty (138 GLSL shaders), zsh+starship, neovim, mako notifications, wofi launcher, catppuccin/Snazzy custom palette, Arch/Manjaro. Anything using these tools or cyberpunk/neon aesthetics is HIGH relevance. General Linux ricing with different tools is MEDIUM. X11-only or macOS-only is LOW.
+I run: Hyprland, ironbar, kitty terminal (139+ DarkWindow GLSL shaders), zsh+starship, neovim, swaync notifications, wofi launcher, Hairglasses Neon palette, Arch/Manjaro. Anything using these tools or cyberpunk/neon aesthetics is HIGH relevance. General Linux ricing with different tools is MEDIUM. X11-only or macOS-only is LOW.
 
 ## Step 0: Setup
 

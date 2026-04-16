@@ -5,7 +5,7 @@
 # Supports Go, Node.js, Python, and hybrid (Go+Node) projects.
 set -euo pipefail
 # Detects Makefile targets and falls back to language-native commands.
-# Sources hg-core.sh for Snazzy-palette formatted output.
+# Sources hg-core.sh for Hairglasses Neon palette formatted output.
 # Exit codes: 0=pass, 1=build fail, 2=test fail, 3=vet fail.
 set -euo pipefail
 

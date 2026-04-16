@@ -4,7 +4,7 @@ Source these from any `hg-*` script or shell environment.
 
 ## hg-core.sh
 
-Foundational library. Provides Snazzy palette colors, formatted logging, and common paths.
+Foundational library. Provides Hairglasses Neon palette colors, formatted logging, and common paths.
 
 ```bash
 source "$(dirname "$0")/lib/hg-core.sh"

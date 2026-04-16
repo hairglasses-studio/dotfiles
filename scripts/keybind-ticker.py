@@ -3,7 +3,8 @@
 
 GTK4 DrawingArea with PangoCairo rendering at float pixel offsets,
 synced to the display frame clock via add_tick_callback (240Hz on DP-3).
-Each keybind entry cycles through Maple font weights for visual variety.
+Each keybind entry cycles through Maple font weights. Text is painted
+with an animated neon color gradient that flows across the bar.
 
 Usage:
   keybind-ticker.py              # regular window (tiles with hy3)
@@ -14,6 +15,8 @@ import gi
 import subprocess
 import json
 import sys
+import math
+import cairo as _cairo  # for LinearGradient
 from html import escape
 
 gi.require_version("Gtk", "4.0")
@@ -31,8 +34,10 @@ if LAYER_MODE:
 
 # ── Config ────────────────────────────────────────
 BAR_H = 28
-SPEED = 55.0        # px/sec scroll speed
-REFRESH_S = 300     # rebuild keybind list every 5 min
+SPEED = 55.0           # px/sec text scroll speed
+GRADIENT_SPEED = 40.0  # px/sec gradient phase drift (independent of scroll)
+GRADIENT_SPAN = 800.0  # px width of one full color cycle
+REFRESH_S = 300        # rebuild keybind list every 5 min
 
 # Maple font weight cycle — each keybind gets a different variant
 FONTS = [
@@ -48,12 +53,19 @@ FONTS = [
     "Maple Mono NF CN Bold Italic 11",
 ]
 
-# Hairglasses Neon palette (hex for Pango markup)
-CLR_DESC = "#29f0ff"   # cyan — descriptions
-CLR_KEY  = "#ff47d1"   # magenta — key combos
-CLR_SEP  = "#66708f"   # dim — separator dots
-BG       = (0.020, 0.027, 0.051, 0.92)
-CYAN     = (0.161, 0.941, 1.0)
+# Hairglasses Neon gradient stops (looping: cyan → magenta → green → yellow → pink → cyan)
+GRADIENT_COLORS = [
+    (0.161, 0.941, 1.000),  # #29f0ff cyan
+    (1.000, 0.278, 0.820),  # #ff47d1 magenta
+    (0.239, 1.000, 0.710),  # #3dffb5 green
+    (1.000, 0.894, 0.369),  # #ffe45e yellow
+    (1.000, 0.361, 0.541),  # #ff5c8a pink
+    (0.290, 0.659, 1.000),  # #4aa8ff blue
+    (0.161, 0.941, 1.000),  # #29f0ff cyan (wrap)
+]
+
+BG = (0.020, 0.027, 0.051, 0.92)
+CYAN = (0.161, 0.941, 1.0)
 
 
 def fmt_mods(mask):
@@ -66,6 +78,8 @@ def fmt_mods(mask):
 
 
 def build_ticker_markup():
+    """Build Pango markup with cycling font weights — no foreground attrs
+    so Cairo gradient controls all text color."""
     try:
         raw = subprocess.run(
             ["hyprctl", "binds", "-j"],
@@ -73,7 +87,7 @@ def build_ticker_markup():
         ).stdout
         binds = json.loads(raw)
     except Exception:
-        return '<span font_desc="Maple Mono NF CN 11" foreground="#29f0ff">  No keybinds loaded  \u00b7</span>'
+        return '<span font_desc="Maple Mono NF CN 11">  No keybinds loaded  \u00b7</span>'
 
     parts = []
     font_count = len(FONTS)
@@ -87,15 +101,28 @@ def build_ticker_markup():
 
             parts.append(
                 f'<span font_desc="{font}">'
-                f'  <span foreground="{CLR_DESC}">{desc}</span>'
-                f'  <span foreground="{CLR_KEY}">{key}</span>'
-                f'  <span foreground="{CLR_SEP}">\u00b7</span>'
+                f'  {desc}  {key}  \u00b7'
                 f'</span>'
             )
             i += 1
 
     single = "".join(parts)
     return single + single  # doubled for seamless wrap
+
+
+def make_gradient(x_start, total_width, phase):
+    """Create a Cairo LinearGradient cycling through the neon palette.
+    `phase` shifts the gradient origin for animation."""
+    x0 = x_start - phase
+    x1 = x0 + total_width
+    grad = _cairo.LinearGradient(x0, 0, x1, 0)
+    grad.set_extend(_cairo.Extend.REPEAT)
+
+    n = len(GRADIENT_COLORS)
+    for i, (r, g, b) in enumerate(GRADIENT_COLORS):
+        grad.add_color_stop_rgb(i / (n - 1), r, g, b)
+
+    return grad
 
 
 class TickerWindow(Gtk.ApplicationWindow):
@@ -129,6 +156,7 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.set_child(self.da)
 
         self.offset = 0.0
+        self.gradient_phase = 0.0
         self.last_us = None
         self.layout = None
         self.half_w = 1.0
@@ -148,8 +176,11 @@ class TickerWindow(Gtk.ApplicationWindow):
         if self.last_us is not None:
             dt = min((now - self.last_us) / 1_000_000.0, 0.05)
             self.offset += SPEED * dt
+            self.gradient_phase += GRADIENT_SPEED * dt
             if self.half_w > 0 and self.offset >= self.half_w:
                 self.offset -= self.half_w
+            if self.gradient_phase >= GRADIENT_SPAN:
+                self.gradient_phase -= GRADIENT_SPAN
         self.last_us = now
         widget.queue_draw()
         return GLib.SOURCE_CONTINUE
@@ -159,8 +190,9 @@ class TickerWindow(Gtk.ApplicationWindow):
         cr.set_source_rgba(*BG)
         cr.paint()
 
-        # Top border
-        cr.set_source_rgba(*CYAN, 0.30)
+        # Top border — animated gradient matching text
+        border_grad = make_gradient(0, width, self.gradient_phase)
+        cr.set_source(border_grad)
         cr.rectangle(0, 0, width, 1)
         cr.fill()
 
@@ -173,9 +205,13 @@ class TickerWindow(Gtk.ApplicationWindow):
             if self.half_w > 0:
                 self.offset = self.offset % self.half_w
 
-        # Scrolling text at sub-pixel offset (colors come from markup)
+        # Animated neon gradient as text paint source
         x = -self.offset
         y = (height - 14) / 2
+        text_grad = make_gradient(x, self.half_w, self.gradient_phase)
+        cr.set_source(text_grad)
+
+        # Draw scrolling text (two copies for seamless wrap)
         cr.move_to(x, y)
         PangoCairo.show_layout(cr, self.layout)
         cr.move_to(x + self.half_w, y)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # agent-session-picker.sh — Focus an active agent session by name via wofi.
-# Queries Hyprland IPC for Ghostty windows with divider-styled titles,
+# Queries Hyprland IPC for Kitty windows with divider-styled titles,
 # presents them sorted A-Z, and focuses the selected one.
 
 windows=$(hyprctl clients -j | jq -r '

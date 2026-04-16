@@ -24,7 +24,7 @@ fi
 # ── Phase 1: Create config symlinks ──────────────────────────────────────
 echo "[sandbox] Creating config symlinks..."
 mkdir -p "$HOME/.config"
-for dir in hypr ironbar ghostty swaync foot; do
+for dir in hypr ironbar swaync kitty; do
     if [[ -d "$DOTFILES_SRC/$dir" ]]; then
         ln -sfn "$DOTFILES_SRC/$dir" "$HOME/.config/$dir"
     fi

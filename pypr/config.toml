@@ -1,5 +1,5 @@
 [pyprland]
-plugins = ["scratchpads"]
+plugins = ["scratchpads", "expose"]
 
 [scratchpads.term]
 command = "$HOME/.local/bin/kitty-visual-launch --class=scratchpad"

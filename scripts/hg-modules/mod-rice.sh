@@ -15,7 +15,7 @@ rice_commands() {
   cat <<'CMDS'
 status	Comprehensive rice status dashboard
 services	Check which services are running
-palette	Scan configs for non-Snazzy colors
+palette	Scan configs for non-palette colors
 persistence	Check tmux continuity bootstrap and plugin health
 reload-all	Reload all compositor services with safe hot-reload lanes
 restart-ui	Explicitly restart service-backed UI companions (guarded; use --force to override failed continuity preflight)
