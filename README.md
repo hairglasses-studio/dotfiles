@@ -9,7 +9,11 @@
 [![Lint](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-lint.yml)
 [![Scorecard](https://api.securityscorecards.dev/projects/github.com/hairglasses-studio/dotfiles/badge)](https://securityscorecards.dev/viewer/?uri=github.com/hairglasses-studio/dotfiles)
 
-Full-stack development environment for Manjaro Linux. Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
+Full-stack development environment for Manjaro Linux.
+
+> **Engineering context:** The MCP integration (1,400+ tools across 7 Go servers) uses the same [mcpkit](https://github.com/hairglasses-studio/mcpkit) patterns as production server deployments — deferred tool loading, middleware chains, and composed operations.
+
+Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
 ![Desktop — Hyprland + Ironbar menubar + tiled terminals (Hairglasses Neon)](.github/assets/desktop.png)
 
