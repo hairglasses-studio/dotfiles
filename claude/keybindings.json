@@ -19,8 +19,13 @@
     {
       "context": "Scroll",
       "bindings": {
-        "ctrl+f": "scroll:fullPageDown",
-        "ctrl+b": "scroll:fullPageUp"
+        "ctrl+f": "scroll:fullPageDown"
+      }
+    },
+    {
+      "context": "Task",
+      "bindings": {
+        "ctrl+b": null
       }
     },
     {
