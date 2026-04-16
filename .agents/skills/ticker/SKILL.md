@@ -51,9 +51,10 @@ All effects render in the BACKGROUND, text stays crisp on top:
 | 3 | Neon glow | `GLOW_KERNEL=17`, `GLOW_BASE_ALPHA=0.35`, `GLOW_PULSE_*` | Breathing halo via sine wave |
 | 4 | Drop shadow | `SHADOW_OFFSET=2`, `SHADOW_ALPHA=0.30` | Dark offset for depth |
 | 4.5 | Text outline | `OUTLINE_WIDTH=0.8` | Dark stroke via `layout_path()` |
-| 5 | Gradient text | `GRADIENT_SPEED=40`, `GRADIENT_SPAN=800` | Flowing neon palette |
-| 6 | Chromatic aberration | `CA_OFFSET=3` | During glitch only |
-| 7 | Glitch strips | `GLITCH_PROB=0.004`, `GLITCH_FRAMES=4` | ~1/sec random displacement |
+| 5 | Wave distortion | `WAVE_AMP=1.5`, `WAVE_FREQ=0.015`, `WAVE_SPEED=2.0` | Sine wave strip displacement |
+| 6 | Gradient text | `GRADIENT_SPEED=40`, `GRADIENT_SPAN=800` | Flowing neon palette |
+| 7 | Chromatic aberration | `CA_OFFSET=3` | During glitch only |
+| 8 | Glitch strips | `GLITCH_PROB=0.004`, `GLITCH_FRAMES=4` | ~1/sec random displacement |
 
 ### Tuning effects
 
@@ -71,6 +72,7 @@ All tunables are constants at the top of `keybind-ticker.py`. To adjust:
 - Glitch frequency: `GLITCH_PROB` (0.0 = off, 0.004 = ~1/sec at 240Hz)
 - Water caustic: set `WATER_SKIP` higher for less CPU, or remove the layer entirely
 - Text outline: `OUTLINE_WIDTH` (0.0 = off, 0.8 = subtle, 1.0+ = bold)
+- Wave distortion: `WAVE_AMP` (px, 0 = off, 1.5 = gentle, 2.0 = noticeable)
 - Background transparency: `BG` alpha value (lower = more frosted glass visible)
 
 ### Disabling an effect
@@ -82,6 +84,7 @@ Set its opacity/alpha/probability to 0:
 - No water caustic: comment out the water caustic layer in `_draw()`
 - No shadow: `SHADOW_ALPHA = 0`
 - No outline: `OUTLINE_WIDTH = 0`
+- No wave: `WAVE_AMP = 0`
 
 ## Font System
 

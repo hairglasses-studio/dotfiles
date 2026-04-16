@@ -82,6 +82,7 @@ PRESETS = {
         "shadow_offset": 2, "shadow_alpha": 0.30,
         "glitch_prob": 0.004, "glitch_frames": 4, "ca_offset": 3,
         "bg_alpha": 0.82, "outline_width": 0.8,
+        "wave_amp": 1.5, "wave_freq": 0.015, "wave_speed": 2.0,
     },
     "cyberpunk": {
         "speed": 65.0, "gradient_speed": 55.0, "gradient_span": 600.0,
@@ -90,6 +91,7 @@ PRESETS = {
         "shadow_offset": 3, "shadow_alpha": 0.35,
         "glitch_prob": 0.008, "glitch_frames": 5, "ca_offset": 4,
         "bg_alpha": 0.78, "outline_width": 1.0,
+        "wave_amp": 2.0, "wave_freq": 0.02, "wave_speed": 3.0,
     },
     "minimal": {
         "speed": 45.0, "gradient_speed": 30.0, "gradient_span": 1000.0,
@@ -98,6 +100,7 @@ PRESETS = {
         "shadow_offset": 1, "shadow_alpha": 0.20,
         "glitch_prob": 0.0, "glitch_frames": 0, "ca_offset": 0,
         "bg_alpha": 0.90, "outline_width": 0.5,
+        "wave_amp": 0, "wave_freq": 0, "wave_speed": 0,
     },
     "clean": {
         "speed": 50.0, "gradient_speed": 35.0, "gradient_span": 900.0,
@@ -106,6 +109,7 @@ PRESETS = {
         "shadow_offset": 0, "shadow_alpha": 0.0,
         "glitch_prob": 0.0, "glitch_frames": 0, "ca_offset": 0,
         "bg_alpha": 0.92, "outline_width": 0.0,
+        "wave_amp": 0, "wave_freq": 0, "wave_speed": 0,
     },
 }
 
@@ -617,6 +621,35 @@ class TickerWindow(Gtk.ApplicationWindow):
         surf.flush()
         return surf
 
+    def _apply_wave(self, surf, width, height):
+        p = self.preset
+        amp = getattr(p, 'wave_amp', 0)
+        if amp <= 0:
+            return surf
+        stride = surf.get_stride()
+        src = np.frombuffer(surf.get_data(), dtype=np.uint8).copy().reshape(height, stride)
+        out = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
+        out_stride = out.get_stride()
+        dst = np.zeros((height, out_stride), dtype=np.uint8)
+        freq = getattr(p, 'wave_freq', 0.015)
+        speed = getattr(p, 'wave_speed', 2.0)
+        strip_w = 4
+        for x0 in range(0, width, strip_w):
+            x1 = min(x0 + strip_w, width)
+            cx = (x0 + x1) // 2
+            dy = int(round(amp * math.sin(freq * cx + speed * self.time_s)))
+            bx0, bx1 = x0 * 4, x1 * 4
+            if dy == 0:
+                dst[:, bx0:bx1] = src[:, bx0:bx1]
+            elif dy > 0:
+                dst[dy:, bx0:bx1] = src[:height - dy, bx0:bx1]
+            else:
+                dst[:height + dy, bx0:bx1] = src[-dy:, bx0:bx1]
+        buf = out.get_data()
+        buf[:] = dst.tobytes()
+        out.mark_dirty()
+        return out
+
     def _compute_glow(self, text_surf, width, height):
         p = self.preset
         if p.glow_kernel < 3:
@@ -670,6 +703,7 @@ class TickerWindow(Gtk.ApplicationWindow):
 
         # ═══ FOREGROUND ═══════════════════════════
         text_surf = self._render_text_surface(width, height)
+        text_surf = self._apply_wave(text_surf, width, height)
 
         # Glow (cached — recompute every 8 frames)
         self.glow_frame += 1
