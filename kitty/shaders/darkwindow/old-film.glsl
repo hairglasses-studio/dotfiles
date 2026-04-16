@@ -1,4 +1,7 @@
-void windowShader(inout vec4 color) {
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Old film grain and scratches
+
+void windowShader(inout vec4 _wShaderOut) {
     // Normalize coordinates
     vec2 uv = x_PixelPos.xy / x_WindowSize;
 
@@ -73,5 +76,5 @@ void windowShader(inout vec4 color) {
     vec3 finalColor = videoColor.rgb * vignetteEffect * scratchEffect * blotchEffect;
 
     // Output final color
-    color = vec4(finalColor, 1.0);
+    _wShaderOut = vec4(finalColor, 1.0);
 }

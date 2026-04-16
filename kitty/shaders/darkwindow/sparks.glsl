@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Spark particles from cursor
+
 // Original shader by yakovgal on Shadertoy:
 // https://www.shadertoy.com/user/yakovgal
 
@@ -65,12 +68,12 @@ float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)
     return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec3 base_color = vec4(1.0).rgb;
     base_color = vec3(0.1, 0.5, 2.5);
     // base_color = vec3(0.5, 0.1, 2.5);
 
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
 
     float elapsed = x_Time - x_Time;
 
@@ -130,15 +133,15 @@ void windowShader(inout vec4 color) {
     // // Apply fade factor
     // rgb *= fade;
     //
-    // color = mix(vec4(rgb, 1.), color, 0.5);
+    // _wShaderOut = mix(vec4(rgb, 1.), _wShaderOut, 0.5);
     vec3 rgb = c0 * base_color + c1 * base_color * blue_shift;
     rgb += hash33(vec3(x_PixelPos, x_Time * 256.)) / 512.;
     //rgb = pow(rgb, vec3(0.4545));
 
     float mask = clamp(c0 * 0.2, 0.0, 1.0) * fade;
 
-    // color = mix(color, vec4(rgb, 1.0), mask);
-    vec4 newColor = color + vec4(rgb * mask, 1.0); // additive
-    // newColor = mix(newColor, color, step(sdfCurrentCursor, 0.));
-    color = min(newColor, 1.0); // clamp
+    // _wShaderOut = mix(_wShaderOut, vec4(rgb, 1.0), mask);
+    vec4 newColor = _wShaderOut + vec4(rgb * mask, 1.0); // additive
+    // newColor = mix(newColor, _wShaderOut, step(sdfCurrentCursor, 0.));
+    _wShaderOut = min(newColor, 1.0); // clamp
 }

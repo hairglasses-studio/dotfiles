@@ -1,5 +1,8 @@
+// Shader attribution: 0xhckr
+// (Background) — Animated color gradient background
+
 // credits: https://github.com/unkn0wncode
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
 
@@ -36,5 +39,5 @@ void windowShader(inout vec4 color)
     float mask = 1.0 - step(0.5, dot(terminalColor.rgb, vec3(1.0)));
     vec3 blendedColor = mix(terminalColor.rgb, gradientColor, mask);
 
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

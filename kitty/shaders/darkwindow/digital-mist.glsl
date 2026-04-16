@@ -9,7 +9,7 @@ float hash21(vec2 p) {
     return fract(p.x * p.y);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 term = x_Texture(uv);
     float termLum = dot(term.rgb, vec3(0.299, 0.587, 0.114));
@@ -47,5 +47,5 @@ void windowShader(inout vec4 color) {
     // Mask particles behind bright text
     vec3 result = term.rgb + particles * (1.0 - termLum * 0.85);
 
-    color = vec4(result, term.a);
+    _wShaderOut = vec4(result, term.a);
 }

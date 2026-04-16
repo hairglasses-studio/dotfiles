@@ -9,7 +9,7 @@ float hash12(vec2 p) {
     return fract((p3.x + p3.y) * p3.z);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 term = x_Texture(uv);
 
@@ -33,5 +33,5 @@ void windowShader(inout vec4 color) {
 
     vec3 result = term.rgb + grainColor * intensity;
 
-    color = vec4(result, term.a);
+    _wShaderOut = vec4(result, term.a);
 }

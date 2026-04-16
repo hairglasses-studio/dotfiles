@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Original smear trail cursor (pre-edit)
+
 float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)
 {
     vec2 d = abs(p - xy) - b;
@@ -67,9 +70,9 @@ vec4 saturate(vec4 color, float factor) {
 const float OPACITY = 0.6;
 const float DURATION = 0.3; //IN SECONDS
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     // Normalization for x_PixelPos to a space of -1 to 1;
     vec2 vu = norm(x_PixelPos, 1.);
     vec2 offsetFactor = vec2(-.5, 0.5);
@@ -100,7 +103,7 @@ void windowShader(inout vec4 color)
     vec2 centerCP = getRectangleCenter(previousCursor);
     float lineLength = distance(centerCC, centerCP);
 
-    vec4 newColor = vec4(color);
+    vec4 newColor = vec4(_wShaderOut);
 
     vec4 trail = vec4(1.0);
     trail = saturate(trail, 2.5);
@@ -108,7 +111,7 @@ void windowShader(inout vec4 color)
     newColor = mix(newColor, trail, antialising(sdfTrail));
     // Draw current cursor
     newColor = mix(newColor, trail, antialising(sdfCurrentCursor));
-    newColor = mix(newColor, color, step(sdfCurrentCursor, 0.));
-    // newColor = mix(color, newColor, OPACITY);
-    color = mix(color, newColor, step(sdfCurrentCursor, easedProgress * lineLength));
+    newColor = mix(newColor, _wShaderOut, step(sdfCurrentCursor, 0.));
+    // newColor = mix(_wShaderOut, newColor, OPACITY);
+    _wShaderOut = mix(_wShaderOut, newColor, step(sdfCurrentCursor, easedProgress * lineLength));
 }

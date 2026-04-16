@@ -1,9 +1,12 @@
+// Shader attribution: m-ahdal
+// (Background) — Sine wave interference pattern
+
 // Based on https://www.shadertoy.com/view/ms3cWn
 float map(float value, float min1, float max1, float min2, float max2) {
   return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos / x_WindowSize;
     float d = length(uv - 0.5) * 2.0;
@@ -24,5 +27,5 @@ void windowShader(inout vec4 color)
     vec4 terminalColor = x_Texture(uv);
     vec3 blendedColor = mix(terminalColor.rgb, vec3(greycol * col.x, greycol * col.y, greycol * col.z), 0.25);
 
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

@@ -33,7 +33,7 @@ Camera setup_camera(Camera cam) {
     return cam;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 res = x_WindowSize;
     vec2 center = res * 0.5;
     float diag = length(res);
@@ -51,16 +51,16 @@ void windowShader(inout vec4 color) {
     vec3 pixPos = cam.center_point + coords.x*cam.base_x + coords.y*cam.base_y;
     vec3 fv = pixPos - cam.focal_point;
 
-    if (abs(fv.z) < 0.0001) { color = vec4(0.0); return; }
+    if (abs(fv.z) < 0.0001) { _wShaderOut = vec4(0.0); return; }
     float t = -cam.focal_point.z / fv.z;
-    if (t < 1.0) { color = vec4(0.0); return; }
+    if (t < 1.0) { _wShaderOut = vec4(0.0); return; }
 
     vec3 hit = fv * t + cam.focal_point;
     vec2 uvCoord = hit.xy + center;
 
     if (uvCoord.x < 0.0 || uvCoord.y < 0.0 || uvCoord.x >= res.x || uvCoord.y >= res.y) {
-        color = vec4(0.0);
+        _wShaderOut = vec4(0.0);
         return;
     }
-    color = x_Texture(uvCoord / res);
+    _wShaderOut = x_Texture(uvCoord / res);
 }

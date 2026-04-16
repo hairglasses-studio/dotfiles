@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Gradient smear cursor
+
 // Shader Contribution by PremModhaOfficial
 // For inquiries or modifications, please reach him
 // GitHub: https://github.com/PremModhaOfficial
@@ -112,7 +115,7 @@ vec3 gradientColor(float factor) {
 // Trail animation duration in seconds
 const float DURATION = 0.25;
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     // Calculate animation progress with easing
     float baseProgress = clamp((x_Time - x_Time) / DURATION, 0.0, 1.0);
 
@@ -121,11 +124,11 @@ void windowShader(inout vec4 color) {
 
     // Skip further work when animation is complete
     if (baseProgress >= 1.0) {
-        color = background;
+        _wShaderOut = background;
         return;
     }
 
-    color = background;
+    _wShaderOut = background;
 
     // Precompute reused values
     float invResY = 1.0 / x_WindowSize.y;
@@ -185,9 +188,9 @@ void windowShader(inout vec4 color) {
     );
 
     // Blend trail color with background
-    vec4 originalColor = color;
-    color.rgb = mix(color.rgb, enhancedColor.rgb, alpha);
+    vec4 originalColor = _wShaderOut;
+    _wShaderOut.rgb = mix(_wShaderOut.rgb, enhancedColor.rgb, alpha);
 
     // Remove trail where it overlaps with current cursor
-    color.rgb = mix(color.rgb, originalColor.rgb, step(sdfCurrentCursor, 0.0));
+    _wShaderOut.rgb = mix(_wShaderOut.rgb, originalColor.rgb, step(sdfCurrentCursor, 0.0));
 }

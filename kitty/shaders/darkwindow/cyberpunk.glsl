@@ -1,4 +1,7 @@
-void windowShader(inout vec4 color) {
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Cyberpunk neon color grade
+
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos/x_WindowSize;
     
     // Get the original terminal content
@@ -81,5 +84,5 @@ void windowShader(inout vec4 color) {
     // Boost contrast
     cyberpunkColor = (cyberpunkColor - 0.5) * 1.2 + 0.5;
     
-    color = vec4(cyberpunkColor, 1.0);
+    _wShaderOut = vec4(cyberpunkColor, 1.0);
 } 

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Mechanical gears animation
+
 // sligltly modified version of https://www.shadertoy.com/view/DsVSDV
 // The only changes are done in the mainImage function 
 // Ive added comments on what to modify
@@ -347,7 +350,7 @@ vec3 drawGearsAndItems(vec2 p, vec3 col, float size){
     return col;
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 p = (x_PixelPos-0.5*x_WindowSize)/x_WindowSize.y;
     // set speed of downwards motion
@@ -373,5 +376,5 @@ void windowShader(inout vec4 color)
     // Blend with reduced opacity for the shader elements
     vec3 blendedColor = terminalColor.rgb + col.rgb * 0.7; // Reduced blend factor
     
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

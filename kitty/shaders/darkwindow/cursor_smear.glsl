@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Smear trail cursor
+
 // Cursor trail shader that creates a hexagonal trailing effect
 //
 // The effect works by:
@@ -98,7 +101,7 @@ float easeClamped(float x) {
 // Trail animation duration in seconds
 const float DURATION = 0.3;
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     // Calculate animation progress with easing
     float baseProgress = clamp((x_Time - x_Time) / DURATION, 0.0, 1.0);
 
@@ -107,11 +110,11 @@ void windowShader(inout vec4 color) {
 
     // Skip further work when animation is complete
     if (baseProgress >= 1.0) {
-        color = background;
+        _wShaderOut = background;
         return;
     }
 
-    color = background;
+    _wShaderOut = background;
 
     // Precompute reused values
     float invResY = 1.0 / x_WindowSize.y;
@@ -165,9 +168,9 @@ void windowShader(inout vec4 color) {
     );
 
     // Blend trail color with background
-    vec4 originalColor = color;
-    color.rgb = mix(color.rgb, enhancedColor.rgb, alpha);
+    vec4 originalColor = _wShaderOut;
+    _wShaderOut.rgb = mix(_wShaderOut.rgb, enhancedColor.rgb, alpha);
 
     // Remove trail where it overlaps with current cursor
-    color.rgb = mix(color.rgb, originalColor.rgb, step(sdfCurrentCursor, 0.0));
+    _wShaderOut.rgb = mix(_wShaderOut.rgb, originalColor.rgb, step(sdfCurrentCursor, 0.0));
 }

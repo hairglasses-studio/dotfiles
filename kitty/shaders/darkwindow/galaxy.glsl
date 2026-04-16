@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Animated galaxy/nebula background
+
 float triangle(float x, float period) { 
 	return 2.0 * abs(3.0*   ((x / period) - floor((x / period) + 0.5))) - 1.0;
 }
@@ -20,7 +23,7 @@ float field(in vec3 position) {
   return max(0.0, 5.0 * accumulated / totalWeight - 0.7);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
   const float baseSpeed = 0.02;
   const int maxIterations = 16;
   const float formulaParameter = 0.79;
@@ -131,8 +134,8 @@ void windowShader(inout vec4 color) {
   float terminalBrightness = dot(terminalColor.rgb, vec3(0.2126, 0.7152, 0.0722));
 
   if (terminalBrightness < brightnessThreshold) {
-    color = mix(terminalColor, vec4(foregroundColor.rgb + backgroundColor, 1.0), 0.24);
+    _wShaderOut = mix(terminalColor, vec4(foregroundColor.rgb + backgroundColor, 1.0), 0.24);
   } else {
-    color = terminalColor;
+    _wShaderOut = terminalColor;
   }
 }

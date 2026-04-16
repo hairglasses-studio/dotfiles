@@ -1,4 +1,7 @@
-void windowShader(inout vec4 color) {
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Computer glitch distortion
+
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos/x_WindowSize;
     
     // Brutal digital glitch
@@ -43,5 +46,5 @@ void windowShader(inout vec4 color) {
     // Color quantization (limited color palette)
     glitchColor = floor(glitchColor * 4.0) / 4.0;
     
-    color = vec4(glitchColor, 1.0);
+    _wShaderOut = vec4(glitchColor, 1.0);
 }

@@ -1,7 +1,7 @@
 // Matrix phosphor glow - clean and readable
 // Adds subtle green glow around text without CRT distortion
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
     vec4 color = x_Texture(uv);
 
@@ -33,5 +33,5 @@ void windowShader(inout vec4 color) {
     // Slight brightness boost to greens
     color.g *= 1.05;
 
-    color = vec4(color.rgb + glowColor, color.a);
+    _wShaderOut = vec4(color.rgb + glowColor, color.a);
 }

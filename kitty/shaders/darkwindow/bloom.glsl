@@ -32,7 +32,7 @@ float lum(vec4 c) {
   return 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
   vec2 uv = x_PixelPos.xy / x_WindowSize;
 
   vec4 color = x_Texture(uv);
@@ -48,5 +48,5 @@ void windowShader(inout vec4 color) {
     }
   }
 
-  color = color;
+  _wShaderOut = color;
 }

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — Wobbly/distorted screen effect
+
 // Drunken stupor effect using fractal Brownian motion and Perlin noise
 // (c) moni-dz (https://github.com/moni-dz) 
 // CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
@@ -45,7 +48,7 @@ float fbm(vec2 p) {
 #define ANIMATE true
 #define SPEED 0.4            // Animation speed
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos/x_WindowSize;
     float time = ANIMATE ? x_Time * SPEED : 0.0;
@@ -64,5 +67,5 @@ void windowShader(inout vec4 color)
         col = x_Texture(distortedUV).rgb;
     }
 
-    color = vec4(col, 1.0);
+    _wShaderOut = vec4(col, 1.0);
 }

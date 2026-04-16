@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Zoom effect on last typed character
+
 // Configuration
 #define ZOOM_DURATION 0.5
 #define MAX_SCALE 3.0
@@ -6,13 +9,13 @@ float easeOutQuad(float t) {
     return t * (2.0 - t);
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
     
     // Default background
     vec4 bgColor = x_Texture(uv);
-    color = bgColor;
+    _wShaderOut = bgColor;
     
     float timeSinceChange = x_Time - x_Time;
     
@@ -84,6 +87,6 @@ void windowShader(inout vec4 color)
         float alpha = 1.0 - easeOutQuad(progress); 
         
         // Blend
-        color = mix(color, zoomedColor, alpha);
+        _wShaderOut = mix(_wShaderOut, zoomedColor, alpha);
     }
 }

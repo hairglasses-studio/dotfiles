@@ -1,9 +1,12 @@
+// Shader attribution: KroneCorylus
+// (Post-FX) — Screen shake effect
+
 
 vec2 norm(vec2 value, float isPosition) {
     return (value * 2.0 - (x_WindowSize * isPosition)) / x_WindowSize.y;
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos / x_WindowSize;
 
@@ -25,5 +28,5 @@ void windowShader(inout vec4 color)
 
     vec4 color = x_Texture(uv);
 
-    color = color;
+    _wShaderOut = color;
 }

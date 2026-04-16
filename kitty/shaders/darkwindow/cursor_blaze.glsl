@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Cursor) — Fire trail behind cursor
+
 // Based on https://gist.github.com/chardskarth/95874c54e29da6b5a36ab7b50ae2d088
 float ease(float x) {
     return pow(1.0 - x, 10.0);
@@ -84,10 +87,10 @@ const float DRAW_THRESHOLD = 1.5;
 // people expect them.
 const bool HIDE_TRAILS_ON_THE_SAME_LINE = false;
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
     //Normalization for x_PixelPos to a space of -1 to 1;
     vec2 vu = normalize(x_PixelPos, 1.);
@@ -109,7 +112,7 @@ void windowShader(inout vec4 color)
     vec2 v2 = vec2(previousCursor.x + currentCursor.z * invertedVertexFactor, previousCursor.y);
     vec2 v3 = vec2(previousCursor.x + currentCursor.z * vertexFactor, previousCursor.y - previousCursor.w);
 
-    vec4 newColor = vec4(color);
+    vec4 newColor = vec4(_wShaderOut);
 
     float progress = blend(clamp((x_Time - x_Time) / DURATION, 0.0, 1));
     float easedProgress = ease(progress);
@@ -136,7 +139,7 @@ void windowShader(inout vec4 color)
 
         newColor = mix(newColor, TRAIL_COLOR_ACCENT, 1.0 - smoothstep(sdfTrail, -0.01, 0.001));
         newColor = mix(newColor, TRAIL_COLOR, antialising(sdfTrail));
-        newColor = mix(color, newColor, 1.0 - alphaModifier);
-        color = mix(newColor, color, step(sdfCursor, 0));
+        newColor = mix(_wShaderOut, newColor, 1.0 - alphaModifier);
+        _wShaderOut = mix(newColor, _wShaderOut, step(sdfCursor, 0));
     }
 }

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Colorful animated starfield
+
 // transparent background
 const bool transparent = false;
 
@@ -131,7 +134,7 @@ vec3 stars(vec2 uv, float offset) {
     return col; // Return pure white stars only
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     // Normalized pixel coordinates (from 0 to 1)
     vec2 uv = x_PixelPos / x_WindowSize;
@@ -154,5 +157,5 @@ void windowShader(inout vec4 color)
     vec3 blendedColor = mix(terminalColor.rgb, col, mask);
 
     // Apply terminal's alpha to control overall opacity
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

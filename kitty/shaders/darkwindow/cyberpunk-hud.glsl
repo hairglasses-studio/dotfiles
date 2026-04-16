@@ -2,7 +2,7 @@
 // Category: Cyberpunk | Cost: LOW | Source: original (cyberpunk research)
 // Adds a sci-fi heads-up display frame around the terminal content.
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 term = x_Texture(uv);
 
@@ -59,5 +59,5 @@ void windowShader(inout vec4 color) {
 
     vec3 result = term.rgb + hudColor;
 
-    color = vec4(result, term.a);
+    _wShaderOut = vec4(result, term.a);
 }

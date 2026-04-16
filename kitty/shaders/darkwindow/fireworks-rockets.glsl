@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Background) — Fireworks with rocket trails
+
 // This Ghostty shader is a lightly modified port of https://www.shadertoy.com/view/4dBGRw
 
 #define BLACK_BLEND_THRESHOLD .4
@@ -84,7 +87,7 @@ vec3 drawFireworks(float time, vec2 uv, vec3 particolor, float seed) {
     return col;
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = 1.0 - 2.0 * x_PixelPos.xy / x_WindowSize;
     uv.x *= x_WindowSize.x / x_WindowSize.y;
@@ -105,5 +108,5 @@ void windowShader(inout vec4 color)
     float alpha = step(length(terminalColor.rgb), BLACK_BLEND_THRESHOLD);
     vec3 blendedColor = mix(terminalColor.rgb * 1.0, col.rgb * 0.3, alpha);
 
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

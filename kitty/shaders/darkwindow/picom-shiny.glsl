@@ -3,7 +3,7 @@
 // Ported from picom-shaders by ikz87
 // https://github.com/ikz87/picom-shaders
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 c = x_Texture(uv);
 
@@ -22,5 +22,5 @@ void windowShader(inout vec4 color) {
         (diag < pct * 4.0 - 0.8 * pct && diag > pct * 3.0))
         c.rgb *= 2.0;
 
-    color = c;
+    _wShaderOut = c;
 }

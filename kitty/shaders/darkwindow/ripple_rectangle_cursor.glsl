@@ -1,3 +1,6 @@
+// Shader attribution: sahaj-b
+// (Cursor) — Rectangular ripple from cursor
+
 // CONFIGURATION
 const float DURATION = 0.15;               // How long the ripple animates (seconds)
 const float MAX_SIZE = 0.05;             // Max radius in normalized coords (0.5 = 1/4 screen height)
@@ -73,9 +76,9 @@ float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b){
     return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
-void windowShader(inout vec4 color){
+void windowShader(inout vec4 _wShaderOut){
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
 
     // Normalization & setup (-1 to 1 coords)
@@ -132,7 +135,7 @@ void windowShader(inout vec4 color){
         float ripple = (1.0 - smoothstep(-antiAliasSize, antiAliasSize, sdfRectRing)) * fade;
 
         // Apply ripple effect
-        color = mix(color, COLOR, ripple * COLOR.a);
+        _wShaderOut = mix(_wShaderOut, COLOR, ripple * COLOR.a);
     }
-    // else: do nothing, keep original color
+    // else: do nothing, keep original _wShaderOut
 }

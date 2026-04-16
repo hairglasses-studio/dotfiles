@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (CRT) — Classic CRT scanlines and curvature
+
 // source: https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f
 // credits: https://github.com/qwerasd205
 //==============================================================
@@ -288,9 +291,9 @@ vec3 ToSrgb(vec3 c) {
     ToSrgb1(c.r), ToSrgb1(c.g), ToSrgb1(c.b));
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
   float aspect = x_WindowSize.x / x_WindowSize.y;
-  color.rgb = CrtsFilter(
+  _wShaderOut.rgb = CrtsFilter(
       x_PixelPos.xy,
       vec2(1.0),
       x_WindowSize * SCALE * 0.5,
@@ -306,5 +309,5 @@ void windowShader(inout vec4 color) {
     );
 
   // Linear to SRGB for output.
-  color = vec4(ToSrgb(color.rgb), 1.0);
+  _wShaderOut = vec4(ToSrgb(_wShaderOut.rgb), 1.0);
 }

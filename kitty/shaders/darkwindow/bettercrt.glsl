@@ -1,3 +1,6 @@
+// Shader attribution: chuhlomin
+// (CRT) — Enhanced CRT with barrel distortion and vignette
+
 // Original shader collected from: https://www.shadertoy.com/view/WsVSzV
 // Licensed under Shadertoy's default since the original creator didn't provide any license. (CC BY NC SA 3.0)
 // Slight modifications were made to give a green-ish effect.
@@ -11,7 +14,7 @@
 float warp = 0.25; // simulate curvature of CRT monitor
 float scan = 0.50; // simulate darkness between scanlines
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     // squared distance from center
     vec2 uv = x_PixelPos / x_WindowSize;
@@ -29,5 +32,5 @@ void windowShader(inout vec4 color)
     vec3 color = x_Texture(uv).rgb;
 
     // mix the sampled color with the scanline intensity
-    color = vec4(mix(color, vec3(0.0), apply), 1.0);
+    _wShaderOut = vec4(mix(color, vec3(0.0), apply), 1.0);
 }

@@ -30,7 +30,7 @@ float fbm(vec2 p) {
     return total / maxVal;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 term = x_Texture(uv);
 
@@ -53,5 +53,5 @@ void windowShader(inout vec4 color) {
     result.rgb = mix(burn_color.rgb, term.rgb, border);
     result.a *= alpha;
 
-    color = result;
+    _wShaderOut = result;
 }

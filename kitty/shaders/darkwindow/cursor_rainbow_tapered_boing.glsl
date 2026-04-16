@@ -91,10 +91,10 @@ vec3 rainbow(float t) {
 
 const float DURATION = 0.3; //IN SECONDS - 250ms for spring effect
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
     // Normalization for x_PixelPos to a space of -1 to 1;
     vec2 vu = normalize(x_PixelPos, 1.);
@@ -153,17 +153,17 @@ void windowShader(inout vec4 color)
     vec4 TRAIL_COLOR = vec4(rainbowColor, 1.0);
     vec4 TRAIL_COLOR_ACCENT = vec4(rainbowAccent, 1.0);
 
-    vec4 newColor = vec4(color);
+    vec4 newColor = vec4(_wShaderOut);
     // Compute fade factor based on distance along the trail
     float fadeFactor = 1.0 - smoothstep(lineLength, sdfCurrentCursor, easedProgress * lineLength);
 
     float mod = .007;
     //trailblaze with rainbow colors
-    vec4 trail = mix(TRAIL_COLOR_ACCENT, color, 1. - smoothstep(0., sdfTrail + mod, 0.007));
+    vec4 trail = mix(TRAIL_COLOR_ACCENT, _wShaderOut, 1. - smoothstep(0., sdfTrail + mod, 0.007));
     trail = mix(TRAIL_COLOR, trail, 1. - smoothstep(0., sdfTrail + mod, 0.006));
     trail = mix(trail, TRAIL_COLOR, step(sdfTrail + mod, 0.));
     //cursorblaze with rainbow colors
     trail = mix(TRAIL_COLOR_ACCENT, trail, 1. - smoothstep(0., sdfCurrentCursor + .002, 0.004));
     trail = mix(TRAIL_COLOR, trail, 1. - smoothstep(0., sdfCurrentCursor + .002, 0.004));
-    color = mix(trail, color, 1. - smoothstep(0., sdfCurrentCursor, easedProgress * lineLength));
+    _wShaderOut = mix(trail, _wShaderOut, 1. - smoothstep(0., sdfCurrentCursor, easedProgress * lineLength));
 }

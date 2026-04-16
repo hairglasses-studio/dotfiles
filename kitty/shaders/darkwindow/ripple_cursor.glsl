@@ -1,3 +1,6 @@
+// Shader attribution: sahaj-b
+// (Cursor) — Ripple wave from cursor position
+
 // CONFIGURATION
 const float DURATION = 0.15;               // How long the ripple animates (seconds)
 const float MAX_RADIUS = 0.05;             // Max radius in normalized coords (0.5 = 1/4 screen height)
@@ -68,9 +71,9 @@ vec2 normalize(vec2 value, float isPosition) {
     return (value * 2.0 - (x_WindowSize * isPosition)) / x_WindowSize.y;
 }
 
-void windowShader(inout vec4 color){
+void windowShader(inout vec4 _wShaderOut){
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
 
     // Normalization & setup (-1 to 1 coords)
@@ -126,7 +129,7 @@ void windowShader(inout vec4 color){
         float ripple = (1.0 - smoothstep(-antiAliasSize, antiAliasSize, sdfRing)) * fade;
         
         // Apply ripple effect
-        color = mix(color, COLOR, ripple * COLOR.a);
+        _wShaderOut = mix(_wShaderOut, COLOR, ripple * COLOR.a);
     }
-    // else: do nothing, keep original color
+    // else: do nothing, keep original _wShaderOut
 }

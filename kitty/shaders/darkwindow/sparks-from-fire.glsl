@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Fire sparks particle effect
+
 // adapted by Alex Sherwin for Ghstty from https://www.shadertoy.com/view/wl2Gzc
 
 //Shader License: CC BY 3.0
@@ -210,7 +213,7 @@ vec3 layeredParticles(in vec2 uv, in float sizeMod, in float alphaMod, in int la
     return particles;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = (2.0 * x_PixelPos - x_WindowSize) / x_WindowSize.x;
     
     // float vignette = 1.1 - smoothstep(0.4, 1.4, length(uv + vec2(0.0, 0.3)));
@@ -238,5 +241,5 @@ void windowShader(inout vec4 color) {
     float alpha = step(length(terminalColor.rgb), BLACK_BLEND_THRESHOLD);
     vec3 blendedColor = mix(terminalColor.rgb, col, alpha);
     
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

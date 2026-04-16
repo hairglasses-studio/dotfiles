@@ -67,7 +67,7 @@ vec3 getAndrossFace(vec2 uv, float time, float jitter) {
     return UI_TINT * finalFace * 0.8 * jitter;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     float time = x_Time;
     
@@ -88,7 +88,7 @@ void windowShader(inout vec4 color) {
     // --- 1. CRT Curvature & Borders ---
     vec2 curvedUV = curve(uv);
     if (curvedUV.x < 0.0 || curvedUV.x > 1.0 || curvedUV.y < 0.0 || curvedUV.y > 1.0) {
-        color = vec4(0.0, 0.0, 0.0, 1.0); return;
+        _wShaderOut = vec4(0.0, 0.0, 0.0, 1.0); return;
     }
 
     // --- 2. Background Void ---
@@ -143,5 +143,5 @@ void windowShader(inout vec4 color) {
     vec3 vigColor = mix(UI_TINT * 0.15, vec3(1.0), vig);
     finalColor *= vigColor * (1.0 - dist * VIGNETTE_STRENGTH);
 
-    color = vec4(finalColor, 1.0);
+    _wShaderOut = vec4(finalColor, 1.0);
 }

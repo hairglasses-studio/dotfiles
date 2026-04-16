@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Tapered fire trail cursor
+
 float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)
 {
     vec2 d = abs(p - xy) - b;
@@ -69,9 +72,9 @@ const vec4 TRAIL_COLOR = vec4(1.0, 0.725, 0.161, 1.0);
 const vec4 TRAIL_COLOR_ACCENT = vec4(1.0, 0., 0., 1.0);
 const float DURATION = 0.3; //IN SECONDS
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     // Normalization for x_PixelPos to a space of -1 to 1;
     vec2 vu = norm(x_PixelPos, 1.);
     vec2 offsetFactor = vec2(-.5, 0.5);
@@ -107,11 +110,11 @@ void windowShader(inout vec4 color)
 
     float mod = .007;
     //trailblaze
-    vec4 trail = mix(TRAIL_COLOR_ACCENT, color, 1. - smoothstep(0., sdfTrail + mod, 0.007));
+    vec4 trail = mix(TRAIL_COLOR_ACCENT, _wShaderOut, 1. - smoothstep(0., sdfTrail + mod, 0.007));
     trail = mix(TRAIL_COLOR, trail, 1. - smoothstep(0., sdfTrail + mod, 0.006));
     trail = mix(trail, TRAIL_COLOR, step(sdfTrail + mod, 0.));
     //cursorblaze
     trail = mix(TRAIL_COLOR_ACCENT, trail, 1. - smoothstep(0., sdfCurrentCursor + .002, 0.004));
     trail = mix(TRAIL_COLOR, trail, 1. - smoothstep(0., sdfCurrentCursor + .002, 0.004));
-    color = mix(trail, color, 1. - smoothstep(0., sdfCurrentCursor, easedProgress * lineLength));
+    _wShaderOut = mix(trail, _wShaderOut, 1. - smoothstep(0., sdfCurrentCursor, easedProgress * lineLength));
 }

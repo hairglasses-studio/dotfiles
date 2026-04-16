@@ -1,8 +1,11 @@
+// Shader attribution: 12jihan
+// (Post-FX) — Screen flicker effect
+
 float rand(vec2 co) {
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos/x_WindowSize;
     
     // Random timing for glitches
@@ -36,5 +39,5 @@ void windowShader(inout vec4 color) {
     // Random color noise at glitch moments
     color += randomTrigger * rand(uv + x_Time) * 0.01;
     
-    color = vec4(color, 0.95);
+    _wShaderOut = vec4(color, 0.95);
 }

@@ -21,9 +21,11 @@ transpile_darkwindow() {
     -e '/^precision\s+/d' \
   )"
 
-  # Replace Ghostty entry point with DarkWindow windowShader
+  # Replace Ghostty entry point with DarkWindow windowShader. Use a unique
+  # out-parameter name (_wShaderOut) instead of `color` so it can't collide
+  # with local `vec3 color` declarations common in the Ghostty source set.
   content="$(echo "$content" | sed -E \
-    -e 's/void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/void windowShader(inout vec4 color)/' \
+    -e 's/void\s+mainImage\s*\(\s*out\s+vec4\s+fragColor\s*,\s*in\s+vec2\s+fragCoord\s*\)/void windowShader(inout vec4 _wShaderOut)/' \
   )"
 
   # Replace texture sampling: texture(iChannel0, uv) -> x_Texture(uv)
@@ -51,9 +53,10 @@ transpile_darkwindow() {
     -e 's/\bfragCoord\b/x_PixelPos/g' \
   )"
 
-  # Replace output variable
+  # Replace output variable — must match the parameter name above. Keeping
+  # it distinct from `color` avoids shadowing local `vec3 color` variables.
   content="$(echo "$content" | sed -E \
-    -e 's/\bfragColor\b/color/g' \
+    -e 's/\bfragColor\b/_wShaderOut/g' \
   )"
 
   # Replace iFrame with time-based approximation

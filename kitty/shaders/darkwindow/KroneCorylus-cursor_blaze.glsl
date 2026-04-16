@@ -68,9 +68,9 @@ const vec4 TRAIL_COLOR = vec4(1.0, 0.725, 0.161, 1.0);
 const vec4 TRAIL_COLOR_ACCENT = vec4(1.0, 0., 0., 1.0);
 const float DURATION = 0.3; //IN SECONDS
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     // Normalization for x_PixelPos to a space of -1 to 1;
     vec2 vu = norm(x_PixelPos, 1.);
     vec2 offsetFactor = vec2(-.5, 0.5);
@@ -104,11 +104,11 @@ void windowShader(inout vec4 color)
     float mod = .007;
     //trailblaze
     // HACK: Using the saturate function because I currently don't know how to blend colors without losing saturation.
-    vec4 trail = mix(saturate(TRAIL_COLOR_ACCENT, 1.5), color, 1. - smoothstep(0., sdfTrail + mod, 0.007));
+    vec4 trail = mix(saturate(TRAIL_COLOR_ACCENT, 1.5), _wShaderOut, 1. - smoothstep(0., sdfTrail + mod, 0.007));
     trail = mix(saturate(TRAIL_COLOR, 1.5), trail, 1. - smoothstep(0., sdfTrail + mod, 0.006));
     trail = mix(trail, saturate(TRAIL_COLOR, 1.5), step(sdfTrail + mod, 0.));
     //cursorblaze
     trail = mix(saturate(TRAIL_COLOR_ACCENT, 1.5), trail, 1. - smoothstep(0., sdfCurrentCursor + .002, 0.004));
     trail = mix(saturate(TRAIL_COLOR, 1.5), trail, 1. - smoothstep(0., sdfCurrentCursor + .002, 0.004));
-    color = mix(trail, color, 1. - smoothstep(0., sdfCurrentCursor, easedProgress * lineLength));
+    _wShaderOut = mix(trail, _wShaderOut, 1. - smoothstep(0., sdfCurrentCursor, easedProgress * lineLength));
 }

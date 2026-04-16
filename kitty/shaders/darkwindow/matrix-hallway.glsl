@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Matrix code hallway fly-through
+
 // based on the following Shader Toy entry
 //
 // [SH17A] Matrix rain. Created by Reinder Nijhoff 2017
@@ -14,7 +17,7 @@
 
 #define R fract(1e2 * sin(p.x * 8. + p.y))
 
-void mainImage(out vec4 color, vec2 x_PixelPos) {
+void mainImage(out vec4 _wShaderOut, vec2 x_PixelPos) {
     vec3 v = vec3(x_PixelPos, 1) / vec3(x_WindowSize, 1.0) - .5;
     // vec3 s = .5 / abs(v);
     // scale?
@@ -24,7 +27,7 @@ void mainImage(out vec4 color, vec2 x_PixelPos) {
     vec3 j = fract(i);
     i -= j;
     vec3 p = vec3(9, int(x_Time * SPEED_MULTIPLIER * (9. + 8. * sin(i).x)), 0) + i;
-    vec3 col = color.rgb;
+    vec3 col = _wShaderOut.rgb;
     col.g = R / s.z;
     p *= j;
     col *= (R >.5 && j.x < .6 && j.y < .8) ? GREEN_ALPHA : 0.;
@@ -36,5 +39,5 @@ void mainImage(out vec4 color, vec2 x_PixelPos) {
     float alpha = step(length(terminalColor.rgb), BLACK_BLEND_THRESHOLD);
     vec3 blendedColor = mix(terminalColor.rgb * 1.2, col, alpha);
 
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

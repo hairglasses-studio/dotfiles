@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Post-FX) — Zoom with chromatic aberration
+
 // Configuration
 #define ZOOM_DURATION 0.8
 #define MAX_SCALE 2.0
@@ -11,13 +14,13 @@ float random (in vec2 st) {
     return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
     
     // Default background
     vec4 bgColor = x_Texture(uv);
-    color = bgColor;
+    _wShaderOut = bgColor;
     
     float timeSinceChange = x_Time - x_Time;
     
@@ -102,6 +105,6 @@ void windowShader(inout vec4 color)
             finalColor.r = x_Texture(distortedUV + vec2(0.05, 0.0)).r;
         }
 
-        color = mix(color, vec4(finalColor, 1.0), intensity);
+        _wShaderOut = mix(_wShaderOut, vec4(finalColor, 1.0), intensity);
     }
 }

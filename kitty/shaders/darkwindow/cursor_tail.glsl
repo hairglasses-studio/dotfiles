@@ -1,3 +1,6 @@
+// Shader attribution: sahaj-b
+// (Cursor) — Fading tail trail behind cursor
+
 // -- CONFIGURATION --
 vec4 TRAIL_COLOR = vec4(1.0); // can change to eg: vec4(0.2, 0.6, 1.0, 0.5);
 const float DURATION = 0.09; // in seconds
@@ -138,9 +141,9 @@ vec2 getRectangleCenter(vec4 rectangle) {
 }
 
 
-void windowShader(inout vec4 color){
+void windowShader(inout vec4 _wShaderOut){
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
 
     // normalization & setup(-1, 1 coords)
@@ -158,7 +161,7 @@ void windowShader(inout vec4 color){
 
      float sdfCurrentCursor = getSdfRectangle(vu, centerCC, currentCursor.zw * 0.5);
 	
-     vec4 newColor = vec4(color);
+     vec4 newColor = vec4(_wShaderOut);
 	
      float minDist = currentCursor.w * THRESHOLD_MIN_DISTANCE;
      float progress = clamp((x_Time - x_Time) / DURATION, 0.0, 1.0);
@@ -227,8 +230,8 @@ void windowShader(inout vec4 color){
         newColor = mix(newColor, trail, trailAlpha);
 
         // punch hole
-        newColor = mix(newColor, color, step(sdfCurrentCursor, 0.));
+        newColor = mix(newColor, _wShaderOut, step(sdfCurrentCursor, 0.));
     }
 
-    color = newColor;
+    _wShaderOut = newColor;
 }

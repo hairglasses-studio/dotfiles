@@ -1,4 +1,7 @@
-void windowShader(inout vec4 color) {
+// Shader attribution: 12jihan
+// (Post-FX) — Simple bloom/glow effect
+
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos/x_WindowSize;
     
     // Base color from terminal
@@ -16,5 +19,5 @@ void windowShader(inout vec4 color) {
     // Combine glow with original color
     color += glow * bloom;
     
-    color = vec4(color, 1.0);
+    _wShaderOut = vec4(color, 1.0);
 }

@@ -1,5 +1,8 @@
+// Shader attribution: 0xhckr
+// (Background) — Static color gradient background
+
 // credits: https://github.com/unkn0wncode
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     // Normalize pixel coordinates (range from 0 to 1)
     vec2 uv = x_PixelPos.xy / x_WindowSize;
@@ -21,5 +24,5 @@ void windowShader(inout vec4 color)
     vec3 blendedColor = mix(terminalColor.rgb, gradientColor, mask);
 
     // Apply terminal's alpha to control overall opacity
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

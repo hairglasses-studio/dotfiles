@@ -1,3 +1,6 @@
+// Shader attribution: erniee
+// (Background) — Matrix digital rain
+
 float text(vec2 x_PixelPos)
 {
     vec2 uv = mod(x_PixelPos.xy, 16.)*.0625;
@@ -21,7 +24,7 @@ vec3 rain(vec2 x_PixelPos)
     return vec3(.1,1,.35) / (y*20.);
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
-    color = vec4(text(x_PixelPos)*rain(x_PixelPos),1.0);
+    _wShaderOut = vec4(text(x_PixelPos)*rain(x_PixelPos),1.0);
 }

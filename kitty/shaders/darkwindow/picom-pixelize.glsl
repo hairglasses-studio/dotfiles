@@ -3,7 +3,7 @@
 // Ported from picom-shaders by ikz87
 // https://github.com/ikz87/picom-shaders
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
 
     float t = 0.5 + 0.5 * sin(x_Time * 1.57);
@@ -12,5 +12,5 @@ void windowShader(inout vec4 color) {
     vec2 blockUv = (floor(x_PixelPos / block) * block + block * 0.5) / x_WindowSize;
     blockUv = clamp(blockUv, vec2(0.0), vec2(1.0));
 
-    color = x_Texture(blockUv);
+    _wShaderOut = x_Texture(blockUv);
 }

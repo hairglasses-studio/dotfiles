@@ -3,7 +3,7 @@
 // Ported from picom-shaders by ikz87
 // https://github.com/ikz87/picom-shaders
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec2 px = 1.0 / x_WindowSize;
 
@@ -45,5 +45,5 @@ void windowShader(inout vec4 color) {
     // Screen blending mode
     c = 1.0 - (1.0 - total) * (1.0 - c);
 
-    color = c;
+    _wShaderOut = c;
 }

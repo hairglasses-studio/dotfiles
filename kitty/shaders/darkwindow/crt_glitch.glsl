@@ -1,3 +1,6 @@
+// Shader attribution: 12jihan
+// (CRT) — CRT with glitch distortion
+
 #define COLOR_BACK vec3(0.10, 0.10, 0.10)
 #define COLOR_TRACE vec3(0.10, 1.10, 0.50)
 
@@ -17,7 +20,7 @@ float filmReelNoise(vec2 uv, float time) {
 
 
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
 
@@ -64,5 +67,5 @@ void windowShader(inout vec4 color)
     // Add the film reel noise to the final color
     finalColor += vec3(noise);
 
-    color = vec4(finalColor, 1.0);
+    _wShaderOut = vec4(finalColor, 1.0);
 }

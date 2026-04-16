@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — Perlin/simplex noise overlay
+
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec4 permute(vec4 x) { return mod289(((x * 34.0) + 10.0) * x); }
@@ -87,7 +90,7 @@ float roundRectSDF(vec2 center, vec2 size, float radius) {
   return length(max(abs(center) - size + radius, 0.)) - radius;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
   vec2 uv = x_PixelPos / x_WindowSize, sd = vec2(2.), sdh = vec2(1.);
   vec4 ghosttyCol = x_Texture(uv);
   float ratio = x_WindowSize.y / x_WindowSize.x,
@@ -112,7 +115,7 @@ void windowShader(inout vec4 color) {
                       smoothstep(0.0, 0.5, noise)),
                   col4, smoothstep(0.0, 1.0, noise));
 
-  color = vec4(
+  _wShaderOut = vec4(
       ghosttyCol.rgb +
           mix(col4, fcol, smoothstep(fw, -fw, d) * smoothstep(fw, -fw, d2)),
       ghosttyCol.a);

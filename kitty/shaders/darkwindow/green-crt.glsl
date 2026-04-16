@@ -1,4 +1,7 @@
-void windowShader(inout vec4 color) {
+// Shader attribution: thijskok
+// (CRT) — Green phosphor CRT with scanlines and flicker
+
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
 
     // Sample the text texture (assuming white text on black background)
@@ -39,5 +42,5 @@ void windowShader(inout vec4 color) {
     vec3 color = backgroundColor + (greenPhosphor * glow * scanlineStrength * flicker);
 
     // Ensure sharp, readable text by making alpha stronger
-    color = vec4(color, clamp(textAlpha + glow * 0.5, 0.0, 1.0));
+    _wShaderOut = vec4(color, clamp(textAlpha + glow * 0.5, 0.0, 1.0));
 }

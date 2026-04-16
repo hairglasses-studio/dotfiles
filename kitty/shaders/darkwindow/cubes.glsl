@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Animated 3D cube grid
+
 // credits: https://github.com/rymdlego
 
 const float speed = 0.2;
@@ -49,7 +52,7 @@ float distfunc(vec3 pos)
     return obj1;
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     float t = x_Time;
     vec2 screenPos = -1.0 + 2.0 * x_PixelPos.xy / x_WindowSize;
@@ -110,5 +113,5 @@ void windowShader(inout vec4 color)
     vec2 uv = x_PixelPos/x_WindowSize;
     vec4 terminalColor = x_Texture(uv);
     vec3 blendedColor = terminalColor.rgb + cubes.rgb;
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

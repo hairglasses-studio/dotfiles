@@ -1,3 +1,6 @@
+// Shader attribution: sahaj-b
+// (Cursor) — Warp distortion around cursor
+
 // --- CONFIGURATION ---
 vec4 TRAIL_COLOR = vec4(1.0); // can change to eg: vec4(0.2, 0.6, 1.0, 0.5);
 const float DURATION = 0.2; // total animation time
@@ -144,9 +147,9 @@ float getDurationFromDot(float dot_val, float DURATION_LEAD, float DURATION_SIDE
     return duration;
 }
 
-void windowShader(inout vec4 color){
+void windowShader(inout vec4 _wShaderOut){
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
 
     // normalization & setup(-1, 1 coords)
@@ -166,7 +169,7 @@ void windowShader(inout vec4 color){
     float lineLength = distance(centerCC, centerCP);
     float minDist = currentCursor.w * THRESHOLD_MIN_DISTANCE;
     
-    vec4 newColor = vec4(color);
+    vec4 newColor = vec4(_wShaderOut);
 
     float baseProgress = x_Time - x_Time;
     
@@ -295,9 +298,9 @@ void windowShader(inout vec4 color){
         newColor = mix(newColor, vec4(trail.rgb, newColor.a), finalAlpha);
 
         // punch hole on the trail, so current cursor is drawn on top
-        newColor = mix(newColor, color, step(sdfCurrentCursor, 0.));
+        newColor = mix(newColor, _wShaderOut, step(sdfCurrentCursor, 0.));
 
     }
 
-    color = newColor;
+    _wShaderOut = newColor;
 }

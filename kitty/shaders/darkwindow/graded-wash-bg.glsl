@@ -1,3 +1,6 @@
+// Shader attribution: JRMeyer
+// (Watercolor) — Graded wash with color transition
+
 // Graded Watercolor Wash Background
 // Color gradually fades from full intensity to transparent, top to bottom.
 // Organic, irregular edges like real watercolor on paper.
@@ -25,7 +28,7 @@ float fbm(vec2 p) {
     return s;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
@@ -33,7 +36,7 @@ void windowShader(inout vec4 color) {
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
-        color = orig;
+        _wShaderOut = orig;
         return;
     }
 
@@ -98,5 +101,5 @@ void windowShader(inout vec4 color) {
         }
     }
 
-    color = vec4(clamp(result, 0.0, 1.0), alpha);
+    _wShaderOut = vec4(clamp(result, 0.0, 1.0), alpha);
 }

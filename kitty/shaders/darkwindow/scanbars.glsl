@@ -1,4 +1,7 @@
-void windowShader(inout vec4 color)
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Horizontal scan bar effect
+
+void windowShader(inout vec4 _wShaderOut)
 {
     // Normalize pixel coordinates
     vec2 uv = x_PixelPos / x_WindowSize;
@@ -30,5 +33,5 @@ void windowShader(inout vec4 color)
 
     // Set the alpha channel for transparency (optional)
     float alpha = 1.0; // Fully opaque for the scratched effect
-    color = vec4(videoColor.rgb, alpha);
+    _wShaderOut = vec4(videoColor.rgb, alpha);
 }

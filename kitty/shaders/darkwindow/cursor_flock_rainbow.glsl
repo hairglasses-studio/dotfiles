@@ -42,10 +42,10 @@ const float FLIGHT_DURATION = 0.8; // Time to fly between positions
 const float TRAIL_ALPHA_DECAY = 0.8; // Configurable alpha decay (closer to 1 = longer trails)
 const float PIXEL_SIZE = 0.0125;
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
     
     vec2 vu = normalize(x_PixelPos, 1.);
@@ -63,7 +63,7 @@ void windowShader(inout vec4 color)
     float flightProgress = clamp(timeSinceMove / FLIGHT_DURATION, 0.0, 1.0);
     float easedProgress = easeInOutCubic(flightProgress);
     
-    vec4 result = color;
+    vec4 result = _wShaderOut;
     
     // Movement vector
     vec2 movement = centerCC - centerCP;
@@ -196,5 +196,5 @@ void windowShader(inout vec4 color)
     float cursorMask = 1.0 - smoothstep(0.0, 0.002, sdfCurrentCursor);
     result.rgb = mix(result.rgb, vec3(1.0), cursorMask * 0.2);
     
-    color = result;
+    _wShaderOut = result;
 }

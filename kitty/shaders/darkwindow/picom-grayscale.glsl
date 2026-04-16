@@ -3,12 +3,12 @@
 // Ported from picom-shaders by ikz87
 // https://github.com/ikz87/picom-shaders
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 c = x_Texture(uv);
 
     // CIELAB luma based on human tristimulus response
     float g = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
 
-    color = vec4(vec3(g), c.a);
+    _wShaderOut = vec4(vec3(g), c.a);
 }

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (CRT) — In-game CRT with cursor highlight
+
 // In-game CRT shader
 // Author: sarphiv
 // License: CC BY-NC-SA 4.0
@@ -122,9 +125,9 @@ vec4 colorOverride(vec4 baseColor, vec4 overrideColor) {
 }
 
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
-    color = x_Texture(uv);
+    _wShaderOut = x_Texture(uv);
 
     vec2 currPos = x_CursorPos.xy / x_WindowSize, currSize = x_CursorPos.zw / x_WindowSize;
     vec2 prevPos = x_CursorPos.xy / x_WindowSize, prevSize = x_CursorPos.zw / x_WindowSize;
@@ -143,15 +146,15 @@ void windowShader(inout vec4 color) {
 
     vec4 currColor = colorOverride(vec4(1.0), vec4(GLOW_COLOR_OVERRIDE_CURRENT, 1.0));
     vec4 prevColor = colorOverride(vec4(1.0), vec4(GLOW_COLOR_OVERRIDE_PREVIOUS, 1.0));
-    vec4 glowColor = mix(color, mix(prevColor, currColor, dTip) + GLOW_COLOR_OFFSET_BRIGHTNESS, pow(dTip, 3));
-    glowColor = mix(glowColor, color, pow(smoothstep(0.0, 0.3, dTrail), 0.1));
+    vec4 glowColor = mix(_wShaderOut, mix(prevColor, currColor, dTip) + GLOW_COLOR_OFFSET_BRIGHTNESS, pow(dTip, 3));
+    glowColor = mix(glowColor, _wShaderOut, pow(smoothstep(0.0, 0.3, dTrail), 0.1));
 
     vec4 trailColor = mix(vec4(1.0), glowColor, pow(smoothstep(0.0, 0.01, dTrail), 0.2));
-    vec4 trail = mix(trailColor, color, pow(smoothstep(0.0, nearbyPrev ? 0.01 : 0.1, dTrail), 0.2));
+    vec4 trail = mix(trailColor, _wShaderOut, pow(smoothstep(0.0, nearbyPrev ? 0.01 : 0.1, dTrail), 0.2));
     if (!nearbyPrev) {
         trail = mix(trailColor, trail, pow(smoothstep(0.0, 6.0, dTip), 0.05));
         trail = mix(trailColor, trail, pow(smoothstep(0.0, 8.0, dTip), 0.005));
     }
 
-    color = mix(color, trail, tVisible);
+    _wShaderOut = mix(_wShaderOut, trail, tVisible);
 }

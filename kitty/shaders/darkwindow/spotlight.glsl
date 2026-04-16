@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Post-FX) — Spotlight/vignette following cursor
+
 // Created by Paul Robello
 
 
@@ -6,7 +9,7 @@ float smoothOscillation(float t, float frequency, float phase) {
     return sin(t * frequency + phase);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     // Resolution and UV coordinates
 	vec2 uv = x_PixelPos.xy / x_WindowSize;
 
@@ -38,5 +41,5 @@ void windowShader(inout vec4 color) {
     vec3 spotlightEffect = texColor.rgb * mix(vec3(ambientLight), vec3(1.0), spotlightIntensity);
 
     // Final color output
-    color = vec4(spotlightEffect, texColor.a);
+    _wShaderOut = vec4(spotlightEffect, texColor.a);
 }

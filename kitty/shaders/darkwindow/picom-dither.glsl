@@ -3,7 +3,7 @@
 // Ported from picom-shaders by ikz87
 // https://github.com/ikz87/picom-shaders
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec2 px = 1.0 / x_WindowSize;
 
@@ -69,5 +69,5 @@ void windowShader(inout vec4 color) {
             quantized[ch] = dither_row2[idx];
     }
 
-    color = vec4(quantized, alpha);
+    _wShaderOut = vec4(quantized, alpha);
 }

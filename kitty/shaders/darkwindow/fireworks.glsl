@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Background) — Fireworks burst animation
+
 // This Ghostty shader is a port of https://www.shadertoy.com/view/lscGRl
 
 // "Fireworks" by Martijn Steinrucken aka BigWings - 2015
@@ -80,7 +83,7 @@ vec3 Rainbow(vec3 c) {
     return c;
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
     uv.x -= .5;
@@ -112,5 +115,5 @@ void windowShader(inout vec4 color)
     float alpha = step(length(terminalColor.rgb), BLACK_BLEND_THRESHOLD);
     vec3 blendedColor = mix(terminalColor.rgb * 1.0, c.rgb * 0.3, alpha);
 
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — RGB split with glow and twitch
+
 // First it does a "chromatic aberration" by splitting the rgb signals by a product of sin functions
 // over time, then it does a glow effect in a perceptual color space
 // Based on kalgynirae's Ghostty passable glow shader and NickWest's Chromatic Aberration shader demo
@@ -101,7 +104,7 @@ const float DIM_CUTOFF = 0.35;
 const float BRIGHT_CUTOFF = 0.65;
 const float ABBERATION_FACTOR = 0.05;
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
 
     float amount = offsetFunction(x_Time);
@@ -140,5 +143,5 @@ void windowShader(inout vec4 color) {
         dest.xyz += glow.xyz;
     }
 
-    color = toRgb(dest);
+    _wShaderOut = toRgb(dest);
 }

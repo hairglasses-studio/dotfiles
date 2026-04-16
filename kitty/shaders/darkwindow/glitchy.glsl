@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — Digital glitch/corruption effect
+
 // modified version of https://www.shadertoy.com/view/wld3WN
 // amount of seconds for which the glitch loop occurs
 #define DURATION 10.
@@ -81,7 +84,7 @@ vec2 crt(vec2 uv)
 }
 
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos / x_WindowSize;
     float t = x_Time;
@@ -113,5 +116,5 @@ void windowShader(inout vec4 color)
 					1000.))).r) * displayNoise;
     col -= (.25 + .75 * glitchAmount) * (sin(4. * t + uv.y * x_WindowSize.y * 1.75))
 					* displayNoise;
-    color = vec4(col, 1.0);
+    _wShaderOut = vec4(col, 1.0);
 }

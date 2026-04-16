@@ -1,3 +1,6 @@
+// Shader attribution: alex-sherwin
+// (Background) — Underwater caustics and light rays
+
 // adapted by Alex Sherwin for Ghostty from https://www.shadertoy.com/view/lljGDt
 
 #define BLACK_BLEND_THRESHOLD .4
@@ -26,7 +29,7 @@ float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord, float seedA,
     return ray * mix(0.5, 1.0, distFade);
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
 	vec2 uv = x_PixelPos.xy / x_WindowSize;
 
@@ -70,5 +73,5 @@ void windowShader(inout vec4 color)
   float alpha = step(length(terminalColor.rgb), BLACK_BLEND_THRESHOLD);
   vec3 blendedColor = mix(terminalColor.rgb * 1.0, col.rgb * 0.3, alpha);
   
-  color = vec4(blendedColor, terminalColor.a);
+  _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

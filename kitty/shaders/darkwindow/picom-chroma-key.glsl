@@ -4,7 +4,7 @@
 // https://github.com/ikz87/picom-shaders
 // Makes pixels near a target color more transparent
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 c = x_Texture(uv);
 
@@ -28,5 +28,5 @@ void windowShader(inout vec4 color) {
         c *= alpha;
     }
 
-    color = c;
+    _wShaderOut = c;
 }

@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Sparking blaze cursor effect
+
 const vec3 blue_shift = vec3(1.0, 1.0, 1.0);
 
 uint pcg(uint v)
@@ -61,11 +64,11 @@ vec3 saturate(vec3 color, float factor) {
     return mix(vec3(gray), color, factor);
 }
 const vec3 BLAZE_COLOR = vec3(1.0, 0.725, 0.161);
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec3 base_color = vec4(1.0).rgb;
     base_color = vec3(0.1, 0.5, 2.5);
     base_color = BLAZE_COLOR;
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
 
     float elapsed = x_Time - x_Time;
 
@@ -107,14 +110,14 @@ void windowShader(inout vec4 color) {
     // // Apply fade factor
     // rgb *= fade;
     //
-    // color = mix(vec4(rgb, 1.), color, 0.5);
+    // _wShaderOut = mix(vec4(rgb, 1.), _wShaderOut, 0.5);
     vec3 rgb = c0 * base_color + c1 * base_color * blue_shift;
     rgb += hash33(vec3(x_PixelPos, x_Time * 256.)) / 512.;
     //rgb = pow(rgb, vec3(0.4545));
 
     float mask = clamp(c0 * 0.2, 0.0, 1.0) * fade;
 
-    // color = mix(color, vec4(rgb, 1.0), mask);
-    color = color + vec4(rgb * mask, 1.0); // additive
-    color = min(color, 1.0); // clamp
+    // _wShaderOut = mix(_wShaderOut, vec4(rgb, 1.0), mask);
+    _wShaderOut = _wShaderOut + vec4(rgb * mask, 1.0); // additive
+    _wShaderOut = min(_wShaderOut, 1.0); // clamp
 }

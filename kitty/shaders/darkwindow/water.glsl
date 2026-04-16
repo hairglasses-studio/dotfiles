@@ -1,8 +1,11 @@
+// Shader attribution: 0xhckr
+// (Background) — Water ripple/wave effect
+
 
 #define TAU 6.28318530718
 #define MAX_ITER 6
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec3 water_color = vec3(1.0, 1.0, 1.0) * 0.5;
 	float time = x_Time * 0.5+23.0;
@@ -28,8 +31,8 @@ void windowShader(inout vec4 color)
     vec2 tc = vec2(cos(c)-0.75,sin(c)-0.75)*0.04;
     uv = clamp(uv + tc,0.0,1.0);
 
-    color = x_Texture(uv);
+    _wShaderOut = x_Texture(uv);
     // give transparent pixels a color
-    if ( color.a == 0.0 ) color=vec4(1.0,1.0,1.0,1.0);
-    color *= vec4(color, 1.0);
+    if ( _wShaderOut.a == 0.0 ) _wShaderOut=vec4(1.0,1.0,1.0,1.0);
+    _wShaderOut *= vec4(color, 1.0);
 }

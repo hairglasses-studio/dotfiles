@@ -1,3 +1,6 @@
+// Shader attribution: JRMeyer
+// (Watercolor) — Salt texture on watercolor wash
+
 // Salt Texture Watercolor Wash Background
 // Salt sprinkled on wet paint disrupts the wash into a fine speckled texture.
 // Paper peeks through where crystals absorbed pigment; pigment concentrates between.
@@ -25,7 +28,7 @@ float fbm(vec2 p) {
     return s;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 orig = x_Texture(uv);
 
@@ -33,7 +36,7 @@ void windowShader(inout vec4 color) {
     float isBg = 1.0 - smoothstep(0.0, 0.15, distToBg);
 
     if (isBg < 0.3) {
-        color = orig;
+        _wShaderOut = orig;
         return;
     }
 
@@ -94,5 +97,5 @@ void windowShader(inout vec4 color) {
         }
     }
 
-    color = vec4(clamp(result, 0.0, 1.0), alpha);
+    _wShaderOut = vec4(clamp(result, 0.0, 1.0), alpha);
 }

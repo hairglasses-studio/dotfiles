@@ -2,7 +2,7 @@
 // Category: Cyberpunk | Cost: LOW-MED | Source: original (Shadertoy research)
 // Receding perspective grid with pulsing neon lines on black background.
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 term = x_Texture(uv);
     float termLum = dot(term.rgb, vec3(0.299, 0.587, 0.114));
@@ -45,5 +45,5 @@ void windowShader(inout vec4 color) {
     // Composite: grid behind text (masked by terminal luminance)
     vec3 result = term.rgb + gridColor * (1.0 - termLum * 0.9);
 
-    color = vec4(result, term.a);
+    _wShaderOut = vec4(result, term.a);
 }

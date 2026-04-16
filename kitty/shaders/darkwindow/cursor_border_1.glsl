@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Cursor border glow
+
 
 float getSdfRectangle(in vec2 point, in vec2 center, in vec2 halfSize)
 {
@@ -25,9 +28,9 @@ float normalizeValue(float value) {
 }
 
 vec2 OFFSET = vec2(0.5, -0.5);
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     // Normalization for x_PixelPos to a space of -1 to 1;
     vec2 vu = normalizePosition(x_PixelPos.xy);
 
@@ -49,7 +52,7 @@ void windowShader(inout vec4 color)
 
     float sdfCurrentCursor = getSdfRectangle(vu, normalizePosition(rectCenterPx), normalizedCursor.zw * 0.5);
 
-    vec4 newColor = mix(color, color, smoothstep(normalizeValue(4.), 0.0, sdfCurrentCursor));
-    newColor = mix(newColor, color, step(sdfCurrentCursor, 0.));
-    color = newColor;
+    vec4 newColor = mix(_wShaderOut, color, smoothstep(normalizeValue(4.), 0.0, sdfCurrentCursor));
+    newColor = mix(newColor, _wShaderOut, step(sdfCurrentCursor, 0.));
+    _wShaderOut = newColor;
 }

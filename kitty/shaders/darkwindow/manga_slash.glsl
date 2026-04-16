@@ -1,3 +1,6 @@
+// Shader attribution: KroneCorylus
+// (Cursor) — Manga-style slash effect
+
 // By Komsit37 (https://github.com/komsit37)
 
 float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b)
@@ -83,9 +86,9 @@ const vec3 DEEP_BLUE = vec3(0.1, 0.4, 0.8); // Deep water blue
 const vec3 CURSOR_COLOR = vec3(0.6, 0.8, 1.0); // Soft blue cursor
 const float DURATION = 0.4; // Gentle fade
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
 
     // Normalization for x_PixelPos to a space of -1 to 1;
     vec2 vu = norm(x_PixelPos, 1.);
@@ -104,7 +107,7 @@ void windowShader(inout vec4 color)
     vec2 centerCP = getRectangleCenter(previousCursor);
     float moveDistance = distance(centerCC, centerCP);
 
-    vec4 newColor = vec4(color);
+    vec4 newColor = vec4(_wShaderOut);
 
     // Only show water flow effects if there was significant cursor movement
     if (moveDistance > 0.001 && progress < 1.0) {
@@ -141,5 +144,5 @@ void windowShader(inout vec4 color)
     newColor = mix(newColor, vec4(CURSOR_COLOR, 0.8), antialising(sdfCurrentCursor));
     newColor = mix(newColor, vec4(WATER_BLUE, 0.4), cursorGlow);
 
-    color = newColor;
+    _wShaderOut = newColor;
 }

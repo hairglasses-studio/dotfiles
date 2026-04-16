@@ -127,7 +127,7 @@ float offsetFunction(float x_Time) {
 // Main Shader
 //-----------------------------------------------------------------------------
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
 
     // Apply Chromatic Aberration with alpha
@@ -184,5 +184,5 @@ void windowShader(inout vec4 color) {
     // Apply global opacity while preserving the original alpha relationship
     float final_alpha = processedColor.a * GLOBAL_OPACITY;
 
-    color = vec4(with_scanline, final_alpha);
+    _wShaderOut = vec4(with_scanline, final_alpha);
 }

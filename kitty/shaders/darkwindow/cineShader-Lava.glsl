@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Background) — Animated lava/magma shader
+
 // INFO: This shader is a port of https://www.shadertoy.com/view/3sySRK
 
 // INFO: Change these variables to create some variation in the animation
@@ -41,7 +44,7 @@ vec3 calcNormal( in vec3 p )
                       k.xxx*map( p + k.xxx*h ) );
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos/x_WindowSize;
     
@@ -73,6 +76,6 @@ void windowShader(inout vec4 color)
     float alpha = step(length(terminalColor.rgb), BLACK_BLEND_THRESHOLD);
     vec3 blendedColor = mix(terminalColor.rgb * 1.0, col.rgb * 0.3, alpha);
 
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 
 }

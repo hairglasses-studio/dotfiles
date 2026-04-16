@@ -10,7 +10,7 @@ float random(vec2 st) {
     return fract(sin(dot(st, vec2(12.9898, 78.233))) * 43758.5453123);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec2 center = vec2(0.5);
 
@@ -30,7 +30,7 @@ void windowShader(inout vec4 color) {
     float shard_progress = smoothstep(stagger_start, stagger_end, animation_progress);
 
     if (shard_progress < 0.001) {
-        color = vec4(0.0);
+        _wShaderOut = vec4(0.0);
         return;
     }
 
@@ -52,7 +52,7 @@ void windowShader(inout vec4 color) {
     vec2 sampleUv = rotated + center;
 
     if (sampleUv.x < 0.0 || sampleUv.x > 1.0 || sampleUv.y < 0.0 || sampleUv.y > 1.0) {
-        color = vec4(0.0);
+        _wShaderOut = vec4(0.0);
         return;
     }
 
@@ -66,5 +66,5 @@ void windowShader(inout vec4 color) {
     out_color.a = x_Texture(sampleUv).a;
 
     out_color.a *= shard_progress;
-    color = out_color;
+    _wShaderOut = out_color;
 }

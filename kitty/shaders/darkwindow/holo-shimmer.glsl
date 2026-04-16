@@ -1,4 +1,7 @@
-void windowShader(inout vec4 color) {
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Holographic shimmer effect
+
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos/x_WindowSize;
 
     // Get the original terminal content
@@ -48,5 +51,5 @@ void windowShader(inout vec4 color) {
     vec3 neonEffect = neonGlow * cyclingColor * glowIntensity;
     vec3 cyberpunkColor = terminalColor.rgb + neonEffect + holographicEffect;
 
-    color = vec4(cyberpunkColor, 1.0);
+    _wShaderOut = vec4(cyberpunkColor, 1.0);
 } 

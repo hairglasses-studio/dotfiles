@@ -288,7 +288,7 @@ float hash(vec2 p) {
 }
 #endif
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
   float aspect = x_WindowSize.x / x_WindowSize.y;
   vec2 texelSize = 1.0 / x_WindowSize;
   vec2 uv = x_PixelPos.xy * texelSize;
@@ -306,7 +306,7 @@ void windowShader(inout vec4 color) {
   #endif
 
   // Core CRT filter
-  color.rgb = CrtsFilter(
+  _wShaderOut.rgb = CrtsFilter(
       jitteredCoord,
       vec2(1.0),
       x_WindowSize * SCALE * 0.5,
@@ -323,13 +323,13 @@ void windowShader(inout vec4 color) {
 
   // --- Phosphor bloom ---
   vec3 bloom = sampleBloom(uv, texelSize);
-  color.rgb += bloom * BLOOM_AMOUNT;
+  _wShaderOut.rgb += bloom * BLOOM_AMOUNT;
 
   // --- Halation ---
   #ifdef ENABLE_HALATION
   {
       vec3 wideBloom = sampleBloom(uv, texelSize * 4.0);
-      color.rgb += wideBloom * HALATION_AMOUNT;
+      _wShaderOut.rgb += wideBloom * HALATION_AMOUNT;
   }
   #endif
 
@@ -337,12 +337,12 @@ void windowShader(inout vec4 color) {
   #if defined(PHOSPHOR_GREEN) || defined(PHOSPHOR_AMBER) || defined(PHOSPHOR_WHITE)
   {
       float luma = dot(bloom, vec3(0.2126, 0.7152, 0.0722));
-      color.rgb += GLOW_COLOR * luma * PHOSPHOR_GLOW;
+      _wShaderOut.rgb += GLOW_COLOR * luma * PHOSPHOR_GLOW;
   }
   #endif
 
   // --- Phosphor persistence ---
-  color.rgb *= PHOSPHOR_BOOST;
+  _wShaderOut.rgb *= PHOSPHOR_BOOST;
 
   // --- Chromatic aberration ---
   vec2 center = uv - 0.5;
@@ -352,8 +352,8 @@ void windowShader(inout vec4 color) {
   float rShift = FromSrgb1(x_Texture(uv + dir * shift).r);
   float bShift = FromSrgb1(x_Texture(uv - dir * shift).b);
   float chromaBlend = smoothstep(0.1, 0.6, dist) * 0.4;
-  color.r = mix(color.r, rShift * PHOSPHOR_BOOST, chromaBlend);
-  color.b = mix(color.b, bShift * PHOSPHOR_BOOST, chromaBlend);
+  _wShaderOut.r = mix(_wShaderOut.r, rShift * PHOSPHOR_BOOST, chromaBlend);
+  _wShaderOut.b = mix(_wShaderOut.b, bShift * PHOSPHOR_BOOST, chromaBlend);
 
   // --- Interlacing ---
   #ifdef ENABLE_INTERLACE
@@ -361,19 +361,19 @@ void windowShader(inout vec4 color) {
       float field = mod(floor(x_Time * 60.0), 2.0);
       float scanline = mod(floor(x_PixelPos.y), 2.0);
       float interlace = 1.0 - INTERLACE_AMOUNT * step(0.5, abs(scanline - field));
-      color.rgb *= interlace;
+      _wShaderOut.rgb *= interlace;
   }
   #endif
 
   // --- 60Hz flicker ---
   float flicker = 1.0 - FLICKER_AMOUNT * sin(x_Time * 120.0 * 3.14159);
-  color.rgb *= flicker;
+  _wShaderOut.rgb *= flicker;
 
   // --- Static noise ---
   #ifdef ENABLE_NOISE
   {
       float noise = (hash(x_PixelPos.xy + x_Time * 1000.0) - 0.5) * 2.0 * NOISE_AMOUNT;
-      color.rgb += noise;
+      _wShaderOut.rgb += noise;
   }
   #endif
 
@@ -381,15 +381,15 @@ void windowShader(inout vec4 color) {
   vec2 edgeUV = uv * 2.0 - 1.0;
   float edgeDist = max(abs(edgeUV.x), abs(edgeUV.y));
   float edgeFade = smoothstep(EDGE_SHADOW, 1.0, edgeDist);
-  color.rgb *= 1.0 - edgeFade * 0.6;
+  _wShaderOut.rgb *= 1.0 - edgeFade * 0.6;
 
   // --- Black out beyond curved tube ---
   vec2 curvedUV = edgeUV * vec2(
     1.0 + (edgeUV.y * edgeUV.y) * warp.x,
     1.0 + (edgeUV.x * edgeUV.x) * warp.y);
   if (abs(curvedUV.x) > 1.02 || abs(curvedUV.y) > 1.02) {
-    color.rgb = vec3(0.0);
+    _wShaderOut.rgb = vec3(0.0);
   }
 
-  color = vec4(ToSrgb(color.rgb), 1.0);
+  _wShaderOut = vec4(ToSrgb(_wShaderOut.rgb), 1.0);
 }

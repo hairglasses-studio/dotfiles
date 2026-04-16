@@ -14,7 +14,7 @@ vec3 rgb2hsv(vec3 c) {
     return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 c = x_Texture(uv);
 
@@ -38,5 +38,5 @@ void windowShader(inout vec4 color) {
         c *= alpha;
     }
 
-    color = c;
+    _wShaderOut = c;
 }

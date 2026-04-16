@@ -5,7 +5,7 @@
 
 #define PI 3.1415926538
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec2 res = x_WindowSize;
     vec2 center = vec2(0.5);
@@ -32,7 +32,7 @@ void windowShader(inout vec4 color) {
 
     if (curvedUv.x >= 1.0 || curvedUv.x <= 0.0 ||
         curvedUv.y >= 1.0 || curvedUv.y <= 0.0) {
-        color = vec4(0.0, 0.0, 0.0, 1.0);
+        _wShaderOut = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
 
@@ -74,5 +74,5 @@ void windowShader(inout vec4 color) {
         c.rgb *= max(brightness, 0.0);
     }
 
-    color = c;
+    _wShaderOut = c;
 }

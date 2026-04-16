@@ -1,4 +1,7 @@
-void windowShader(inout vec4 color)
+// Shader attribution: fearlessgeekmedia
+// (Post-FX) — Static/snow noise overlay
+
+void windowShader(inout vec4 _wShaderOut)
 {
     // Normalize pixel coordinates
     vec2 uv = x_PixelPos / x_WindowSize;
@@ -17,5 +20,5 @@ void windowShader(inout vec4 color)
     float alpha = 0.2;  // Adjust this value for more or less transparency
 
     // Mix the video frame with the noise, adjusting the alpha for transparency
-    color = mix(videoColor, vec4(vec3(darkenedNoise), alpha), 0.5);
+    _wShaderOut = mix(videoColor, vec4(vec3(darkenedNoise), alpha), 0.5);
 }

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Matrix rain animation
+
 /*
   Feel free to do anything you want with this code.
   This shader uses "runes" code by FabriceNeyret2 (https://www.shadertoy.com/view/4ltyDM)
@@ -236,11 +239,11 @@ float smoothstep1(float x) {
     return smoothstep(0., 1., x);
 }
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     if (STRIP_CHAR_WIDTH > XYCELL_SIZE || STRIP_CHAR_HEIGHT * STRIP_CHARS_MAX > ZCELL_SIZE) {
         // error
-        color = vec4(1., 0., 0., 1.);
+        _wShaderOut = vec4(1., 0., 0., 1.);
         return;
     }
 
@@ -405,5 +408,5 @@ void windowShader(inout vec4 color)
     float mask = 1.2 - step(0.5, dot(terminalColor.rgb, vec3(1.0)));
     vec3 blendedColor = mix(terminalColor.rgb * 1.2, col, mask);
 
-    color = vec4(blendedColor, terminalColor.a);
+    _wShaderOut = vec4(blendedColor, terminalColor.a);
 }

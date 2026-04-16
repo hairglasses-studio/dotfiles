@@ -10,7 +10,7 @@ vec3 hue_shift(vec3 color, float hue) {
     return color * cosAngle + cross(k, color) * sin(hue) + k * dot(k, color) * (1.0 - cosAngle);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec4 c = x_Texture(uv);
 
@@ -31,5 +31,5 @@ void windowShader(inout vec4 color) {
         c.rgb = hue_shift(base_border_color, hue);
     }
 
-    color = c;
+    _wShaderOut = c;
 }

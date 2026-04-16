@@ -46,7 +46,7 @@ vec4 alpha_composite(vec4 c1, vec4 c2) {
     return o;
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 res = x_WindowSize;
     vec2 center = res * 0.5;
     float wss = min(res.x, res.y);
@@ -108,5 +108,5 @@ void windowShader(inout vec4 color) {
         vec4 px = x_Texture(uvCoord / res);
         if (px.a > 0.0) result = alpha_composite(px, result);
     }
-    color = result;
+    _wShaderOut = result;
 }

@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Background) — Falling snow particle effect
+
 // Copyright (c) 2013 Andrew Baldwin (twitter: baldand, www: http://thndl.com)
 // License = Attribution-NonCommercial-ShareAlike (http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US)
 
@@ -19,7 +22,7 @@
 	#define SPEED 1.5
 #endif
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
 	const mat3 p = mat3(13.323122,23.5112,21.71123,21.1212,28.7312,11.9312,21.8112,14.7212,61.3934);
 	vec2 uv = x_PixelPos.xy / x_WindowSize;
@@ -48,5 +51,5 @@ void windowShader(inout vec4 color)
 	vec3 blendedColor = terminalColor.rgb + acc;
 
 	// Use the terminal's original alpha
-	color = vec4(blendedColor, terminalColor.a);
+	_wShaderOut = vec4(blendedColor, terminalColor.a);
 }

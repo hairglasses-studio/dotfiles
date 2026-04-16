@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (CRT) — In-game style CRT monitor effect
+
 // In-game CRT shader
 // Author: sarphiv
 // License: CC BY-NC-SA 4.0
@@ -201,7 +204,7 @@ float gold_v2_noise(in vec2 xy, in float seed)
 }
 
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     // Get texture coordinates
     vec2 uv = x_PixelPos.xy / x_WindowSize;
 
@@ -214,36 +217,36 @@ void windowShader(inout vec4 color) {
 
 
     // Retrieve colors from appropriate locations
-    color.r = x_Texture(vec2(uv.x + 0.0003 * COLOR_FRINGING_SPREAD, uv.y + 0.0003 * COLOR_FRINGING_SPREAD)).x;
-    color.g = x_Texture(vec2(uv.x + 0.0000 * COLOR_FRINGING_SPREAD, uv.y - 0.0006 * COLOR_FRINGING_SPREAD)).y;
-    color.b = x_Texture(vec2(uv.x - 0.0006 * COLOR_FRINGING_SPREAD, uv.y + 0.0000 * COLOR_FRINGING_SPREAD)).z;
-    color.a = x_Texture(uv).a;
+    _wShaderOut.r = x_Texture(vec2(uv.x + 0.0003 * COLOR_FRINGING_SPREAD, uv.y + 0.0003 * COLOR_FRINGING_SPREAD)).x;
+    _wShaderOut.g = x_Texture(vec2(uv.x + 0.0000 * COLOR_FRINGING_SPREAD, uv.y - 0.0006 * COLOR_FRINGING_SPREAD)).y;
+    _wShaderOut.b = x_Texture(vec2(uv.x - 0.0006 * COLOR_FRINGING_SPREAD, uv.y + 0.0000 * COLOR_FRINGING_SPREAD)).z;
+    _wShaderOut.a = x_Texture(uv).a;
 
 
     // Add faint ghost images
-    color.r += 0.04 * GHOSTING_STRENGTH * x_Texture(GHOSTING_SPREAD * vec2(+0.025, -0.027) + uv.xy).x;
-    color.g += 0.02 * GHOSTING_STRENGTH * x_Texture(GHOSTING_SPREAD * vec2(-0.022, -0.020) + uv.xy).y;
-    color.b += 0.04 * GHOSTING_STRENGTH * x_Texture(GHOSTING_SPREAD * vec2(-0.020, -0.018) + uv.xy).z;
+    _wShaderOut.r += 0.04 * GHOSTING_STRENGTH * x_Texture(GHOSTING_SPREAD * vec2(+0.025, -0.027) + uv.xy).x;
+    _wShaderOut.g += 0.02 * GHOSTING_STRENGTH * x_Texture(GHOSTING_SPREAD * vec2(-0.022, -0.020) + uv.xy).y;
+    _wShaderOut.b += 0.04 * GHOSTING_STRENGTH * x_Texture(GHOSTING_SPREAD * vec2(-0.020, -0.018) + uv.xy).z;
 
 
     // Quadratically darken everything
-    color.rgb = mix(color.rgb, color.rgb*color.rgb, DARKEN_MIX);
+    _wShaderOut.rgb = mix(_wShaderOut.rgb, _wShaderOut.rgb*_wShaderOut.rgb, DARKEN_MIX);
 
 
     // Vignette effect
     // NOTE: Clamp necessary because of curve effect
-    color.rgb *= VIGNETTE_BRIGHTNESS * pow(clamp(uv.x * uv.y * (1.0-uv.x) * (1.0-uv.y), 0.0, 1.0), VIGNETTE_SPREAD);
+    _wShaderOut.rgb *= VIGNETTE_BRIGHTNESS * pow(clamp(uv.x * uv.y * (1.0-uv.x) * (1.0-uv.y), 0.0, 1.0), VIGNETTE_SPREAD);
 
 
     // Tint all colors
-    color.rgb *= vec3(TINT);
+    _wShaderOut.rgb *= vec3(TINT);
 
 
     // NOTE: At this point, RGB values may be above 1
 
 
     // Add scan lines effect
-    color.rgb *= mix(
+    _wShaderOut.rgb *= mix(
         1.0,
         SCAN_LINES_VARIANCE/2.0*(1.0 + sin(2*PI* uv.y * x_WindowSize.y/SCAN_LINES_PERIOD)),
         SCAN_LINES_STRENGTH
@@ -263,18 +266,18 @@ void windowShader(inout vec4 color) {
     else if (apertureGrilleStep < 8)
         apertureGrilleMask = mod(-8*x_PixelPos.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
 
-    color.rgb *= 1.0 - APERTURE_GRILLE_STRENGTH*apertureGrilleMask;
+    _wShaderOut.rgb *= 1.0 - APERTURE_GRILLE_STRENGTH*apertureGrilleMask;
 
 
     // Add flicker
-    color *= 1.0 - FLICKER_STRENGTH/2.0*(1.0 + sin(2*PI*FLICKER_FREQUENCY*x_Time));
+    _wShaderOut *= 1.0 - FLICKER_STRENGTH/2.0*(1.0 + sin(2*PI*FLICKER_FREQUENCY*x_Time));
 
 
     // Add noise
     // NOTE: Hard-coded noise distributions
     float noise = smoothstep(0.4, 0.6, gold_v2_noise(x_PixelPos.xy, fract(x_Time*0.001)));
-    color.rgb *= clamp(noise + 1.0 - NOISE_CONTENT_STRENGTH, 0.0, 1.0);
-    color.rgb = clamp(color.rgb + noise * NOISE_UNIFORM_STRENGTH / 100, 0.0, 1.0);
+    _wShaderOut.rgb *= clamp(noise + 1.0 - NOISE_CONTENT_STRENGTH, 0.0, 1.0);
+    _wShaderOut.rgb = clamp(_wShaderOut.rgb + noise * NOISE_UNIFORM_STRENGTH / 100, 0.0, 1.0);
 
 
     // NOTE: At this point, RGB values are again within [0, 1]
@@ -282,9 +285,9 @@ void windowShader(inout vec4 color) {
 
     // Remove output outside of screen bounds
     // if (uv.x < 0.0 || uv.x > 1.0)
-    //     color.rgb *= 0.0;
+    //     _wShaderOut.rgb *= 0.0;
     // if (uv.y < 0.0 || uv.y > 1.0)
-    //     color.rgb *= 0.0;
+    //     _wShaderOut.rgb *= 0.0;
 
 
 #ifdef BLOOM_SPREAD
@@ -296,13 +299,13 @@ void windowShader(inout vec4 color) {
         vec4 neighbor = x_Texture(uv + bloomSample.xy * step);
         float luminance = 0.299 * neighbor.r + 0.587 * neighbor.g + 0.114 * neighbor.b;
 
-        color += luminance * bloomSample.z * neighbor * BLOOM_STRENGTH;
+        _wShaderOut += luminance * bloomSample.z * neighbor * BLOOM_STRENGTH;
     }
 
-    color = clamp(color, 0.0, 1.0);
+    _wShaderOut = clamp(_wShaderOut, 0.0, 1.0);
 #endif
 
 
     // Set background opacity
-    color = vec4(color.rgb*color.a, BACKGROUND_OPACITY);
+    _wShaderOut = vec4(_wShaderOut.rgb*_wShaderOut.a, BACKGROUND_OPACITY);
 }

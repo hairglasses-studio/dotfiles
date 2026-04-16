@@ -40,7 +40,7 @@ vec4 alpha_composite(vec4 c1, vec4 c2) {
     return vec4(c1.xyz*(1.0-asr) + c2.xyz*asr, ar);
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 res = x_WindowSize;
     vec2 center = res * 0.5;
     float diag = length(res);
@@ -64,7 +64,7 @@ void windowShader(inout vec4 color) {
     float c = cam.focal_point.x*cam.focal_point.x + cam.focal_point.z*cam.focal_point.z - r*r;
     float disc = b*b - 4.0*a*c;
 
-    if (disc < 0.0) { color = vec4(0.0); return; }
+    if (disc < 0.0) { _wShaderOut = vec4(0.0); return; }
 
     float sqrtDisc = sqrt(disc);
     float t0 = (-b - sqrtDisc) / (2.0*a);
@@ -81,5 +81,5 @@ void windowShader(inout vec4 color) {
         vec4 px = x_Texture(uvCoord / res);
         if (px.a > 0.0) result = alpha_composite(px, result);
     }
-    color = result;
+    _wShaderOut = result;
 }

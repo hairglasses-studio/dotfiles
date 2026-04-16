@@ -2,7 +2,7 @@
 // Category: Post-FX | Cost: LOW-MED | Source: original (demoscene research)
 // Detects text edges via Sobel operator and adds palette-matched neon glow.
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos / x_WindowSize;
     vec2 px = 1.0 / x_WindowSize;
     vec4 term = x_Texture(uv);
@@ -40,5 +40,5 @@ void windowShader(inout vec4 color) {
     // Composite: original text + edge glow
     vec3 result = term.rgb + neonCol * edge * 0.6 + neonCol * glow * 0.15;
 
-    color = vec4(result, term.a);
+    _wShaderOut = vec4(result, term.a);
 }

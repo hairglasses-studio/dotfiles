@@ -1,3 +1,6 @@
+// Shader attribution: 0xhckr
+// (Post-FX) — Dithering effect on terminal output
+
 // Simple "dithering" effect
 // (c) moni-dz (https://github.com/moni-dz)
 // CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
@@ -18,7 +21,7 @@ float getBayerFromPacked(int x, int y) {
 #define LEVELS 2.0 // Available color steps per channel
 #define INV_LEVELS (1.0 / LEVELS)
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     vec2 uv = x_PixelPos * (1.0 / x_WindowSize);
     vec3 color = x_Texture(uv).rgb;
@@ -26,5 +29,5 @@ void windowShader(inout vec4 color)
     float threshold = getBayerFromPacked(int(x_PixelPos.x), int(x_PixelPos.y));
     vec3 dithered = floor(color * LEVELS + threshold) * INV_LEVELS;
 
-    color = vec4(dithered, 1.0);
+    _wShaderOut = vec4(dithered, 1.0);
 }

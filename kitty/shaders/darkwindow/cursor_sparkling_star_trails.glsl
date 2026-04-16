@@ -38,10 +38,10 @@ float hash(float n) {
 const float DURATION = 2.0; // Trail duration in seconds
 const int MAX_TRAILS = 20; // Maximum number of trail particles
 
-void windowShader(inout vec4 color)
+void windowShader(inout vec4 _wShaderOut)
 {
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
     
     vec2 vu = normalize(x_PixelPos, 1.);
@@ -62,7 +62,7 @@ void windowShader(inout vec4 color)
     vec2 movement = centerCC - centerCP;
     float movementLength = length(movement);
     
-    vec4 result = color;
+    vec4 result = _wShaderOut;
     
     // Only create trails if there's movement
     if (movementLength > 0.01) {
@@ -139,5 +139,5 @@ void windowShader(inout vec4 color)
     vec3 cursorColor = mix(vec3(1.0), vec3(0.0), step(0.5, luminance));
     result.rgb = mix(result.rgb, cursorColor, cursorMask * 0.3);
     
-    color = result;
+    _wShaderOut = result;
 }

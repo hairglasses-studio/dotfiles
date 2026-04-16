@@ -1,3 +1,6 @@
+// Shader attribution: m-ahdal
+// (Background) — Smoke and ghost particle effect
+
 // Settings for detection
 #define TARGET_COLOR vec3(0.0, 0.0, 0.0)      // RGB target pixels to transform
 #define REPLACE_COLOR vec3(0.0, 0.0, 0.0)    // Color to replace target pixels
@@ -119,7 +122,7 @@ float isTargetPixel(vec2 uv) {
     return float(all(lessThan(abs(color.rgb - TARGET_COLOR), vec3(COLOR_TOLERANCE))));
 }
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos/x_WindowSize;
     vec4 originalColor = x_Texture(uv);
     
@@ -189,5 +192,5 @@ void windowShader(inout vec4 color) {
     
     float alpha = mix(originalColor.a, ALPHA_MAX, max(smokePresence, max(bgAccum, faceAccum) * smokePresence));
     
-    color = vec4(finalColor, alpha);
+    _wShaderOut = vec4(finalColor, alpha);
 }

@@ -18,7 +18,7 @@
 // Phosphor color (P1 green)
 #define PHOSPHOR_COLOR vec3(0.2, 1.0, 0.4)
 
-void windowShader(inout vec4 color) {
+void windowShader(inout vec4 _wShaderOut) {
     vec2 uv = x_PixelPos.xy / x_WindowSize;
     float t = x_Time;
 
@@ -27,7 +27,7 @@ void windowShader(inout vec4 color) {
 
     // ---- Phase 5: Pure black (early exit) ----
     if (t > T_GLOW_END) {
-        color = vec4(0.0, 0.0, 0.0, 1.0);
+        _wShaderOut = vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
 
@@ -38,7 +38,7 @@ void windowShader(inout vec4 color) {
         float brightness = 1.0 - p;
         float dist = length(center);
         float dot = exp(-dist * dist * 800.0) * brightness;
-        color = vec4(PHOSPHOR_COLOR * dot, 1.0);
+        _wShaderOut = vec4(PHOSPHOR_COLOR * dot, 1.0);
         return;
     }
 
@@ -62,7 +62,7 @@ void windowShader(inout vec4 color) {
         float bright = 1.5 + p * 2.0;
         col *= bright;
 
-        color = vec4(col * hmask * vmask, 1.0);
+        _wShaderOut = vec4(col * hmask * vmask, 1.0);
         return;
     }
 
@@ -85,7 +85,7 @@ void windowShader(inout vec4 color) {
         float bright = 1.0 + p * 1.5;
         col *= bright;
 
-        color = vec4(col * vmask, 1.0);
+        _wShaderOut = vec4(col * vmask, 1.0);
         return;
     }
 
@@ -101,5 +101,5 @@ void windowShader(inout vec4 color) {
     vec3 flashColor = vec3(0.8, 1.0, 0.85);
     col = mix(col, flashColor * flash * 0.5, p * 0.3);
 
-    color = vec4(col, 1.0);
+    _wShaderOut = vec4(col, 1.0);
 }

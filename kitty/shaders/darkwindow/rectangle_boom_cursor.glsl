@@ -84,9 +84,9 @@ float getSdfRectangle(in vec2 p, in vec2 xy, in vec2 b){
     return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
-void windowShader(inout vec4 color){
+void windowShader(inout vec4 _wShaderOut){
     #if !defined(WEB)
-    color = x_Texture(x_PixelPos.xy / x_WindowSize);
+    _wShaderOut = x_Texture(x_PixelPos.xy / x_WindowSize);
     #endif
 
     // Normalization & setup (-1 to 1 coords)
@@ -148,7 +148,7 @@ void windowShader(inout vec4 color){
         float antiAliasSize = normalize(vec2(BLUR, BLUR), 0.0).x;
         float ripple = (1.0 - smoothstep(-antiAliasSize, antiAliasSize, sdfRectRing)) * fade;
         // Apply ripple effect
-        color = mix(color, COLOR, ripple * COLOR.a);
+        _wShaderOut = mix(_wShaderOut, COLOR, ripple * COLOR.a);
     }
-    // else: do nothing, keep original color
+    // else: do nothing, keep original _wShaderOut
 }
