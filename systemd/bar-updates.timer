@@ -1,0 +1,15 @@
+# bar-updates.timer — Periodic package updates cache refresh for Ironbar
+#
+# Triggers bar-updates.service every 60 minutes.
+#
+# Enable: systemctl --user enable --now bar-updates.timer
+
+[Unit]
+Description=Refresh Ironbar package updates cache every 60 minutes
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=3600
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,15 @@
+# bar-weather.timer — Periodic weather cache refresh for Ironbar
+#
+# Triggers bar-weather.service every 30 minutes.
+#
+# Enable: systemctl --user enable --now bar-weather.timer
+
+[Unit]
+Description=Refresh Ironbar weather cache every 30 minutes
+
+[Timer]
+OnBootSec=15
+OnUnitActiveSec=1800
+
+[Install]
+WantedBy=timers.target

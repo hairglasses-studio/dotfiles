@@ -1,0 +1,17 @@
+# bar-weather.service — Refresh weather cache for Ironbar
+#
+# Fetches weather from wttr.in and writes a label to /tmp/bar-weather.txt.
+# Ironbar reads the cache file instead of blocking the GTK loop on network I/O.
+#
+# Paired with bar-weather.timer (30-minute interval).
+
+[Unit]
+Description=Refresh Ironbar weather cache
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-weather-cache.sh
+MemoryMax=32M
+CPUQuota=5%

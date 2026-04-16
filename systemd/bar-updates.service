@@ -1,0 +1,17 @@
+# bar-updates.service — Refresh package update count cache for Ironbar
+#
+# Runs checkupdates and writes the count to /tmp/bar-updates.txt.
+# Ironbar reads the cache file instead of blocking the GTK loop on pacman I/O.
+#
+# Paired with bar-updates.timer (60-minute interval).
+
+[Unit]
+Description=Refresh Ironbar package updates cache
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-updates-cache.sh
+MemoryMax=32M
+CPUQuota=10%
