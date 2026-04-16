@@ -109,3 +109,11 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Check shader/playlist consistency
         run: bash scripts/check-shader-consistency.sh
+
+  tier-check:
+    name: Tier Playlist Coverage
+    runs-on: [self-hosted, archglasses, optimized]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Verify tier playlists cover the full catalog
+        run: bash kitty/shaders/bin/shader-tier.sh verify

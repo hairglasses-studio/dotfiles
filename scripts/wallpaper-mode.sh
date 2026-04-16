@@ -53,7 +53,6 @@ _stop_dynamic_wallpapers() {
   fi
   pkill -x waydeeper 2>/dev/null || true
   pkill -x hyprlax 2>/dev/null || true
-  pkill -x papertoy 2>/dev/null || true
   pkill -x glshell 2>/dev/null || true
 }
 
@@ -139,30 +138,6 @@ _switch_depth() {
   hg_notify_low "Wallpaper" "Depth mode: $(basename "$path")"
 }
 
-_switch_papertoy() {
-  command -v papertoy >/dev/null 2>&1 || _notify_missing "papertoy"
-  local shader="${1:-}"
-  _stop_dynamic_wallpapers
-
-  if [[ -z "$shader" ]]; then
-    local wp_dir
-    wp_dir="$(cd "$SCRIPT_DIR/.." && pwd)/wallpaper-shaders"
-    local shaders=("$wp_dir"/*.glsl)
-    if [[ "${#shaders[@]}" -eq 0 ]]; then
-      hg_die "No wallpaper shaders found in $wp_dir"
-    fi
-    shader="${shaders[RANDOM % ${#shaders[@]}]}"
-  fi
-
-  [[ -f "$shader" ]] || _notify_missing_file "Shadertoy shader" "$shader"
-
-  papertoy "$shader" >/dev/null 2>&1 &
-  disown
-
-  _set_state papertoy "$(basename "$shader")"
-  hg_notify_low "Wallpaper" "Papertoy mode: $(basename "$shader")"
-}
-
 _switch_parallax() {
   command -v hyprlax >/dev/null 2>&1 || _notify_missing "hyprlax"
   local path="${1:-}"
@@ -219,11 +194,9 @@ _restore() {
       _switch_parallax "$value"
       ;;
     papertoy)
-      if [[ -n "$value" && "$value" != "active" ]]; then
-        _switch_papertoy "$value"
-      else
-        _switch_papertoy
-      fi
+      # Legacy mode — papertoy was removed (see deduplication in favor of shaderbg).
+      # Fall back to shader mode with the same value.
+      _switch_shader set "$value"
       ;;
     *)
       _switch_shader random
@@ -242,7 +215,7 @@ _status() {
   fi
 
   case "$mode" in
-    video|depth|parallax|papertoy)
+    video|depth|parallax)
       printf '%s:%s\n' "$mode" "$(basename "${value:-unknown}")"
       ;;
     shader|static)
@@ -264,7 +237,12 @@ main() {
     video)    _switch_video "${1:-}" ;;
     depth)    _switch_depth "${1:-}" ;;
     parallax) _switch_parallax "${1:-}" ;;
-    papertoy) _switch_papertoy "${1:-}" ;;
+    papertoy)
+      # Legacy alias — fall through to shader mode. papertoy was deduplicated
+      # in favor of shaderbg (Phase 3 consolidation).
+      hg_warn "papertoy mode is deprecated; using shader mode"
+      _switch_shader "${1:-random}"
+      ;;
     stop)     _stop_dynamic_wallpapers ;;
     restore)
       if ! _restore; then
@@ -274,7 +252,7 @@ main() {
       ;;
     status) _status ;;
     *)
-      hg_die "Usage: wallpaper-mode.sh [shader|static|video|depth|parallax|papertoy|restore|status|stop]"
+      hg_die "Usage: wallpaper-mode.sh [shader|static|video|depth|parallax|restore|status|stop]"
       ;;
   esac
 }
