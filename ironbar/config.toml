@@ -1,9 +1,7 @@
 # Cyberpunk Neon ironbar config
 # Primary Hyprland menubar — GTK4, GPU-accelerated
+# DP-3 gets two bars: main (top) + keybind ticker (bottom)
 
-position = "top"
-height = 28
-anchor_to_edges = true
 icon_theme = "Papirus-Dark"
 
 [ironvar_defaults]
@@ -16,10 +14,16 @@ rg_iters = ""
 claude_state = ""
 claude_cost = ""
 
-# Monitor-specific bars keep the 49" ultrawide fully featured while giving the
-# portrait side monitor a compact layout that does not clip or crowd modules.
+# ══════════════════════════════════════════════════
+# Samsung ultrawide (DP-3) — two bars
+# ══════════════════════════════════════════════════
 
-[monitors."DP-3"]
+# ── Bar 1: Main top bar ─────────────────────────
+[[monitors."DP-3"]]
+position = "top"
+height = 28
+anchor_to_edges = true
+name = "main"
 
 # ── LEFT ──────────────────────────────────────────
 
@@ -27,7 +31,7 @@ claude_cost = ""
 type = "workspaces"
 all_monitors = false
 sort = "added"
-favorites = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+favorites = ["1", "2", "3", "4", "5"]
 
 [[monitors."DP-3".start]]
 type = "focused"
@@ -166,6 +170,23 @@ on_click_left = "!$HOME/.local/bin/kitty-visual-launch -e nmtui"
 type = "tray"
 icon_size = 18
 direction = "horizontal"
+
+# ── Bar 2: Keybind ticker (bottom) ──────────────
+[[monitors."DP-3"]]
+position = "bottom"
+height = 22
+anchor_to_edges = true
+name = "ticker"
+
+[[monitors."DP-3".center]]
+type = "script"
+class = "keybind-ticker"
+mode = "watch"
+cmd = "$HOME/hairglasses-studio/dotfiles/scripts/ironbar-keybind-ticker.sh"
+
+# ══════════════════════════════════════════════════
+# XEC portrait (DP-2) — single compact bar
+# ══════════════════════════════════════════════════
 
 [monitors."DP-2"]
 

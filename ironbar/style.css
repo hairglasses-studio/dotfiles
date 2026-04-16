@@ -295,6 +295,15 @@
   -gtk-icon-filter: none;
 }
 
+/* ── Keybind ticker (bottom bar) ─────────── */
+
+.keybind-ticker label {
+  color: @cyan;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 0 8px;
+}
+
 /* ── Popups (shared) ─────────────────────── */
 
 popover, popover > contents {
