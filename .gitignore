@@ -76,5 +76,12 @@ id_ed25519*
 !.claude/skills/*/SKILL.md
 .ralph/
 
+# Large binaries (prevent accidental commits)
+*.bin
+*.mp4
+
+# High-churn generated files
+links/_registry.json
+
 # Local Go workspace metadata
 mcp/go.work.sum
