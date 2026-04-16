@@ -1,0 +1,20 @@
+# Hairglasses Neon palette — single source of truth for templated configs.
+# Runtime theme-sync.sh reads theme/palette.env; chezmoi templates read this file.
+
+[palette]
+name = "Hairglasses Neon"
+bg = "05070d"
+fg = "f7fbff"
+primary = "29f0ff"
+secondary = "ff47d1"
+tertiary = "3dffb5"
+warning = "ffe45e"
+danger = "ff5c8a"
+blue = "4aa8ff"
+muted = "66708f"
+surface = "0f1219"
+surface_alt = "161c2b"
+panel = "0d1018"
+panel_strong = "141a27"
+border = "2a3246"
+border_strong = "46506d"

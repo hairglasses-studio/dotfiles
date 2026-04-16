@@ -15,6 +15,11 @@ type linkSpec struct {
 	dst string
 }
 
+func linkSpecsScriptPath() string {
+	return filepath.Join(dotfilesDir(), "scripts", "link-specs.sh")
+}
+
+// installerScriptPath is kept as a fallback for environments without chezmoi.
 func installerScriptPath() string {
 	return filepath.Join(dotfilesDir(), "install.sh")
 }
@@ -46,12 +51,18 @@ func parseLinkSpecsOutput(raw string) ([]linkSpec, error) {
 }
 
 func loadManagedLinkSpecs() ([]linkSpec, error) {
-	script := installerScriptPath()
+	// Prefer the chezmoi-based link-specs.sh; fall back to install.sh --print-link-specs
+	script := linkSpecsScriptPath()
+	args := []string{script}
 	if _, err := os.Stat(script); err != nil {
-		return nil, fmt.Errorf("install script unavailable at %s: %w", script, err)
+		script = installerScriptPath()
+		args = []string{script, "--print-link-specs"}
+		if _, err2 := os.Stat(script); err2 != nil {
+			return nil, fmt.Errorf("no link-specs script available (tried scripts/link-specs.sh and install.sh): %w", err)
+		}
 	}
 
-	cmd := exec.Command("bash", script, "--print-link-specs")
+	cmd := exec.Command("bash", args...)
 	cmd.Env = os.Environ()
 
 	var stdout, stderr bytes.Buffer
@@ -61,14 +72,14 @@ func loadManagedLinkSpecs() ([]linkSpec, error) {
 	if err := cmd.Run(); err != nil {
 		msg := strings.TrimSpace(stderr.String())
 		if msg != "" {
-			return nil, fmt.Errorf("install.sh --print-link-specs failed: %w: %s", err, msg)
+			return nil, fmt.Errorf("link-specs failed: %w: %s", err, msg)
 		}
-		return nil, fmt.Errorf("install.sh --print-link-specs failed: %w", err)
+		return nil, fmt.Errorf("link-specs failed: %w", err)
 	}
 
 	links, err := parseLinkSpecsOutput(stdout.String())
 	if err != nil {
-		return nil, fmt.Errorf("parse install inventory: %w", err)
+		return nil, fmt.Errorf("parse link inventory: %w", err)
 	}
 	return links, nil
 }
