@@ -203,6 +203,7 @@ $DOTFILES_DIR/scripts/kitty-visual-launch.sh|$HOME/.local/bin/kitty-visual-launc
 $DOTFILES_DIR/scripts/jellyfin-stack-boot.sh|$HOME/.local/bin/jellyfin-stack-boot.sh
 $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
+$DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
 EOF
 }
 
@@ -693,6 +694,7 @@ create_symlinks() {
             dotfiles-hyprdynamicmonitors.service
             dotfiles-hyprland-autoname-workspaces.service
             dotfiles-notification-history.service
+            dotfiles-keybind-ticker.service
         )
         local desktop_passive_units=(
             rg-status-bar.timer

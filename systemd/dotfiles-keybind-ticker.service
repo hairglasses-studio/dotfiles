@@ -1,0 +1,18 @@
+[Unit]
+Description=dotfiles keybind ticker (pixel-smooth scrolling bar)
+PartOf=graphical-session.target
+After=graphical-session.target ironbar.service
+
+[Service]
+Type=simple
+ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"'
+ExecStartPre=/usr/bin/sh -c 'for i in $(seq 1 20); do hyprctl version > /dev/null 2>&1 && exit 0; sleep 0.5; done; exit 1'
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GSK_RENDERER=gl
+ExecStart=/usr/bin/python3 %h/hairglasses-studio/dotfiles/scripts/keybind-ticker.py
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
