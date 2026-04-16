@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'kitty/shaders/**'
+      - 'wallpaper-shaders/**'
       - 'scripts/lib/shader-transpile-darkwindow.sh'
       - 'hyprland/darkwindow-shaders.conf'
       - '.github/workflows/ci-shaders.yml'
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - 'kitty/shaders/**'
+      - 'wallpaper-shaders/**'
       - 'scripts/lib/shader-transpile-darkwindow.sh'
       - 'hyprland/darkwindow-shaders.conf'
       - '.github/workflows/ci-shaders.yml'
@@ -24,17 +26,86 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate-darkwindow:
-    name: DarkWindow Shader Validation
+  validate:
+    name: GLSL Compilation
     runs-on: [self-hosted, archglasses, optimized]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Install glslang
-        run: sudo apt-get update && sudo apt-get install -y glslang-tools
+      - name: Ensure glslangValidator
+        run: |
+          if ! command -v glslangValidator &>/dev/null; then
+            sudo pacman -Sy --noconfirm glslang
+          fi
+          glslangValidator --version
 
-      - name: Validate DarkWindow shaders (baseline 120)
-        run: scripts/validate-darkwindow-shaders.sh --baseline 120
+      - name: Validate DarkWindow shaders
+        run: |
+          FAIL=0
+          COUNT=0
+          for f in kitty/shaders/darkwindow/*.glsl; do
+            COUNT=$((COUNT + 1))
+            if glslangValidator -S frag "$f" > /dev/null 2>&1; then
+              echo "PASS: $(basename "$f")"
+            else
+              echo "::error file=$f::FAIL: $(basename "$f")"
+              glslangValidator -S frag "$f" 2>&1 | head -5
+              FAIL=$((FAIL + 1))
+            fi
+          done
+          echo "--- $COUNT DarkWindow shaders, $FAIL failures ---"
+          exit "$FAIL"
 
-      - name: Check playlist/registry consistency
-        run: scripts/check-shader-consistency.sh
+      - name: Validate wallpaper shaders (Shadertoy preamble)
+        run: |
+          # Wallpaper shaders use Shadertoy API — prepend uniform declarations for validation
+          PREAMBLE='#version 450
+          uniform vec3 iResolution;
+          uniform float iTime;
+          uniform float iTimeDelta;
+          uniform int iFrame;
+          uniform vec4 iMouse;
+          out vec4 fragColor;
+          void mainImage(out vec4, in vec2);
+          void main() { mainImage(fragColor, gl_FragCoord.xy); }'
+          FAIL=0
+          for f in wallpaper-shaders/*.frag; do
+            TMPF="$(mktemp --suffix=.frag)"
+            printf '%s\n' "$PREAMBLE" > "$TMPF"
+            cat "$f" >> "$TMPF"
+            if glslangValidator -S frag "$TMPF" > /dev/null 2>&1; then
+              echo "PASS: $(basename "$f")"
+            else
+              echo "::error file=$f::FAIL: $(basename "$f")"
+              glslangValidator -S frag "$TMPF" 2>&1 | head -5
+              FAIL=$((FAIL + 1))
+            fi
+            rm -f "$TMPF"
+          done
+          echo "--- wallpaper shaders: $FAIL failures ---"
+          exit "$FAIL"
+
+  count-check:
+    name: Shader Count Badge
+    runs-on: [self-hosted, archglasses, optimized]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Verify README badge matches filesystem
+        run: |
+          ACTUAL=$(find kitty/shaders/darkwindow -name '*.glsl' | wc -l)
+          BADGE=$(grep -oP 'GLSL_Shaders-\K[0-9]+' README.md | head -1)
+          echo "Filesystem: $ACTUAL shaders"
+          echo "README badge: $BADGE"
+          if [ "$ACTUAL" != "$BADGE" ]; then
+            echo "::error::Shader count mismatch: filesystem=$ACTUAL badge=$BADGE"
+            exit 1
+          fi
+
+  consistency:
+    name: Playlist Consistency
+    runs-on: [self-hosted, archglasses, optimized]
+    if: hashFiles('scripts/check-shader-consistency.sh') != ''
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Check shader/playlist consistency
+        run: bash scripts/check-shader-consistency.sh

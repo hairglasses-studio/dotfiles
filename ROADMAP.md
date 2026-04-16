@@ -42,12 +42,14 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 
 ### Phase 1 — Ironbar Menubar Polish
 - [ ] [P1][M] Ironbar: cache-fed fleet widgets without blocking the GTK layer
-- [ ] [P1][M] Ironbar: workspace and focused-window modules legible on 5120x1440 ultrawide
-- [ ] [P1][S] Ironbar: keybind ticker stability and scroll performance
+- [x] [P1][M] Ironbar: workspace and focused-window modules legible on 5120x1440 ultrawide
+- [x] [P1][S] Ironbar: keybind ticker min-width to prevent layout jumps
 - [ ] [P1][S] Ironbar: power, weather, and update affordances remain theme-aligned
 
 ### Phase 2 — Shader Pipeline
-- [ ] [P2][L] Shader: wallpaper expansion via papertoy/shaderbg procgen options
+- [x] [P2][S] Shader CI: glslangValidator validation workflow for DarkWindow + wallpaper shaders
+- [x] [P2][S] Shader CI: README badge count verification gate
+- [x] [P2][M] Shader: 3 new wallpaper shaders (void-pulse, hex-matrix, nebula-drift)
 - [ ] [P2][M] Shader: parameter presets exposing uniforms as config
 - [x] [P2][S] MCP: `dotfiles_write_config` tool — atomic write + validate + backup + reload
 - [x] [P2][S] MCP: `shader_benchmark` tool — glslangValidator compile time + file size benchmarking
@@ -66,11 +68,10 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 - [ ] [P3][S] Submit to PulseMCP, Glama, MCP Market directories
 
 ### Blocked (needs external infrastructure)
-- [ ] [BLOCKED: needs GPU CI runner] Shader: DarkWindow performance benchmarks in CI
 - [ ] [BLOCKED: needs headless Hyprland] Shader: preview gallery with static renders
 - [ ] [BLOCKED: needs headless Hyprland] Automated rice screenshot CI comparison
 
 ## Future Considerations
 
-- **Status bar research**: evaluate GPU-capable alternatives to ironbar (ags, fabric, custom Wayland layer-shell bar)
+- **Status bar evolution**: Quickshell (C++/QML, native GLSL ShaderEffect) is the best GPU-capable alternative to ironbar — see `docs/STATUS-BAR-RESEARCH.md` for full evaluation of 7 alternatives. Ironbar stays short-term; prototype Quickshell on secondary monitor.
 - **Cross-repo semantic search**: evaluate CodeMCP for SCIP-based indexing across all 20 active repos
