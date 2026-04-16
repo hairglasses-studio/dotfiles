@@ -599,6 +599,45 @@ func readShaderHistory(limit int, since time.Time) ([]ShaderHistoryEntry, error)
 }
 
 // ---------------------------------------------------------------------------
+// Presets
+// ---------------------------------------------------------------------------
+
+// presetsFilePath returns the path to kitty/shaders/presets.toml.
+func presetsFilePath() string {
+	if d := os.Getenv("DOTFILES_DIR"); d != "" {
+		return filepath.Join(d, "kitty", "shaders", "presets.toml")
+	}
+	return filepath.Join(os.Getenv("HOME"), "hairglasses-studio", "dotfiles", "kitty", "shaders", "presets.toml")
+}
+
+// presetsTOML mirrors the TOML structure: shaders.<name>.presets.<preset>.
+type presetsTOML struct {
+	Shaders map[string]shaderPresetsBlock `toml:"shaders"`
+}
+
+type shaderPresetsBlock struct {
+	Presets map[string]presetBlock `toml:"presets"`
+}
+
+type presetBlock struct {
+	Description string            `toml:"description"`
+	Params      map[string]string `toml:"params"`
+}
+
+// loadPresets reads and parses the presets TOML file.
+func loadPresets() (presetsTOML, error) {
+	var p presetsTOML
+	path := presetsFilePath()
+	if _, err := toml.DecodeFile(path, &p); err != nil {
+		if os.IsNotExist(err) {
+			return presetsTOML{}, fmt.Errorf("presets file not found: %s", path)
+		}
+		return presetsTOML{}, fmt.Errorf("parse presets: %w", err)
+	}
+	return p, nil
+}
+
+// ---------------------------------------------------------------------------
 // New tool I/O types
 // ---------------------------------------------------------------------------
 
@@ -607,6 +646,38 @@ type ShaderHotReloadInput struct{}
 type ShaderHotReloadOutput struct {
 	Reloaded bool   `json:"reloaded"`
 	Method   string `json:"method"` // "touch" or "sigusr1"
+}
+
+// Preset list / apply types
+
+type ShaderPresetListInput struct {
+	Shader string `json:"shader,omitempty" jsonschema:"description=Filter to a specific shader name (omit to list all presets)"`
+}
+
+type PresetEntry struct {
+	Shader      string            `json:"shader"`
+	Preset      string            `json:"preset"`
+	Description string            `json:"description"`
+	Params      map[string]string `json:"params"`
+}
+
+type ShaderPresetListOutput struct {
+	Presets []PresetEntry `json:"presets"`
+	Count   int           `json:"count"`
+}
+
+type ShaderPresetApplyInput struct {
+	Shader string `json:"shader" jsonschema:"required,description=Shader name (with or without .glsl)"`
+	Preset string `json:"preset" jsonschema:"required,description=Preset name to apply (e.g. default sharp heavy)"`
+}
+
+type ShaderPresetApplyOutput struct {
+	Shader      string            `json:"shader"`
+	Preset      string            `json:"preset"`
+	Description string            `json:"description"`
+	Params      map[string]string `json:"params"`
+	Applied     bool              `json:"applied"`
+	Note        string            `json:"note,omitempty"`
 }
 
 type ShaderDiffInput struct {
@@ -1428,6 +1499,143 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 					Duration:   duration,
 					RevertTo:   strings.TrimSuffix(filepath.Base(original), ".glsl"),
 				}, nil
+			},
+		),
+
+		// ── shader_preset_list ────────────────────────
+		handler.TypedHandler[ShaderPresetListInput, ShaderPresetListOutput](
+			"shader_preset_list",
+			"List named parameter presets for DarkWindow shaders. Presets document the configurable #define values and top-level constants in each shader's GLSL source. Optionally filter to a specific shader name.",
+			func(_ context.Context, input ShaderPresetListInput) (ShaderPresetListOutput, error) {
+				p, err := loadPresets()
+				if err != nil {
+					return ShaderPresetListOutput{}, err
+				}
+				var entries []PresetEntry
+				for shaderName, block := range p.Shaders {
+					if input.Shader != "" {
+						norm := strings.TrimSuffix(input.Shader, ".glsl")
+						if !strings.EqualFold(shaderName, norm) {
+							continue
+						}
+					}
+					for presetName, preset := range block.Presets {
+						entries = append(entries, PresetEntry{
+							Shader:      shaderName,
+							Preset:      presetName,
+							Description: preset.Description,
+							Params:      preset.Params,
+						})
+					}
+				}
+				return ShaderPresetListOutput{Presets: entries, Count: len(entries)}, nil
+			},
+		),
+
+		// ── shader_preset_apply ───────────────────────
+		handler.TypedHandler[ShaderPresetApplyInput, ShaderPresetApplyOutput](
+			"shader_preset_apply",
+			"Apply a named preset to a DarkWindow shader. Reads the preset from presets.toml, rewrites matching parameter tokens in a temporary copy of the GLSL source, then applies it via shader_set. The original shader source is never modified.",
+			func(_ context.Context, input ShaderPresetApplyInput) (ShaderPresetApplyOutput, error) {
+				// Normalise shader name
+				shaderName := strings.TrimSuffix(input.Shader, ".glsl")
+
+				// Locate the source GLSL
+				srcPath, err := findShader(shaderName)
+				if err != nil {
+					return ShaderPresetApplyOutput{}, err
+				}
+
+				// Load presets and look up the requested one
+				p, err := loadPresets()
+				if err != nil {
+					return ShaderPresetApplyOutput{}, err
+				}
+				shaderBlock, ok := p.Shaders[shaderName]
+				if !ok {
+					return ShaderPresetApplyOutput{}, fmt.Errorf("[%s] no presets defined for shader %q — check kitty/shaders/presets.toml", handler.ErrNotFound, shaderName)
+				}
+				preset, ok := shaderBlock.Presets[input.Preset]
+				if !ok {
+					var available []string
+					for k := range shaderBlock.Presets {
+						available = append(available, k)
+					}
+					return ShaderPresetApplyOutput{}, fmt.Errorf("[%s] preset %q not found for shader %q; available: %s", handler.ErrNotFound, input.Preset, shaderName, strings.Join(available, ", "))
+				}
+
+				out := ShaderPresetApplyOutput{
+					Shader:      shaderName,
+					Preset:      input.Preset,
+					Description: preset.Description,
+					Params:      preset.Params,
+				}
+
+				// If no params, just apply the shader as-is and return the preset metadata.
+				if len(preset.Params) == 0 {
+					if err := atomicSetShader(srcPath, "mcp:shader_preset_apply"); err != nil {
+						return ShaderPresetApplyOutput{}, fmt.Errorf("apply shader: %w", err)
+					}
+					out.Applied = true
+					out.Note = "No parameter substitutions; shader applied without modification."
+					return out, nil
+				}
+
+				// Read GLSL source
+				src, err := os.ReadFile(srcPath)
+				if err != nil {
+					return ShaderPresetApplyOutput{}, fmt.Errorf("read shader source: %w", err)
+				}
+				glsl := string(src)
+
+				// Substitute #define and top-level float parameter values.
+				// Pattern: "#define PARAM <oldval>" → "#define PARAM <newval>"
+				//           "float param = <oldval>;" → "float param = <newval>;"
+				for param, val := range preset.Params {
+					// Try #define substitution first (matches: #define PARAM <anything>)
+					definePattern := "#define " + param + " "
+					if idx := strings.Index(glsl, definePattern); idx >= 0 {
+						lineEnd := strings.IndexByte(glsl[idx:], '\n')
+						if lineEnd < 0 {
+							lineEnd = len(glsl) - idx
+						}
+						oldLine := glsl[idx : idx+lineEnd]
+						newLine := definePattern + val
+						glsl = strings.Replace(glsl, oldLine, newLine, 1)
+						continue
+					}
+					// Try top-level float/int variable: "float param = <val>;"
+					for _, typ := range []string{"float ", "int "} {
+						varPattern := typ + param + " = "
+						if idx := strings.Index(glsl, varPattern); idx >= 0 {
+							lineEnd := strings.IndexByte(glsl[idx:], ';')
+							if lineEnd >= 0 {
+								oldDecl := glsl[idx : idx+lineEnd+1]
+								newDecl := varPattern + val + ";"
+								glsl = strings.Replace(glsl, oldDecl, newDecl, 1)
+							}
+							break
+						}
+					}
+				}
+
+				// Write to a temporary file alongside the source so the playlist
+				// script can resolve it by name within the shaders directory.
+				tmpName := shaderName + "__preset_" + input.Preset + ".glsl"
+				tmpPath := filepath.Join(filepath.Dir(srcPath), tmpName)
+				if err := os.WriteFile(tmpPath, []byte(glsl), 0o644); err != nil {
+					return ShaderPresetApplyOutput{}, fmt.Errorf("write temp shader: %w", err)
+				}
+
+				// Apply via the playlist script (uses name lookup, strips .glsl)
+				if err := atomicSetShader(tmpPath, "mcp:shader_preset_apply"); err != nil {
+					_ = os.Remove(tmpPath) // best-effort cleanup on failure
+					return ShaderPresetApplyOutput{}, fmt.Errorf("apply preset shader: %w", err)
+				}
+
+				out.Applied = true
+				out.Note = fmt.Sprintf("Applied with %d parameter substitution(s). Temp file: %s", len(preset.Params), tmpPath)
+				return out, nil
 			},
 		),
 

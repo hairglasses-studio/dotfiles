@@ -1,0 +1,123 @@
+# Shader Parameter Presets
+#
+# Named parameter sets for DarkWindow kitty shaders.
+# Each preset documents the configurable constants (typically #define macros
+# or top-level float variables) found in the corresponding GLSL source.
+#
+# These presets do not inject uniforms at runtime — kitty bakes shader
+# parameters at load time. A preset is a human-readable recipe: read it,
+# paste the values into the GLSL source, and reload.
+#
+# Schema per preset:
+#   description  – one-line summary of the visual effect
+#   params       – map of parameter name → string value to substitute
+#
+# The shader_preset_apply MCP tool writes param substitutions back into a
+# temporary working copy of the shader and invokes kitty-shader-playlist.sh.
+# This allows quick A/B comparison without permanently editing shader source.
+
+# ---------------------------------------------------------------------------
+# crt — Classic CRT scanlines with barrel warp
+# Configurable #define constants in kitty/shaders/darkwindow/crt.glsl
+# ---------------------------------------------------------------------------
+
+[shaders.crt.presets.default]
+description = "Default CRT — balanced scanlines, subtle warp, shadow mask"
+params = { SCALE = "0.33333333", INPUT_THIN = "0.75", INPUT_BLUR = "-2.75", INPUT_MASK = "0.65", MIN_VIN = "0.5" }
+
+[shaders.crt.presets.sharp]
+description = "Sharp CRT — thinner scanlines, tighter blur for high-DPI"
+params = { SCALE = "0.25", INPUT_THIN = "0.90", INPUT_BLUR = "-3.25", INPUT_MASK = "0.75", MIN_VIN = "0.4" }
+
+[shaders.crt.presets.soft]
+description = "Soft CRT — fat scanlines and heavy blur for a warm vintage look"
+params = { SCALE = "0.50", INPUT_THIN = "0.60", INPUT_BLUR = "-2.0", INPUT_MASK = "0.50", MIN_VIN = "0.6" }
+
+[shaders.crt.presets.no_warp]
+description = "Flat CRT — scanlines only, no barrel warp (define CRTS_WARP=0 to disable)"
+params = { SCALE = "0.33333333", INPUT_THIN = "0.75", INPUT_BLUR = "-2.75", INPUT_MASK = "0.65", MIN_VIN = "1.0" }
+
+# ---------------------------------------------------------------------------
+# bettercrt — Enhanced CRT with barrel distortion and vignette
+# Configurable top-level floats in kitty/shaders/darkwindow/bettercrt.glsl
+# ---------------------------------------------------------------------------
+
+[shaders.bettercrt.presets.default]
+description = "Default BetterCRT — moderate warp and scanline darkness"
+params = { warp = "0.25", scan = "0.50" }
+
+[shaders.bettercrt.presets.heavy]
+description = "Heavy BetterCRT — strong barrel warp and dark scanlines"
+params = { warp = "0.50", scan = "0.75" }
+
+[shaders.bettercrt.presets.subtle]
+description = "Subtle BetterCRT — light warp, barely-visible scanlines"
+params = { warp = "0.10", scan = "0.25" }
+
+# ---------------------------------------------------------------------------
+# film-grain-pro — Luminance-adaptive cinematic grain
+# Configurable inline constants in kitty/shaders/darkwindow/film-grain-pro.glsl
+# ---------------------------------------------------------------------------
+
+[shaders.film-grain-pro.presets.default]
+description = "Default grain — adaptive intensity, strongest in midtones"
+params = { grain_base = "0.04", grain_mid = "0.06", grain1_weight = "0.7", grain2_weight = "0.3" }
+
+[shaders.film-grain-pro.presets.heavy]
+description = "Heavy grain — visible grain in all tones, classic 35mm look"
+params = { grain_base = "0.07", grain_mid = "0.10", grain1_weight = "0.6", grain2_weight = "0.4" }
+
+[shaders.film-grain-pro.presets.light]
+description = "Light grain — whisper-quiet noise, barely perceptible texture"
+params = { grain_base = "0.01", grain_mid = "0.03", grain1_weight = "0.8", grain2_weight = "0.2" }
+
+# ---------------------------------------------------------------------------
+# bloom — Simple bloom / glow effect
+# Configurable inline constants in kitty/shaders/darkwindow/bloom.glsl
+# ---------------------------------------------------------------------------
+
+[shaders.bloom.presets.default]
+description = "Default bloom — gentle golden spiral samples, 5% bloom factor"
+params = { bloom = "0.05" }
+
+[shaders.bloom.presets.heavy]
+description = "Heavy bloom — intense glow for cyberpunk terminal aesthetics"
+params = { bloom = "0.12" }
+
+[shaders.bloom.presets.subtle]
+description = "Subtle bloom — nearly invisible glow that still softens hard edges"
+params = { bloom = "0.02" }
+
+# ---------------------------------------------------------------------------
+# neon-glow — Sobel edge detection with cyberpunk neon bloom
+# Configurable inline constants in kitty/shaders/darkwindow/neon-glow.glsl
+# ---------------------------------------------------------------------------
+
+[shaders.neon-glow.presets.default]
+description = "Default neon glow — cyan/magenta Snazzy palette on text edges"
+params = { edge_intensity = "0.6", glow_intensity = "0.15", glow_offset = "1.5", glow_passes = "3" }
+
+[shaders.neon-glow.presets.intense]
+description = "Intense neon — stronger edge and halo glow for dark backgrounds"
+params = { edge_intensity = "1.0", glow_intensity = "0.30", glow_offset = "2.0", glow_passes = "3" }
+
+[shaders.neon-glow.presets.edge_only]
+description = "Edge-only neon — sharp edge highlight with minimal halo bleed"
+params = { edge_intensity = "0.8", glow_intensity = "0.05", glow_offset = "1.0", glow_passes = "2" }
+
+# ---------------------------------------------------------------------------
+# cyberpunk — Cyberpunk neon color grade with holographic interference
+# Configurable inline constants in kitty/shaders/darkwindow/cyberpunk.glsl
+# ---------------------------------------------------------------------------
+
+[shaders.cyberpunk.presets.default]
+description = "Default cyberpunk — neon rain, color cycling, holographic interference"
+params = { glowRadius = "0.0012", glowIntensity_scale = "0.15", rainDensity = "0.02", interferenceScale = "0.1" }
+
+[shaders.cyberpunk.presets.rain_heavy]
+description = "Rain heavy — dense matrix rain columns dominate the display"
+params = { glowRadius = "0.0012", glowIntensity_scale = "0.12", rainDensity = "0.04", interferenceScale = "0.05" }
+
+[shaders.cyberpunk.presets.interference_heavy]
+description = "Interference heavy — holographic scan-line moiré with reduced rain"
+params = { glowRadius = "0.0010", glowIntensity_scale = "0.10", rainDensity = "0.01", interferenceScale = "0.25" }
