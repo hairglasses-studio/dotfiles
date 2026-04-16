@@ -84,8 +84,8 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 
 ### Tier 1 — High Priority Hooks
 
-- [ ] [P1][M] Post-compaction re-anchor hook — on PostCompact event, re-inject AGENTS.md essentials (build commands, key patterns, active repo context). Ref: Continuous-Claude-v3 (3.7K stars), post_compact_reminder (41 stars)
-- [ ] [P1][M] File protection system — declarative `protected_files:` in SKILL.md frontmatter, enforced by PreToolUse hook blocking writes to listed files (go.mod, pipeline.mk, AGENTS.md). Ref: garrytan/gstack, diet103 showcase (9.5K stars)
+- [x] [P1][M] Post-compaction re-anchor hook — scripts/claude-post-compact.sh (52-line re-anchor, needs settings.json hook registration)
+- [x] [P1][M] File protection system — scripts/claude-file-protect.sh (PreToolUse hook blocking go.mod, pipeline.mk, .well-known, snapshots)
 - [ ] [P1][M] Circuit breaker for overnight loops — add failure counter to dev-loop, N-consecutive-failure stop, rate limit detection with backoff, spec-driven exit conditions. Ref: frankbria/ralph-claude-code (75+ tests)
 
 ### Tier 2 — Medium Priority Hooks
@@ -104,7 +104,7 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 ### Tier 1 — High Priority Skills
 
 - [ ] [P1][L] Security audit skill — SAST, supply-chain audit, spec-to-code compliance, second-opinion pattern for pre-publish security review. Ref: trailofbits/skills (professional security firm)
-- [ ] [P1][S] Canary monitoring skill — post-deploy watch loop for MCP server health after git push / release. Ref: garrytan/gstack `/canary`
+- [x] [P1][S] Canary monitoring skill — post-deploy watch loop for MCP server health after git push / release. Ref: garrytan/gstack `/canary`. Deployed to `~/.claude/commands/canary.md` + `~/.agents/skills/canary/SKILL.md`
 
 ### Tier 2 — Medium Priority Skills
 
