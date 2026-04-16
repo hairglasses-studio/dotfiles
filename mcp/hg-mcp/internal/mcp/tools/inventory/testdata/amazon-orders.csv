@@ -1,6 +1,0 @@
-Order Date,Order ID,Title,Category,ASIN/ISBN,Seller,Quantity,Item Subtotal,Item Total,Shipment Date,Release Date,Condition,List Price Per Unit
-2025-01-15,111-1234567-8901234,ASUS ROG Strix GeForce RTX 4090 OC,Electronics,B0BSVMLVTD,Amazon.com,1,"$1,799.99","$1,799.99",2025-01-16,,New,$1799.99
-2025-02-10,111-2345678-9012345,Samsung 990 Pro 2TB NVMe M.2 SSD,Electronics,B0BHJJ9Y77,Amazon.com,2,$159.99,$319.98,2025-02-11,,New,$179.99
-2025-03-05,111-3456789-0123456,Corsair Vengeance DDR5 32GB (2x16GB) 5600MHz,Electronics,B09T9C946G,Amazon.com,1,$89.99,$89.99,2025-03-06,,New,$109.99
-2025-03-20,111-4567890-1234567,Coffee Mug - World's Best Developer,Home & Kitchen,B08XY12345,ThirdPartySeller,1,$14.99,$14.99,2025-03-21,,New,$14.99
-2025-04-01,111-5678901-2345678,CalDigit TS4 Thunderbolt 4 Dock,Electronics,B09GK8LBWS,Amazon.com,1,$359.99,$359.99,2025-04-02,,New,$379.99

@@ -1,0 +1,133 @@
+---
+name: hypr_config_tuning
+description: Live Hyprland config tuning via IPC — test changes instantly with hyprctl keyword, observe results, then persist to config file.
+triggers:
+  - hyprland config
+  - hyprland setting
+  - gaps
+  - border
+  - animation
+  - blur
+  - rounding
+  - opacity
+  - decoration
+  - compositor setting
+---
+
+# Hyprland Config Tuning
+
+Iterate on Hyprland configuration in real-time using IPC. The key insight: `hyprctl keyword` applies changes instantly without a config reload, letting you test values live before committing them to `hyprland.conf`. No public skill teaches this live-tuning workflow.
+
+## Core Pattern
+
+```
+1. READ   current value via hyprctl
+2. SET    new value via hyprctl keyword (instant, non-persistent)
+3. VERIFY via screenshot or visual inspection
+4. REPEAT until satisfied
+5. PERSIST the final value to hyprland.conf
+```
+
+## MCP Tools
+
+### Read current state
+- `hypr_get_option` — read any Hyprland config option's current value (e.g., `general:gaps_in`)
+- `hypr_get_monitors` — current monitor config
+- `hypr_get_system_info` — Hyprland version, plugins, GPU
+- `hypr_get_config_errors` — check for config parse errors after reload
+
+### Set live (non-persistent)
+- `hypr_set_keyword` — `hyprctl keyword <key> <value>` — instant apply, lost on reload
+- `hypr_set_prop` — set per-window properties (opacity, rounding, etc.)
+- `hypr_set_monitor` — change monitor resolution/position/scale live
+
+### Verify
+- `hypr_screenshot` — capture to verify visual result
+- `hypr_screenshot_window` — focused on a specific window
+- `dotfiles_rice_check` — full rice health after changes
+
+### Persist
+- Edit `hyprland/hyprland.conf` with the Write/Edit tool
+- `hypr_reload_config` — reload to confirm persisted values match live state
+
+## Tunable Categories
+
+### Gaps and borders
+```
+general:gaps_in       # Inner gap between windows (default: 5)
+general:gaps_out      # Outer gap from screen edge (default: 16)  
+general:border_size   # Window border width in px (default: 3)
+```
+
+Test live: `hypr_set_keyword` with `general:gaps_in 8`
+
+### Decoration
+```
+decoration:rounding          # Corner radius in px (default: 16)
+decoration:active_opacity    # Focused window opacity (default: 1.0)
+decoration:inactive_opacity  # Unfocused window opacity (default: 0.97)
+decoration:dim_inactive      # Dim unfocused windows (default: false)
+```
+
+### Blur
+```
+decoration:blur:enabled   # Enable/disable blur (default: true)
+decoration:blur:size      # Blur kernel size (default: 8)
+decoration:blur:passes    # Blur passes (default: 3)
+decoration:blur:noise     # Noise overlay on blur (default: 0.015)
+decoration:blur:vibrancy  # Vibrancy (default: 0.22)
+```
+
+### Animations
+```
+animations:enabled    # Global animation toggle
+```
+
+Individual animations are trickier to tune live — they use the `animation` keyword with bezier references. For these, edit the config and reload.
+
+### Shadows
+```
+decoration:shadow:enabled       # Toggle shadows
+decoration:shadow:range         # Shadow extent in px (default: 36)
+decoration:shadow:render_power  # Shadow intensity (default: 4)
+```
+
+### Misc
+```
+misc:vfr                       # Variable frame rate (default: false — disabled for DarkWindow)
+misc:animate_manual_resizes    # Animate resize operations
+cursor:no_hardware_cursors     # Software cursor (needed for NVIDIA)
+```
+
+## Per-Window Properties
+
+`hypr_set_prop` changes properties on specific windows:
+
+```
+hyprctl setprop address:0x... opacity 0.8        # Make a window translucent
+hyprctl setprop address:0x... rounding 0          # Remove rounding from one window
+hyprctl setprop address:0x... forceopaque 1       # Force full opacity (overrides inactive_opacity)
+```
+
+Use `hypr_list_windows` first to get the window address.
+
+## Tuning Session Example
+
+Goal: Find the best gap size for the ultrawide monitor.
+
+1. `hypr_get_option` key `general:gaps_in` — read current (5)
+2. `hypr_set_keyword` key `general:gaps_in` value `8` — try larger
+3. `hypr_screenshot` — see how it looks
+4. `hypr_set_keyword` key `general:gaps_in` value `3` — try smaller
+5. `hypr_screenshot` — compare
+6. `hypr_set_keyword` key `general:gaps_in` value `6` — settle on 6
+7. Edit `hyprland/hyprland.conf`: change `gaps_in = 5` to `gaps_in = 6`
+8. `hypr_reload_config` — confirm the persisted value matches
+
+## Constraints
+
+- `misc:vfr = false` is required for DarkWindow shader animation — do not enable VFR
+- `cursor:no_hardware_cursors = 1` is required for NVIDIA — do not disable
+- `general:layout = hy3` is the primary layout — switching to master/dwindle is via `$mod R` keybind
+- Border colors must use Hairglasses Neon palette: `rgba(29f0ffee) rgba(ff47d1ee) 45deg`
+- Shadow color must match BG: `rgba(05070d88)`

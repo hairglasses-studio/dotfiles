@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/**'
       - 'install.sh'
+      - 'home/**'
       - 'docker/**'
       - '**/*.json'
       - '**/*.toml'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'scripts/**'
       - 'install.sh'
+      - 'home/**'
       - 'docker/**'
       - '**/*.json'
       - '**/*.toml'
@@ -101,3 +103,13 @@ jobs:
             fi
           done < <(bash install.sh --print-link-specs)
           exit "${FAIL:-0}"
+      - name: Validate chezmoi source
+        run: |
+          if command -v chezmoi &>/dev/null; then
+            chezmoi verify --source home/ || {
+              echo "::error::chezmoi verify failed — managed targets have drifted"
+              exit 1
+            }
+          else
+            echo "::warning::chezmoi not installed — skipping verify"
+          fi

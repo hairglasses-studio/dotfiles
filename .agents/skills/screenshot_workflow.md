@@ -1,0 +1,99 @@
+---
+name: screenshot_workflow
+description: Wayland screenshot pipeline — capture, OCR, annotate, and integrate screenshots into development workflows (bug reports, PR descriptions, documentation).
+triggers:
+  - screenshot
+  - screen capture
+  - screen recording
+  - ocr
+  - annotate
+  - bug report screenshot
+  - visual documentation
+---
+
+# Screenshot Workflow
+
+Capture, analyze, annotate, and use screenshots in development workflows. Covers the full pipeline from pixel capture to GitHub issue attachment. No public Claude Code skill exists for Wayland screenshot workflows.
+
+## MCP Tools
+
+### Capture
+- `hypr_screenshot` — single monitor or all monitors, returns inline base64 PNG
+- `hypr_screenshot_window` — capture specific window by class/address (auto-resized for LLM vision)
+- `hypr_screenshot_region` — interactive slurp region selection, optional clipboard copy
+- `hypr_screenshot_monitors` — separate per-monitor captures (useful for comparing dual-monitor state)
+- `screen_screenshot` — full screen capture via alternative backend
+- `screen_screenshot_annotated` — capture with UI element bounding box annotations overlaid
+
+### Analyze
+- `screen_ocr` — extract text from a screenshot or screen region
+- `screen_color_pick` — pick pixel color at coordinates (useful for palette audits)
+- `screen_annotate` — add annotations (arrows, circles, text) to a captured image
+
+### Record
+- `screen_record_start` — begin screen recording (wl-screenrec)
+- `screen_record_stop` — stop recording, return file path
+- `screen_record_status` — check if recording is active
+
+## Workflows
+
+### Bug report with visual evidence
+
+1. `hypr_screenshot_window` with the buggy window's class — get a clean capture
+2. `screen_ocr` if the bug involves text content — extract the error message
+3. `screen_annotate` — circle or arrow the problematic area
+4. Compose the issue body with the screenshot embedded as base64 or saved file path
+5. Use `ops_pr_create` or direct `gh issue create` to attach
+
+### Compare before/after a config change
+
+1. `hypr_screenshot` — capture BEFORE state
+2. Make the config change + reload
+3. `hypr_screenshot` — capture AFTER state
+4. Present both screenshots inline for visual diff
+5. If the change is a regression, revert immediately
+
+### Monitor layout documentation
+
+1. `hypr_screenshot_monitors` — get separate captures of each monitor
+2. `hypr_get_monitors` — get resolution, position, scale metadata
+3. `hypr_list_windows` — get window placement data
+4. Compose a layout diagram or annotated description for docs/README
+
+### OCR for UI state verification
+
+1. `screen_screenshot_annotated` — capture with element annotations
+2. `screen_ocr` — extract text to verify content matches expectations
+3. `desktop_find_text` — search for specific text on screen without full OCR
+
+### Screen recording for demo/repro
+
+1. `screen_record_start` — begin recording
+2. Perform the action sequence (via MCP tools or manual user interaction)
+3. `screen_record_stop` — end recording, get the video file path
+4. Attach to PR or issue as a `.mp4`
+
+## Tool Chain Context
+
+The screenshot tools use this underlying stack:
+- **wayshot** — primary screenshot backend (migrated from grim/grimblast)
+- **slurp** — region selection for `hypr_screenshot_region`
+- **satty** — annotation tool (launched by `screen_annotate`)
+- **wl-screenrec** — screen recording
+- **tesseract** — OCR backend for `screen_ocr`
+
+All tools respect the dual-monitor setup:
+- DP-3 (Samsung ultrawide, 5120x1440@240Hz, scale 2)
+- DP-2 (XEC portrait, 2560x1440@180Hz, scale 2, rotated 270)
+
+## Keybinds Reference
+
+| Bind | Action |
+|------|--------|
+| `Super + S` | Screenshot full to clipboard |
+| `Super + Shift + S` | Screenshot region to clipboard |
+| `Super + Ctrl + S` | Screenshot region to save + clipboard |
+| `Super + Alt + S` | Screenshot delay 3s to save |
+| `Super + Alt + R` | Toggle screen recording |
+| `Super + Print` | Screenshot annotate |
+| `Super + Ctrl + Print` | Screenshot OCR to clipboard |

@@ -32,29 +32,28 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 - **glshell**: GLSL shader layershell overlay
 - **MCP resources**: `shader://current`, `dotfiles://palette`, `validate-rice` prompt
 
+### Chezmoi & Palette Pipeline (2026-04-16)
+- Chezmoi CI gate added to ci-lint.yml (`chezmoi verify --source home/`)
+- Palette propagation script (`scripts/palette-propagate.sh`) + chezmoi `run_onchange_` trigger
+- Docker MCP adopted (mcp-server-docker via uvx in `.mcp.json`)
+- hg-mcp extracted to standalone `hairglasses-studio/hg-mcp` repo (319MB removed from dotfiles)
+
 ## Planned
 
-### Phase 1 — Chezmoi Hardening
-- CI gate: add `chezmoi verify --source home/` to GitHub Actions
-- Palette templates: template kitty/cava/btop/yazi configs from `.chezmoidata.toml` so palette changes auto-propagate
-- `make lint` should include chezmoi verify
-
-### Phase 2 — Ironbar Menubar Polish
+### Phase 1 — Ironbar Menubar Polish
 - Cache-fed fleet widgets stay visible without blocking the GTK layer
 - Workspace and focused-window modules stay legible on 5120x1440 ultrawide
 - Keybind ticker stability and scroll performance
 - Power, weather, and update affordances remain theme-aligned
 
-### Phase 3 — Shader Pipeline
-- DarkWindow shader performance benchmarks in CI (flag regressions above GPU budget)
-- Shader preview gallery (static renders for README/docs)
+### Phase 2 — Shader Pipeline
+- DarkWindow shader performance benchmarks in CI (flag regressions above GPU budget — requires GPU runner)
+- Shader preview gallery (static renders for README/docs — requires headless rendering pipeline)
 - Wallpaper shader expansion (more procgen options via papertoy/shaderbg)
 - Shader parameter presets (expose uniforms as config)
 
 ## Future Considerations
 
 - **Status bar research**: evaluate GPU-capable alternatives to ironbar (ags, fabric, custom Wayland layer-shell bar)
-- **hg-mcp extraction**: move `mcp/hg-mcp/` (319MB) to its own `hairglasses-studio/hg-mcp` repo
-- **Docker MCP adoption**: install mcp-server-docker for container management
-- **Automated rice screenshots**: Hyprland headless + screenshot comparison in CI
-- **Cross-repo semantic search**: evaluate CodeMCP for indexing all 20 active repos
+- **Automated rice screenshots**: Hyprland headless + screenshot comparison in CI (requires headless Hyprland setup)
+- **Cross-repo semantic search**: evaluate CodeMCP for SCIP-based indexing across all 20 active repos

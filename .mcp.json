@@ -2,6 +2,10 @@
   "mcpServers": {
     "dotfiles": {
       "command": "./scripts/run-dotfiles-mcp.sh"
+    },
+    "docker": {
+      "command": "uvx",
+      "args": ["mcp-server-docker"]
     }
   }
 }
