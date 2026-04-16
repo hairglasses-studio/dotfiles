@@ -159,7 +159,6 @@ EOF
 
 print_darwin_link_specs() {
     cat <<EOF
-$DOTFILES_DIR/borders|$HOME/.config/borders
 $DOTFILES_DIR/tattoy/tattoy.toml|$HOME/Library/Application Support/tattoy/tattoy.toml
 EOF
 }

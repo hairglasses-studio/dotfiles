@@ -38,6 +38,47 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 - Docker MCP adopted (mcp-server-docker via uvx in `.mcp.json`)
 - hg-mcp extracted to standalone `hairglasses-studio/hg-mcp` repo (319MB removed from dotfiles)
 
+### Wayland Graphics Pipeline Consolidation (2026-04-16)
+
+Cross-stack NVIDIA/compositor tuning, unified color propagation, template fan-out:
+
+- **Phase 1 (NVIDIA + frame pacing)**: G-Sync/VRR enabled for 240Hz panel,
+  `misc:vrr=2` fullscreen-only, per-monitor vrr flag in monitors.conf,
+  `cursor:no_hardware_cursors=true` (NVIDIA fix), `render:explicit_sync=2`,
+  `debug:damage_tracking=2`, `GBM_BACKEND=nvidia-drm`, `AQ_NO_MODIFIERS=1`,
+  `ELECTRON_OZONE_PLATFORM_HINT=auto`. New `scripts/hypr-perf-mode.sh` for
+  quality↔performance runtime toggle ($mod CTRL ALT Q).
+- **Phase 2 (color pipeline)**: New `matugen/` directory with 9 envsubst
+  templates (gtk-colors, kitty, hyprland, hyprlock, btop, yazi, zsh-fzf,
+  cava). Rewrote `palette-propagate.sh` from stub to authoritative renderer —
+  now actually updates 12 consumers instead of just 5. `theme-sync.sh`
+  simplified to delegation. `rice-reload.sh` now restarts ticker.
+- **Phase 5 (cleanup)**: Removed `borders/bordersrc` (macOS JankyBorders
+  leftover), `hyprland/pyprland.toml` (stale duplicate of `pypr/config.toml`),
+  `cava/shaders/` (unreachable under `method=ncurses`). Fixed duplicate
+  `swaync` in Pacfile. Built `color_pipeline` + `perf_profile` skills (novel —
+  no public Claude Code rice skills exist). New `.claude/rules/nvidia-wayland.md`
+  documenting 2026 NVIDIA + Hyprland best practice. Updated `shaders.md` with
+  `misc:vfr` decision rationale.
+- **Phase 3 (shader consolidation)**: Tier playlists via
+  `kitty/shaders/bin/shader-tier.sh` (45 cheap / 46 mid / 48 heavy, static
+  size+loops heuristic). Deduplicated wallpaper renderer — `papertoy` removed
+  as dead code (wasn't installed), `shaderbg` is canonical. Focus-driven
+  hyprshade daemon at `scripts/hypr-shader-focus-daemon.sh` (opt-in service
+  `dotfiles-hypr-shader-focus.service`). `misc:vfr` tension documented in
+  `.claude/rules/shaders.md`. **Deferred**: runtime GPU-delta benchmarking in
+  `shader_benchmark` MCP tool (requires live IPC + nvtop sampling).
+- **Phase 4 (event-driven reload)**: `dotfiles-rice-watch.service` runs
+  `inotifywait` on `palette.env` + `matugen/templates/` → auto-fires
+  `palette-propagate.sh` on close_write. Ticker restart added to palette-
+  propagate reload block. Ticker's in-process `Gio.FileMonitor` replaced by
+  the simpler systemd-restart pattern (the 1553-line ticker has palette hex
+  values baked in at code level; restart is ~500ms and unnoticeable).
+- **Phase 6 (new MCP tools)**: `mod_wayland_perf.go` module with 5 tools —
+  `hypr_perf_mode`, `hypr_vrr_status`, `hypr_frame_overlay`,
+  `color_pipeline_apply`, `shader_tier`. Registered in discovery, contract
+  snapshot regenerated (410→415 tools).
+
 ## Planned
 
 ### Phase 1 — Ironbar Menubar Polish

@@ -138,6 +138,5 @@ hidapi
 libevdev
 
 # Notifications / System
-# mako  # quarantined — replaced by swaync
-swaync
+# mako  # quarantined — replaced by swaync (primary entry earlier in Pacfile)
 libnotify

@@ -147,8 +147,7 @@ _config_cmd_check() {
 
   if grep -Fq '$HOME/.local/bin/kitty-dev-launch' "$HG_DOTFILES/hyprland/hyprland.conf" \
     && grep -Fq '$HOME/.local/bin/kitty-visual-launch' "$HG_DOTFILES/hyprland/hyprland.conf" \
-    && grep -Fq '$HOME/.local/bin/kitty-visual-launch --class=scratchpad' "$HG_DOTFILES/pypr/config.toml" \
-    && grep -Fq '$HOME/.local/bin/kitty-visual-launch --class=scratchpad' "$HG_DOTFILES/hyprland/pyprland.toml"; then
+    && grep -Fq '$HOME/.local/bin/kitty-visual-launch --class=scratchpad' "$HG_DOTFILES/pypr/config.toml"; then
     printf "  %s%-18s%s %smanaged wrappers%s\n" "$HG_CYAN" "hypr surfaces" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
     printf "  %s%-18s%s %slauncher drift%s\n" "$HG_CYAN" "hypr surfaces" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"

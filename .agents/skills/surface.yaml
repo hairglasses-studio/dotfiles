@@ -139,6 +139,16 @@
       "name": "security_audit",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "color_pipeline",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "perf_profile",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
