@@ -165,6 +165,55 @@ All MCP tools are consolidated under `mcp/` (7 Go modules via `go.work`; hg-mcp 
 All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
 Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
 
+### Install MCP Server Only
+
+```bash
+go install github.com/hairglasses-studio/dotfiles-mcp@latest
+```
+
+Add to `.mcp.json`:
+```json
+{
+  "mcpServers": {
+    "dotfiles": {
+      "command": "dotfiles-mcp",
+      "env": { "WAYLAND_DISPLAY": "wayland-1", "DOTFILES_DIR": "/path/to/dotfiles" }
+    }
+  }
+}
+```
+
+### What Can You Do With This?
+
+The MCP tools let AI agents control your Hyprland desktop directly:
+
+- **"Set up my dev layout"** -- `hypr_switch_workspace` to WS 6, `kitty_launch` editor + terminal, `hypr_layout_save` for recall
+- **"Cycle to a different shader"** -- `shader_random` picks a DarkWindow GLSL, `shader_status` confirms the visual
+- **"Take a screenshot of this bug and file an issue"** -- `hypr_screenshot_window`, `screen_ocr` for the error text, `ops_pr_create`
+- **"Try 8px gaps instead of 5"** -- `hypr_set_keyword` applies instantly, `hypr_screenshot` to compare, persist when happy
+- **"Search my keybinds for screenshot"** -- `keybinds_search` returns all matching binds with modifiers and descriptions
+
+### Skills
+
+Claude Code skills that orchestrate the MCP tools into higher-level workflows:
+
+| Skill | Description |
+|-------|-------------|
+| `keybinds` | Read, search, audit, and update Hyprland keybinds with ticker integration |
+| `hypr_layouts` | Orchestrate multi-window layouts via live IPC dispatch and kitty spawning |
+| `kitty_control` | Manage kitty sessions -- tabs, windows, themes, fonts, scrollback |
+| `rice_iteration` | Screenshot-analyze-edit-reload-verify visual feedback loop |
+| `screenshot_workflow` | Capture, OCR, annotate, and integrate screenshots into dev workflows |
+| `hypr_config_tuning` | Live `hyprctl keyword` tuning before persisting to config |
+| `github_stars_audit` | Audit GitHub stars for tools, cross-reference, produce implementation plans |
+| `dotfiles_audit` | Comprehensive repo health and stale-reference audit |
+| `dotfiles_ops` | Workstation operations, repo-tooling, onboarding, fleet maintenance |
+| `dotfiles_ui` | Desktop UI, rice, shader, Ironbar, Hyprland, and screenshot workflows |
+| `dotfiles_desktop_control` | Hyprland targeting, OCR-assisted inspection, input automation |
+| `dotfiles_recovery` | Claude session recovery, forensic analysis, handoff artifacts |
+| `dotfiles_git_hygiene` | Dry-run-first branch, worktree, and managed cleanup |
+| `github_stars` | Organize starred repos into GitHub lists |
+
 ## Troubleshooting
 
 **Shaders don't animate:** Check shader configuration in kitty config and verify DarkWindow shader pipeline.

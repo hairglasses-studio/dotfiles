@@ -78,7 +78,7 @@ PRESETS = {
     "ambient": {
         "speed": 55.0, "gradient_speed": 40.0, "gradient_span": 800.0,
         "glow_kernel": 17, "glow_base_alpha": 0.35, "glow_pulse_amp": 0.15,
-        "glow_pulse_period": 3.5, "water_skip": 4, "scanline_opacity": 0.08,
+        "glow_pulse_period": 3.5, "water_skip": 120, "scanline_opacity": 0.08,
         "shadow_offset": 2, "shadow_alpha": 0.30,
         "glitch_prob": 0.004, "glitch_frames": 4, "ca_offset": 3,
         "bg_alpha": 0.82,
@@ -86,7 +86,7 @@ PRESETS = {
     "cyberpunk": {
         "speed": 65.0, "gradient_speed": 55.0, "gradient_span": 600.0,
         "glow_kernel": 21, "glow_base_alpha": 0.50, "glow_pulse_amp": 0.25,
-        "glow_pulse_period": 2.5, "water_skip": 3, "scanline_opacity": 0.14,
+        "glow_pulse_period": 2.5, "water_skip": 80, "scanline_opacity": 0.14,
         "shadow_offset": 3, "shadow_alpha": 0.35,
         "glitch_prob": 0.008, "glitch_frames": 5, "ca_offset": 4,
         "bg_alpha": 0.78,
@@ -373,6 +373,8 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.glitch_strips = []
         self.water_surf = None
         self.water_frame = 0
+        self.glow_cache = None
+        self.glow_frame = 0
 
         # ── Content stream state ──────────────────
         self.stream_idx = 0
@@ -513,8 +515,11 @@ class TickerWindow(Gtk.ApplicationWindow):
         # ═══ FOREGROUND ═══════════════════════════
         text_surf = self._render_text_surface(width, height)
 
-        # Glow
-        glow_a8 = self._compute_glow(text_surf, width, height)
+        # Glow (cached — recompute every 8 frames)
+        self.glow_frame += 1
+        if self.glow_cache is None or self.glow_frame % 8 == 0:
+            self.glow_cache = self._compute_glow(text_surf, width, height)
+        glow_a8 = self.glow_cache
         if glow_a8 is not None:
             glow_alpha = p.glow_base_alpha + p.glow_pulse_amp * math.sin(
                 self.time_s * (2 * math.pi / p.glow_pulse_period))

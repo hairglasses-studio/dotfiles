@@ -54,10 +54,10 @@ Audited ~1,900 GitHub stars for dotfiles-relevant tools. Implemented:
 - [ ] [P2][S] MCP: `shader://categories` resource — category breakdown
 
 ### Phase 3 — Public Content
-- [ ] [P1][S] README: add use-case section with 5 concrete workflow examples
-- [ ] [P1][S] README: add "Install MCP Server Only" section with go install one-liner
-- [ ] [P1][S] README: add skills table listing all 14 skills
-- [ ] [P1][S] GitHub Topics: add hyprland mcp wayland dotfiles desktop-automation linux go
+- [x] [P1][S] README: add use-case section with 5 concrete workflow examples
+- [x] [P1][S] README: add "Install MCP Server Only" section with go install one-liner
+- [x] [P1][S] README: add skills table listing all 14 skills
+- [x] [P1][S] GitHub Topics: add hyprland mcp wayland dotfiles desktop-automation linux go
 - [ ] [P2][S] Submit PR to awesome-hyprland (IPC section)
 - [ ] [P2][S] Submit PR to awesome-mcp-servers
 - [ ] [P2][S] Update .well-known/mcp.json with categories and tags
