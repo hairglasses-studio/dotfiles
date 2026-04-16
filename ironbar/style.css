@@ -43,10 +43,11 @@
 .workspaces .item {
   color: alpha(@fg, 0.72);
   background-color: @panel;
-  padding: 2px 8px;
-  margin: 2px 1px;
-  border-radius: 3px;
+  padding: 2px 10px;
+  margin: 2px 2px;
+  border-radius: 4px;
   border-bottom: 2px solid transparent;
+  min-width: 24px;
   transition: all 150ms ease;
 }
 
@@ -86,8 +87,11 @@
 
 .focused .label {
   color: alpha(@blue, 0.9);
-  padding: 0 8px;
+  padding: 0 12px;
   font-size: 11px;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Clock ────────────────────────────────── */
@@ -317,6 +321,7 @@
   font-size: 11px;
   letter-spacing: 0.5px;
   padding: 0 8px;
+  min-width: 200px;
   animation: ticker-color-cycle 12s linear infinite;
 }
 
