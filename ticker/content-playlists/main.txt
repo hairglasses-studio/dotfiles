@@ -4,3 +4,4 @@ keybinds
 system
 fleet
 weather
+github

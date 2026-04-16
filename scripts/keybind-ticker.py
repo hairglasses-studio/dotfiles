@@ -140,27 +140,29 @@ def build_keybinds_markup():
         ).stdout
         binds = json.loads(raw)
     except Exception:
-        return _badge("KEYBINDS", "#29f0ff") + '<span font_desc="Maple Mono NF CN 11">  No keybinds loaded  \u00b7</span>'
+        return _badge("KEYBINDS", "#29f0ff") + '<span font_desc="Maple Mono NF CN 11">  No keybinds loaded  \u00b7</span>', []
 
     parts = [_badge(" KEYBINDS", "#29f0ff")]
+    segments = []
     fc = len(FONTS)
     i = 0
     for b in binds:
         if b.get("has_description") and not b.get("submap") and not b.get("mouse"):
             mods = fmt_mods(b["modmask"])
             desc = escape(b["description"])
-            key = escape(f"{mods}{b['key']}")
+            key_text = f"{mods}{b['key']}"
+            key = escape(key_text)
             font = FONTS[i % fc]
             parts.append(f'<span font_desc="{font}">  {desc}  {key}  \u00b7</span>')
+            segments.append(key_text)
             i += 1
     single = "".join(parts)
-    return single + single
+    return single + single, segments
 
 
 def build_system_markup():
     parts = [_badge(" SYSTEM", "#ffe45e")]
     try:
-        # CPU temp
         temps = subprocess.run(["sensors", "-j"], capture_output=True, text=True, timeout=3).stdout
         tj = json.loads(temps)
         for chip in tj.values():
@@ -172,7 +174,6 @@ def build_system_markup():
     except Exception:
         pass
     try:
-        # GPU
         gpu = subprocess.run(
             ["nvidia-smi", "--query-gpu=power.draw,temperature.gpu,utilization.gpu",
              "--format=csv,noheader,nounits"],
@@ -183,9 +184,6 @@ def build_system_markup():
     except Exception:
         pass
     try:
-        # RAM
-        import shutil
-        total, used, free = shutil.disk_usage("/")
         mem = subprocess.run(["free", "-m"], capture_output=True, text=True, timeout=2).stdout
         for line in mem.splitlines():
             if line.startswith("Mem:"):
@@ -195,7 +193,6 @@ def build_system_markup():
     except Exception:
         pass
     try:
-        # Uptime
         with open("/proc/uptime") as f:
             up_s = float(f.read().split()[0])
             h, m = int(up_s // 3600), int((up_s % 3600) // 60)
@@ -203,7 +200,7 @@ def build_system_markup():
     except Exception:
         pass
     single = "".join(parts)
-    return single + single
+    return single + single, []
 
 
 def build_fleet_markup():
@@ -226,7 +223,7 @@ def build_fleet_markup():
     except Exception:
         parts.append('<span font_desc="Maple Mono NF CN 11">  no fleet data  \u00b7</span>')
     single = "".join(parts)
-    return single + single
+    return single + single, []
 
 
 def build_weather_markup():
@@ -243,7 +240,43 @@ def build_weather_markup():
     except Exception:
         parts.append('<span font_desc="Maple Mono NF CN 11">  weather unavailable  \u00b7</span>')
     single = "".join(parts)
-    return single + single
+    return single + single, []
+
+
+def build_github_markup():
+    TYPE_ICONS = {"PullRequest": "", "Issue": "", "Release": "",
+                  "Discussion": "󰍡", "CheckSuite": ""}
+    parts = [_badge(" GITHUB", "#3dffb5")]
+    try:
+        raw = subprocess.run(
+            ["gh", "api", "/notifications", "--paginate", "--jq",
+             '.[] | {type: .subject.type, title: .subject.title, repo: .repository.name, reason: .reason}'],
+            capture_output=True, text=True, timeout=15,
+        ).stdout.strip()
+        if raw:
+            seen = 0
+            fc = len(FONTS)
+            for line in raw.splitlines():
+                if seen >= 20:
+                    break
+                try:
+                    n = json.loads(line)
+                except Exception:
+                    continue
+                icon = TYPE_ICONS.get(n.get("type", ""), "")
+                title = escape(n.get("title", "")[:60])
+                repo = escape(n.get("repo", ""))
+                font = FONTS[seen % fc]
+                parts.append(f'<span font_desc="{font}">  {icon} {repo}: {title}  \u00b7</span>')
+                seen += 1
+            if seen == 0:
+                parts.append('<span font_desc="Maple Mono NF CN 11">  no notifications  \u00b7</span>')
+        else:
+            parts.append('<span font_desc="Maple Mono NF CN 11">  no notifications  \u00b7</span>')
+    except Exception:
+        parts.append('<span font_desc="Maple Mono NF CN 11">  github unavailable  \u00b7</span>')
+    single = "".join(parts)
+    return single + single, []
 
 
 # Stream registry
@@ -252,9 +285,10 @@ STREAMS = {
     "system": build_system_markup,
     "fleet": build_fleet_markup,
     "weather": build_weather_markup,
+    "github": build_github_markup,
 }
 
-STREAM_ORDER = ["keybinds", "system", "fleet", "weather"]
+STREAM_ORDER = ["keybinds", "system", "fleet", "weather", "github"]
 
 
 # ══════════════════════════════════════════════════
@@ -358,10 +392,15 @@ class TickerWindow(Gtk.ApplicationWindow):
         scroll_ctl.connect("scroll", self._on_scroll)
         self.da.add_controller(scroll_ctl)
 
+        click_ctl = Gtk.GestureClick.new()
+        click_ctl.connect("pressed", self._on_click)
+        self.da.add_controller(click_ctl)
+
         self.da.set_has_tooltip(True)
         self.da.connect("query-tooltip", self._on_tooltip)
 
         # ── State ─────────────────────────────────
+        self.segments = []
         self.offset = 0.0
         self.gradient_phase = 0.0
         self.time_s = 0.0
@@ -393,7 +432,7 @@ class TickerWindow(Gtk.ApplicationWindow):
     def _rebuild_stream(self):
         stream_name = self.stream_order[self.stream_idx]
         builder = STREAMS.get(stream_name, build_keybinds_markup)
-        self.ticker_markup = builder()
+        self.ticker_markup, self.segments = builder()
         self.layout = None
         self.da.queue_draw()
         # Persist current stream
@@ -409,12 +448,38 @@ class TickerWindow(Gtk.ApplicationWindow):
         p.speed = max(10.0, min(200.0, p.speed - dy * 5.0))
         return True
 
+    def _on_click(self, gesture, n_press, x, y):
+        if not self.segments:
+            return
+        # Estimate which segment was clicked based on x position + scroll offset
+        n = len(self.segments)
+        if n == 0 or self.half_w <= 0:
+            return
+        seg_width = self.half_w / n
+        abs_x = (x + self.offset) % self.half_w
+        idx = int(abs_x / seg_width)
+        idx = min(idx, n - 1)
+        text = self.segments[idx]
+        try:
+            subprocess.Popen(["wl-copy", text],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+
     def _on_tooltip(self, widget, x, y, keyboard_mode, tooltip):
         stream = self.stream_order[self.stream_idx]
+        seg_info = ""
+        if self.segments and self.half_w > 0:
+            n = len(self.segments)
+            seg_width = self.half_w / n
+            abs_x = (x + self.offset) % self.half_w
+            idx = min(int(abs_x / seg_width), n - 1)
+            seg_info = f'\n<b>Keybind:</b> {escape(self.segments[idx])}\n<i>Click to copy</i>'
         tooltip.set_markup(
             f'<b>Stream:</b> {stream}\n'
             f'<b>Speed:</b> {self.preset.speed:.0f} px/s\n'
             f'<b>Scroll:</b> wheel to adjust speed'
+            f'{seg_info}'
         )
         return True
 

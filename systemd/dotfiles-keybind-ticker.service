@@ -9,7 +9,8 @@ ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -S "$XDG_RUNTIM
 ExecStartPre=/usr/bin/sh -c 'for i in $(seq 1 20); do hyprctl version > /dev/null 2>&1 && exit 0; sleep 0.5; done; exit 1'
 Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
 Environment=GSK_RENDERER=gl
-ExecStart=/usr/bin/python3 %h/hairglasses-studio/dotfiles/scripts/keybind-ticker.py
+Environment=LD_PRELOAD=/usr/lib/libgtk4-layer-shell.so
+ExecStart=/usr/bin/python3 %h/hairglasses-studio/dotfiles/scripts/keybind-ticker.py --layer
 SuccessExitStatus=143
 Restart=on-failure
 RestartSec=2
