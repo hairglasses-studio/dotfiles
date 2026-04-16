@@ -1413,6 +1413,39 @@ func (m *ShaderModule) Resources() []resources.ResourceDefinition {
 			Category: "shader",
 			Tags:     []string{"shader", "kitty", "theme", "state"},
 		},
+		{
+			Resource: mcp.NewResource(
+				"shader://categories",
+				"Shader Category Breakdown",
+				mcp.WithResourceDescription("Count of GLSL shaders per category (crt, neon, glitch, etc.) from the DarkWindow shader collection"),
+				mcp.WithMIMEType("application/json"),
+			),
+			Handler: func(_ context.Context, _ mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+				shaders, err := listGLSL()
+				if err != nil {
+					return nil, fmt.Errorf("list shaders: %w", err)
+				}
+				cats := make(map[string]int)
+				for _, s := range shaders {
+					cat := inferCategory(s)
+					cats[cat]++
+				}
+				result := map[string]any{
+					"categories": cats,
+					"total":      len(shaders),
+				}
+				data, _ := json.MarshalIndent(result, "", "  ")
+				return []mcp.ResourceContents{
+					mcp.TextResourceContents{
+						URI:      "shader://categories",
+						MIMEType: "application/json",
+						Text:     string(data),
+					},
+				}, nil
+			},
+			Category: "shader",
+			Tags:     []string{"shader", "category", "glsl"},
+		},
 	}
 }
 
