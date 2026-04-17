@@ -8,13 +8,14 @@ XDG_CURRENT_DESKTOP=Hyprland
 # avoid iterating over all libseat backends
 LIBSEAT_BACKEND=logind
 
-# NVIDIA proprietary driver on Hyprland/Wayland
-GBM_BACKEND=nvidia-drm
+# NVIDIA libGL selection; leave GBM_BACKEND unset so Hyprland/Aquamarine
+# chooses the correct backend. Forcing nvidia-drm login-time was part of the
+# 2026-04-16 planePitch regression chain — see .claude/rules/nvidia-wayland.md.
 __GLX_VENDOR_LIBRARY_NAME=nvidia
 
 # Wayland hints for toolkits
 SDL_VIDEODRIVER=wayland
 CLUTTER_BACKEND=wayland
 
-# NVIDIA cursor fix for wlroots compositors
-WLR_NO_HARDWARE_CURSORS=1
+# WLR_NO_HARDWARE_CURSORS is deprecated; Hyprland owns the setting via
+# cursor { no_hardware_cursors = … } in hyprland.conf. Do not re-export here.
