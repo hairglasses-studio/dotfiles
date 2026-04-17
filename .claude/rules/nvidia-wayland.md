@@ -5,122 +5,188 @@ paths:
   - "etc/modprobe.d/**"
 ---
 
-# NVIDIA + Wayland tuning (2026 best practice)
+# NVIDIA + Wayland tuning
 
-Target stack: RTX desktop (GA102/Ampere+), Hyprland 0.54+, driver 570+
-(nvidia-open-dkms), 240Hz Samsung LC49G95T + 180Hz XEC portrait monitor.
+Target stack: RTX 3090 (GA102/Ampere), Hyprland 0.54.2, Samsung LC49G95T @
+5120x1440 (DSC-required) + XEC ES-G32C1Q portrait @ 2560x1440x180.
 
-## Canonical env vars (hyprland.conf `env =` block)
+## Driver state
 
-| Var | Value | Why |
-|---|---|---|
-| `LIBVA_DRIVER_NAME` | `nvidia` | VA-API → NVDEC for hardware video decode |
-| `__GLX_VENDOR_LIBRARY_NAME` | `nvidia` | Force NVIDIA libGL |
-| `GBM_BACKEND` | `nvidia-drm` | GBM won; EGLStreams deprecated since driver 495 |
-| `ELECTRON_OZONE_PLATFORM_HINT` | `auto` | Electron apps (discord, vscode) use native Wayland |
-| `__GL_GSYNC_ALLOWED` | `1` | 240Hz panel supports G-Sync; enable |
-| `__GL_VRR_ALLOWED` | `1` | Adaptive refresh on desktop |
-| `NVD_BACKEND` | `direct` | NVDEC direct-mode for mpv/ffmpeg |
-| `GSK_RENDERER` | `ngl` | GTK4 Vulkan-over-NGL renderer (ironbar). Ticker uses `gl` to work around cairo drawing-area quirks — keep it pinned at the systemd unit level. |
-| `AQ_NO_MODIFIERS` | `1` | Resolves ~80% of Aquamarine rendering corruption on NVIDIA. Remove only if DMA-BUF modifiers are confirmed working cleanly. |
+- Current: `linux612-nvidia-open 590.48.01-15` on kernel `6.12.77-1-MANJARO`.
+- **A "240Hz VRR + explicit_sync" config that matches the Hyprland wiki's
+  current guidance will NOT run cleanly on this driver** (confirmed 2026-04-16 —
+  see "Known regression" below). The aspirational stack is deferred to the
+  next driver release.
 
-## VRR — per-monitor syntax (monitors.conf)
+## Safe baseline (what's committed and working)
 
+### `hyprland.conf` — `env` block
+
+```ini
+env = LIBVA_DRIVER_NAME,nvidia
+env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+env = __GL_GSYNC_ALLOWED,0
+env = __GL_VRR_ALLOWED,0
+env = NVD_BACKEND,direct
+env = GSK_RENDERER,ngl
 ```
-monitor = DP-3, 5120x1440@239.76, 1810x280, 2, vrr, 2
-monitor = DP-2, 2560x1440@180,    4370x0,   2, transform, 3, vrr, 2
-```
 
-VRR mode `2` = fullscreen-only. NVIDIA-safe: prevents Samsung LC49G95T
-backlight flicker that occurs when refresh rate swings under desktop use.
-Mode `1` (always-on) can work but causes visible brightness drift on most
-VA panels.
+Notable **omissions** vs. the old aggressive baseline:
+`GBM_BACKEND=nvidia-drm`, `ELECTRON_OZONE_PLATFORM_HINT=auto`,
+`AQ_NO_MODIFIERS=1`. Re-introducing them individually is the next step —
+see "Re-introduction protocol".
 
-## Compositor blocks (hyprland.conf)
+### `hyprland.conf` — compositor blocks
 
 ```ini
 misc {
-    vfr  = false  # load-bearing for Hypr-DarkWindow animated shaders
-    vrr  = 2      # fullscreen-only (redundant with per-monitor, belt+braces)
+    vfr = false     # load-bearing for Hypr-DarkWindow animated shaders
+    # vrr intentionally omitted — defaults to 0 (off)
 }
 
 render {
-    direct_scanout      = 1  # zero-copy for fullscreen apps (games, video)
-    explicit_sync       = 2  # force on; stable with driver 570+
-    explicit_sync_kms   = 2  # keep on; flip to 0 if driver 560 regression returns
+    direct_scanout = 1
+    # explicit_sync / explicit_sync_kms intentionally omitted — defaults to auto.
+    # Forcing either to 2 triggers nvidia-modeset planePitch ERROR on 590.48.01.
 }
 
 cursor {
-    no_hardware_cursors = true  # NVIDIA Wayland HW cursors still broken in 2026
+    no_hardware_cursors = 0   # keep at 0; flipping to true did not help and
+                              # the deprecated WLR_NO_HARDWARE_CURSORS env is
+                              # still exported by the session start script.
 }
 
 debug {
-    damage_tracking = 2          # full — required for 240Hz perf
-    overlay         = false      # toggle via `hyprctl keyword debug:overlay 1` during tuning
+    damage_tracking = 2
+    overlay = false
 }
 ```
+
+### `monitors.conf`
+
+```
+monitor = DP-3, 5120x1440@239.76, 1810x280, 2
+monitor = DP-2, 2560x1440@180,    4370x0,   2, transform, 3
+```
+
+No `vrr` flag on either monitor until the driver-level regression is resolved.
+
+## Known regression — 2026-04-16, driver 590.48.01
+
+Commit `5c119fb feat(hyprland): NVIDIA + 240Hz frame pacing foundation`
+introduced **five** surface-allocation changes simultaneously (explicit_sync=2,
+explicit_sync_kms=2, misc:vrr=2, per-monitor vrr flags, plus new env vars).
+First boot after the commit produced `nvidia-modeset: ERROR: Invalid request
+parameters, planePitch or rmObjectSizeInBytes, passed during surface
+registration` at Wayland session start. After the first failure, the Samsung
+LC49G95T dropped out of its DSC-dependent EDID modes — `hyprctl monitors`
+reported both displays stuck at `0x0@60Hz` and `availableModes` no longer
+listed `5120x1440`. Symptoms:
+
+1. Black screen on Hyprland session start.
+2. `hyprctl` IPC still responsive — compositor itself was alive, just no surface.
+3. Recovery required BOTH a config revert AND a physical power-cycle of the
+   Samsung (hold power for ~8s, unplug 10s, replug) to re-handshake DSC.
+   Software alone could not recover a monitor that had already failed DSC.
+
+Softening only `explicit_sync_kms = 0` was not enough — the other changes
+still triggered planePitch on their own. Full revert + monitor power-cycle
+was the minimum repro-free fix.
+
+## Re-introduction protocol
+
+Before committing any change below to `hyprland.conf`, A/B test at runtime:
+
+```bash
+# snapshot the current value
+hyprctl getoption render:explicit_sync -j | jq
+
+# toggle it and watch for errors
+hyprctl keyword render:explicit_sync 2
+sleep 5
+journalctl -b 0 -k --since '10 sec ago' | grep -c 'nvidia-modeset: ERROR'
+# expect 0; if non-zero, revert:
+hyprctl keyword render:explicit_sync 0
+```
+
+If the Samsung goes to 0x0 during an A/B test, stop and physically power-cycle
+before trying the next setting — leaving the monitor in a failed-DSC state
+will mask the cause of subsequent tests.
+
+Suggested re-introduction order (least risk first):
+
+1. `__GL_GSYNC_ALLOWED=1`, `__GL_VRR_ALLOWED=1` — pure env vars, app-side effect.
+2. `GBM_BACKEND=nvidia-drm` — env var, affects newly-launched clients only.
+3. `AQ_NO_MODIFIERS=1` — documented upstream to *reduce* NVIDIA corruption.
+4. Per-monitor `vrr, 2` on DP-2 (portrait, less DSC-sensitive than the Samsung).
+5. Per-monitor `vrr, 2` on DP-3 (Samsung — highest risk).
+6. `misc:vrr = 2` — global (redundant with per-monitor, belt+braces).
+7. `render:explicit_sync = 2` — requires driver-level handshake.
+8. `render:explicit_sync_kms = 2` — **leave last; confirmed regression on 590.48.01**.
 
 ## Kernel-module settings (etc/modprobe.d/)
 
 - `nvidia-nogsp.conf`: `options nvidia NVreg_EnableGpuFirmware=0` —
-  disables GSP firmware. Required for multi-monitor detection on
-  nvidia-open / GA102. Do **not** remove.
+  disables GSP firmware. Required for multi-monitor detection on nvidia-open / GA102.
 - `mhwd-gpu.conf`: `options nvidia NVreg_DynamicPowerManagement=0x00` —
-  no runtime power management. Keep at `0x00` for desktops; laptops
-  should use `0x02` for suspend/resume support.
+  no runtime power management. Desktop value; laptops use `0x02`.
 
-## Kernel cmdline (GRUB / rEFInd)
+## Kernel cmdline (rEFInd — `/boot/refind_linux.conf`)
 
 ```
 nvidia_drm.modeset=1 nvidia_drm.fbdev=1 nvidia.NVreg_PreserveVideoMemoryAllocations=1
 ```
 
-All three are required for clean suspend/resume + Wayland modesetting
-on RTX cards.
+All three required for clean suspend/resume + Wayland modesetting.
+
+## Monitor recovery — DSC failure
+
+The Samsung LC49G95T (and similar VA ultrawides with DSC-only native modes)
+can get stuck exposing only fallback EDID modes once DSC negotiation fails.
+`hyprctl dispatch dpms off/on` does NOT recover this — only hardware power
+removal does.
+
+Recovery procedure:
+1. Exit Hyprland (`hyprctl dispatch exit` or kill the process).
+2. Hold monitor power button ~8 seconds until fully off.
+3. Unplug monitor power for 10+ seconds.
+4. Replug, let the monitor fully boot.
+5. Log back in through greetd → fresh Hyprland reads EDID with DSC restored.
 
 ## Known-bad settings to avoid
 
-- `WLR_NO_HARDWARE_CURSORS=1` — **deprecated**. Use `cursor { no_hardware_cursors = true }` in hyprland.conf instead.
+- `WLR_NO_HARDWARE_CURSORS=1` — **deprecated** by Hyprland; use
+  `cursor { no_hardware_cursors = true }` in hyprland.conf instead. However,
+  on driver 590.48.01 even the config-form flip triggered downstream issues,
+  so keep at `0` until tested.
 - `__GL_SYNC_TO_VBLANK=1` — no longer needed on Wayland (compositor governs vblank).
-- `__NV_PRIME_RENDER_OFFLOAD` — only relevant for hybrid-GPU laptops; leave unset on desktop.
+- `__NV_PRIME_RENDER_OFFLOAD` — hybrid-GPU laptops only; unset on desktop.
 - `KWIN_DRM_NO_AMS` — KWin-specific, irrelevant to Hyprland.
+- **`render:explicit_sync_kms = 2` on nvidia-open 590.48.01** — confirmed
+  triggers planePitch surface-registration errors. Revisit on next driver bump.
 
-## Runtime A/B testing pattern
-
-```bash
-# Baseline
-hyprctl getoption misc:vrr -j | jq '.int'
-nvtop                                    # note idle GPU %
-
-# Test change
-hyprctl keyword misc:vrr 2
-# Wait 5-10s for driver to reassess, observe nvtop
-
-# If good, persist to hyprland.conf and reload
-hyprctl reload
-
-# If bad, revert
-hyprctl keyword misc:vrr 0
-```
-
-## Profiling tools (from scripts/hypr-perf-mode.sh and skills/perf_profile)
+## Profiling tools
 
 - `hyprctl debug:overlay 1` — compositor FPS/frametime overlay
 - `nvtop` — NVIDIA engine utilization + VRAM + power
 - `mangohud` — per-app Vulkan/OpenGL frame timing
 - `gamescope -W W -H H --expose-wayland -- app` — microsecond frame timing via mangoapp
-- `hyprctl monitors -j` — per-monitor state
+- `hyprctl monitors -j` — per-monitor state, DSC/EDID sanity check
 
 ## Perf-mode toggle
 
-Use `hypr-perf-mode.sh` (keybind `$mod CTRL ALT Q`) to live-toggle between
-`quality` (committed config) and `performance` (reduced blur, no shadow,
-vfr on, overlay on). State persisted at `~/.local/state/hypr-perf-mode`.
+`hypr-perf-mode.sh` (keybind `$mod CTRL ALT Q`) live-toggles between
+`quality` and `performance` (reduced blur, no shadow, vfr on, overlay on).
+State persisted at `~/.local/state/hypr-perf-mode`.
 
 ## Source of record
 
-All claims here trace back to: Hyprland wiki (`wiki.hypr.land/Nvidia/`,
-`/Configuring/Monitors/`, `/Hypr-Ecosystem/aquamarine/`), Hyprland v0.52
-release notes, NVIDIA driver 570 changelog, Phoronix HDR/color-management
-reporting. When driver / compositor major version changes, re-validate
-this file against current upstream recommendations.
+- Hyprland wiki: `wiki.hypr.land/Nvidia/`, `/Configuring/Monitors/`,
+  `/Hypr-Ecosystem/aquamarine/`
+- Hyprland v0.54.2 release notes
+- NVIDIA driver 590 release notes
+- Session logs 2026-04-16 `investigate-boot-issues-linear-wombat` documenting
+  the planePitch + DSC failure chain
+
+Re-validate against upstream on every driver or Hyprland major-version bump —
+this file describes a constrained safe state, not the long-term target.
