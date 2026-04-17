@@ -12,11 +12,11 @@ Target stack: RTX 3090 (GA102/Ampere), Hyprland 0.54.2, Samsung LC49G95T @
 
 ## Driver state
 
-- Current: `linux612-nvidia-open 590.48.01-15` on kernel `6.12.77-1-MANJARO`.
-- **A "240Hz VRR + explicit_sync" config that matches the Hyprland wiki's
-  current guidance will NOT run cleanly on this driver** (confirmed 2026-04-16 —
-  see "Known regression" below). The aspirational stack is deferred to the
-  next driver release.
+- **Pinned stack (working)**: `linux612 6.12.77-1` + `linux612-nvidia 590.48.01-15` (proprietary, NOT nvidia-open). Verified 2026-04-16 with full VRR config — 0 planePitch errors, both monitors at native modes.
+- **Known-bad kernels on nvidia 590.48.01 (proprietary)**: `linux619 6.19.8-1` + `linux619-nvidia 590.48.01-10` — also triggers planePitch. The regression is not just the nvidia-open variant; linux 6.19's DRM subsystem hands parameters to nvidia-modeset that the 590 module rejects regardless of open/proprietary. Black-screens both monitors at session start.
+- **Known-bad driver variant on kernel 6.12**: `linux*-nvidia-open 590.48.01` — original planePitch source. Swap to proprietary `linux*-nvidia` at the same version.
+- **Pin GRUB default to the 6.12 entry** so automatic updates don't revert you to 6.19 on a routine reboot.
+- The aspirational "newer kernel + 240Hz VRR" stack is deferred until the nvidia driver ships 595.x in Manjaro (595.58.03 is already in upstream NVIDIA as of March 2026).
 
 ## Safe baseline (what's committed and working)
 
