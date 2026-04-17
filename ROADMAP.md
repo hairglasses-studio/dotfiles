@@ -146,7 +146,7 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 
 - [ ] [P2][M] YAML ledger handoff hook — Stop hook writes structured YAML to `.claude/sessions/{id}.yaml` capturing session state, decisions, progress; SessionStart hook reads and injects. Ref: Continuous-Claude-v3 (3.7K stars)
 - [x] [P2][S] TDD enforcement hook — `scripts/claude-tdd-reminder.sh` is a PreToolUse advisory hook: on Go source writes, injects a systemMessage reminder unless a test file was written in-session or committed in the last hour. Generated-code and test-file writes stay silent. Opt-in via settings.json. Ref: nizos/tdd-guard, obra/superpowers
-- [ ] [P2][S] Verify-before-complete gate — hook preventing task completion without running tests first. Ref: obra/superpowers
+- [x] [P2][S] Verify-before-complete gate — `scripts/claude-verify-gate.sh` (Stop hook) + `scripts/claude-verify-track.sh` (PreToolUse tracker). Emits a systemMessage at stop time if the session wrote source without running tests. Tracks 6 test-runner patterns (go/cargo/pytest/npm/yarn/make). Idempotent — reminds once per session. Ref: obra/superpowers
 - [ ] [P2][M] PostToolUse hook wiring — marathon completion events sync to docs-mcp roadmap state. Ref: autonomy gap analysis
 
 ### Tier 3 — Low Priority / Exploratory
