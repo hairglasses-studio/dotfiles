@@ -12,11 +12,12 @@ Target stack: RTX 3090 (GA102/Ampere), Hyprland 0.54.2, Samsung LC49G95T @
 
 ## Driver state
 
-- **Pinned stack (working)**: `linux612 6.12.77-1` + `linux612-nvidia 590.48.01-15` (proprietary, NOT nvidia-open). Verified 2026-04-16 with full VRR config — 0 planePitch errors, both monitors at native modes.
-- **Known-bad kernels on nvidia 590.48.01 (proprietary)**: `linux619 6.19.8-1` + `linux619-nvidia 590.48.01-10` — also triggers planePitch. The regression is not just the nvidia-open variant; linux 6.19's DRM subsystem hands parameters to nvidia-modeset that the 590 module rejects regardless of open/proprietary. Black-screens both monitors at session start.
-- **Known-bad driver variant on kernel 6.12**: `linux*-nvidia-open 590.48.01` — original planePitch source. Swap to proprietary `linux*-nvidia` at the same version.
-- **Pin GRUB default to the 6.12 entry** so automatic updates don't revert you to 6.19 on a routine reboot.
-- The aspirational "newer kernel + 240Hz VRR" stack is deferred until the nvidia driver ships 595.x in Manjaro (595.58.03 is already in upstream NVIDIA as of March 2026).
+- **Pinned stack (working)**: `linux612 6.12.77-1` + `linux612-nvidia 590.48.01-15` (proprietary) + Hyprland `0.54.2` **without** VRR / explicit_sync / aggressive env config. Verified 2026-04-16.
+- **Real root cause of the 2026-04-16 regression**: the VRR + sync config block (`misc:vrr=2`, per-monitor `vrr,2`, `AQ_NO_MODIFIERS=1`, `GBM_BACKEND=nvidia-drm`, `__GL_GSYNC_ALLOWED=1`, `__GL_VRR_ALLOWED=1`) triggers `nvidia-modeset: ERROR: ... planePitch ...` when applied at **compositor startup**. Applying the same settings at runtime via `hyprctl keyword` does NOT reproduce it — different allocation path. This makes live A/B testing unreliable for the VRR config; the only honest signal is a clean session spawn after a login cycle.
+- **Known-bad driver variant**: `linux*-nvidia-open 590.48.01` — surface-registration bug upstream. Swap to proprietary `linux*-nvidia` at the same version.
+- **linux619 is installed but unused.** It was tested with the VRR config still active and reproduced planePitch. Because VRR is the confirmed startup trigger and we never retested 6.19 without it, we cannot attribute the 6.19 failure to the kernel alone. Treat 6.19 as "untested clean; revisit only when NVIDIA 595.x lands in Manjaro."
+- **Pin GRUB saved default to the 6.12 entry** (`grub-set-default "Advanced options for Manjaro Linux>Manjaro Linux (Kernel: 6.12.77-1-MANJARO x64)"`) so routine updates don't silently boot you into 6.19.
+- The aspirational "240Hz VRR" stack stays deferred. Re-attempt after NVIDIA 595.x ships, and A/B test **only via fresh login cycles**, not `hyprctl keyword`.
 
 ## Safe baseline (what's committed and working)
 
