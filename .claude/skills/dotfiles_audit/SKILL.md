@@ -25,9 +25,35 @@ Run all checks in parallel where possible. Organize results into three severity 
 2. **Shell syntax**: `bash -n scripts/*.sh scripts/lib/*.sh`
 3. **Chezmoi verify**: `chezmoi verify`
 4. **Contract drift**: `cd mcp/dotfiles-mcp && make contract-check` (if target exists, otherwise skip)
-5. **Systemd failures**: `systemctl --user --failed`
+5. **Systemd failures**: `systemctl --user --failed` and `systemctl --system --failed`
 6. **Broken symlinks**: `find ~/.config -xtype l 2>/dev/null` (filter browser/app noise)
 7. **Dead resource handlers**: grep Go code for resource URIs referencing deleted directories
+8. **Orphan systemd units from recent removal commits** — catches the "dotfiles removed config, package + systemd unit still enabled" class. Reference case: makima.service restart-looped 777+ times on 2026-04-16 after commit `664d0f3` dropped `~/.config/makima/` without disabling the system-level unit. For each `.service` / `.socket` / `.timer` / `.rules` / `.desktop` file removed in the last 14 days of commits, verify it's not still live on the running system:
+   ```bash
+   cd "$(git rev-parse --show-toplevel)"
+   removed=$(git log --since='14 days ago' --diff-filter=D --name-only --pretty=format: \
+     | grep -E '\.(service|socket|timer|rules|desktop)$' \
+     | awk -F/ '{print $NF}' | sed 's/\.[^.]*$//' | sort -u)
+   for name in $removed; do
+     # is the system unit still active/enabled/unmasked?
+     if systemctl cat "$name.service" >/dev/null 2>&1; then
+       state=$(systemctl is-enabled "$name.service" 2>/dev/null)
+       case "$state" in
+         masked|not-found) : ;;  # fine
+         *) echo "ORPHAN: $name.service state=$state — mask or remove";;
+       esac
+     fi
+     # same for user units
+     if sudo -u hg systemctl --user cat "$name.service" >/dev/null 2>&1; then
+       state=$(sudo -u hg systemctl --user is-enabled "$name.service" 2>/dev/null)
+       case "$state" in masked|not-found) : ;; *) echo "ORPHAN (user): $name state=$state";; esac
+     fi
+     # quick restart-loop heuristic — any unit whose restart-counter climbed recently
+     journalctl -u "$name.service" --since '1 hour ago' --no-pager 2>/dev/null \
+       | grep -c 'restart counter is at' | awk -v n="$name" '$1>20 {print "RESTART-LOOP: " n "=" $1 " restarts in last hour"}'
+   done
+   ```
+   For each ORPHAN: `sudo systemctl disable --now <unit>` then `sudo systemctl mask <unit>` (masking is durable across updates; disable-alone can be re-enabled by a package update). If the whole package is obsolete, `pacman -Rns <pkg>` instead. **Document the decision in the removal commit message** (leaving a trail for audits of audits).
 
 ### Tier 2 — STALE (wrong names, old hex values, phantom tool references)
 
