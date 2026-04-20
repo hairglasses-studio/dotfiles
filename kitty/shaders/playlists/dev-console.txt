@@ -1,0 +1,12 @@
+# dev-console shader playlist — hacker-coded cyberpunk aesthetic.
+# Applied to the Mod+` dropdown claude-code console on each fresh spawn
+# (pypr lazy=true means the console only spawns once per session).
+# Entries are .glsl filenames; the launcher strips the extension before
+# dispatching via `hyprctl dispatch darkwindow:shade`.
+cyber-glitch-holo.glsl
+cyberpunk-hud.glsl
+circuit-trace.glsl
+matrix-glow.glsl
+neon-hex-grid.glsl
+holo-display.glsl
+computer-glitchy.glsl
