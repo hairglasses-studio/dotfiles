@@ -36,7 +36,7 @@ def build():
     if first.startswith("install arch-audit"):
         parts = [tr.badge(_LABEL, "#f59e0b")]
         parts.append(
-            f'<span font_desc="Maple Mono NF CN 11" foreground="#fbbf24">'
+            f'<span font_desc="Maple Mono NF CN 15" foreground="#fbbf24">'
             f'  {escape(first)}  \u00b7</span>'
         )
         return tr.dup("".join(parts)), []
@@ -45,7 +45,7 @@ def build():
     color = "#dc2626" if any_critical else ("#f97316" if any_high else "#f59e0b")
     parts = [tr.badge(_LABEL, color)]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fca5a5">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="#fca5a5">'
         f'  {escape(first)}  \u00b7</span>'
     )
     fc = len(FONTS)

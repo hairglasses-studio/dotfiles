@@ -40,13 +40,13 @@ def build():
     ncpu = os.cpu_count() or 1
     color = "#ff5c8a" if one > ncpu else "#f7fbff"
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="{color}">'
         f'  {spark} 1m={one:.2f} 5m={five:.2f} 15m={fifteen:.2f}  '
         f'(cpus={ncpu})  \u00b7</span>'
     )
     running = fields[3] if len(fields) > 3 else "?"
     parts.append(
-        f'<span font_desc="Maple Mono NF CN 11">'
+        f'<span font_desc="Maple Mono NF CN 15">'
         f'  {escape(running)} tasks  \u00b7</span>'
     )
     return tr.dup("".join(parts)), []

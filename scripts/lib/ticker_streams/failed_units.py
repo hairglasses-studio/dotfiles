@@ -39,7 +39,7 @@ def build():
         return tr.empty("\U000f0028 FAILED", "#34d399", "no failed units")
     parts = [tr.badge("\U000f0028 FAILED", "#ef4444")]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#ef4444">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="#ef4444">'
         f'  {len(entries)} failed  \u00b7</span>'
     )
     fc = len(FONTS)

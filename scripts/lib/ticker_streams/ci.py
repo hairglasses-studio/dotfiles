@@ -48,7 +48,7 @@ def build():
     parts = [tr.badge(_LABEL, badge_color)]
     summary = f"\u2713{counts['PASS']}  \u2717{counts['FAIL']}  \u23f3{counts['RUN']}"
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11">  {escape(summary)}  \u00b7</span>'
+        f'<span font_desc="Maple Mono NF CN Bold 15">  {escape(summary)}  \u00b7</span>'
     )
 
     fc = len(FONTS)

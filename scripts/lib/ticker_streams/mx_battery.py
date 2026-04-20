@@ -30,7 +30,7 @@ def build():
     color = "#ff5c8a" if pct is not None and pct < 20 else "#f7fbff"
     parts = [tr.badge(_LABEL, _COLOR)]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="{color}">'
         f'  {escape(raw)}  \u00b7</span>'
     )
     return tr.dup("".join(parts)), []

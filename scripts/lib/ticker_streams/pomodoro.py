@@ -49,7 +49,7 @@ def build():
         status = "idle"
     parts = [tr.badge(_LABEL, color)]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="{color}">'
         f'  {escape(status)}  \u00b7</span>'
     )
     return tr.dup("".join(parts)), []

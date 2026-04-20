@@ -85,7 +85,7 @@ if LAYER_MODE:
 # Configuration
 # ══════════════════════════════════════════════════
 
-BAR_H = 28
+BAR_H = 39
 DEFAULT_REFRESH_S = 300
 ERROR_BACKOFF_S = 30  # Streams that returned _empty() advance after this instead of their full refresh interval, so a broken stream cannot freeze the ticker.
 MAX_DWELL_S = 75  # Cap on how long any single stream stays on screen. Sized so content at ~55 px/s can traverse a 3840px ultrawide (~70s) before rotating. Prevents long cache TTLs (weather=1800, arch-news=3600) from freezing rotation.
@@ -99,16 +99,16 @@ DEFAULT_PLAYLIST = "main"
 
 # Maple font weight cycle
 FONTS = [
-    "Maple Mono NF CN 11",
-    "Maple Mono NF CN Bold 11",
-    "Maple Mono NF CN Italic 11",
-    "Maple Mono NF CN SemiBold 11",
-    "Maple Mono NF CN Light 11",
-    "Maple Mono NF CN Medium 11",
-    "Maple Mono NF CN ExtraBold 11",
-    "Maple Mono NF CN Thin 11",
-    "Maple Mono NF CN ExtraLight 11",
-    "Maple Mono NF CN Bold Italic 11",
+    "Maple Mono NF CN 15",
+    "Maple Mono NF CN Bold 15",
+    "Maple Mono NF CN Italic 15",
+    "Maple Mono NF CN SemiBold 15",
+    "Maple Mono NF CN Light 15",
+    "Maple Mono NF CN Medium 15",
+    "Maple Mono NF CN ExtraBold 15",
+    "Maple Mono NF CN Thin 15",
+    "Maple Mono NF CN ExtraLight 15",
+    "Maple Mono NF CN Bold Italic 15",
 ]
 
 # Hairglasses Neon gradient stops
@@ -238,7 +238,7 @@ def build_system_markup():
                 if isinstance(val, dict) and "Tctl" in str(key):
                     for k2, v2 in val.items():
                         if "input" in k2:
-                            parts.append(f'<span font_desc="Maple Mono NF CN SemiBold 11">   {v2:.0f}\u00b0C  \u00b7</span>')
+                            parts.append(f'<span font_desc="Maple Mono NF CN SemiBold 15">   {v2:.0f}\u00b0C  \u00b7</span>')
     except Exception:
         pass
     try:
@@ -248,7 +248,7 @@ def build_system_markup():
             capture_output=True, text=True, timeout=3,
         ).stdout.strip().split(", ")
         if len(gpu) >= 3:
-            parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">  GPU {escape(gpu[0])}W  {escape(gpu[1])}\u00b0C  {escape(gpu[2])}%  \u00b7</span>')
+            parts.append(f'<span font_desc="Maple Mono NF CN Bold 15">  GPU {escape(gpu[0])}W  {escape(gpu[1])}\u00b0C  {escape(gpu[2])}%  \u00b7</span>')
     except Exception:
         pass
     try:
@@ -259,14 +259,14 @@ def build_system_markup():
                 total = int(fields[1])
                 if total > 0:
                     pct = int(fields[2]) * 100 // total
-                    parts.append(f'<span font_desc="Maple Mono NF CN 11">   {pct}%  \u00b7</span>')
+                    parts.append(f'<span font_desc="Maple Mono NF CN 15">   {pct}%  \u00b7</span>')
     except Exception:
         pass
     try:
         with open("/proc/uptime") as f:
             up_s = float(f.read().split()[0])
             h, m = int(up_s // 3600), int((up_s % 3600) // 60)
-            parts.append(f'<span font_desc="Maple Mono NF CN Light 11">  up {h}h{m}m  \u00b7</span>')
+            parts.append(f'<span font_desc="Maple Mono NF CN Light 15">  up {h}h{m}m  \u00b7</span>')
     except Exception:
         pass
     return _dup("".join(parts)), []
@@ -280,16 +280,16 @@ def build_fleet_markup():
         fl = data.get("fleet", {})
         cost = data.get("cost", {})
         loops = data.get("loops", {})
-        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">'
+        parts.append(f'<span font_desc="Maple Mono NF CN Bold 15">'
                      f'  {int(fl.get("running",0))} running  {int(fl.get("completed",0))} done  '
                      f'{int(fl.get("failed",0))} failed  {int(fl.get("pending",0))} pending  \u00b7</span>')
-        parts.append(f'<span font_desc="Maple Mono NF CN SemiBold 11">'
+        parts.append(f'<span font_desc="Maple Mono NF CN SemiBold 15">'
                      f'  {int(loops.get("total_runs",0))} loops  ${escape(str(cost.get("total_spend_usd",0)))}  \u00b7</span>')
         models = data.get("models", [])
         for m in models[:3]:
             model_name = escape(str(m.get("model", "")))
             count = int(m.get("count", 0))
-            parts.append(f'<span font_desc="Maple Mono NF CN Italic 11">'
+            parts.append(f'<span font_desc="Maple Mono NF CN Italic 15">'
                          f'  {model_name} \u00d7{count}  \u00b7</span>')
     except Exception:
         return _empty("\U000f0168 FLEET", "#ff47d1", "no fleet data")
@@ -388,7 +388,7 @@ def build_music_markup():
         status = ""
     if status not in ("Playing", "Paused"):
         parts.append(
-            '<span font_desc="Maple Mono NF CN 11" foreground="#66708f">'
+            '<span font_desc="Maple Mono NF CN 15" foreground="#66708f">'
             '   idle  \u00b7</span>'
         )
         return _dup("".join(parts)), []
@@ -407,7 +407,7 @@ def build_music_markup():
             ["playerctl", "metadata", "--format", "{{duration(mpris:length)}}"],
             capture_output=True, text=True, timeout=3,
         ).stdout.strip()
-        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">'
+        parts.append(f'<span font_desc="Maple Mono NF CN Bold 15">'
                      f'  {icon} {escape(meta)}  {escape(pos)}/{escape(dur)}  \u00b7</span>')
     except Exception:
         return _empty(" MUSIC", "#ff47d1", "playerctl unavailable")
@@ -423,7 +423,7 @@ def build_updates_markup():
             raw = f.read().strip()
         if not raw:
             return _empty("\U000f0f8c UPDATES", "#29f0ff", "no updates")
-        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">  {escape(raw)}  \u00b7</span>')
+        parts.append(f'<span font_desc="Maple Mono NF CN Bold 15">  {escape(raw)}  \u00b7</span>')
         # Add top package names if checkupdates is available
         try:
             pkgs = subprocess.run(
@@ -507,13 +507,13 @@ def build_cpu_markup():
             primary = next((v for l, v in temps if l in ("Tctl", "Package id 0")), temps[0][1])
             t_color = "#ff5c8a" if primary >= 85 else ("#ffe45e" if primary >= 75 else "#76ff03")
             parts.append(
-                f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{t_color}">'
+                f'<span font_desc="Maple Mono NF CN Bold 15" foreground="{t_color}">'
                 f'  {primary}°C  \u00b7</span>'
             )
             extra = [f"{l} {v}" for l, v in temps if l != "Tctl" and l != "Package id 0"][:3]
             if extra:
                 parts.append(
-                    f'<span font_desc="Maple Mono NF CN 11" foreground="#9fb2ff">'
+                    f'<span font_desc="Maple Mono NF CN 15" foreground="#9fb2ff">'
                     f'  {escape(" ".join(extra))}  \u00b7</span>'
                 )
 
@@ -522,12 +522,12 @@ def build_cpu_markup():
             max_ghz = max(freqs) / 1_000_000
             f_color = "#76ff03" if avg_ghz < 3.5 else ("#ffe45e" if avg_ghz < 4.5 else "#ff5c8a")
             parts.append(
-                f'<span font_desc="Maple Mono NF CN 11" foreground="{f_color}">'
+                f'<span font_desc="Maple Mono NF CN 15" foreground="{f_color}">'
                 f'  avg {avg_ghz:.2f} GHz  max {max_ghz:.2f} GHz  \u00b7</span>'
             )
 
         parts.append(
-            f'<span font_desc="Maple Mono NF CN 11" foreground="#7ad0ff">'
+            f'<span font_desc="Maple Mono NF CN 15" foreground="#7ad0ff">'
             f'  {ncpu} threads  \u00b7</span>'
         )
     except Exception:
@@ -559,15 +559,15 @@ def build_gpu_markup():
         mem_color = "#ff5c8a" if mem_pct > 90 else ("#ffe45e" if mem_pct > 70 else "#76ff03")
         spark = _sparkline([util_n / 100.0 for _ in range(6)])  # placeholder — single reading
         parts.append(
-            f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{util_color}">'
+            f'<span font_desc="Maple Mono NF CN Bold 15" foreground="{util_color}">'
             f'  {util_n}% util  \u00b7</span>'
-            f'<span font_desc="Maple Mono NF CN 11" foreground="{temp_color}">'
+            f'<span font_desc="Maple Mono NF CN 15" foreground="{temp_color}">'
             f'  {temp_n}°C  \u00b7</span>'
-            f'<span font_desc="Maple Mono NF CN 11" foreground="#7ad0ff">'
+            f'<span font_desc="Maple Mono NF CN 15" foreground="#7ad0ff">'
             f'  {power}W  \u00b7</span>'
-            f'<span font_desc="Maple Mono NF CN 11" foreground="{mem_color}">'
+            f'<span font_desc="Maple Mono NF CN 15" foreground="{mem_color}">'
             f'  {mem_used_n}/{mem_total_n} MiB ({mem_pct:.0f}%)  \u00b7</span>'
-            f'<span font_desc="Maple Mono NF CN 11" foreground="#9fb2ff">'
+            f'<span font_desc="Maple Mono NF CN 15" foreground="#9fb2ff">'
             f'  {escape(name)}  \u00b7</span>'
         )
     except FileNotFoundError:
@@ -587,7 +587,7 @@ def build_workspace_markup():
         monitor = escape(str(aws.get("monitor", "")))
         name = escape(str(aws.get("name", "")))
         windows = int(aws.get("windows", 0))
-        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">'
+        parts.append(f'<span font_desc="Maple Mono NF CN Bold 15">'
                      f'  ws={name} on {monitor}  {windows} windows  \u00b7</span>')
         # active window
         aw = json.loads(subprocess.run(
@@ -597,7 +597,7 @@ def build_workspace_markup():
         cls = escape(str(aw.get("class", ""))[:30])
         title = escape(str(aw.get("title", ""))[:50])
         if cls:
-            parts.append(f'<span font_desc="Maple Mono NF CN Italic 11">  {cls}: {title}  \u00b7</span>')
+            parts.append(f'<span font_desc="Maple Mono NF CN Italic 15">  {cls}: {title}  \u00b7</span>')
         # all workspaces summary
         all_ws = json.loads(subprocess.run(
             ["hyprctl", "workspaces", "-j"],
@@ -605,7 +605,7 @@ def build_workspace_markup():
         ).stdout)
         total = len(all_ws)
         busy = sum(1 for w in all_ws if w.get("windows", 0) > 0)
-        parts.append(f'<span font_desc="Maple Mono NF CN 11">  {busy}/{total} workspaces active  \u00b7</span>')
+        parts.append(f'<span font_desc="Maple Mono NF CN 15">  {busy}/{total} workspaces active  \u00b7</span>')
     except Exception:
         return _empty("\U000f0708 WORKSPACE", "#ff47d1", "hyprctl unavailable")
     return _dup("".join(parts)), []
@@ -642,7 +642,7 @@ def build_claude_sessions_markup():
         project_stats.sort(key=lambda t: t[2], reverse=True)
         total_projects = len(project_stats)
         total_sessions = sum(s for _, s, _ in project_stats)
-        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">'
+        parts.append(f'<span font_desc="Maple Mono NF CN Bold 15">'
                      f'  {total_projects} projects · {total_sessions} sessions  \u00b7</span>')
         STUDIO_PREFIX = "-home-hg-hairglasses-studio-"
         HOME_PREFIX = "-home-hg-"
@@ -1052,8 +1052,12 @@ _WATER_TAU = 6.28318530718
 
 
 def compute_water_caustic(width, height, time_s):
-    sw = width // _WATER_SCALE
-    sh = max(height // _WATER_SCALE, 2)
+    # Ceil-divide so that after the final np.repeat upscale we have *at
+    # least* `height` rows and `width` cols; `[:height, :width]` then trims
+    # to the exact size. Floor-division undersized the output when BAR_H
+    # wasn't a multiple of _WATER_SCALE (e.g. 39 / 4 → 9*4=36 < 39).
+    sw = (width  + _WATER_SCALE - 1) // _WATER_SCALE
+    sh = max((height + _WATER_SCALE - 1) // _WATER_SCALE, 2)
     t = time_s * 0.5 + 23.0
     ux = np.linspace(0, 1, sw, dtype=np.float32)
     uy = np.linspace(0, 1, sh, dtype=np.float32)

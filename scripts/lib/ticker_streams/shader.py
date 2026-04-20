@@ -40,18 +40,18 @@ def build():
         return tr.empty(_LABEL, "#f97316", "no shader active")
     if shader_name:
         parts.append(
-            f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#f97316">'
+            f'<span font_desc="Maple Mono NF CN Bold 15" foreground="#f97316">'
             f'  {escape(shader_name)}  \u00b7</span>'
         )
         segments.append(shader_name)
     else:
         parts.append(
-            '<span font_desc="Maple Mono NF CN Bold 11" foreground="#888888">'
+            '<span font_desc="Maple Mono NF CN Bold 15" foreground="#888888">'
             '  no shader  \u00b7</span>'
         )
     if sunset_state:
         parts.append(
-            f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#ffe45e">'
+            f'<span font_desc="Maple Mono NF CN Italic 15" foreground="#ffe45e">'
             f'  hyprsunset: {escape(sunset_state)}  \u00b7</span>'
         )
         segments.append(sunset_state)

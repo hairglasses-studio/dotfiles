@@ -34,7 +34,7 @@ def build():
             uniq.append(msg)
     parts = [tr.badge(_LABEL, _RED)]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#ef4444">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="#ef4444">'
         f'  {len(uniq)} err  \u00b7</span>'
     )
     fc = len(FONTS)

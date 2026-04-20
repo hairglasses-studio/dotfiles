@@ -59,19 +59,19 @@ def build():
 
     parts = [tr.badge(_LABEL, "#dc2626")]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 12" foreground="#f87171">'
+        f'<span font_desc="Maple Mono NF CN Bold 17" foreground="#f87171">'
         f'  {escape(clock)}  \u00b7</span>'
     )
     parts.append(
-        f'<span font_desc="Maple Mono NF CN 11" foreground="#cbd5f5">'
+        f'<span font_desc="Maple Mono NF CN 15" foreground="#cbd5f5">'
         f'  {escape(tool)}  \u00b7</span>'
     )
     parts.append(
-        f'<span font_desc="Maple Mono NF CN 11" foreground="{mic_color}">'
+        f'<span font_desc="Maple Mono NF CN 15" foreground="{mic_color}">'
         f'  {mic_icon} mic  \u00b7</span>'
     )
     parts.append(
-        f'<span font_desc="Maple Mono NF CN 11" foreground="#fbbf24">'
+        f'<span font_desc="Maple Mono NF CN 15" foreground="#fbbf24">'
         f'  disk {escape(free_str)}  \u00b7</span>'
     )
     return tr.dup("".join(parts)), []

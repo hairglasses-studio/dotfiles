@@ -31,9 +31,9 @@ def build():
     boot = time.strftime("%Y-%m-%d %H:%M", time.localtime(boot_ts))
     color = "#ff5c8a" if days >= 30 else ("#ffe45e" if days >= 7 else "#c6a0ff")
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="{color}">'
         f'  {escape(human)}  \u00b7</span>'
-        f'<span font_desc="Maple Mono NF CN 11" foreground="#9fb2ff">'
+        f'<span font_desc="Maple Mono NF CN 15" foreground="#9fb2ff">'
         f'  booted {escape(boot)}  \u00b7</span>'
     )
     return tr.dup("".join(parts)), []

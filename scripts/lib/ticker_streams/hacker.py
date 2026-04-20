@@ -49,13 +49,13 @@ def build():
     if "\t" in line:
         quote, attribution = line.split("\t", 1)
         parts.append(
-            f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#a3e635">  {escape(quote)}  </span>'
+            f'<span font_desc="Maple Mono NF CN Italic 15" foreground="#a3e635">  {escape(quote)}  </span>'
         )
         parts.append(
-            f'<span font_desc="Maple Mono NF CN Bold 10" foreground="#6ee7b7">\u2014 {escape(attribution)}  \u00b7</span>'
+            f'<span font_desc="Maple Mono NF CN Bold 14" foreground="#6ee7b7">\u2014 {escape(attribution)}  \u00b7</span>'
         )
     else:
         parts.append(
-            f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#a3e635">  {escape(line)}  \u00b7</span>'
+            f'<span font_desc="Maple Mono NF CN Italic 15" foreground="#a3e635">  {escape(line)}  \u00b7</span>'
         )
     return tr.dup("".join(parts)), []

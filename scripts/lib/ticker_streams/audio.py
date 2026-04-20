@@ -52,7 +52,7 @@ def build():
     vol_s = f"{volume_pct}%" if volume_pct is not None else "?"
     mute_s = "  [MUTED]" if muted else ""
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{vol_color}">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="{vol_color}">'
         f'  {icon} {nick_s} \u00b7 {vol_s}{escape(mute_s)}  \u00b7</span>'
     )
     if nick:

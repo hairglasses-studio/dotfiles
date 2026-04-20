@@ -44,7 +44,7 @@ def build():
         item_id, score, title = cells
         font = FONTS[i % fc]
         parts.append(
-            f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fbbf24">'
+            f'<span font_desc="Maple Mono NF CN Bold 15" foreground="#fbbf24">'
             f'  {escape(score)}pts  </span>'
             f'<span font_desc="{font}">{escape(title)}  \u00b7</span>'
         )

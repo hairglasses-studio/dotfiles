@@ -60,11 +60,11 @@ def build():
     color = _dbm_color(dbm)
     parts = [tr.badge(_LABEL, color)]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="{color}">'
         f'  {escape(iface)}  \u00b7</span>'
     )
     parts.append(
-        f'<span font_desc="Maple Mono NF CN 11">'
+        f'<span font_desc="Maple Mono NF CN 15">'
         f'  {escape(ssid)}  \u00b7  {escape(signal)}  \u00b7  {escape(bitrate)}  \u00b7</span>'
     )
     return tr.dup("".join(parts)), []

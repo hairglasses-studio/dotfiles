@@ -45,7 +45,7 @@ HAIRGLASSES_NEON = {
 def badge(text: str, bg_hex: str, fg_hex: str = HAIRGLASSES_NEON["bg"]) -> str:
     return (
         f'<span background="{bg_hex}" foreground="{fg_hex}" '
-        f'font_desc="Maple Mono NF CN Bold 10"> {_html_escape(text)} </span>  '
+        f'font_desc="Maple Mono NF CN Bold 14"> {_html_escape(text)} </span>  '
     )
 
 
@@ -54,7 +54,7 @@ def empty(badge_label: str, bg_hex: str, msg: str) -> tuple[str, list[str]]:
     the main ticker loop tag the stream as errored for backoff scheduling."""
     markup = (
         badge(badge_label, bg_hex)
-        + f'<span font_desc="Maple Mono NF CN 11">  {_html_escape(msg)}  \u00b7</span>'
+        + f'<span font_desc="Maple Mono NF CN 15">  {_html_escape(msg)}  \u00b7</span>'
     )
     return markup, ["__EMPTY__"]
 

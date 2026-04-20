@@ -32,10 +32,10 @@ _empty = tr.empty
 _dup = tr.dup
 
 FONTS = [
-    "Maple Mono NF CN Bold 11",
-    "Maple Mono NF CN Italic 11",
-    "Maple Mono NF CN 11",
-    "Maple Mono NF CN SemiBold 11",
+    "Maple Mono NF CN Bold 15",
+    "Maple Mono NF CN Italic 15",
+    "Maple Mono NF CN 15",
+    "Maple Mono NF CN SemiBold 15",
 ]
 
 
@@ -60,7 +60,7 @@ def _make_cache_single(cfg: dict):
     label = cfg["label"]
     color = cfg["color"]
     path = cfg["path"]
-    text_font = cfg.get("text_font", "Maple Mono NF CN Bold 11")
+    text_font = cfg.get("text_font", "Maple Mono NF CN Bold 15")
     text_color = cfg.get("text_color")
     empty_msg = cfg.get("empty_message", "no data")
     missing_msg = cfg.get("missing_message", "cache missing")
@@ -92,7 +92,7 @@ def _make_cache_list(cfg: dict):
     path = cfg["path"]
     list_limit = int(cfg.get("list_limit", 6))
     has_summary = bool(cfg.get("has_summary", True))
-    summary_font = cfg.get("summary_font", "Maple Mono NF CN Bold 11")
+    summary_font = cfg.get("summary_font", "Maple Mono NF CN Bold 15")
     summary_color = cfg.get("summary_color")
     item_color = cfg.get("item_color")
     fail_keywords = tuple(k.upper() for k in cfg.get("fail_keywords", []))

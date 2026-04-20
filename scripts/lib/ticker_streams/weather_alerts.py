@@ -39,7 +39,7 @@ def build():
     color = _SEVERITY_COLORS.get(severity, "#f97316")
     parts = [tr.badge(_LABEL, color)]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fca5a5">'
+        f'<span font_desc="Maple Mono NF CN Bold 15" foreground="#fca5a5">'
         f'  {escape(summary)}  \u00b7</span>'
     )
     fc = len(FONTS)

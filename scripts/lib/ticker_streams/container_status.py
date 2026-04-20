@@ -30,7 +30,7 @@ def build():
     color = "#ef4444" if any_bad else "#0db7ed"
     parts = [tr.badge(_LABEL, color)]
     parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11">'
+        f'<span font_desc="Maple Mono NF CN Bold 15">'
         f'  {len(rows)} running  \u00b7</span>'
     )
     fc = len(FONTS)
