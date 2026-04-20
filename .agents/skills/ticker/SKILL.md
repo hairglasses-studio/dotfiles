@@ -155,6 +155,38 @@ In **layer-shell mode** (default via systemd), the ticker uses `gtk4-layer-shell
 
 In **windowed mode** (no `--layer` flag), the ticker runs as a floating window. Hyprland windowrule pins it to DP-3 at 2560x28 at the bottom.
 
+## New surfaces (Round 2 Phase D)
+
+### window-label
+`scripts/window-label.py` — per-window floating label overlay. 28px
+layer-shell strip anchored TOP+LEFT+RIGHT on DP-2, subscribes to
+`$XDG_RUNTIME_DIR/hypr/*/.socket2.sock` for `activewindow>>` events, and
+renders `<class> · <title>` that fades in on focus change, holds 3s,
+then fades out. Runs as `dotfiles-window-label.service`.
+
+### fleet-sparkline
+`scripts/fleet-sparkline.py` — compact 200×80 sparkline overlay (top-centre
+of DP-2, margin_top=60) showing CPU / MEM / NET / GPU in a 2×2 grid. Samples
+/proc/stat, /proc/meminfo, /proc/net/dev, and /tmp/bar-gpu.txt every 1 s,
+keeps 60 samples. Runs as `dotfiles-fleet-sparkline.service`.
+
+### Known gotcha: layer-shell adjacent surfaces
+Two gtk4-layer-shell surfaces whose edges touch (surface A bottom = surface B
+top) can trigger a GTK clip that erases up to ~half of surface B. Symptom:
+the TOP portion of the lower surface paints transparent even though
+`hyprctl layers` reports the correct size. **Mitigation**: leave ≥16px of
+vertical gap between any two layer-shell surfaces on the same edge. That's
+why `fleet-sparkline` uses `margin_top=60` (16px below `window-label` which
+ends at y=32).
+
+### Known gotcha: DSC-fallback clipping
+If the Samsung ultrawide drops from its native 5120×1440@240 Hz scale=2 mode
+into a DSC-fallback mode (3840×1080@120 Hz scale=1, often after a live VRR
+config change or driver hiccup), layer-shell surfaces render with their top
+portion clipped (~30px truncated, varies with surface height). There is no
+software fix — power-cycle the Samsung per
+`.claude/rules/nvidia-wayland.md` DSC recovery procedure.
+
 ## Multi-instance & Surfaces
 
 ### Secondary instance on DP-3
