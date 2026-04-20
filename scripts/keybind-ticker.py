@@ -1458,6 +1458,49 @@ FALLBACK_ORDER = [
 
 
 # ══════════════════════════════════════════════════
+# Plugin loader (Phase E1)
+#
+# Drop a file at ~/.config/keybind-ticker/plugins/<name>.py that defines:
+#   META = {"preset": "ambient" | None, "refresh": <int seconds>}
+#   def build_markup() -> tuple[str, list[str]]
+# The stream auto-registers as "plugin:<name>". If the plugin import fails
+# we log a warning and skip it — plugins must never be able to crash the
+# ticker.
+# ══════════════════════════════════════════════════
+
+def _load_plugins():
+    import importlib.util as _ilu
+    plugin_dir = os.path.expanduser("~/.config/keybind-ticker/plugins")
+    if not os.path.isdir(plugin_dir):
+        return
+    for entry in sorted(os.listdir(plugin_dir)):
+        if not entry.endswith(".py") or entry.startswith("_"):
+            continue
+        path = os.path.join(plugin_dir, entry)
+        name = f"plugin:{entry[:-3]}"
+        try:
+            spec = _ilu.spec_from_file_location(f"_kt_plugin_{entry[:-3]}", path)
+            if spec is None or spec.loader is None:
+                continue
+            mod = _ilu.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            if not hasattr(mod, "build_markup"):
+                continue
+            STREAMS[name] = mod.build_markup
+            STREAM_META[name] = {
+                "preset": getattr(mod, "META", {}).get("preset"),
+                "refresh": int(getattr(mod, "META", {}).get("refresh", 60)),
+            }
+            if name not in FALLBACK_ORDER:
+                FALLBACK_ORDER.append(name)
+        except Exception as _e:
+            sys.stderr.write(f"plugin load failed: {entry}: {_e}\n")
+
+
+_load_plugins()
+
+
+# ══════════════════════════════════════════════════
 # Per-stream click action dispatch (Phase A3)
 #
 # Each entry is a callable (win, segment_idx, segment_text) → bool. Return
@@ -2142,7 +2185,26 @@ class TickerWindow(Gtk.ApplicationWindow):
         return None
 
     def _show_context_menu(self, x, y):
+        # Remember which segment the right-click landed on so the per-segment
+        # menu items (Copy, Open URL, Dismiss) can target it.
+        self._menu_segment_idx = self._segment_at_x(x)
         menu = Gio.Menu()
+
+        # Per-segment actions at the top of the menu.
+        seg_section = Gio.Menu()
+        cur_stream = self.stream_order[self.stream_idx] if self.stream_order else ""
+        seg_text = ""
+        if (self._menu_segment_idx is not None
+                and self._menu_segment_idx < len(self.segments)):
+            seg_text = self.segments[self._menu_segment_idx] or ""
+        if seg_text:
+            preview = seg_text if len(seg_text) <= 32 else seg_text[:30] + "…"
+            seg_section.append(f"Copy: {preview}", "ticker.copy_segment")
+            if URL_RE.search(seg_text) or seg_text.startswith(("http://", "https://")):
+                seg_section.append("Open URL", "ticker.open_segment")
+            seg_section.append(f"Dismiss {cur_stream}", "ticker.dismiss_stream")
+            menu.append_section("Segment", seg_section)
+
         stream_section = Gio.Menu()
         for name in self.stream_order:
             stream_section.append(name, f"ticker.stream::{name}")
@@ -2207,6 +2269,43 @@ class TickerWindow(Gtk.ApplicationWindow):
             self.pinned_stream = None
             self._save_pin_state()
 
+        def on_copy_segment(action, param):
+            idx = getattr(self, "_menu_segment_idx", None)
+            if idx is None or idx >= len(self.segments):
+                return
+            text = self.segments[idx] or ""
+            if text:
+                try:
+                    subprocess.Popen(["wl-copy", text],
+                                     stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+                except Exception:
+                    pass
+
+        def on_open_segment(action, param):
+            idx = getattr(self, "_menu_segment_idx", None)
+            if idx is None or idx >= len(self.segments):
+                return
+            text = self.segments[idx] or ""
+            m = URL_RE.search(text)
+            url = m.group(0) if m else (text if text.startswith(("http://", "https://")) else None)
+            if url:
+                try:
+                    subprocess.Popen(["xdg-open", url],
+                                     stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+                except Exception:
+                    pass
+
+        def on_dismiss_stream(action, param):
+            # Advance past the current stream once; the playlist rotation
+            # will bring it back next cycle. Useful for noisy streams you
+            # want to skip for now.
+            if self.stream_order:
+                self.stream_idx = (self.stream_idx + 1) % len(self.stream_order)
+                self._rebuild_stream()
+                self._schedule_next_advance()
+
         def on_playlist(action, param):
             new_name = param.get_string()
             if new_name == self.playlist_name:
@@ -2229,9 +2328,12 @@ class TickerWindow(Gtk.ApplicationWindow):
             self._schedule_next_advance()
 
         for act_name, cb, ptype in (
-            ("stream",   on_stream,   GLib.VariantType.new("s")),
-            ("preset",   on_preset,   GLib.VariantType.new("s")),
-            ("playlist", on_playlist, GLib.VariantType.new("s")),
+            ("stream",          on_stream,         GLib.VariantType.new("s")),
+            ("preset",          on_preset,         GLib.VariantType.new("s")),
+            ("playlist",        on_playlist,       GLib.VariantType.new("s")),
+            ("copy_segment",    on_copy_segment,   None),
+            ("open_segment",    on_open_segment,   None),
+            ("dismiss_stream",  on_dismiss_stream, None),
             ("pause",    on_pause,    None),
             ("pin",      on_pin,      None),
             ("unpin",    on_unpin,    None),

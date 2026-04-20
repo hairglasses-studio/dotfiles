@@ -224,6 +224,35 @@ set -g status-right '#(python3 ~/hairglasses-studio/dotfiles/scripts/ticker-head
 
 Flags: `--stream <name>` single-shot, `--playlist <name>` cycle-per-minute, `--list` enumerate, `--limit N` truncate.
 
+## Plugins (Round 2 Phase E1)
+
+Drop-in plugins extend the stream list without modifying `keybind-ticker.py`.
+Each plugin is a single Python file at `~/.config/keybind-ticker/plugins/<name>.py`:
+
+```python
+"""example plugin"""
+META = {"preset": None, "refresh": 5}
+
+def build_markup():
+    badge = '<span background="#29f0ff" foreground="#05070d" font_desc="Maple Mono NF CN Bold 10"> ECHO </span>  '
+    body  = '<span font_desc="Maple Mono NF CN 11">  hello  ·</span>'
+    return badge + body + badge + body, []
+```
+
+Each plugin must define a `META` dict (`preset` + `refresh`) and a
+`build_markup()` returning `(markup_str, segments_list)`. Plugins register
+as `plugin:<filename>` streams. Import failures are logged and skipped — a
+broken plugin can never crash the ticker.
+
+## Per-segment right-click menu (Phase E2)
+
+The context menu shows a **Segment** section when a right-click lands on a
+text segment:
+- **Copy: <snippet>** — copies the segment text to the Wayland clipboard via `wl-copy`.
+- **Open URL** — if the segment contains a `http(s)://` URL, `xdg-open`s it.
+- **Dismiss <stream>** — advances past the current stream once; it will
+  reappear on the next playlist rotation.
+
 ## `hg ticker` shell subcommand
 
 `scripts/hg-modules/mod-ticker.sh` exposes shell control. Examples:
