@@ -296,23 +296,6 @@ def build_fleet_markup():
     return _dup("".join(parts)), []
 
 
-def build_weather_markup():
-    # Cache-fed — /tmp/bar-weather.txt refreshed by bar-weather.timer
-    parts = [_badge(" WEATHER", "#4aa8ff")]
-    try:
-        with open("/tmp/bar-weather.txt") as f:
-            raw = f.read().strip()
-        if raw:
-            parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">  {escape(raw)}  \u00b7</span>')
-        else:
-            return _empty(" WEATHER", "#4aa8ff", "weather unavailable")
-    except FileNotFoundError:
-        return _empty(" WEATHER", "#4aa8ff", "weather cache missing")
-    except Exception:
-        return _empty(" WEATHER", "#4aa8ff", "weather unavailable")
-    return _dup("".join(parts)), []
-
-
 def build_github_markup():
     TYPE_ICONS = {"PullRequest": "", "Issue": "", "Release": "",
                   "Discussion": "\U000f0361", "CheckSuite": ""}
@@ -1209,38 +1192,6 @@ def build_pomodoro_markup():
     return _dup("".join(parts)), []
 
 
-def build_token_burn_markup():
-    lines = _read_cache_lines("/tmp/bar-tokens.txt")
-    if lines is None:
-        return _empty("\U000f0238 TOKENS", "#f59e0b", "tokens cache missing")
-    if not lines:
-        return _empty("\U000f0238 TOKENS", "#f59e0b", "no token data")
-    summary = lines[0]
-    parts = [_badge("\U000f0238 TOKENS", "#f59e0b")]
-    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fbbf24">  {escape(summary)}  \u00b7</span>')
-    fc = len(FONTS)
-    for i, line in enumerate(lines[1:8]):
-        font = FONTS[i % fc]
-        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
-    return _dup("".join(parts)), []
-
-
-def build_dirty_repos_markup():
-    lines = _read_cache_lines("/tmp/bar-dirty.txt")
-    if lines is None:
-        return _empty("\U000f02a0 DIRTY", "#fb923c", "dirty cache missing")
-    if not lines:
-        return _empty("\U000f02a0 DIRTY", "#fb923c", "all clean")
-    total_line = lines[0]
-    parts = [_badge("\U000f02a0 DIRTY", "#fb923c")]
-    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">  {escape(total_line)}  \u00b7</span>')
-    fc = len(FONTS)
-    for i, line in enumerate(lines[1:10]):
-        font = FONTS[i % fc]
-        parts.append(f'<span font_desc="{font}" foreground="#fbbf24">  {escape(line)}  \u00b7</span>')
-    return _dup("".join(parts)), []
-
-
 def build_failed_units_markup():
     try:
         user_out = subprocess.run(
@@ -1269,38 +1220,6 @@ def build_failed_units_markup():
         parts.append(
             f'<span font_desc="{font}" foreground="#fbbf24">  [{scope}] {escape(name)}  \u00b7</span>'
         )
-    return _dup("".join(parts)), []
-
-
-def build_arch_news_markup():
-    lines = _read_cache_lines("/tmp/bar-archnews.txt")
-    if lines is None:
-        return _empty("\U000f03ef ARCH NEWS", "#1793d1", "archnews cache missing")
-    if not lines:
-        return _empty("\U000f03ef ARCH NEWS", "#1793d1", "no news")
-    # Summary line first; rest are titles
-    parts = [_badge("\U000f03ef ARCH NEWS", "#1793d1")]
-    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">  {escape(lines[0])}  \u00b7</span>')
-    fc = len(FONTS)
-    for i, line in enumerate(lines[1:6]):
-        font = FONTS[i % fc]
-        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
-    return _dup("".join(parts)), []
-
-
-def build_smart_disk_markup():
-    lines = _read_cache_lines("/tmp/bar-smart.txt")
-    if lines is None:
-        return _empty("\U000f01bc SMART", "#8b5cf6", "smart cache missing")
-    if not lines:
-        return _empty("\U000f01bc SMART", "#8b5cf6", "no disks")
-    any_fail = any("FAIL" in l.upper() for l in lines)
-    color = "#ef4444" if any_fail else "#8b5cf6"
-    parts = [_badge("\U000f01bc SMART", color)]
-    fc = len(FONTS)
-    for i, line in enumerate(lines[:6]):
-        font = FONTS[i % fc]
-        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
     return _dup("".join(parts)), []
 
 
@@ -1652,7 +1571,6 @@ STREAMS = {
     "keybinds":      build_keybinds_markup,
     "system":        build_system_markup,
     "fleet":         build_fleet_markup,
-    "weather":       build_weather_markup,
     "github":        build_github_markup,
     "notifications": build_notifications_markup,
     "music":         build_music_markup,
@@ -1674,11 +1592,7 @@ STREAMS = {
     "hacker":          build_hacker_markup,
     "calendar":        build_calendar_markup,
     "pomodoro":        build_pomodoro_markup,
-    "token-burn":      build_token_burn_markup,
-    "dirty-repos":     build_dirty_repos_markup,
     "failed-units":    build_failed_units_markup,
-    "arch-news":       build_arch_news_markup,
-    "smart-disk":      build_smart_disk_markup,
     "wifi-quality":    build_wifi_quality_markup,
     "container-status": build_container_status_markup,
     "net-throughput":  build_net_throughput_markup,
@@ -1695,7 +1609,6 @@ STREAM_META = {
     "keybinds":      {"preset": None,        "refresh": 300},
     "system":        {"preset": None,        "refresh": 10},
     "fleet":         {"preset": "cyberpunk", "refresh": 30},
-    "weather":       {"preset": "ambient",   "refresh": 1800},
     "github":        {"preset": None,        "refresh": 120},
     "notifications": {"preset": None,        "refresh": 60},
     "music":         {"preset": "minimal",   "refresh": 10},
@@ -1717,11 +1630,7 @@ STREAM_META = {
     "hacker":          {"preset": "cyberpunk", "refresh": 45},
     "calendar":        {"preset": "ambient",   "refresh": 600},
     "pomodoro":        {"preset": "cyberpunk", "refresh": 1},
-    "token-burn":      {"preset": "cyberpunk", "refresh": 60},
-    "dirty-repos":     {"preset": None,        "refresh": 300},
     "failed-units":    {"preset": None,        "refresh": 60},
-    "arch-news":       {"preset": "ambient",   "refresh": 3600},
-    "smart-disk":      {"preset": None,        "refresh": 3600},
     "wifi-quality":    {"preset": None,        "refresh": 30},
     "container-status": {"preset": None,       "refresh": 30},
     "net-throughput":  {"preset": None,        "refresh": 5},
@@ -1746,6 +1655,38 @@ FALLBACK_ORDER = [
     "net-throughput", "kernel-errors", "recording",
     "hn-top", "github-prs", "weather-alerts", "cve-alerts",
 ]
+
+
+# ══════════════════════════════════════════════════
+# Declarative TOML catalogue (ticker/streams.toml)
+#
+# Streams declared there override same-named inline builders; new names
+# get appended to FALLBACK_ORDER. Keeps the data-definition boilerplate
+# out of this file for cache-fed streams that follow a fixed pattern.
+# ══════════════════════════════════════════════════
+
+def _load_toml_catalogue():
+    import ticker_streams as _ts
+    toml_path = os.path.expanduser(
+        "~/hairglasses-studio/dotfiles/ticker/streams.toml")
+    try:
+        toml_builders, toml_meta, toml_order = _ts.load_toml_streams(toml_path)
+    except Exception as _e:
+        sys.stderr.write(f"streams.toml load failed: {_e}\n")
+        return
+    for name, fn in toml_builders.items():
+        STREAMS[name] = fn
+    for name, m in toml_meta.items():
+        STREAM_META[name] = {"preset": m.get("preset"),
+                             "refresh": int(m.get("refresh", 300))}
+        if "dwell" in m:
+            STREAM_META[name]["dwell"] = m["dwell"]
+    for name in toml_order:
+        if name not in FALLBACK_ORDER:
+            FALLBACK_ORDER.append(name)
+
+
+_load_toml_catalogue()
 
 
 # ══════════════════════════════════════════════════

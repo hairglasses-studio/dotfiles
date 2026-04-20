@@ -1,0 +1,75 @@
+# Declarative ticker stream catalogue.
+#
+# Loaded by scripts/lib/ticker_streams/__init__.py and merged into the
+# main ticker's STREAMS / STREAM_META / FALLBACK_ORDER registries at
+# startup. The "type" field selects a factory; see ticker_streams for
+# the supported shapes.
+#
+# Adding a cache-fed stream: (1) add a block here, (2) write a
+# scripts/bar-<name>-cache.sh writer + matching systemd timer under
+# systemd/bar-<name>.{service,timer}, (3) add the timer to
+# install.sh::desktop_passive_units. No Python changes required.
+#
+# For streams that need custom formatting (colour thresholds, multi-
+# source aggregation, live subprocess calls) use a Python plugin under
+# scripts/lib/ticker_streams/<name>.py instead — see that module's
+# README for the contract.
+
+[weather]
+type = "cache_single"
+path = "/tmp/bar-weather.txt"
+label = " WEATHER"
+color = "#4aa8ff"
+preset = "ambient"
+refresh = 1800
+empty_message = "weather unavailable"
+missing_message = "weather cache missing"
+
+[arch-news]
+type = "cache_list"
+path = "/tmp/bar-archnews.txt"
+label = "\U000f03ef ARCH NEWS"
+color = "#1793d1"
+preset = "ambient"
+refresh = 3600
+list_limit = 5
+empty_message = "no news"
+missing_message = "archnews cache missing"
+
+[smart-disk]
+type = "cache_list"
+path = "/tmp/bar-smart.txt"
+label = "\U000f01bc SMART"
+color = "#8b5cf6"
+refresh = 3600
+list_limit = 6
+has_summary = false
+fail_keywords = ["FAIL"]
+fail_color = "#ef4444"
+empty_message = "no disks"
+missing_message = "smart cache missing"
+
+[token-burn]
+type = "cache_list"
+path = "/tmp/bar-tokens.txt"
+label = "\U000f0238 TOKENS"
+color = "#f59e0b"
+preset = "cyberpunk"
+refresh = 60
+list_limit = 7
+summary_color = "#fbbf24"
+empty_message = "no token data"
+missing_message = "tokens cache missing"
+
+[dirty-repos]
+type = "cache_list"
+path = "/tmp/bar-dirty.txt"
+label = "\U000f02a0 DIRTY"
+color = "#fb923c"
+refresh = 300
+list_limit = 9
+item_color = "#fbbf24"
+empty_is_success = true
+empty_success_color = "#34d399"
+empty_message = "all clean"
+missing_message = "dirty cache missing"
