@@ -173,10 +173,18 @@ direction = "horizontal"
 
 
 # ══════════════════════════════════════════════════
-# XEC portrait (DP-2) — single compact bar
+# Samsung ultrawide (DP-2) — single compact bar
 # ══════════════════════════════════════════════════
+# NOTE: ironbar defaults to position="bottom" when unset, which puts its
+# bottom edge at y=963 — exactly where the keybind-ticker's top edge
+# sits (y=963, h=28). Two gtk4-layer-shell surfaces touching edges
+# trigger the GTK clip gotcha documented in
+# .agents/skills/ticker/SKILL.md, erasing ~12 px of the ticker's top.
+# A 16 px margin.bottom breaks the adjacency without requiring the
+# ticker to move off its bottom anchor.
 
 [monitors."DP-2"]
+margin.bottom = 16
 
 [[monitors."DP-2".start]]
 type = "workspaces"
