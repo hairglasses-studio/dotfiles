@@ -1,0 +1,51 @@
+# makima profile — Logitech MX Master 4 (Bluetooth LE).
+#
+# Maps the thumb + gesture buttons to `hg ticker` verbs via the DBus
+# API added in Phase 1 of the ticker marathon. Each binding runs the
+# shell one-liner at scripts/gamepad/controller-ticker-*.sh.
+#
+# NOTE: button codes below are stubbed from documentation; verify with
+# `evtest` or `mcp__dotfiles__input_controller_test` and adjust if the
+# firmware reports different evdev codes. See makima/README.md.
+
+[device]
+name = "Logitech MX Master 4"
+# Match any device whose name contains this string — safer than pinning
+# a specific product-id on BLE where the MAC can vary.
+name_contains = true
+
+[settings]
+# Don't intercept primary buttons — left/right/middle click, scroll
+# wheel, and wheel-click continue to reach the focused app.
+passthrough_unmapped = true
+
+# ── Back thumb button → ticker prev ────────────────
+[[bindings]]
+from = { code = "BTN_SIDE" }   # evdev BTN_SIDE = 0x113
+to = { type = "exec", command = "/home/hg/hairglasses-studio/dotfiles/scripts/hg ticker prev" }
+
+# ── Forward thumb button → ticker next ─────────────
+[[bindings]]
+from = { code = "BTN_EXTRA" }  # evdev BTN_EXTRA = 0x114
+to = { type = "exec", command = "/home/hg/hairglasses-studio/dotfiles/scripts/hg ticker next" }
+
+# ── Gesture button (under thumb) → pin-toggle ──────
+# The MX Master gesture button shows up as BTN_TASK on most firmware;
+# if evtest reports a different code, update here.
+[[bindings]]
+from = { code = "BTN_TASK" }   # evdev BTN_TASK = 0x117
+to = { type = "exec", command = "/home/hg/hairglasses-studio/dotfiles/scripts/hg ticker pin-toggle" }
+
+# ── Thumb wheel left → shuffle toggle ──────────────
+# Horizontal wheel events are REL_HWHEEL; makima's `wheel = "left"`
+# shorthand is the cleanest way to bind.
+[[bindings]]
+from = { wheel = "left" }
+to = { type = "exec", command = "/home/hg/hairglasses-studio/dotfiles/scripts/hg ticker shuffle" }
+
+# ── Thumb wheel right → banner toast (sanity test) ──
+# Fires a small banner so you can confirm the wheel direction is
+# wired correctly. Remove / replace once button map is verified.
+[[bindings]]
+from = { wheel = "right" }
+to = { type = "exec", command = "/home/hg/hairglasses-studio/dotfiles/scripts/hg ticker banner 'MX wheel right' '#3dffb5'" }

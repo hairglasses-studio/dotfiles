@@ -57,6 +57,7 @@ reload	Hot-reload plugin modules + TOML catalogue (via DBus)
 banner	Flash a toast banner via DBus — `hg ticker banner <text> [color]`
 snooze-urgent	Dismiss an active urgent-mode escalation early
 golden	Capture / diff per-stream reference PNGs (save | diff | list | clean)
+input-test	Assert the DBus control-surface round-trips (pin, shuffle, next, urgent)
 CMDS
 }
 
@@ -279,6 +280,9 @@ PY
       ;;
     golden)
       "$_TICKER_GOLDEN" "$@"
+      ;;
+    input-test)
+      "$HG_DOTFILES/scripts/ticker-input-test.sh" "$@"
       ;;
     *)
       printf 'unknown command: %s\n' "$cmd" >&2
