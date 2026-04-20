@@ -567,6 +567,71 @@ def _find_cpu_hwmon():
     return _CPU_HWMON_CACHE
 
 
+def build_uptime_markup():
+    parts = [_badge("\U000f0907 UPTIME", "#c6a0ff")]
+    try:
+        with open("/proc/uptime") as f:
+            secs = float(f.read().split()[0])
+        days, rem = divmod(int(secs), 86400)
+        hours, rem = divmod(rem, 3600)
+        mins, _ = divmod(rem, 60)
+        if days:
+            human = f"{days}d {hours}h {mins}m"
+        elif hours:
+            human = f"{hours}h {mins}m"
+        else:
+            human = f"{mins}m"
+        boot_ts = _time.time() - secs
+        boot = _time.strftime("%Y-%m-%d %H:%M", _time.localtime(boot_ts))
+        color = "#ff5c8a" if days >= 30 else ("#ffe45e" if days >= 7 else "#c6a0ff")
+        parts.append(
+            f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">'
+            f'  {escape(human)}  \u00b7</span>'
+            f'<span font_desc="Maple Mono NF CN 11" foreground="#9fb2ff">'
+            f'  booted {escape(boot)}  \u00b7</span>'
+        )
+    except Exception:
+        return _empty("\U000f0907 UPTIME", "#c6a0ff", "uptime unavailable")
+    return _dup("".join(parts)), []
+
+
+def build_tmux_markup():
+    parts = [_badge("\U000f06a0 TMUX", "#a8ff60")]
+    try:
+        raw = subprocess.run(
+            ["tmux", "list-sessions", "-F",
+             "#{session_name}|#{session_windows}|#{session_attached}|#{session_created}"],
+            capture_output=True, text=True, timeout=3,
+        )
+        if raw.returncode != 0 or not raw.stdout.strip():
+            return _empty("\U000f06a0 TMUX", "#a8ff60", "no tmux sessions")
+        now = _time.time()
+        fc = len(FONTS)
+        for i, line in enumerate(raw.stdout.strip().splitlines()):
+            fields = line.split("|")
+            if len(fields) < 4:
+                continue
+            name, windows, attached, created = fields
+            try:
+                age = int(now - int(created))
+                hours = age // 3600
+                age_s = f"{hours}h" if hours else f"{age // 60}m"
+            except ValueError:
+                age_s = "?"
+            attached_i = "●" if attached == "1" else "○"
+            color = "#a8ff60" if attached == "1" else "#66708f"
+            font = FONTS[i % fc]
+            parts.append(
+                f'<span font_desc="{font}" foreground="{color}">'
+                f'  {attached_i} {escape(name)} ({escape(windows)}w, {age_s})  \u00b7</span>'
+            )
+    except FileNotFoundError:
+        return _empty("\U000f06a0 TMUX", "#a8ff60", "tmux not installed")
+    except Exception:
+        return _empty("\U000f06a0 TMUX", "#a8ff60", "tmux unavailable")
+    return _dup("".join(parts)), []
+
+
 def build_cpu_markup():
     parts = [_badge("\U000f04bc CPU", "#00d4ff")]
     try:
@@ -1552,6 +1617,8 @@ STREAMS = {
     "load":          build_load_markup,
     "cpu":           build_cpu_markup,
     "gpu":           build_gpu_markup,
+    "uptime":        build_uptime_markup,
+    "tmux":          build_tmux_markup,
     "workspace":     build_workspace_markup,
     "claude-sessions": build_claude_sessions_markup,
     "network":         build_network_markup,
@@ -1592,6 +1659,8 @@ STREAM_META = {
     "load":          {"preset": None,        "refresh": 5},
     "cpu":           {"preset": "cyberpunk", "refresh": 10},
     "gpu":           {"preset": "cyberpunk", "refresh": 10},
+    "uptime":        {"preset": "ambient",   "refresh": 300},
+    "tmux":          {"preset": None,        "refresh": 60},
     "workspace":     {"preset": None,        "refresh": 5},
     "claude-sessions": {"preset": None,        "refresh": 120},
     "network":         {"preset": None,        "refresh": 30},
@@ -1623,7 +1692,7 @@ SLOW_STREAMS = {"github", "music", "updates", "claude-sessions", "github-prs"}
 FALLBACK_ORDER = [
     "keybinds", "system", "fleet", "weather", "github",
     "notifications", "music", "updates", "mx-battery",
-    "disk", "load", "cpu", "gpu", "workspace",
+    "disk", "load", "cpu", "gpu", "uptime", "tmux", "workspace",
     "claude-sessions", "network", "audio", "shader", "ci", "hacker",
     "calendar", "pomodoro", "token-burn", "dirty-repos", "failed-units",
     "arch-news", "smart-disk", "wifi-quality", "container-status",
