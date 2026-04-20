@@ -9,6 +9,7 @@ BIND_FILE="${HOME}/.config/hypr/plugin-binds.conf"
 REQUIRED_PLUGINS=(
   split-monitor-workspaces
   hyprexpo
+  hy3
 )
 
 if [[ ! -f "$BIND_FILE" ]]; then
@@ -32,6 +33,10 @@ for _ in {1..40}; do
       echo "hypr-sync-plugin-binds: failed to source bind file" >&2
       exit 1
     fi
+    # Re-apply general:layout now that the hy3 plugin is loaded. At config
+    # parse time hy3 isn't registered yet so Hyprland silently falls back
+    # to dwindle and stays there until a runtime override fires.
+    hyprctl keyword general:layout hy3 >/dev/null || true
     exit 0
   fi
 

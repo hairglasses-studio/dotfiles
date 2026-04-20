@@ -7,8 +7,9 @@ paths:
 
 # NVIDIA + Wayland tuning
 
-Target stack: RTX 3090 (GA102/Ampere), Hyprland 0.54.2, Samsung LC49G95T @
-5120x1440 (DSC-required) + XEC ES-G32C1Q portrait @ 2560x1440x180.
+Target stack: RTX 3090 (GA102/Ampere), Hyprland 0.54.2, Samsung LC49G95T on
+DP-2 @ 5120x1440 (DSC-required) + XEC ES-G32C1Q on DP-3 portrait @
+2560x1440x180 (transform=3).
 
 ## Driver state
 
@@ -66,11 +67,13 @@ debug {
 ### `monitors.conf`
 
 ```
-monitor = DP-3, 5120x1440@239.76, 1810x280, 2
-monitor = DP-2, 2560x1440@180,    4370x0,   2, transform, 3
+monitor = DP-2, 5120x1440@239.76, 4596x271, 2
+monitor = DP-3, 2560x1440@180,    7156x0,  2, transform, 3
 ```
 
-No `vrr` flag on either monitor until the driver-level regression is resolved.
+Positions align both monitors' logical bottom edges so bottom-anchored
+layer-shell surfaces line up. No `vrr` flag on either monitor until the
+driver-level regression is resolved.
 
 ## Known regression — 2026-04-16, driver 590.48.01
 
@@ -119,8 +122,8 @@ Suggested re-introduction order (least risk first):
 1. `__GL_GSYNC_ALLOWED=1`, `__GL_VRR_ALLOWED=1` — pure env vars, app-side effect.
 2. `GBM_BACKEND=nvidia-drm` — env var, affects newly-launched clients only.
 3. `AQ_NO_MODIFIERS=1` — documented upstream to *reduce* NVIDIA corruption.
-4. Per-monitor `vrr, 2` on DP-2 (portrait, less DSC-sensitive than the Samsung).
-5. Per-monitor `vrr, 2` on DP-3 (Samsung — highest risk).
+4. Per-monitor `vrr, 2` on DP-3 (XEC portrait, less DSC-sensitive than the Samsung).
+5. Per-monitor `vrr, 2` on DP-2 (Samsung ultrawide — highest risk).
 6. `misc:vrr = 2` — global (redundant with per-monitor, belt+braces).
 7. `render:explicit_sync = 2` — requires driver-level handshake.
 8. `render:explicit_sync_kms = 2` — **leave last; confirmed regression on 590.48.01**.
