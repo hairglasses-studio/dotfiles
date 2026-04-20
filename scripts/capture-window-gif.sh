@@ -5,7 +5,7 @@
 #   capture-window-gif.sh <title-pattern|"ticker"> [seconds]
 #
 #   title-pattern   Case-insensitive window title substring to match
-#   ticker          Shortcut: captures the bottom 56px of DP-3 (keybind-ticker)
+#   ticker          Shortcut: captures the bottom 56px of DP-2 (keybind-ticker)
 #   seconds         Recording duration (default: 3)
 #
 # Output: path to the generated GIF on stdout (all other output goes to stderr)
@@ -46,10 +46,10 @@ done
 # Do NOT multiply by scale factor.
 
 if [[ "$PATTERN" == "ticker" ]]; then
-    # Keybind-ticker: layer-shell surface on DP-3 (bottom 28px).
+    # Keybind-ticker: layer-shell surface on DP-2 (bottom 28px).
     # Use full-output capture + ffmpeg crop — layer surfaces aren't in hyprctl clients.
     USE_OUTPUT_CROP=true
-    OUTPUT_NAME="DP-3"
+    OUTPUT_NAME="DP-2"
     CROP_FILTER="crop=iw:56:0:ih-56"  # bottom 28px logical = 56px physical at 2x
     LABEL="ticker"
 else

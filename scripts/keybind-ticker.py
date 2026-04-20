@@ -63,7 +63,7 @@ def _cli_value(flag, default=None):
     return default
 
 
-MONITOR_NAME = _cli_value("--monitor", "DP-3")
+MONITOR_NAME = _cli_value("--monitor", "DP-2")
 START_PRESET = _cli_value("--preset", "ambient")
 START_PLAYLIST = _cli_value("--playlist", None)  # None → resolved at runtime via state file or "main"
 
@@ -1069,10 +1069,10 @@ class TickerWindow(Gtk.ApplicationWindow):
     def __init__(self, preset_name="ambient", **kwargs):
         super().__init__(**kwargs)
         self.set_title("keybind-ticker")
-        self.set_default_size(1200, BAR_H)
         self._base_preset_name = preset_name
         self.preset = load_preset(preset_name)
 
+        target_width = 1200  # windowed-mode fallback; layer-shell overrides below
         if LAYER_MODE:
             Gtk4LayerShell.init_for_window(self)
             Gtk4LayerShell.set_layer(self, Gtk4LayerShell.Layer.BOTTOM)
@@ -1086,7 +1086,11 @@ class TickerWindow(Gtk.ApplicationWindow):
                     mon = display.get_monitors().get_item(i)
                     if mon and MONITOR_NAME in (mon.get_connector() or ""):
                         Gtk4LayerShell.set_monitor(self, mon)
+                        geom = mon.get_geometry()
+                        if geom:
+                            target_width = max(geom.width, 1)
                         break
+        self.set_default_size(target_width, BAR_H)
 
         self.da = Gtk.DrawingArea()
         self.da.set_content_height(BAR_H)
@@ -1165,6 +1169,15 @@ class TickerWindow(Gtk.ApplicationWindow):
         self._rebuild_stream()
         self._schedule_next_advance()
         self.da.add_tick_callback(self._tick)
+
+        # Force the frame clock to tick continuously. Without this, Hyprland
+        # stops delivering frame callbacks when the layer-shell surface is
+        # "idle" (no interaction), which freezes every time-driven animation
+        # (water caustic, glow breathing, phosphor trail, glitch, gradient)
+        # until the user hovers or clicks. begin_updating keeps the clock live.
+        self.da.connect("realize", self._on_da_realize)
+        if self.da.get_realized():
+            self._on_da_realize(self.da)
 
         # Priority-interrupt listener (watches notification history file)
         self._last_notif_mtime = 0.0
@@ -1603,6 +1616,11 @@ class TickerWindow(Gtk.ApplicationWindow):
 
     # ── Tick / scroll ─────────────────────────
 
+    def _on_da_realize(self, widget):
+        clock = widget.get_frame_clock()
+        if clock is not None:
+            clock.begin_updating()
+
     def _tick(self, widget, frame_clock):
         now = frame_clock.get_frame_time()
         p = self.preset
@@ -1691,38 +1709,41 @@ class TickerWindow(Gtk.ApplicationWindow):
     def _render_text_surface(self, width, height):
         surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
         tc = _cairo.Context(surf)
-        x = -self.offset
+        x0 = -self.offset
         y = (height - 14) / 2
         p = self.preset
+
+        # Cover the full widget width with repeated copies of the markup.
+        # _dup already duplicates the markup once for seamless wrap, but on
+        # wide monitors (e.g. 5120-px ultrawide) a single pair isn't enough.
+        step = max(self.half_w, 1.0)
+        copies = max(int(width / step) + 2, 2)
+        xs = [x0 + i * step for i in range(copies)]
 
         # Dark stroke outline OR color-cycling pulse outline
         ow = getattr(p, "outline_width", 0.8)
         if ow > 0:
             if getattr(p, "outline_pulse", False):
                 # Outline uses same gradient as text (lit-edge effect)
-                stroke_src = make_gradient(x, self.half_w, self.gradient_phase)
+                stroke_src = make_gradient(x0, self.half_w, self.gradient_phase)
                 tc.set_source(stroke_src)
             else:
                 tc.set_source_rgba(0.02, 0.03, 0.05, 0.6)
             tc.set_line_width(ow)
             tc.set_line_join(_cairo.LINE_JOIN_ROUND)
-            tc.move_to(x, y)
-            PangoCairo.update_layout(tc, self.layout)
-            PangoCairo.layout_path(tc, self.layout)
-            tc.move_to(x + self.half_w, y)
-            PangoCairo.update_layout(tc, self.layout)
-            PangoCairo.layout_path(tc, self.layout)
+            for xi in xs:
+                tc.move_to(xi, y)
+                PangoCairo.update_layout(tc, self.layout)
+                PangoCairo.layout_path(tc, self.layout)
             tc.stroke()
 
         # Gradient-filled text on top
-        text_grad = make_gradient(x, self.half_w, self.gradient_phase)
+        text_grad = make_gradient(x0, self.half_w, self.gradient_phase)
         tc.set_source(text_grad)
-        tc.move_to(x, y)
-        PangoCairo.update_layout(tc, self.layout)
-        PangoCairo.show_layout(tc, self.layout)
-        tc.move_to(x + self.half_w, y)
-        PangoCairo.update_layout(tc, self.layout)
-        PangoCairo.show_layout(tc, self.layout)
+        for xi in xs:
+            tc.move_to(xi, y)
+            PangoCairo.update_layout(tc, self.layout)
+            PangoCairo.show_layout(tc, self.layout)
         surf.flush()
         return surf
 
