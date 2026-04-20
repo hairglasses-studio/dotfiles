@@ -1385,7 +1385,6 @@ class TickerWindow(Gtk.ApplicationWindow):
             seg_section.append(f"Copy: {preview}", "ticker.copy_segment")
             if URL_RE.search(seg_text) or seg_text.startswith(("http://", "https://")):
                 seg_section.append("Open URL", "ticker.open_segment")
-            seg_section.append(f"Dismiss {cur_stream}", "ticker.dismiss_stream")
             menu.append_section("Segment", seg_section)
 
         stream_section = Gio.Menu()
@@ -1412,6 +1411,19 @@ class TickerWindow(Gtk.ApplicationWindow):
                                   "ticker.unpin")
         else:
             action_section.append("Pin current stream", "ticker.pin")
+        action_section.append(
+            "Shuffle \u2713" if self.shuffle else "Shuffle",
+            "ticker.shuffle_toggle",
+        )
+        # Dismiss is an Actions-level item (not Segment-only) so right-
+        # clicking an empty region still surfaces it.
+        action_section.append(f"Dismiss {cur_stream}",
+                              "ticker.dismiss_stream")
+        action_section.append("Next stream",  "ticker.next_stream")
+        action_section.append("Prev stream",  "ticker.prev_stream")
+        if self.urgent_mode:
+            action_section.append("Snooze urgent mode",
+                                  "ticker.snooze_urgent")
         menu.append_section("Actions", action_section)
 
         self._ensure_actions()
@@ -1510,6 +1522,21 @@ class TickerWindow(Gtk.ApplicationWindow):
             self._rebuild_stream()
             self._schedule_next_advance()
 
+        def on_shuffle_toggle(action, param):
+            # Toggle in-process then reuse the DBus state-file + reload
+            # path so CLI / DBus / menu all stay in sync.
+            mode = "off" if self.shuffle else "on"
+            self._dbus_set_shuffle(mode)
+
+        def on_snooze_urgent(action, param):
+            self._clear_urgent_mode()
+
+        def on_next_stream(action, param):
+            self._dbus_advance(1)
+
+        def on_prev_stream(action, param):
+            self._dbus_advance(-1)
+
         for act_name, cb, ptype in (
             ("stream",          on_stream,         GLib.VariantType.new("s")),
             ("preset",          on_preset,         GLib.VariantType.new("s")),
@@ -1517,9 +1544,13 @@ class TickerWindow(Gtk.ApplicationWindow):
             ("copy_segment",    on_copy_segment,   None),
             ("open_segment",    on_open_segment,   None),
             ("dismiss_stream",  on_dismiss_stream, None),
-            ("pause",    on_pause,    None),
-            ("pin",      on_pin,      None),
-            ("unpin",    on_unpin,    None),
+            ("pause",           on_pause,          None),
+            ("pin",             on_pin,            None),
+            ("unpin",           on_unpin,          None),
+            ("shuffle_toggle",  on_shuffle_toggle, None),
+            ("snooze_urgent",   on_snooze_urgent,  None),
+            ("next_stream",     on_next_stream,    None),
+            ("prev_stream",     on_prev_stream,    None),
         ):
             act = Gio.SimpleAction.new(act_name, ptype)
             act.connect("activate", cb)

@@ -205,6 +205,8 @@ $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
 $DOTFILES_DIR/scripts/dev-console.sh|$HOME/.local/bin/dev-console
 $DOTFILES_DIR/scripts/pin-dev-console-session.sh|$HOME/.local/bin/pin-dev-console-session
+$DOTFILES_DIR/scripts/retroarch-archive-homebrew-manifest.py|$HOME/.local/bin/retroarch-archive-homebrew-manifest
+$DOTFILES_DIR/scripts/retroarch-archive-homebrew-fetch.py|$HOME/.local/bin/retroarch-archive-homebrew-fetch
 $DOTFILES_DIR/scripts/retroarch-install-widescreen-cores.sh|$HOME/.local/bin/retroarch-install-widescreen-cores
 $DOTFILES_DIR/scripts/retroarch-dolphin-sync-sys.sh|$HOME/.local/bin/retroarch-dolphin-sync-sys
 $DOTFILES_DIR/scripts/retroarch-next-widescreen-setup.sh|$HOME/.local/bin/retroarch-next-widescreen-setup
