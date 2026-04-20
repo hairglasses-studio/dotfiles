@@ -5,7 +5,7 @@ description: "Manage the keybind-ticker visual effects bar — restart, debug, t
 
 # Keybind Ticker (v3)
 
-The keybind-ticker is a standalone GTK4 PangoCairo app rendering a pixel-smooth scrolling bar spanning the full width of DP-2 (5120x1440) at the bottom of the display. 29 content streams rotate with per-stream refresh intervals across 3 playlists (main / coding / focus). Multi-layer cyberpunk visual effects stack.
+The keybind-ticker is a standalone GTK4 PangoCairo app rendering a pixel-smooth scrolling bar spanning the full width of DP-2 (5120x1440) at the bottom of the display. 39 content streams rotate with per-stream refresh intervals across 3 playlists (main / coding / focus). Multi-layer cyberpunk visual effects stack.
 
 ## Architecture
 
@@ -59,7 +59,8 @@ journalctl --user -u dotfiles-keybind-ticker.service --since "1 min ago"
 | FG-13 | Chromatic aberration | `ca_offset` | During glitch only |
 | FG-14 | Glitch strips | `glitch_prob`, `glitch_frames` | Random displacement |
 | POST | Edge fade vignette | `edge_fade` | Dark gradient mask on L/R edges |
-| POST | Progress bar | `progress_bar` | 1px bottom bar = time in stream |
+| POST | Progress bar | `progress_bar` | 2px bottom bar with dim rail + bright gradient fill showing dwell elapsed (all presets) |
+| POST | Stream-change wipe | (automatic) | 400ms gradient sweep when rotation advances |
 
 ### Presets
 
@@ -77,7 +78,17 @@ Per-stream preset override via `STREAM_META` dict:
 
 All tunables are constants at the top of `keybind-ticker.py` inside the `PRESETS` dict. Edit, then restart the service.
 
-## Content Streams (29 total)
+## Rotation timing
+
+`_current_interval` determines how long each stream stays on screen. The
+value is read from `STREAM_META[name].dwell` or `.refresh`, then clamped
+to `[MIN_DWELL_S, MAX_DWELL_S]` (currently 12–75 s). The cap sizes to the
+native ultrawide: at ~55 px/s scroll speed, content needs ~70 s to
+traverse a 3840 px display, so the 75 s cap lets it finish before
+rotating. The floor keeps pomodoro/recording streams (refresh=1 s)
+readable rather than flashing past.
+
+## Content Streams (39 total)
 
 Each stream has its own refresh interval (see `STREAM_META`). Slow streams (github, music, updates, ci, claude-sessions, hacker) run on background threads. Cache-fed streams read `/tmp/bar-<name>.txt` written by systemd timer-paired oneshot units (`systemd/bar-<name>.{service,timer}`).
 
@@ -95,6 +106,11 @@ Each stream has its own refresh interval (see `STREAM_META`). Slow streams (gith
 | `mx-battery` | `/tmp/bar-mx.txt` | 5 min | yellow |
 | `disk` | `df -h` | 1 min | blue |
 | `load` | `/proc/loadavg` | 5 s | green |
+| `cpu` | `/sys/class/hwmon` (k10temp/coretemp/zenpower) + `cpufreq` | 10 s | cyan |
+| `gpu` | `/tmp/bar-gpu-full.txt` (nvidia-smi snapshot) | 10 s | green |
+| `top-procs` | `ps --sort=-%cpu` | 15 s | orange |
+| `uptime` | `/proc/uptime` | 5 min | purple |
+| `tmux` | `tmux list-sessions` | 60 s | lime |
 | `workspace` | `hyprctl activeworkspace/activewindow/workspaces -j` | 5 s | magenta |
 | `network` | `nmcli` + `/proc/net/dev` | 30 s | blue |
 | `audio` | `pactl` / playerctl | 10 s | orange |
@@ -129,7 +145,7 @@ Each stream has its own refresh interval (see `STREAM_META`). Slow streams (gith
 | `kernel-errors` | `journalctl -p err -k -n 5` (live subprocess) | 60 s | red |
 
 ### Playlists
-- `main.txt` (default) — all 29 streams cycling
+- `main.txt` (default) — all 39 streams cycling
 - `coding.txt` — keybinds, system, fleet, ci, claude-sessions, token-burn, dirty-repos, failed-units, kernel-errors, workspace, github, notifications, updates, shader
 - `focus.txt` — system, pomodoro, calendar, workspace, music, notifications
 
