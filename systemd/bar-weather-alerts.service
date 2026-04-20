@@ -1,0 +1,6 @@
+[Unit]
+Description=Refresh NWS weather-alerts cache for the ticker weather-alerts stream
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-weather-alerts-cache.sh

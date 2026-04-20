@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh Hacker News cache every 10 minutes
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=10min
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target

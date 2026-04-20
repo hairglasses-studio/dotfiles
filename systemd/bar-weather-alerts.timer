@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh NWS weather-alerts cache every 15 minutes
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=15min
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

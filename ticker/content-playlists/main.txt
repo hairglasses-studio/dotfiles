@@ -31,3 +31,6 @@ wifi-quality
 container-status
 net-throughput
 kernel-errors
+hn-top
+github-prs
+weather-alerts

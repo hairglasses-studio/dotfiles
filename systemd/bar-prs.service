@@ -1,0 +1,6 @@
+[Unit]
+Description=Refresh GitHub open-PRs cache for the ticker github-prs stream
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-prs-cache.sh

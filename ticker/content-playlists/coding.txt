@@ -4,6 +4,7 @@ keybinds
 system
 fleet
 ci
+github-prs
 claude-sessions
 token-burn
 dirty-repos

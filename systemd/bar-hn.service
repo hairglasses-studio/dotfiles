@@ -1,0 +1,6 @@
+[Unit]
+Description=Refresh Hacker News cache for the ticker hn-top stream
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-hn-cache.sh

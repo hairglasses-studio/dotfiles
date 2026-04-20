@@ -1292,6 +1292,79 @@ def build_recording_markup():
     return _dup("".join(parts)), []
 
 
+def build_hn_top_markup():
+    lines = _read_cache_lines("/tmp/bar-hn.txt")
+    if lines is None:
+        return _empty("\U000f00cd HN", "#ff6600", "hn cache missing")
+    if not lines:
+        return _empty("\U000f00cd HN", "#ff6600", "no hn items")
+    parts = [_badge("\U000f00cd HN", "#ff6600")]
+    fc = len(FONTS)
+    segments: list[str] = []
+    for i, line in enumerate(lines[:8]):
+        cells = line.split("\t", 2)
+        if len(cells) != 3:
+            continue
+        item_id, score, title = cells
+        font = FONTS[i % fc]
+        parts.append(
+            f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fbbf24">'
+            f'  {escape(score)}pts  </span>'
+            f'<span font_desc="{font}">{escape(title)}  \u00b7</span>'
+        )
+        # Keep item id prefix in the segment so the click handler can parse it.
+        segments.append(f"{item_id} {title}")
+    return _dup("".join(parts)), segments
+
+
+def build_github_prs_markup():
+    lines = _read_cache_lines("/tmp/bar-prs.txt")
+    if lines is None:
+        return _empty("\U000f0a1e PRs", "#a3e635", "prs cache missing")
+    if not lines:
+        return _empty("\U000f0a1e PRs", "#a3e635", "no open prs")
+    summary = lines[0]
+    parts = [_badge("\U000f0a1e PRs", "#a3e635")]
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#d1fae5">'
+        f'  {escape(summary)}  \u00b7</span>'
+    )
+    fc = len(FONTS)
+    for i, line in enumerate(lines[1:9]):
+        font = FONTS[i % fc]
+        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
+    return _dup("".join(parts)), []
+
+
+def build_weather_alerts_markup():
+    lines = _read_cache_lines("/tmp/bar-weather-alerts.txt")
+    if lines is None:
+        return _empty("\U000f0e6e ALERT", "#94a3b8", "alerts cache missing")
+    if not lines:
+        # No active alerts is the expected quiet case — return an _empty
+        # sentinel so the stream advances quickly via backoff.
+        return _empty("\U000f0e6e ALERT", "#34d399", "no active alerts")
+    summary = lines[0]
+    # Colour the badge by worst severity (first token on first line).
+    severity = summary.split()[0].lower() if summary else ""
+    color = {
+        "extreme":  "#dc2626",
+        "severe":   "#f97316",
+        "moderate": "#f59e0b",
+        "minor":    "#3b82f6",
+    }.get(severity, "#f97316")
+    parts = [_badge("\U000f0e6e ALERT", color)]
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fca5a5">'
+        f'  {escape(summary)}  \u00b7</span>'
+    )
+    fc = len(FONTS)
+    for i, line in enumerate(lines[1:6]):
+        font = FONTS[i % fc]
+        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
+    return _dup("".join(parts)), []
+
+
 # ══════════════════════════════════════════════════
 # Stream registry + metadata
 # ══════════════════════════════════════════════════
@@ -1327,6 +1400,9 @@ STREAMS = {
     "net-throughput":  build_net_throughput_markup,
     "kernel-errors":   build_kernel_errors_markup,
     "recording":       build_recording_markup,
+    "hn-top":          build_hn_top_markup,
+    "github-prs":      build_github_prs_markup,
+    "weather-alerts":  build_weather_alerts_markup,
 }
 
 # Per-stream metadata: effect preset override + refresh interval (seconds)
@@ -1361,10 +1437,13 @@ STREAM_META = {
     "net-throughput":  {"preset": None,        "refresh": 5},
     "kernel-errors":   {"preset": "cyberpunk", "refresh": 60},
     "recording":       {"preset": "cyberpunk", "refresh": 1},
+    "hn-top":          {"preset": "ambient",   "refresh": 600},
+    "github-prs":      {"preset": None,        "refresh": 300},
+    "weather-alerts":  {"preset": "cyberpunk", "refresh": 900},
 }
 
 # Streams whose builders can block for >100ms — run on background thread
-SLOW_STREAMS = {"github", "music", "updates", "claude-sessions"}
+SLOW_STREAMS = {"github", "music", "updates", "claude-sessions", "github-prs"}
 
 FALLBACK_ORDER = [
     "keybinds", "system", "fleet", "weather", "github",
@@ -1374,6 +1453,7 @@ FALLBACK_ORDER = [
     "calendar", "pomodoro", "token-burn", "dirty-repos", "failed-units",
     "arch-news", "smart-disk", "wifi-quality", "container-status",
     "net-throughput", "kernel-errors", "recording",
+    "hn-top", "github-prs", "weather-alerts",
 ]
 
 
