@@ -1211,6 +1211,9 @@ class TickerWindow(Gtk.ApplicationWindow):
         # ── Content stream state ──────────────────
         self.playlist_name = resolve_playlist_name()
         self.stream_order = load_playlist(self.playlist_name)
+        self.shuffle = self._load_shuffle_state()
+        if self.shuffle:
+            random.shuffle(self.stream_order)
         self.stream_idx = self._restore_stream_idx()
 
         # Background thread state for slow streams
@@ -1263,9 +1266,28 @@ class TickerWindow(Gtk.ApplicationWindow):
             if new_order:
                 self.playlist_name = desired_playlist
                 self.stream_order = new_order
+                if self.shuffle:
+                    random.shuffle(self.stream_order)
                 self.stream_idx = 0
                 self.pinned_stream = None
                 self._save_pin_state()
+                self._rebuild_stream()
+                self._schedule_next_advance()
+        # Shuffle toggle — reshuffle the current order if the flag flipped
+        # to on, or reload the pristine playlist order if it flipped off.
+        desired_shuffle = self._load_shuffle_state()
+        if desired_shuffle != self.shuffle:
+            self.shuffle = desired_shuffle
+            current_name = self.stream_order[self.stream_idx] if self.stream_order else None
+            fresh = load_playlist(self.playlist_name)
+            if self.shuffle and fresh:
+                random.shuffle(fresh)
+            self.stream_order = fresh
+            # Keep playing the currently-displayed stream if possible.
+            if current_name in self.stream_order:
+                self.stream_idx = self.stream_order.index(current_name)
+            else:
+                self.stream_idx = 0
                 self._rebuild_stream()
                 self._schedule_next_advance()
         # Pinned stream
@@ -1284,6 +1306,9 @@ class TickerWindow(Gtk.ApplicationWindow):
 
     def _load_pause_state(self):
         return os.path.exists(os.path.join(STATE_DIR, "paused"))
+
+    def _load_shuffle_state(self):
+        return os.path.exists(os.path.join(STATE_DIR, "shuffle"))
 
     def _save_pause_state(self):
         os.makedirs(STATE_DIR, exist_ok=True)
@@ -1399,7 +1424,18 @@ class TickerWindow(Gtk.ApplicationWindow):
             # Just rebuild, don't advance
             self._rebuild_stream()
         else:
-            self.stream_idx = (self.stream_idx + 1) % len(self.stream_order)
+            next_idx = (self.stream_idx + 1) % len(self.stream_order)
+            # End-of-cycle reshuffle: on wrap-around in shuffle mode,
+            # re-randomise so successive cycles aren't in the same order.
+            if next_idx == 0 and self.shuffle and len(self.stream_order) > 1:
+                pinned_last = self.stream_order[self.stream_idx]
+                random.shuffle(self.stream_order)
+                # Guarantee the new first stream isn't a repeat of the one
+                # we just finished — swap index 0 with index 1 on collision.
+                if self.stream_order[0] == pinned_last:
+                    self.stream_order[0], self.stream_order[1] = (
+                        self.stream_order[1], self.stream_order[0])
+            self.stream_idx = next_idx
             self._rebuild_stream()
         self._schedule_next_advance()
         return GLib.SOURCE_REMOVE

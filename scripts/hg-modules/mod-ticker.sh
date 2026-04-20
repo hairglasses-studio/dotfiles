@@ -38,6 +38,7 @@ pin	Pin a specific stream (pass stream name)
 unpin	Release pin, resume rotation
 playlist	Switch playlist (pass name: main/coding/focus/lock/recording)
 pause	Toggle pause
+shuffle	Shuffle-mode toggle for current playlist (on|off|toggle)
 list-streams	List all available streams
 list-playlists	List playlist files
 show	Render a single stream plain-text once (pass stream name)
@@ -82,6 +83,11 @@ ticker_run() {
       else
         printf 'paused    : no\n'
       fi
+      if [[ -f "$_TICKER_STATE/shuffle" ]]; then
+        printf 'shuffle   : on\n'
+      else
+        printf 'shuffle   : off\n'
+      fi
       ;;
     pin)
       local stream="${1:?usage: hg ticker pin <stream>}"
@@ -109,6 +115,25 @@ ticker_run() {
         : > "$_TICKER_STATE/paused"
         printf 'paused\n'
       fi
+      _ticker_reload
+      ;;
+    shuffle)
+      # Usage: hg ticker shuffle [on|off|toggle]   (default: toggle)
+      local arg="${1:-toggle}"
+      local flag="$_TICKER_STATE/shuffle"
+      mkdir -p "$_TICKER_STATE"
+      case "$arg" in
+        on)      : > "$flag"; printf 'shuffle on\n' ;;
+        off)     rm -f "$flag"; printf 'shuffle off\n' ;;
+        toggle|"")
+          if [[ -f "$flag" ]]; then
+            rm -f "$flag"; printf 'shuffle off\n'
+          else
+            : > "$flag"; printf 'shuffle on\n'
+          fi
+          ;;
+        *) printf 'usage: hg ticker shuffle [on|off|toggle]\n' >&2; return 2 ;;
+      esac
       _ticker_reload
       ;;
     list-streams)

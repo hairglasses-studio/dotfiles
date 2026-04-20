@@ -409,9 +409,10 @@ text segment:
 
 `scripts/hg-modules/mod-ticker.sh` exposes shell control. Examples:
 ```bash
-hg ticker status                # service / playlist / current / pinned / paused
+hg ticker status                # service / playlist / current / pinned / paused / shuffle
 hg ticker pin calendar          # pin a stream
 hg ticker playlist focus        # switch playlist
+hg ticker shuffle               # toggle shuffle mode (or pass on|off explicitly)
 hg ticker show ci               # plain-text one-shot
 hg ticker list-streams          # enumerate
 hg ticker list-playlists        # enumerate
