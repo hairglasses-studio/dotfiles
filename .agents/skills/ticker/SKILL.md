@@ -103,6 +103,16 @@ Each stream has its own refresh interval (see `STREAM_META`). Slow streams (gith
 | `ci` | `/tmp/bar-ci.txt` (gh workflow runs) | 2 min | green |
 | `hacker` | `/tmp/bar-hacker.txt` (zenquotes cached) | 10 min | red |
 
+### Round 2 live-data streams
+| Stream | Source | Refresh | Badge |
+|--------|--------|---------|-------|
+| `hn-top` | hacker-news.firebaseio.com/topstories | 10 min | orange |
+| `github-prs` | `gh pr list` across manifest repos | 5 min | lime |
+| `weather-alerts` | api.weather.gov/alerts/active | 15 min | severity-keyed |
+| `cve-alerts` | `arch-audit` (Arch Security Team) | 1 h | red/orange/amber by severity |
+
+`cve-alerts` shows an install hint when `arch-audit` (available via `pacman -S arch-audit`) isn't installed, so the stream degrades gracefully.
+
 ### Phase 1 streams (April 2026)
 | Stream | Source | Refresh | Badge |
 |--------|--------|---------|-------|

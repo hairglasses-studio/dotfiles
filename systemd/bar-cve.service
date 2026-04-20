@@ -1,0 +1,6 @@
+[Unit]
+Description=Refresh CVE-advisory cache for the ticker cve-alerts stream
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-cve-cache.sh

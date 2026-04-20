@@ -389,13 +389,24 @@ def build_notifications_markup():
 
 
 def build_music_markup():
+    # "no media playing" is a normal idle state, NOT an error. Return a real
+    # segment instead of _empty so the error-backoff path doesn't
+    # short-circuit the 10s refresh into a 30s loop, and so `hg ticker
+    # health` doesn't mark this stream as faulting during quiet periods.
     parts = [_badge(" MUSIC", "#ff47d1")]
     try:
         status = subprocess.run(
             ["playerctl", "status"], capture_output=True, text=True, timeout=3
         ).stdout.strip()
-        if status not in ("Playing", "Paused"):
-            return _empty(" MUSIC", "#ff47d1", "no media playing")
+    except Exception:
+        status = ""
+    if status not in ("Playing", "Paused"):
+        parts.append(
+            '<span font_desc="Maple Mono NF CN 11" foreground="#66708f">'
+            '   idle  \u00b7</span>'
+        )
+        return _dup("".join(parts)), []
+    try:
         icon = "" if status == "Playing" else ""
         meta = subprocess.run(
             ["playerctl", "metadata", "--format",
@@ -413,7 +424,7 @@ def build_music_markup():
         parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">'
                      f'  {icon} {escape(meta)}  {escape(pos)}/{escape(dur)}  \u00b7</span>')
     except Exception:
-        return _empty(" MUSIC", "#ff47d1", "no media playing")
+        return _empty(" MUSIC", "#ff47d1", "playerctl unavailable")
     return _dup("".join(parts)), []
 
 
@@ -1336,6 +1347,39 @@ def build_github_prs_markup():
     return _dup("".join(parts)), []
 
 
+def build_cve_alerts_markup():
+    lines = _read_cache_lines("/tmp/bar-cve.txt")
+    if lines is None:
+        return _empty("\U000f0ce4 CVE", "#ef4444", "cve cache missing")
+    if not lines:
+        return _empty("\U000f0ce4 CVE", "#34d399", "no advisories")
+    first = lines[0]
+    # When arch-audit is missing, first line is an install hint — render it.
+    if first.startswith("install arch-audit"):
+        parts = [_badge("\U000f0ce4 CVE", "#f59e0b")]
+        parts.append(
+            f'<span font_desc="Maple Mono NF CN 11" foreground="#fbbf24">'
+            f'  {escape(first)}  \u00b7</span>'
+        )
+        return _dup("".join(parts)), []
+    # Severity-coloured badge based on worst advisory.
+    any_critical = any("Critical" in l for l in lines[1:])
+    any_high = any("High" in l for l in lines[1:])
+    color = "#dc2626" if any_critical else ("#f97316" if any_high else "#f59e0b")
+    parts = [_badge("\U000f0ce4 CVE", color)]
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fca5a5">'
+        f'  {escape(first)}  \u00b7</span>'
+    )
+    fc = len(FONTS)
+    for i, line in enumerate(lines[1:7]):
+        font = FONTS[i % fc]
+        parts.append(
+            f'<span font_desc="{font}" foreground="#fecaca">  {escape(line)}  \u00b7</span>'
+        )
+    return _dup("".join(parts)), []
+
+
 def build_weather_alerts_markup():
     lines = _read_cache_lines("/tmp/bar-weather-alerts.txt")
     if lines is None:
@@ -1403,6 +1447,7 @@ STREAMS = {
     "hn-top":          build_hn_top_markup,
     "github-prs":      build_github_prs_markup,
     "weather-alerts":  build_weather_alerts_markup,
+    "cve-alerts":      build_cve_alerts_markup,
 }
 
 # Per-stream metadata: effect preset override + refresh interval (seconds)
@@ -1440,6 +1485,7 @@ STREAM_META = {
     "hn-top":          {"preset": "ambient",   "refresh": 600},
     "github-prs":      {"preset": None,        "refresh": 300},
     "weather-alerts":  {"preset": "cyberpunk", "refresh": 900},
+    "cve-alerts":      {"preset": "cyberpunk", "refresh": 3600},
 }
 
 # Streams whose builders can block for >100ms — run on background thread
@@ -1453,7 +1499,7 @@ FALLBACK_ORDER = [
     "calendar", "pomodoro", "token-burn", "dirty-repos", "failed-units",
     "arch-news", "smart-disk", "wifi-quality", "container-status",
     "net-throughput", "kernel-errors", "recording",
-    "hn-top", "github-prs", "weather-alerts",
+    "hn-top", "github-prs", "weather-alerts", "cve-alerts",
 ]
 
 
