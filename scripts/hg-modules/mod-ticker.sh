@@ -6,6 +6,7 @@ _TICKER_STATE="$HOME/.local/state/keybind-ticker"
 _TICKER_SERVICE="dotfiles-keybind-ticker.service"
 _TICKER_HEADLESS="$HG_DOTFILES/scripts/ticker-headless.py"
 _TICKER_SHOT="$HG_DOTFILES/scripts/ticker-shot.sh"
+_TICKER_SMOKE="$HG_DOTFILES/scripts/ticker-smoke-test.py"
 
 # Signal the running keybind-ticker to re-read state files (SIGUSR1). Falls
 # back to a full service restart if no PID is found (e.g. during boot before
@@ -43,6 +44,7 @@ show	Render a single stream plain-text once (pass stream name)
 restart	Restart the ticker systemd service
 logs	Tail the ticker systemd logs
 shot	Capture a 28px-tall ticker-only PNG (safe for Claude ingestion)
+smoke-test	Load every plugin + TOML stream and call build() — PASS/FAIL report
 CMDS
 }
 
@@ -142,6 +144,9 @@ ticker_run() {
         args+=(--output "$1"); shift
       fi
       "$_TICKER_SHOT" "${args[@]}" "$@"
+      ;;
+    smoke-test)
+      python3 "$_TICKER_SMOKE" "$@"
       ;;
     health)
       local snap="/tmp/ticker-health.json"
