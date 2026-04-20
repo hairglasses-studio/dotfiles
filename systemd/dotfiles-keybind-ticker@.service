@@ -1,0 +1,22 @@
+[Unit]
+Description=dotfiles keybind ticker (instance %i)
+PartOf=graphical-session.target
+After=graphical-session.target ironbar.service
+
+[Service]
+Type=simple
+ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"'
+ExecStartPre=/usr/bin/sh -c 'for i in $(seq 1 20); do hyprctl version > /dev/null 2>&1 && exit 0; sleep 0.5; done; exit 1'
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
+Environment=GSK_RENDERER=gl
+Environment=LD_PRELOAD=/usr/lib/libgtk4-layer-shell.so
+# Instance name is MONITOR_PLAYLIST (e.g. DP-2_main, DP-3_focus).
+# The `_` after the last segment separates monitor from playlist; no monitor
+# names or playlist names in our setup contain underscores.
+ExecStart=/usr/bin/bash -c 'IFS=_ read -r mon pl <<<"$1"; exec /usr/bin/python3 %h/hairglasses-studio/dotfiles/scripts/keybind-ticker.py --layer --monitor "$mon" --playlist "$pl" --state-dir "%h/.local/state/keybind-ticker-$1"' _ %i
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

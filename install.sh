@@ -701,6 +701,9 @@ create_symlinks() {
             dotfiles-hyprland-autoname-workspaces.service
             dotfiles-notification-history.service
             dotfiles-keybind-ticker.service
+            dotfiles-keybind-ticker@DP-3_focus.service
+            dotfiles-ticker-lockwatch.service
+            dotfiles-ticker-recordwatch.service
             dotfiles-cliphist.service
         )
         local desktop_passive_units=(

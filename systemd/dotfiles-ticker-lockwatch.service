@@ -1,0 +1,14 @@
+[Unit]
+Description=dotfiles ticker lock-screen playlist watcher
+PartOf=graphical-session.target
+After=graphical-session.target dotfiles-keybind-ticker.service
+
+[Service]
+Type=simple
+ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY"'
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/ticker-lockwatch.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

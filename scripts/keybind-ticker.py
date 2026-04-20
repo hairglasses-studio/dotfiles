@@ -27,6 +27,7 @@ Usage:
   keybind-ticker.py --preset minimal    # start with a preset
   keybind-ticker.py --monitor DP-2      # target a different output
   keybind-ticker.py --playlist focus    # load a non-default playlist
+  keybind-ticker.py --state-dir ~/.local/state/keybind-ticker-dp3  # isolate state for multi-instance
 """
 
 import gi
@@ -66,6 +67,7 @@ def _cli_value(flag, default=None):
 MONITOR_NAME = _cli_value("--monitor", "DP-2")
 START_PRESET = _cli_value("--preset", "ambient")
 START_PLAYLIST = _cli_value("--playlist", None)  # None → resolved at runtime via state file or "main"
+STATE_DIR_OVERRIDE = _cli_value("--state-dir", None)
 
 if LAYER_MODE:
     gi.require_version("Gtk4LayerShell", "1.0")
@@ -79,7 +81,7 @@ if LAYER_MODE:
 BAR_H = 28
 DEFAULT_REFRESH_S = 300
 ERROR_BACKOFF_S = 30  # Streams that returned _empty() advance after this instead of their full refresh interval, so a broken stream cannot freeze the ticker.
-STATE_DIR = os.path.expanduser("~/.local/state/keybind-ticker")
+STATE_DIR = os.path.expanduser(STATE_DIR_OVERRIDE) if STATE_DIR_OVERRIDE else os.path.expanduser("~/.local/state/keybind-ticker")
 PLAYLIST_DIR = os.path.expanduser(
     "~/hairglasses-studio/dotfiles/ticker/content-playlists")
 QUOTES_DIR = os.path.expanduser(
@@ -1235,6 +1237,64 @@ def build_kernel_errors_markup():
     return _dup("".join(parts)), []
 
 
+def build_recording_markup():
+    """Live recording indicator. Cache written by ticker-recordwatch.sh:
+    format is `tool\\t pid\\t started_epoch` on a single line. If the cache
+    is absent or empty, show an IDLE sentinel so the stream is still legal
+    on the recording.txt playlist but advances quickly via backoff."""
+    try:
+        with open("/tmp/bar-recording.txt") as f:
+            line = f.readline().strip()
+    except OSError:
+        return _empty("\U000f04d0 REC", "#dc2626", "not recording")
+    if not line:
+        return _empty("\U000f04d0 REC", "#dc2626", "not recording")
+    fields = line.split("\t")
+    tool = fields[0] if fields else "recorder"
+    try:
+        started = float(fields[2]) if len(fields) >= 3 else 0.0
+    except ValueError:
+        started = 0.0
+    dur = max(0, int(_time.time() - started)) if started else 0
+    mm, ss = divmod(dur, 60)
+    hh, mm = divmod(mm, 60)
+    clock = f"{hh:02d}:{mm:02d}:{ss:02d}" if hh else f"{mm:02d}:{ss:02d}"
+    # Disk free — for the home filesystem (df -h --output= available /home or /)
+    try:
+        free = subprocess.run(
+            ["df", "-h", "--output=avail", os.path.expanduser("~")],
+            capture_output=True, text=True, timeout=1,
+        ).stdout.splitlines()
+        free_str = free[1].strip() if len(free) >= 2 else "?"
+    except Exception:
+        free_str = "?"
+    # Mic state via pactl — one-liner, best-effort
+    try:
+        mic = subprocess.run(
+            ["pactl", "get-source-mute", "@DEFAULT_SOURCE@"],
+            capture_output=True, text=True, timeout=1,
+        ).stdout.strip()
+        mic_on = "off" not in mic.lower()
+    except Exception:
+        mic_on = False
+    mic_icon = "\U000f036c" if mic_on else "\U000f036d"
+    mic_color = "#34d399" if mic_on else "#fca5a5"
+    parts = [_badge("\U000f04d0 REC", "#dc2626")]
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN Bold 12" foreground="#f87171">  {escape(clock)}  \u00b7</span>'
+    )
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN 11" foreground="#cbd5f5">  {escape(tool)}  \u00b7</span>'
+    )
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN 11" foreground="{mic_color}">  {mic_icon} mic  \u00b7</span>'
+    )
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN 11" foreground="#fbbf24">  disk {escape(free_str)}  \u00b7</span>'
+    )
+    return _dup("".join(parts)), []
+
+
 # ══════════════════════════════════════════════════
 # Stream registry + metadata
 # ══════════════════════════════════════════════════
@@ -1269,6 +1329,7 @@ STREAMS = {
     "container-status": build_container_status_markup,
     "net-throughput":  build_net_throughput_markup,
     "kernel-errors":   build_kernel_errors_markup,
+    "recording":       build_recording_markup,
 }
 
 # Per-stream metadata: effect preset override + refresh interval (seconds)
@@ -1302,6 +1363,7 @@ STREAM_META = {
     "container-status": {"preset": None,       "refresh": 30},
     "net-throughput":  {"preset": None,        "refresh": 5},
     "kernel-errors":   {"preset": "cyberpunk", "refresh": 60},
+    "recording":       {"preset": "cyberpunk", "refresh": 1},
 }
 
 # Streams whose builders can block for >100ms — run on background thread
@@ -1314,7 +1376,7 @@ FALLBACK_ORDER = [
     "claude-sessions", "network", "audio", "shader", "ci", "hacker",
     "calendar", "pomodoro", "token-burn", "dirty-repos", "failed-units",
     "arch-news", "smart-disk", "wifi-quality", "container-status",
-    "net-throughput", "kernel-errors",
+    "net-throughput", "kernel-errors", "recording",
 ]
 
 
@@ -2354,7 +2416,10 @@ class TickerWindow(Gtk.ApplicationWindow):
 
 class TickerApp(Gtk.Application):
     def __init__(self):
-        super().__init__(application_id="io.hairglasses.keybind_ticker")
+        super().__init__(
+            application_id="io.hairglasses.keybind_ticker",
+            flags=Gio.ApplicationFlags.NON_UNIQUE,
+        )
 
     def do_activate(self):
         win = TickerWindow(preset_name=START_PRESET, application=self)

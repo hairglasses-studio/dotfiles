@@ -154,3 +154,54 @@ A DBus-driven watcher polls the notification history every 3 s. If a `critical`-
 In **layer-shell mode** (default via systemd), the ticker uses `gtk4-layer-shell` to anchor to the bottom of the monitor with exclusive zone. The systemd service sets `LD_PRELOAD=/usr/lib/libgtk4-layer-shell.so`.
 
 In **windowed mode** (no `--layer` flag), the ticker runs as a floating window. Hyprland windowrule pins it to DP-3 at 2560x28 at the bottom.
+
+## Multi-instance & Surfaces
+
+### Secondary instance on DP-3
+`systemd/dotfiles-keybind-ticker@.service` is a template unit. Instance name is `MONITOR_PLAYLIST` (underscore-delimited). `install.sh` enables `@DP-3_focus.service` by default so the portrait utility monitor gets its own focus-mode ticker. Each instance uses its own `--state-dir` (`~/.local/state/keybind-ticker-<instance>`), so pin / playlist / pause state doesn't collide between instances.
+
+Add a third instance:
+```bash
+systemctl --user enable --now dotfiles-keybind-ticker@DP-4_coding.service
+```
+
+### Lock-screen swap
+`scripts/ticker-lockwatch.sh` (ran as `dotfiles-ticker-lockwatch.service`) polls `pgrep -x hyprlock` every 2s. On lock, saves the current `active-playlist` to `pre-lock-playlist` and swaps to `lock.txt` (minimal: system + weather + notifications). On unlock, restores.
+
+### Recording swap
+`scripts/ticker-recordwatch.sh` (ran as `dotfiles-ticker-recordwatch.service`) watches `pgrep -x wf-recorder|wl-screenrec`. While active, writes `/tmp/bar-recording.txt` with `tool\tpid\tstart_epoch` and swaps the ticker to `recording.txt` (featuring the `recording` stream which renders duration + mic state + disk free). Notifies via `notify-send` on start/stop.
+
+## Companion binaries (Phase 4)
+
+All four share the 28px layer-shell form factor and the Hairglasses Neon palette. Each is a standalone Python + GTK4 script in `scripts/`.
+
+| Script | Purpose | Key CLI |
+|--------|---------|---------|
+| `toast-ticker.py` | DBus-triggered slide-in toasts at `io.hairglasses.toast` — call `ShowToast(message, color)` to flash a 3s banner. | `--monitor`, `--duration` |
+| `rsvp-ticker.py`  | Rapid Serial Visual Presentation reader. Consumes stdin, a file, or `--clipboard`. Adjustable 60–1200 WPM via scroll / arrows. | `--wpm`, `--clipboard` |
+| `lyrics-ticker.py`| Now-playing banner. Polls `playerctl metadata` every 2s. Future: sync to `.lrc`. | `--monitor` |
+| `subtitle-ticker.py`| Mute indicator. Shows "MUTED — audio detached" when default sink is muted. Placeholder for future whisper-live integration. | `--monitor` |
+
+## Tmux status integration (Phase 3)
+
+`scripts/ticker-headless.py` imports the stream builders, strips Pango markup, and prints plain text. Use it in `tmux.conf`:
+
+```tmux
+set -g status-right '#(python3 ~/hairglasses-studio/dotfiles/scripts/ticker-headless.py --stream ci --limit 60)'
+```
+
+Flags: `--stream <name>` single-shot, `--playlist <name>` cycle-per-minute, `--list` enumerate, `--limit N` truncate.
+
+## `hg ticker` shell subcommand
+
+`scripts/hg-modules/mod-ticker.sh` exposes shell control. Examples:
+```bash
+hg ticker status                # service / playlist / current / pinned / paused
+hg ticker pin calendar          # pin a stream
+hg ticker playlist focus        # switch playlist
+hg ticker show ci               # plain-text one-shot
+hg ticker list-streams          # enumerate
+hg ticker list-playlists        # enumerate
+hg ticker pause                 # toggle
+hg ticker restart               # kick the service
+```

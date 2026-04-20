@@ -1,0 +1,7 @@
+# Recording playlist — activated by ticker-recordwatch.sh while wf-recorder or
+# wl-screenrec is running. Keeps rec duration + mic state + disk free front and
+# centre; everything else quiets down.
+recording
+system
+disk
+notifications

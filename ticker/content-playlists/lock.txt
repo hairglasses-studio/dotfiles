@@ -1,0 +1,7 @@
+# Lock playlist — activated by ticker-lockwatch.sh when hyprlock is running.
+# Minimal surface: time-of-day signal, weather, and critical notifications.
+# Anything that would leak sensitive info (keybinds, claude sessions, git state,
+# calendar titles) stays out — locked screens are public-facing.
+system
+weather
+notifications
