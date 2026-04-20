@@ -2524,11 +2524,11 @@ class TickerWindow(Gtk.ApplicationWindow):
         y = (height - 14) / 2
         p = self.preset
 
-        # Cover the full widget width with repeated copies of the markup.
-        # _dup already duplicates the markup once for seamless wrap, but on
-        # wide monitors (e.g. 5120-px ultrawide) a single pair isn't enough.
+        # _dup already duplicates the markup once for seamless wrap. Draw
+        # exactly 2 copies so short content scrolls as a single strip with
+        # trailing empty space, rather than tiling 9+ times across ultrawides.
         step = max(self.half_w, 1.0)
-        copies = max(int(width / step) + 2, 2)
+        copies = 2
         xs = [x0 + i * step for i in range(copies)]
 
         # Dark stroke outline OR color-cycling pulse outline
