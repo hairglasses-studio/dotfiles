@@ -49,6 +49,12 @@ shot	Capture a 28px-tall ticker-only PNG (safe for Claude ingestion)
 record	Record a ticker-only MP4 via wf-recorder (default 60s)
 smoke-test	Load every plugin + TOML stream and call build() — PASS/FAIL report
 recover-monitor	Restore DP-2 to native mode after DSC fallback (ticker clipping)
+next	Advance one stream (via DBus)
+prev	Rewind one stream (via DBus)
+pin-toggle	Pin current stream if unpinned, else unpin
+reload	Hot-reload plugin modules + TOML catalogue (via DBus)
+banner	Flash a toast banner via DBus — `hg ticker banner <text> [color]`
+snooze-urgent	Dismiss an active urgent-mode escalation early
 CMDS
 }
 
@@ -199,6 +205,10 @@ ticker_run() {
       "$HG_DOTFILES/scripts/hg-dsc-recover.sh" "$@"
       ;;
     health)
+      # Usage: hg ticker health [--watch]
+      if [[ "${1:-}" == "--watch" ]]; then
+        exec watch -n 5 -t hg ticker health
+      fi
       local snap="/tmp/ticker-health.json"
       if [[ ! -f "$snap" ]]; then
         printf 'no snapshot yet; ticker writes one every 30s\n' >&2
@@ -211,7 +221,23 @@ with open(path) as f:
     data = json.load(f)
 now = int(time.time())
 age_snap = now - data.get("ts", now)
+perf = data.get("perf", {})
 print(f"playlist : {data.get('playlist','?')}   pid={data.get('pid','?')}   snapshot age={age_snap}s")
+# New perf block — adaptive-quality tier + runtime flags
+cur       = perf.get("current_stream") or "(unknown)"
+pinned    = perf.get("pinned") or "(none)"
+dwell_rem = perf.get("dwell_remaining")
+dwell_s   = f"{dwell_rem}s" if dwell_rem is not None else "-"
+tier      = perf.get("tier", 0)
+ema       = perf.get("ema_frame_ms", 0.0)
+bg        = perf.get("bg_inflight", 0)
+urgent    = "YES" if perf.get("urgent_mode") else "no"
+paused    = "YES" if perf.get("paused") else "no"
+shuffle   = "YES" if perf.get("shuffle") else "no"
+print(f"current  : {cur}   pinned={pinned}   dwell={dwell_s}")
+print(f"perf     : tier={tier}   ema={ema:.2f}ms   bg_inflight={bg}   "
+      f"urgent={urgent}   paused={paused}   shuffle={shuffle}")
+print()
 print(f"{'stream':<20} {'last ok':>9} {'last err':>9} {'ok':>6} {'err':>6} {'streak':>6}")
 print("-" * 60)
 for name in sorted(data.get("streams", {}).keys()):
@@ -222,6 +248,32 @@ for name in sorted(data.get("streams", {}).keys()):
     err_s = f"{last_err}s" if last_err >= 0 else "-"
     print(f"{name:<20} {ok_s:>9} {err_s:>9} {s['total_ok']:>6} {s['total_err']:>6} {s['consecutive_err']:>6}")
 PY
+      ;;
+    next|prev|pin-toggle|reload|snooze-urgent)
+      # DBus-driven verbs mapped to io.hairglasses.Ticker methods.
+      # Requires the primary ticker instance to be running.
+      local method
+      case "$cmd" in
+        next)           method="NextStream" ;;
+        prev)           method="PrevStream" ;;
+        pin-toggle)     method="PinToggle"  ;;
+        reload)         method="ReloadPlugins" ;;
+        snooze-urgent)  method="SnoozeUrgent"  ;;
+      esac
+      gdbus call --session \
+        -d io.hairglasses.keybind_ticker \
+        -o /io/hairglasses/Ticker \
+        -m "io.hairglasses.Ticker.$method" >/dev/null
+      ;;
+    banner)
+      # Usage: hg ticker banner <text> [color]
+      local text="${1:?usage: hg ticker banner <text> [color]}"
+      local color="${2:-#29f0ff}"
+      gdbus call --session \
+        -d io.hairglasses.keybind_ticker \
+        -o /io/hairglasses/Ticker \
+        -m io.hairglasses.Ticker.ShowBanner \
+        "$text" "$color" >/dev/null
       ;;
     *)
       printf 'unknown command: %s\n' "$cmd" >&2

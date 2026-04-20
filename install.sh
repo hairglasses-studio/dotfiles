@@ -205,6 +205,13 @@ $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
 $DOTFILES_DIR/scripts/dev-console.sh|$HOME/.local/bin/dev-console
 $DOTFILES_DIR/scripts/pin-dev-console-session.sh|$HOME/.local/bin/pin-dev-console-session
+$DOTFILES_DIR/scripts/retroarch-install-widescreen-cores.sh|$HOME/.local/bin/retroarch-install-widescreen-cores
+$DOTFILES_DIR/scripts/retroarch-dolphin-sync-sys.sh|$HOME/.local/bin/retroarch-dolphin-sync-sys
+$DOTFILES_DIR/scripts/retroarch-next-widescreen-setup.sh|$HOME/.local/bin/retroarch-next-widescreen-setup
+$DOTFILES_DIR/scripts/retroarch-flycast-apply-widescreen-defaults.py|$HOME/.local/bin/retroarch-flycast-apply-widescreen-defaults
+$DOTFILES_DIR/scripts/retroarch-dolphin-apply-widescreen-defaults.py|$HOME/.local/bin/retroarch-dolphin-apply-widescreen-defaults
+$DOTFILES_DIR/scripts/retroarch-flycast-widescreen-audit.py|$HOME/.local/bin/retroarch-flycast-widescreen-audit
+$DOTFILES_DIR/scripts/retroarch-dolphin-widescreen-audit.py|$HOME/.local/bin/retroarch-dolphin-widescreen-audit
 $DOTFILES_DIR/hyprland/hyprshade.toml|$HOME/.config/hyprshade/config.toml
 $DOTFILES_DIR/wluma/config.toml|$HOME/.config/wluma/config.toml
 $DOTFILES_DIR/kanshi/config|$HOME/.config/kanshi/config

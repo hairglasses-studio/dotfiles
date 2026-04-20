@@ -747,8 +747,13 @@ class TickerWindow(Gtk.ApplicationWindow):
         os.makedirs(STATE_DIR, exist_ok=True)
         path = os.path.join(STATE_DIR, "pinned-stream")
         if self.pinned_stream:
-            with open(path, "w") as f:
+            # Atomic write via temp file + os.replace so readers
+            # (hg ticker status, _load_pin_state on SIGUSR1) never see
+            # a half-written name during concurrent updates.
+            tmp = path + ".tmp"
+            with open(tmp, "w") as f:
                 f.write(self.pinned_stream)
+            os.replace(tmp, path)
         else:
             try:
                 os.remove(path)
@@ -801,10 +806,33 @@ class TickerWindow(Gtk.ApplicationWindow):
         return segments
 
     def _write_health_snapshot(self):
-        """Export stream health counters to tmpfs for `hg ticker health`."""
+        """Export stream health counters + perf tier to tmpfs for
+        `hg ticker health`. The ``perf`` block surfaces adaptive-quality
+        state and live runtime flags that are otherwise invisible to
+        external tools (bg thread backlog, urgent mode, dwell remaining).
+        """
         import json
         path = "/tmp/ticker-health.json"
         tmp = path + ".tmp"
+
+        # Compute dwell remaining for the currently-displayed stream.
+        current = (self.stream_order[self.stream_idx]
+                   if self.stream_order else None)
+        dwell_remaining = None
+        if current and not self.paused and not self.pinned_stream:
+            try:
+                interval = self._current_interval(current)
+                elapsed = max(0.0, self.time_s - self.stream_start_s)
+                dwell_remaining = max(0, int(interval - elapsed))
+            except Exception:
+                dwell_remaining = None
+
+        urgent_until = None
+        if self.urgent_mode and self.urgent_timer_handle is not None:
+            # Best-effort — no exact remaining time without tracking
+            # start; expose the boolean state and an ack-by marker.
+            urgent_until = int(_time.time()) + 10
+
         try:
             with open(tmp, "w") as f:
                 json.dump({
@@ -813,8 +841,16 @@ class TickerWindow(Gtk.ApplicationWindow):
                     "playlist": self.playlist_name,
                     "streams": self._stream_health,
                     "perf": {
-                        "tier": self._tier,
-                        "ema_frame_ms": round(self._ema_frame_ms, 2),
+                        "tier":             self._tier,
+                        "ema_frame_ms":     round(self._ema_frame_ms, 2),
+                        "bg_inflight":      len(self._bg_inflight),
+                        "current_stream":   current,
+                        "dwell_remaining":  dwell_remaining,
+                        "urgent_mode":      self.urgent_mode,
+                        "urgent_until":     urgent_until,
+                        "paused":           self.paused,
+                        "shuffle":          self.shuffle,
+                        "pinned":           self.pinned_stream,
                     },
                 }, f)
             os.replace(tmp, path)
@@ -856,11 +892,16 @@ class TickerWindow(Gtk.ApplicationWindow):
         stream_name = force_name or (self.pinned_stream
                                      if self.pinned_stream
                                      else self.stream_order[self.stream_idx])
-        # Persist current stream
+        # Persist current stream atomically; the _write_health_snapshot
+        # path and external tools (hg ticker status) read this on demand
+        # and must never see a half-written name.
         os.makedirs(STATE_DIR, exist_ok=True)
         try:
-            with open(os.path.join(STATE_DIR, "current-stream"), "w") as f:
+            path = os.path.join(STATE_DIR, "current-stream")
+            tmp = path + ".tmp"
+            with open(tmp, "w") as f:
                 f.write(stream_name)
+            os.replace(tmp, path)
         except OSError:
             pass
         # Apply per-stream preset override
@@ -902,6 +943,8 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.layout = None
         self.segment_bounds = []
         self.da.queue_draw()
+        self._emit_app_signal("StreamChanged",
+                              (GLib.Variant("s", stream_name or ""),))
 
     def _dispatch_bg_fetch(self, stream_name):
         with self._bg_lock:
@@ -948,11 +991,188 @@ class TickerWindow(Gtk.ApplicationWindow):
             GLib.source_remove(self.urgent_timer_handle)
         self.urgent_timer_handle = GLib.timeout_add_seconds(
             10, self._clear_urgent_mode)
+        self._emit_app_signal("UrgentMode", (GLib.Variant("b", True),))
 
     def _clear_urgent_mode(self):
+        was = self.urgent_mode
         self.urgent_mode = False
         self.urgent_timer_handle = None
+        if was:
+            self._emit_app_signal("UrgentMode", (GLib.Variant("b", False),))
         return GLib.SOURCE_REMOVE
+
+    # ── DBus handlers ─────────────────────────
+    # All methods below run on the GTK main thread via GLib.idle_add
+    # from TickerApp._on_method_call. Each one should return False so
+    # idle_add doesn't re-queue it.
+
+    def _emit_app_signal(self, name, variant_tuple):
+        """Thin wrapper: ask the Gtk.Application to emit a DBus signal."""
+        app = self.get_application()
+        if app is not None and hasattr(app, "_emit_signal"):
+            app._emit_signal(name, variant_tuple)
+
+    def _dbus_apply_pin(self, stream_or_none):
+        """Pin (or unpin if None). Validates against current stream_order."""
+        if stream_or_none:
+            if stream_or_none not in STREAMS:
+                sys.stderr.write(f"dbus Pin: unknown stream {stream_or_none}\n")
+                return False
+            if stream_or_none not in self.stream_order:
+                # Mirror ticker-shot's auto-switch: if the requested pin
+                # isn't in the active playlist, the external tool is
+                # expected to have already switched; we don't reshuffle here.
+                sys.stderr.write(f"dbus Pin: {stream_or_none} not in "
+                                 f"active playlist {self.playlist_name}\n")
+                return False
+            self.pinned_stream = stream_or_none
+            self.stream_idx = self.stream_order.index(stream_or_none)
+        else:
+            self.pinned_stream = None
+        self._save_pin_state()
+        self._rebuild_stream()
+        self._schedule_next_advance()
+        return False
+
+    def _dbus_toggle_pin(self):
+        if self.pinned_stream:
+            self._dbus_apply_pin(None)
+        elif self.stream_order:
+            self._dbus_apply_pin(self.stream_order[self.stream_idx])
+        return False
+
+    def _dbus_advance(self, direction: int):
+        """Advance or rewind by `direction` steps without pinning."""
+        if not self.stream_order:
+            return False
+        step = 1 if direction >= 0 else -1
+        new_idx = (self.stream_idx + step) % len(self.stream_order)
+        # End-of-cycle reshuffle parity with _maybe_advance_stream
+        if step > 0 and new_idx == 0 and self.shuffle and len(self.stream_order) > 1:
+            last = self.stream_order[self.stream_idx]
+            random.shuffle(self.stream_order)
+            if self.stream_order[0] == last:
+                self.stream_order[0], self.stream_order[1] = (
+                    self.stream_order[1], self.stream_order[0])
+        self.stream_idx = new_idx
+        self._rebuild_stream()
+        self._schedule_next_advance()
+        return False
+
+    def _dbus_toggle_pause(self):
+        self.paused = not self.paused
+        self._save_pause_state()
+        return False
+
+    def _dbus_set_shuffle(self, mode: str):
+        mode = (mode or "").strip().lower()
+        path = os.path.join(STATE_DIR, "shuffle")
+        os.makedirs(STATE_DIR, exist_ok=True)
+        if mode == "on":
+            new_state = True
+        elif mode == "off":
+            new_state = False
+        else:  # toggle / empty / anything else
+            new_state = not self.shuffle
+        if new_state:
+            open(path, "w").close()
+        else:
+            try:
+                os.remove(path)
+            except FileNotFoundError:
+                pass
+        # Trigger the reload path so stream_order is reshuffled in place.
+        self.reload_from_state()
+        return False
+
+    def _dbus_set_playlist(self, name: str):
+        name = (name or "").strip()
+        if not name:
+            return False
+        path = os.path.join(STATE_DIR, "active-playlist")
+        os.makedirs(STATE_DIR, exist_ok=True)
+        tmp = path + ".tmp"
+        with open(tmp, "w") as f:
+            f.write(name)
+        os.replace(tmp, path)
+        self.reload_from_state()
+        return False
+
+    def _dbus_set_preset(self, name: str):
+        name = (name or "").strip()
+        if name in PRESETS:
+            self._base_preset_name = name
+            self._apply_preset(name)
+            self.da.queue_draw()
+        return False
+
+    def _dbus_show_banner(self, text: str, color: str):
+        """Delegate to toast-ticker via its DBus surface.
+
+        Keeps the banner overlay separate from the scrolling text so an
+        external caller gets the same visual as `ShowToast` already
+        provides for swaync → urgent notifications.
+        """
+        try:
+            conn = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+            conn.call_sync(
+                "io.hairglasses.toast",
+                "/io/hairglasses/Toast",
+                "io.hairglasses.Toast",
+                "ShowToast",
+                GLib.Variant("(ss)", (str(text), str(color or "#29f0ff"))),
+                None, Gio.DBusCallFlags.NONE, 1000, None,
+            )
+        except Exception as e:
+            sys.stderr.write(f"dbus ShowBanner → toast relay failed: {e}\n")
+        return False
+
+    def _dbus_set_urgent(self, active: bool):
+        if active:
+            self._trigger_urgent_mode()
+        else:
+            self._clear_urgent_mode()
+        return False
+
+    def _dbus_reload_plugins(self):
+        """Re-import bundled plugin modules + reload TOML catalogue.
+
+        Clears STREAMS/STREAM_META/SLOW_STREAMS entries populated by the
+        plugin and TOML loaders, then re-runs both. Preserves the
+        user-drop-in plugins path handled elsewhere.
+        """
+        import importlib
+        try:
+            # Drop anything the plugin loader / TOML loader populated;
+            # user drop-ins are registered under `plugin:` prefix so we
+            # leave those alone.
+            stale = [k for k in STREAMS.keys() if not k.startswith("plugin:")]
+            for k in stale:
+                STREAMS.pop(k, None)
+                STREAM_META.pop(k, None)
+                SLOW_STREAMS.discard(k)
+            # Reload each ticker_streams submodule so edits take effect.
+            import ticker_streams as _ts
+            pkg_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   "lib", "ticker_streams")
+            for fname in sorted(os.listdir(pkg_dir)):
+                if not fname.endswith(".py") or fname == "__init__.py":
+                    continue
+                mod_name = f"ticker_streams.{fname[:-3]}"
+                if mod_name in sys.modules:
+                    importlib.reload(sys.modules[mod_name])
+            # Reload the package __init__ so FONTS / factory changes apply
+            importlib.reload(_ts)
+            # Re-register
+            _load_toml_catalogue()
+            _load_bundled_plugins()
+            self._rebuild_stream()
+            sys.stderr.write(
+                f"dbus ReloadPlugins: {len(STREAMS)} streams registered\n"
+            )
+        except Exception as e:
+            sys.stderr.write(f"dbus ReloadPlugins failed: {e}\n")
+        return False
 
     def _check_priority_interrupt(self):
         history = os.path.expanduser(
@@ -1039,6 +1259,8 @@ class TickerWindow(Gtk.ApplicationWindow):
             self._tier = target
             self._apply_tier(self._tier)
             self._tier_stable_frames = 0
+            self._emit_app_signal("TierChanged",
+                                  (GLib.Variant("i", self._tier),))
         elif target < self._tier:
             self._tier_stable_frames += 1
             if self._tier_stable_frames >= 120:  # 4 s at 30 Hz
@@ -1047,6 +1269,8 @@ class TickerWindow(Gtk.ApplicationWindow):
                 # Reload base + reapply tier so effects we cleared at the
                 # higher tier come back at the lower one.
                 self._apply_preset(self._base_preset_name)
+                self._emit_app_signal("TierChanged",
+                                      (GLib.Variant("i", self._tier),))
         else:
             self._tier_stable_frames = 0
 
@@ -1784,17 +2008,231 @@ class TickerWindow(Gtk.ApplicationWindow):
         self._update_adaptive_tier((_time.monotonic_ns() - _draw_t0) / 1e6)
 
 
+# ══════════════════════════════════════════════════
+# DBus interface
+# ══════════════════════════════════════════════════
+#
+# Exposed on the session bus so external tools can drive the ticker
+# without racing on SIGUSR1 + state files. The primary instance
+# (default STATE_DIR) owns `io.hairglasses.keybind_ticker`; secondary
+# instances (e.g. DP-3 focus) own a suffixed name derived from their
+# state-dir basename so both can coexist without collision.
+
+DBUS_PATH = "/io/hairglasses/Ticker"
+DBUS_IFACE = "io.hairglasses.Ticker"
+DBUS_INTROSPECTION = """
+<node>
+  <interface name='io.hairglasses.Ticker'>
+    <method name='Pin'>
+      <arg name='stream' direction='in' type='s'/>
+    </method>
+    <method name='Unpin'/>
+    <method name='PinToggle'/>
+    <method name='NextStream'/>
+    <method name='PrevStream'/>
+    <method name='TogglePause'/>
+    <method name='Shuffle'>
+      <arg name='mode' direction='in' type='s'/>
+    </method>
+    <method name='SetPlaylist'>
+      <arg name='name' direction='in' type='s'/>
+    </method>
+    <method name='SetPreset'>
+      <arg name='name' direction='in' type='s'/>
+    </method>
+    <method name='ShowBanner'>
+      <arg name='text'  direction='in' type='s'/>
+      <arg name='color' direction='in' type='s'/>
+    </method>
+    <method name='SetUrgent'>
+      <arg name='active' direction='in' type='b'/>
+    </method>
+    <method name='SnoozeUrgent'/>
+    <method name='ReloadPlugins'/>
+    <property name='CurrentStream' type='s' access='read'/>
+    <property name='Playlist'      type='s' access='read'/>
+    <property name='Pinned'        type='s' access='read'/>
+    <property name='Paused'        type='b' access='read'/>
+    <property name='Shuffle'       type='b' access='read'/>
+    <property name='Tier'          type='i' access='read'/>
+    <property name='EmaFrameMs'    type='d' access='read'/>
+    <property name='Urgent'        type='b' access='read'/>
+    <signal name='StreamChanged'>
+      <arg name='name' type='s'/>
+    </signal>
+    <signal name='TierChanged'>
+      <arg name='tier' type='i'/>
+    </signal>
+    <signal name='UrgentMode'>
+      <arg name='active' type='b'/>
+    </signal>
+  </interface>
+</node>
+"""
+
+
+def _dbus_bus_name_for_instance():
+    """Return the well-known bus name for this instance.
+
+    Primary (default state dir) → `io.hairglasses.keybind_ticker`.
+    Secondary (via --state-dir) → suffix with sanitised basename so
+    each instance owns a distinct name and `hg ticker` can target
+    them separately when desired.
+    """
+    if not STATE_DIR_OVERRIDE:
+        return "io.hairglasses.keybind_ticker"
+    base = os.path.basename(os.path.normpath(STATE_DIR))
+    # "keybind-ticker-DP-3_focus" → "DP_3_focus"
+    suffix = base.replace("keybind-ticker-", "").replace("-", "_")
+    suffix = re.sub(r"[^A-Za-z0-9_]", "_", suffix) or "secondary"
+    return f"io.hairglasses.keybind_ticker.{suffix}"
+
+
 class TickerApp(Gtk.Application):
     def __init__(self):
         super().__init__(
             application_id="io.hairglasses.keybind_ticker",
             flags=Gio.ApplicationFlags.NON_UNIQUE,
         )
+        self._bus_conn = None
+        self._bus_registration_id = 0
+        self._bus_name_id = 0
+
+    # ── DBus registration ─────────────────────────
+    def _register_dbus(self):
+        """Own the instance bus name and register the Ticker object.
+
+        Uses `Gio.bus_own_name` rather than relying on Gtk.Application's
+        auto-registration because NON_UNIQUE suppresses that path.
+        """
+        bus_name = _dbus_bus_name_for_instance()
+
+        def on_bus_acquired(conn, name):
+            self._bus_conn = conn
+            try:
+                node = Gio.DBusNodeInfo.new_for_xml(DBUS_INTROSPECTION)
+                iface = node.lookup_interface(DBUS_IFACE)
+                self._bus_registration_id = conn.register_object(
+                    DBUS_PATH, iface,
+                    self._on_method_call,
+                    self._on_get_property,
+                    None,  # no writable properties
+                )
+            except Exception as e:
+                sys.stderr.write(f"dbus register failed: {e}\n")
+
+        def on_name_lost(conn, name):
+            sys.stderr.write(f"dbus: lost name {name}\n")
+
+        self._bus_name_id = Gio.bus_own_name(
+            Gio.BusType.SESSION,
+            bus_name,
+            Gio.BusNameOwnerFlags.NONE,
+            on_bus_acquired,
+            None,       # name acquired callback — we register on bus_acquired
+            on_name_lost,
+        )
+
+    def _on_method_call(self, conn, sender, path, iface, method, params, invocation):
+        win = getattr(self, "_window", None)
+        if win is None:
+            invocation.return_error_literal(
+                Gio.dbus_error_quark(), Gio.DBusError.FAILED,
+                "ticker window not ready")
+            return
+
+        def done():
+            invocation.return_value(None)
+
+        try:
+            if method == "Pin":
+                (stream,) = params.unpack()
+                GLib.idle_add(win._dbus_apply_pin, stream)
+            elif method == "Unpin":
+                GLib.idle_add(win._dbus_apply_pin, None)
+            elif method == "PinToggle":
+                GLib.idle_add(win._dbus_toggle_pin)
+            elif method == "NextStream":
+                GLib.idle_add(win._dbus_advance, 1)
+            elif method == "PrevStream":
+                GLib.idle_add(win._dbus_advance, -1)
+            elif method == "TogglePause":
+                GLib.idle_add(win._dbus_toggle_pause)
+            elif method == "Shuffle":
+                (mode,) = params.unpack()
+                GLib.idle_add(win._dbus_set_shuffle, mode)
+            elif method == "SetPlaylist":
+                (name,) = params.unpack()
+                GLib.idle_add(win._dbus_set_playlist, name)
+            elif method == "SetPreset":
+                (name,) = params.unpack()
+                GLib.idle_add(win._dbus_set_preset, name)
+            elif method == "ShowBanner":
+                text, color = params.unpack()
+                GLib.idle_add(win._dbus_show_banner, text, color)
+            elif method == "SetUrgent":
+                (active,) = params.unpack()
+                GLib.idle_add(win._dbus_set_urgent, bool(active))
+            elif method == "SnoozeUrgent":
+                GLib.idle_add(win._clear_urgent_mode)
+            elif method == "ReloadPlugins":
+                GLib.idle_add(win._dbus_reload_plugins)
+            else:
+                invocation.return_error_literal(
+                    Gio.dbus_error_quark(), Gio.DBusError.UNKNOWN_METHOD,
+                    f"unknown method: {method}")
+                return
+        except Exception as e:
+            invocation.return_error_literal(
+                Gio.dbus_error_quark(), Gio.DBusError.FAILED, str(e))
+            return
+        done()
+
+    def _on_get_property(self, conn, sender, path, iface, prop):
+        win = getattr(self, "_window", None)
+        if win is None:
+            return GLib.Variant("s", "") if prop in ("CurrentStream", "Playlist", "Pinned") else GLib.Variant("b", False)
+        if prop == "CurrentStream":
+            cur = (win.stream_order[win.stream_idx]
+                   if win.stream_order else "")
+            return GLib.Variant("s", cur or "")
+        if prop == "Playlist":
+            return GLib.Variant("s", win.playlist_name or "")
+        if prop == "Pinned":
+            return GLib.Variant("s", win.pinned_stream or "")
+        if prop == "Paused":
+            return GLib.Variant("b", bool(win.paused))
+        if prop == "Shuffle":
+            return GLib.Variant("b", bool(win.shuffle))
+        if prop == "Tier":
+            return GLib.Variant("i", int(win._tier))
+        if prop == "EmaFrameMs":
+            return GLib.Variant("d", float(win._ema_frame_ms))
+        if prop == "Urgent":
+            return GLib.Variant("b", bool(win.urgent_mode))
+        return None
+
+    def _emit_signal(self, signal_name, variant_tuple):
+        """Emit a DBus signal (best-effort; silently skip if unregistered)."""
+        if not self._bus_conn:
+            return
+        try:
+            self._bus_conn.emit_signal(
+                None, DBUS_PATH, DBUS_IFACE, signal_name,
+                GLib.Variant.new_tuple(*variant_tuple),
+            )
+        except Exception:
+            pass
 
     def do_activate(self):
         win = TickerWindow(preset_name=START_PRESET, application=self)
         win.present()
         self._window = win
+
+        # Register DBus once the window is up. This runs on the next
+        # idle tick so the window reference is stable before any method
+        # call lands.
+        GLib.idle_add(lambda: (self._register_dbus(), False)[1])
 
         # SIGUSR1 → reload state files inline (no restart, no flicker).
         # signal.signal handlers fire in the signal thread; marshal the work

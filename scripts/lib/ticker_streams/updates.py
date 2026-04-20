@@ -7,6 +7,7 @@ lookups — so the stream is marked slow and runs on the background thread.
 from __future__ import annotations
 
 import subprocess
+import sys
 from html import escape
 
 import ticker_render as tr
@@ -46,6 +47,11 @@ def build():
                 parts.append(
                     f'<span font_desc="{font}">  {name}  \u00b7</span>'
                 )
-    except Exception:
-        pass
+    except Exception as e:
+        # Log to stderr so systemd journal captures it; the primary
+        # summary still renders from /tmp/bar-updates.txt even if the
+        # live checkupdates subprocess fails. Previously this was a
+        # silent `except: pass` that hid transient pacman-lock /
+        # timeout / network errors from `hg ticker health`.
+        sys.stderr.write(f"updates: checkupdates failed: {e}\n")
     return tr.dup("".join(parts)), []
