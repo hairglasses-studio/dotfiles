@@ -1032,49 +1032,6 @@ def build_shader_markup():
     return _dup("".join(parts)), segments
 
 
-_quotes_cache = {}  # {name: (mtime, [lines])}
-
-
-def _load_quotes(name):
-    path = os.path.join(QUOTES_DIR, f"{name}.txt")
-    try:
-        mtime = os.path.getmtime(path)
-    except OSError:
-        return []
-    cached = _quotes_cache.get(name)
-    if cached and cached[0] == mtime:
-        return cached[1]
-    try:
-        with open(path) as f:
-            lines = [l.rstrip("\n") for l in f
-                     if l.strip() and not l.lstrip().startswith("#")]
-    except OSError:
-        return cached[1] if cached else []
-    _quotes_cache[name] = (mtime, lines)
-    return lines
-
-
-def build_hacker_markup():
-    quotes = _load_quotes("hacker")
-    if not quotes:
-        return _empty("\U000f05f3 HACKER", "#34d399", "no quotes file")
-    line = random.choice(quotes)
-    parts = [_badge("\U000f05f3 HACKER", "#34d399")]
-    if "\t" in line:
-        quote, attribution = line.split("\t", 1)
-        parts.append(
-            f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#a3e635">  {escape(quote)}  </span>'
-        )
-        parts.append(
-            f'<span font_desc="Maple Mono NF CN Bold 10" foreground="#6ee7b7">\u2014 {escape(attribution)}  \u00b7</span>'
-        )
-    else:
-        parts.append(
-            f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#a3e635">  {escape(line)}  \u00b7</span>'
-        )
-    return _dup("".join(parts)), []
-
-
 def build_ci_markup():
     try:
         with open("/tmp/bar-ci.txt") as f:
@@ -1556,7 +1513,6 @@ STREAMS = {
     "audio":           build_audio_markup,
     "shader":          build_shader_markup,
     "ci":              build_ci_markup,
-    "hacker":          build_hacker_markup,
     "pomodoro":        build_pomodoro_markup,
     "failed-units":    build_failed_units_markup,
     "wifi-quality":    build_wifi_quality_markup,
@@ -1592,7 +1548,6 @@ STREAM_META = {
     "audio":           {"preset": "minimal",   "refresh": 10},
     "shader":          {"preset": "cyberpunk", "refresh": 60},
     "ci":              {"preset": "cyberpunk", "refresh": 300},
-    "hacker":          {"preset": "cyberpunk", "refresh": 45},
     "pomodoro":        {"preset": "cyberpunk", "refresh": 1},
     "failed-units":    {"preset": None,        "refresh": 60},
     "wifi-quality":    {"preset": None,        "refresh": 30},
@@ -1650,6 +1605,41 @@ def _load_toml_catalogue():
 
 
 _load_toml_catalogue()
+
+
+# ══════════════════════════════════════════════════
+# Bundled plugin catalogue (scripts/lib/ticker_streams/*.py)
+#
+# Complex streams live as individual Python modules with a standard
+# META + build() contract. The loader imports each and registers the
+# resulting callable into the same STREAMS / STREAM_META / FALLBACK_ORDER
+# / SLOW_STREAMS structures the inline builders use. Plugins override
+# same-named inline builders to allow incremental extraction.
+# ══════════════════════════════════════════════════
+
+def _load_bundled_plugins():
+    import ticker_streams as _ts
+    pkg_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                           "lib", "ticker_streams")
+    try:
+        builders, meta, order, slow = _ts.load_plugin_streams(pkg_dir)
+    except Exception as _e:
+        sys.stderr.write(f"bundled plugin load failed: {_e}\n")
+        return
+    for name, fn in builders.items():
+        STREAMS[name] = fn
+    for name, m in meta.items():
+        STREAM_META[name] = {"preset": m.get("preset"),
+                             "refresh": int(m.get("refresh", 300))}
+        if "dwell" in m:
+            STREAM_META[name]["dwell"] = m["dwell"]
+    for name in order:
+        if name not in FALLBACK_ORDER:
+            FALLBACK_ORDER.append(name)
+    SLOW_STREAMS.update(slow)
+
+
+_load_bundled_plugins()
 
 
 # ══════════════════════════════════════════════════
