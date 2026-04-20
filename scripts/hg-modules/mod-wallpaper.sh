@@ -19,6 +19,7 @@ random	Random wallpaper
 set	Set wallpaper by path
 shader	Animated shader wallpaper [next|random|set|stop|list]
 static	Switch from shader to static wallpaper
+engine	Steam Wallpaper Engine scene (linux-wallpaperengine)
 CMDS
 }
 
@@ -52,6 +53,7 @@ wallpaper_run() {
     set)     _wallpaper_set "$@" ;;
     shader)  exec bash "$_WP_SHADER" "${1:-next}" "${@:2}" ;;
     static)  exec bash "$_WP_SHADER" static ;;
+    engine)  exec bash "$HG_DOTFILES/scripts/wallpaper-mode.sh" engine ;;
     *)       hg_die "Unknown wallpaper command: $cmd. Run 'hg wallpaper --help'." ;;
   esac
 }

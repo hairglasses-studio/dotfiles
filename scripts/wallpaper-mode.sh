@@ -19,6 +19,9 @@ fi
 WALLPAPER_DIR="${WALLPAPER_DIR:-$HOME/Pictures/wallpapers}"
 WALLPAPER_VIDEO="${WALLPAPER_VIDEO:-$HOME/Pictures/wallpapers/live/default.mp4}"
 WALLPAPER_DEPTH="${WALLPAPER_DEPTH:-$HOME/Pictures/wallpapers/depth/default.jpg}"
+WALLPAPER_ENGINE_DP3="${WALLPAPER_ENGINE_DP3:-}"
+WALLPAPER_ENGINE_DP2="${WALLPAPER_ENGINE_DP2:-}"
+WALLPAPER_ENGINE_ASSETS_DIR="${WALLPAPER_ENGINE_ASSETS_DIR:-$HOME/.steam/steam/steamapps/workshop/content/431960}"
 
 _set_state() {
   printf '%s\n' "$1" > "$MODE_FILE"
@@ -54,6 +57,7 @@ _stop_dynamic_wallpapers() {
   pkill -x waydeeper 2>/dev/null || true
   pkill -x hyprlax 2>/dev/null || true
   pkill -x glshell 2>/dev/null || true
+  pkill -x linux-wallpaperengine 2>/dev/null || true
 }
 
 _ensure_swww() {
@@ -155,6 +159,42 @@ _switch_parallax() {
   hg_notify_low "Wallpaper" "Parallax mode${path:+: $(basename "$path")}"
 }
 
+_switch_engine() {
+  command -v linux-wallpaperengine >/dev/null 2>&1 || _notify_missing "linux-wallpaperengine"
+
+  local saved="${1:-}" dp3 dp2
+  if [[ -n "$saved" && "$saved" == *"|"* ]]; then
+    dp3="${saved%%|*}"
+    dp2="${saved##*|}"
+  else
+    dp3="$WALLPAPER_ENGINE_DP3"
+    dp2="$WALLPAPER_ENGINE_DP2"
+  fi
+
+  if [[ -z "$dp3" && -z "$dp2" ]]; then
+    _notify_missing_file "Wallpaper Engine scene" "WALLPAPER_ENGINE_DP3 or DP2 (set in ~/.config/hypr/wallpaper.env)"
+  fi
+
+  local assets="$WALLPAPER_ENGINE_ASSETS_DIR"
+  if [[ -n "$assets" && ! -d "$assets" ]]; then
+    hg_notify_critical "Wallpaper" "Workshop assets dir missing: $assets"
+    hg_die "assets dir not found: $assets"
+  fi
+
+  _stop_dynamic_wallpapers
+
+  local args=(--scaling fill --fullscreen-pause-only-active)
+  [[ -n "$assets" ]] && args+=(--assets-dir "$assets")
+  [[ -n "$dp3" ]] && args+=(--screen-root DP-3 --bg "$dp3")
+  [[ -n "$dp2" ]] && args+=(--screen-root DP-2 --bg "$dp2")
+
+  linux-wallpaperengine "${args[@]}" >/dev/null 2>&1 &
+  disown
+
+  _set_state engine "${dp3:-}|${dp2:-}"
+  hg_notify_low "Wallpaper" "Engine mode: DP-3=${dp3:-off} DP-2=${dp2:-off}"
+}
+
 _restore() {
   local mode value
   mode="$(_state_mode)"
@@ -193,6 +233,9 @@ _restore() {
     parallax)
       _switch_parallax "$value"
       ;;
+    engine)
+      _switch_engine "$value"
+      ;;
     papertoy)
       # Legacy mode — papertoy was removed (see deduplication in favor of shaderbg).
       # Fall back to shader mode with the same value.
@@ -218,7 +261,7 @@ _status() {
     video|depth|parallax)
       printf '%s:%s\n' "$mode" "$(basename "${value:-unknown}")"
       ;;
-    shader|static)
+    shader|static|engine)
       printf '%s:%s\n' "$mode" "${value:-unknown}"
       ;;
     *)
@@ -237,6 +280,7 @@ main() {
     video)    _switch_video "${1:-}" ;;
     depth)    _switch_depth "${1:-}" ;;
     parallax) _switch_parallax "${1:-}" ;;
+    engine)   _switch_engine "${1:-}" ;;
     papertoy)
       # Legacy alias — fall through to shader mode. papertoy was deduplicated
       # in favor of shaderbg (Phase 3 consolidation).
@@ -252,7 +296,7 @@ main() {
       ;;
     status) _status ;;
     *)
-      hg_die "Usage: wallpaper-mode.sh [shader|static|video|depth|parallax|restore|status|stop]"
+      hg_die "Usage: wallpaper-mode.sh [shader|static|video|depth|parallax|engine|restore|status|stop]"
       ;;
   esac
 }
