@@ -39,6 +39,7 @@ import re
 import math
 import random
 import signal
+import glob
 import threading
 import time as _time
 import cairo as _cairo
@@ -543,6 +544,86 @@ def build_load_markup():
         parts.append(f'<span font_desc="Maple Mono NF CN 11">  {escape(running)} tasks  \u00b7</span>')
     except Exception:
         return _empty("\U000f046a LOAD", "#3dffb5", "load unavailable")
+    return _dup("".join(parts)), []
+
+
+_CPU_HWMON_CACHE: dict | None = None
+
+
+def _find_cpu_hwmon():
+    """Locate the k10temp/coretemp hwmon entry once and cache the path."""
+    global _CPU_HWMON_CACHE
+    if _CPU_HWMON_CACHE is not None:
+        return _CPU_HWMON_CACHE
+    for h in sorted(glob.glob("/sys/class/hwmon/hwmon*")):
+        try:
+            name = open(os.path.join(h, "name")).read().strip()
+        except OSError:
+            continue
+        if name in ("k10temp", "coretemp", "zenpower"):
+            _CPU_HWMON_CACHE = {"path": h, "name": name}
+            return _CPU_HWMON_CACHE
+    _CPU_HWMON_CACHE = {}
+    return _CPU_HWMON_CACHE
+
+
+def build_cpu_markup():
+    parts = [_badge("\U000f04bc CPU", "#00d4ff")]
+    try:
+        hwmon = _find_cpu_hwmon()
+        temps = []
+        if hwmon:
+            for lbl_file in sorted(glob.glob(os.path.join(hwmon["path"], "temp*_label"))):
+                try:
+                    label = open(lbl_file).read().strip()
+                    inp = lbl_file[:-len("_label")] + "_input"
+                    val = int(open(inp).read().strip()) // 1000
+                    temps.append((label, val))
+                except (OSError, ValueError):
+                    continue
+
+        freqs = []
+        for fpath in sorted(glob.glob("/sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_cur_freq"))[:64]:
+            try:
+                freqs.append(int(open(fpath).read().strip()))
+            except (OSError, ValueError):
+                continue
+
+        ncpu = os.cpu_count() or 1
+
+        if not temps and not freqs:
+            return _empty("\U000f04bc CPU", "#00d4ff", "no thermal/freq data")
+
+        if temps:
+            # Primary temp = Tctl (AMD) or Package id 0 (Intel), else first
+            primary = next((v for l, v in temps if l in ("Tctl", "Package id 0")), temps[0][1])
+            t_color = "#ff5c8a" if primary >= 85 else ("#ffe45e" if primary >= 75 else "#76ff03")
+            parts.append(
+                f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{t_color}">'
+                f'  {primary}°C  \u00b7</span>'
+            )
+            extra = [f"{l} {v}" for l, v in temps if l != "Tctl" and l != "Package id 0"][:3]
+            if extra:
+                parts.append(
+                    f'<span font_desc="Maple Mono NF CN 11" foreground="#9fb2ff">'
+                    f'  {escape(" ".join(extra))}  \u00b7</span>'
+                )
+
+        if freqs:
+            avg_ghz = (sum(freqs) / len(freqs)) / 1_000_000
+            max_ghz = max(freqs) / 1_000_000
+            f_color = "#76ff03" if avg_ghz < 3.5 else ("#ffe45e" if avg_ghz < 4.5 else "#ff5c8a")
+            parts.append(
+                f'<span font_desc="Maple Mono NF CN 11" foreground="{f_color}">'
+                f'  avg {avg_ghz:.2f} GHz  max {max_ghz:.2f} GHz  \u00b7</span>'
+            )
+
+        parts.append(
+            f'<span font_desc="Maple Mono NF CN 11" foreground="#7ad0ff">'
+            f'  {ncpu} threads  \u00b7</span>'
+        )
+    except Exception:
+        return _empty("\U000f04bc CPU", "#00d4ff", "cpu unavailable")
     return _dup("".join(parts)), []
 
 
@@ -1469,6 +1550,7 @@ STREAMS = {
     "mx-battery":    build_mx_battery_markup,
     "disk":          build_disk_markup,
     "load":          build_load_markup,
+    "cpu":           build_cpu_markup,
     "gpu":           build_gpu_markup,
     "workspace":     build_workspace_markup,
     "claude-sessions": build_claude_sessions_markup,
@@ -1508,6 +1590,7 @@ STREAM_META = {
     "mx-battery":    {"preset": None,        "refresh": 300},
     "disk":          {"preset": None,        "refresh": 60},
     "load":          {"preset": None,        "refresh": 5},
+    "cpu":           {"preset": "cyberpunk", "refresh": 10},
     "gpu":           {"preset": "cyberpunk", "refresh": 10},
     "workspace":     {"preset": None,        "refresh": 5},
     "claude-sessions": {"preset": None,        "refresh": 120},
@@ -1540,7 +1623,7 @@ SLOW_STREAMS = {"github", "music", "updates", "claude-sessions", "github-prs"}
 FALLBACK_ORDER = [
     "keybinds", "system", "fleet", "weather", "github",
     "notifications", "music", "updates", "mx-battery",
-    "disk", "load", "gpu", "workspace",
+    "disk", "load", "cpu", "gpu", "workspace",
     "claude-sessions", "network", "audio", "shader", "ci", "hacker",
     "calendar", "pomodoro", "token-burn", "dirty-repos", "failed-units",
     "arch-news", "smart-disk", "wifi-quality", "container-status",

@@ -13,6 +13,7 @@ updates
 mx-battery
 disk
 load
+cpu
 gpu
 workspace
 claude-sessions
