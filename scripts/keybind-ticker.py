@@ -1046,8 +1046,8 @@ def make_gradient(x_start, total_width, phase):
 
 
 # ── Water caustic ─────────────────────────────────
-_WATER_SCALE = 4
-_WATER_MAX_ITER = 6
+_WATER_SCALE = 8       # was 4 — larger stride = fewer numpy cells per frame
+_WATER_MAX_ITER = 5    # was 6 — 1 fewer inner iter, effect visually identical
 _WATER_TAU = 6.28318530718
 
 
@@ -1842,10 +1842,13 @@ class TickerWindow(Gtk.ApplicationWindow):
             self._runtime_ca_offset = ca_offset
         self.last_us = now
         self.water_frame += 1
-        # Throttle redraws to ~60Hz. Offset/time/glitch state still advances
-        # via dt every tick (animation stays smooth); only pixel rasterization
-        # is capped. Saves ~75% CPU on 240Hz displays with vfr=false.
-        if now - getattr(self, "_last_draw_us", 0) >= 16_000:
+        # Throttle redraws to ~30 Hz. Offset / time / glitch state still
+        # advances via dt every tick (animation stays smooth and high-rate);
+        # only pixel rasterization is capped. 30 Hz is still perceptually
+        # smooth for horizontally scrolling text (matches 24 fps film, with
+        # headroom) and lets the 40 % enlarged effects fit in a comfortable
+        # frame budget without the compositor dropping frames.
+        if now - getattr(self, "_last_draw_us", 0) >= 33_333:
             widget.queue_draw()
             self._last_draw_us = now
         return GLib.SOURCE_CONTINUE
@@ -1891,7 +1894,11 @@ class TickerWindow(Gtk.ApplicationWindow):
         surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
         tc = _cairo.Context(surf)
         x0 = -self.offset
-        y = (height - 14) / 2
+        # Empirical Maple Mono cap-height ≈ 0.7 × point size; centre the text
+        # block in the bar. Was hardcoded `14` tuned for 11pt / 28px; scaled
+        # proportionally for the 15pt / 39px bar so ascenders/descenders
+        # don't clip top or bottom.
+        y = (height - 19) / 2
         p = self.preset
 
         # _dup already duplicates the markup once for seamless wrap. Draw
@@ -2026,15 +2033,17 @@ class TickerWindow(Gtk.ApplicationWindow):
                 cr.rectangle(0, row, width, 1)
             cr.fill()
 
-        # Holo shimmer (Phase 6)
+        # Holo shimmer (Phase 6) — every other row (stripe still reads as
+        # shimmer to the eye at the current `shimmer_a` values) to halve the
+        # per-frame cairo fill count. Rows are 2 px tall instead of 1.
         shimmer_a = getattr(p, "holo_shimmer", 0.0)
         if shimmer_a > 0:
-            for i in range(height):
+            for i in range(0, height, 2):
                 v = (math.sin(i * 4.2 + self.time_s * 3) *
                      math.sin(i * 0.7 - self.time_s * 1.5))
                 v = (v + 1) / 2  # 0..1
                 cr.set_source_rgba(0.161, 0.941, 1.000, shimmer_a * v)
-                cr.rectangle(0, i, width, 1)
+                cr.rectangle(0, i, width, 2)
                 cr.fill()
 
         # Top border (synthwave sweep or static gradient)
