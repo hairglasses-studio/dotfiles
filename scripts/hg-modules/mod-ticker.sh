@@ -45,6 +45,7 @@ restart	Restart the ticker systemd service
 logs	Tail the ticker systemd logs
 shot	Capture a 28px-tall ticker-only PNG (safe for Claude ingestion)
 smoke-test	Load every plugin + TOML stream and call build() — PASS/FAIL report
+recover-monitor	Restore DP-2 to native mode after DSC fallback (ticker clipping)
 CMDS
 }
 
@@ -147,6 +148,11 @@ ticker_run() {
       ;;
     smoke-test)
       python3 "$_TICKER_SMOKE" "$@"
+      ;;
+    recover-monitor)
+      # Diagnose + restore the ultrawide from DSC fallback to native mode.
+      # Passes positional args through: [monitor] [native-mode] [pos] [scale]
+      "$HG_DOTFILES/scripts/hg-dsc-recover.sh" "$@"
       ;;
     health)
       local snap="/tmp/ticker-health.json"

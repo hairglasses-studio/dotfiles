@@ -318,9 +318,26 @@ ends at y=32).
 If the Samsung ultrawide drops from its native 5120×1440@240 Hz scale=2 mode
 into a DSC-fallback mode (3840×1080@120 Hz scale=1, often after a live VRR
 config change or driver hiccup), layer-shell surfaces render with their top
-portion clipped (~30px truncated, varies with surface height). There is no
-software fix — power-cycle the Samsung per
-`.claude/rules/nvidia-wayland.md` DSC recovery procedure.
+portion clipped — the ticker shows ~12 px of duplicated/leaked content
+above its 28 px strip. Symptom is visible as ghost text floating above
+the bar, or taking a 40 px-tall grim capture including the strip + some
+margin above it.
+
+**Soft recovery** (try first — works when EDID still lists the native
+mode in `hyprctl monitors -j | jq '.[] | select(.name=="DP-2").availableModes'`):
+
+```bash
+hg ticker recover-monitor        # DP-2 → 5120x1440@239.76 scale=2
+```
+
+The helper re-applies the monitors.conf setting at runtime via
+`hyprctl keyword monitor` and restarts the three layer-shell services
+(ticker, window-label, fleet-sparkline) so each re-reads geometry. It's
+idempotent — running while already native is a no-op.
+
+**Hardware recovery** (required when EDID no longer lists the native mode
+— `recover-monitor` exits 2 and prints the procedure in that case):
+power-cycle the Samsung per `.claude/rules/nvidia-wayland.md` §146.
 
 ## Multi-instance & Surfaces
 
