@@ -1192,6 +1192,16 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.glow_cache = None
         self.glow_frame = 0
 
+        # Adaptive quality state. Tier 0 = base preset as configured; each
+        # higher tier disables progressively-more-expensive effects when
+        # the EMA of `_draw` frame time approaches the 30 Hz budget (33 ms).
+        # Asymmetric EMA (fast up α=0.1, slow down α=0.05) reacts quickly
+        # to overload and restores slowly so quiet periods don't flip the
+        # tier back instantly on re-entry into a heavy stream.
+        self._tier = 0
+        self._ema_frame_ms = 0.0
+        self._tier_stable_frames = 0
+
         self.stream_start_s = 0.0
 
         # Phosphor trail ring buffer (for Phase 6)
@@ -1365,6 +1375,10 @@ class TickerWindow(Gtk.ApplicationWindow):
                     "ts": int(_time.time()),
                     "playlist": self.playlist_name,
                     "streams": self._stream_health,
+                    "perf": {
+                        "tier": self._tier,
+                        "ema_frame_ms": round(self._ema_frame_ms, 2),
+                    },
                 }, f)
             os.replace(tmp, path)
         except OSError:
@@ -1518,6 +1532,68 @@ class TickerWindow(Gtk.ApplicationWindow):
         new_preset = load_preset(name)
         self.preset = new_preset
         self.base_speed_cache = new_preset.speed
+        self._base_preset_name = name
+        # Re-apply any active degradation — tier state persists across
+        # stream changes so a loaded machine doesn't bounce back to full
+        # effects on every rotation.
+        self._apply_tier(self._tier)
+
+    def _apply_tier(self, tier):
+        """Mutate `self.preset` to disable effects based on degradation tier.
+
+        Only reduces effect intensity; never promotes beyond the preset's
+        own configured value. `_apply_preset` calls this after reloading
+        the base preset so the cumulative effect is correct."""
+        if tier >= 1:
+            self.preset.phosphor_trail = 0.0
+            self.preset.ghost_echo = 0.0
+        if tier >= 2:
+            self.preset.glow_kernel = min(self.preset.glow_kernel, 11)
+        if tier >= 3:
+            self.preset.water_skip = 0
+        if tier >= 4:
+            self.preset.glitch_prob = 0.0
+            self.preset.synthwave_border = False
+            self.preset.holo_shimmer = 0.0
+            self.preset.wave_amp = 0
+
+    def _update_adaptive_tier(self, frame_ms):
+        """Fold this frame's draw time into the EMA and promote/demote the
+        degradation tier if the smoothed frame time crosses a threshold.
+
+        Thresholds are relative to the 33 ms budget at 30 Hz:
+          tier 1 ≥ 20 ms (60 %)  — kill phosphor_trail + ghost_echo
+          tier 2 ≥ 26 ms (80 %)  — clamp glow_kernel ≤ 11
+          tier 3 ≥ 30 ms (90 %)  — disable water_caustic
+          tier 4 ≥ 33 ms (100 %) — strip to minimal-like preset
+        Upgrade fires on the next frame that trips the threshold; downgrade
+        requires 120 consecutive frames (4 s at 30 Hz) under budget before
+        restoring one tier — prevents oscillation on periodic heavy frames.
+        """
+        alpha = 0.1 if frame_ms > self._ema_frame_ms else 0.05
+        self._ema_frame_ms += (frame_ms - self._ema_frame_ms) * alpha
+
+        target = 0
+        ema = self._ema_frame_ms
+        if ema > 20: target = 1
+        if ema > 26: target = 2
+        if ema > 30: target = 3
+        if ema > 33: target = 4
+
+        if target > self._tier:
+            self._tier = target
+            self._apply_tier(self._tier)
+            self._tier_stable_frames = 0
+        elif target < self._tier:
+            self._tier_stable_frames += 1
+            if self._tier_stable_frames >= 120:  # 4 s at 30 Hz
+                self._tier = max(self._tier - 1, target)
+                self._tier_stable_frames = 0
+                # Reload base + reapply tier so effects we cleared at the
+                # higher tier come back at the lower one.
+                self._apply_preset(self._base_preset_name)
+        else:
+            self._tier_stable_frames = 0
 
     # ── Input handlers ────────────────────────
 
@@ -2052,6 +2128,7 @@ class TickerWindow(Gtk.ApplicationWindow):
     # ── Draw ──────────────────────────────────
 
     def _draw(self, da, cr, width, height):
+        _draw_t0 = _time.monotonic_ns()
         p = self.preset
 
         if self.layout is None:
@@ -2246,6 +2323,10 @@ class TickerWindow(Gtk.ApplicationWindow):
         if self.paused:
             cr.set_source_rgba(1, 0.278, 0.820, 0.08)
             cr.paint()
+
+        # Adaptive quality: record this frame's render time; the EMA inside
+        # `_update_adaptive_tier` decides whether to promote/demote tier.
+        self._update_adaptive_tier((_time.monotonic_ns() - _draw_t0) / 1e6)
 
 
 class TickerApp(Gtk.Application):
