@@ -444,39 +444,6 @@ def build_updates_markup():
     return _dup("".join(parts)), []
 
 
-def build_disk_markup():
-    parts = [_badge("\U000f02ca DISK", "#4aa8ff")]
-    try:
-        raw = subprocess.run(
-            ["df", "-h", "--output=target,pcent,avail"],
-            capture_output=True, text=True, timeout=3,
-        ).stdout.strip().splitlines()
-        fc = len(FONTS)
-        shown = 0
-        for line in raw[1:]:  # skip header
-            fields = line.split()
-            if len(fields) < 3:
-                continue
-            mount, pct_s, avail = fields[0], fields[1], fields[2]
-            # Skip pseudo-filesystems
-            if mount.startswith(("/dev", "/sys", "/proc", "/run", "/tmp", "/boot/efi")):
-                continue
-            if mount in ("/", "/home") or mount.startswith("/mnt") or mount.startswith("/data"):
-                try:
-                    pct_num = int(pct_s.rstrip("%"))
-                except ValueError:
-                    continue
-                color = "#ff5c8a" if pct_num > 80 else "#f7fbff"
-                font = FONTS[shown % fc]
-                parts.append(f'<span font_desc="{font}" foreground="{color}">  {escape(mount)} {escape(pct_s)} ({escape(avail)} free)  \u00b7</span>')
-                shown += 1
-        if shown == 0:
-            return _empty("\U000f02ca DISK", "#4aa8ff", "no filesystems")
-    except Exception:
-        return _empty("\U000f02ca DISK", "#4aa8ff", "disk unavailable")
-    return _dup("".join(parts)), []
-
-
 def _sparkline(values, bars="\u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588"):
     if not values:
         return ""
@@ -486,27 +453,6 @@ def _sparkline(values, bars="\u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588"):
         idx = min(len(bars) - 1, int((v / vmax) * (len(bars) - 1)))
         out += bars[idx]
     return out
-
-
-def build_load_markup():
-    parts = [_badge("\U000f046a LOAD", "#3dffb5")]
-    try:
-        with open("/proc/loadavg") as f:
-            fields = f.read().split()
-        if len(fields) < 3:
-            return _empty("\U000f046a LOAD", "#3dffb5", "no load data")
-        one, five, fifteen = (float(fields[0]), float(fields[1]), float(fields[2]))
-        spark = _sparkline([fifteen, five, one])  # oldest to newest
-        ncpu = os.cpu_count() or 1
-        color = "#ff5c8a" if one > ncpu else "#f7fbff"
-        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">'
-                     f'  {spark} 1m={one:.2f} 5m={five:.2f} 15m={fifteen:.2f}  '
-                     f'(cpus={ncpu})  \u00b7</span>')
-        running = fields[3] if len(fields) > 3 else "?"
-        parts.append(f'<span font_desc="Maple Mono NF CN 11">  {escape(running)} tasks  \u00b7</span>')
-    except Exception:
-        return _empty("\U000f046a LOAD", "#3dffb5", "load unavailable")
-    return _dup("".join(parts)), []
 
 
 _CPU_HWMON_CACHE: dict | None = None
@@ -571,71 +517,6 @@ def build_top_procs_markup():
             )
     except Exception:
         return _empty("\U000f0233 TOP", "#ff8855", "ps unavailable")
-    return _dup("".join(parts)), []
-
-
-def build_uptime_markup():
-    parts = [_badge("\U000f0907 UPTIME", "#c6a0ff")]
-    try:
-        with open("/proc/uptime") as f:
-            secs = float(f.read().split()[0])
-        days, rem = divmod(int(secs), 86400)
-        hours, rem = divmod(rem, 3600)
-        mins, _ = divmod(rem, 60)
-        if days:
-            human = f"{days}d {hours}h {mins}m"
-        elif hours:
-            human = f"{hours}h {mins}m"
-        else:
-            human = f"{mins}m"
-        boot_ts = _time.time() - secs
-        boot = _time.strftime("%Y-%m-%d %H:%M", _time.localtime(boot_ts))
-        color = "#ff5c8a" if days >= 30 else ("#ffe45e" if days >= 7 else "#c6a0ff")
-        parts.append(
-            f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">'
-            f'  {escape(human)}  \u00b7</span>'
-            f'<span font_desc="Maple Mono NF CN 11" foreground="#9fb2ff">'
-            f'  booted {escape(boot)}  \u00b7</span>'
-        )
-    except Exception:
-        return _empty("\U000f0907 UPTIME", "#c6a0ff", "uptime unavailable")
-    return _dup("".join(parts)), []
-
-
-def build_tmux_markup():
-    parts = [_badge("\U000f06a0 TMUX", "#a8ff60")]
-    try:
-        raw = subprocess.run(
-            ["tmux", "list-sessions", "-F",
-             "#{session_name}|#{session_windows}|#{session_attached}|#{session_created}"],
-            capture_output=True, text=True, timeout=3,
-        )
-        if raw.returncode != 0 or not raw.stdout.strip():
-            return _empty("\U000f06a0 TMUX", "#a8ff60", "no tmux sessions")
-        now = _time.time()
-        fc = len(FONTS)
-        for i, line in enumerate(raw.stdout.strip().splitlines()):
-            fields = line.split("|")
-            if len(fields) < 4:
-                continue
-            name, windows, attached, created = fields
-            try:
-                age = int(now - int(created))
-                hours = age // 3600
-                age_s = f"{hours}h" if hours else f"{age // 60}m"
-            except ValueError:
-                age_s = "?"
-            attached_i = "●" if attached == "1" else "○"
-            color = "#a8ff60" if attached == "1" else "#66708f"
-            font = FONTS[i % fc]
-            parts.append(
-                f'<span font_desc="{font}" foreground="{color}">'
-                f'  {attached_i} {escape(name)} ({escape(windows)}w, {age_s})  \u00b7</span>'
-            )
-    except FileNotFoundError:
-        return _empty("\U000f06a0 TMUX", "#a8ff60", "tmux not installed")
-    except Exception:
-        return _empty("\U000f06a0 TMUX", "#a8ff60", "tmux unavailable")
     return _dup("".join(parts)), []
 
 
@@ -1241,13 +1122,9 @@ STREAMS = {
     "notifications": build_notifications_markup,
     "music":         build_music_markup,
     "updates":       build_updates_markup,
-    "disk":          build_disk_markup,
-    "load":          build_load_markup,
     "cpu":           build_cpu_markup,
     "gpu":           build_gpu_markup,
     "top-procs":     build_top_procs_markup,
-    "uptime":        build_uptime_markup,
-    "tmux":          build_tmux_markup,
     "workspace":     build_workspace_markup,
     "claude-sessions": build_claude_sessions_markup,
     "network":         build_network_markup,
@@ -1268,13 +1145,9 @@ STREAM_META = {
     "notifications": {"preset": None,        "refresh": 60},
     "music":         {"preset": "minimal",   "refresh": 10},
     "updates":       {"preset": None,        "refresh": 1800},
-    "disk":          {"preset": None,        "refresh": 60},
-    "load":          {"preset": None,        "refresh": 5},
     "cpu":           {"preset": "cyberpunk", "refresh": 10},
     "gpu":           {"preset": "cyberpunk", "refresh": 10},
     "top-procs":     {"preset": "cyberpunk", "refresh": 15},
-    "uptime":        {"preset": "ambient",   "refresh": 300},
-    "tmux":          {"preset": None,        "refresh": 60},
     "workspace":     {"preset": None,        "refresh": 5},
     "claude-sessions": {"preset": None,        "refresh": 120},
     "network":         {"preset": None,        "refresh": 30},
