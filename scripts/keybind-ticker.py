@@ -567,6 +567,51 @@ def _find_cpu_hwmon():
     return _CPU_HWMON_CACHE
 
 
+def build_top_procs_markup():
+    parts = [_badge("\U000f0233 TOP", "#ff8855")]
+    try:
+        out = subprocess.run(
+            ["ps", "-eo", "pid,%cpu,%mem,comm", "--sort=-%cpu", "--no-headers"],
+            capture_output=True, text=True, timeout=3,
+        ).stdout.strip().splitlines()
+        # Filter out the ps invocation itself — shows up at 100%+ cpu
+        # because it burns its own init.
+        rows = []
+        for line in out:
+            fields = line.split(None, 3)
+            if len(fields) < 4:
+                continue
+            pid, cpu, mem, comm = fields
+            if comm in ("ps", "ps-procs"):
+                continue
+            try:
+                cpu_f = float(cpu)
+                mem_f = float(mem)
+            except ValueError:
+                continue
+            if cpu_f < 1.0:
+                continue
+            rows.append((pid, cpu_f, mem_f, comm[:22]))
+            if len(rows) >= 6:
+                break
+        if not rows:
+            return _empty("\U000f0233 TOP", "#ff8855", "system idle")
+        fc = len(FONTS)
+        for i, (pid, cpu_f, mem_f, comm) in enumerate(rows):
+            color = "#ff5c8a" if cpu_f > 75 else ("#ffe45e" if cpu_f > 25 else "#f7fbff")
+            font = FONTS[i % fc]
+            parts.append(
+                f'<span font_desc="{font}" foreground="{color}">'
+                f'  {escape(comm)} '
+                f'<span foreground="#9fb2ff">{cpu_f:.0f}% cpu</span> '
+                f'<span foreground="#7ad0ff">{mem_f:.1f}% mem</span>'
+                f'  \u00b7</span>'
+            )
+    except Exception:
+        return _empty("\U000f0233 TOP", "#ff8855", "ps unavailable")
+    return _dup("".join(parts)), []
+
+
 def build_uptime_markup():
     parts = [_badge("\U000f0907 UPTIME", "#c6a0ff")]
     try:
@@ -1617,6 +1662,7 @@ STREAMS = {
     "load":          build_load_markup,
     "cpu":           build_cpu_markup,
     "gpu":           build_gpu_markup,
+    "top-procs":     build_top_procs_markup,
     "uptime":        build_uptime_markup,
     "tmux":          build_tmux_markup,
     "workspace":     build_workspace_markup,
@@ -1659,6 +1705,7 @@ STREAM_META = {
     "load":          {"preset": None,        "refresh": 5},
     "cpu":           {"preset": "cyberpunk", "refresh": 10},
     "gpu":           {"preset": "cyberpunk", "refresh": 10},
+    "top-procs":     {"preset": "cyberpunk", "refresh": 15},
     "uptime":        {"preset": "ambient",   "refresh": 300},
     "tmux":          {"preset": None,        "refresh": 60},
     "workspace":     {"preset": None,        "refresh": 5},
@@ -1692,7 +1739,7 @@ SLOW_STREAMS = {"github", "music", "updates", "claude-sessions", "github-prs"}
 FALLBACK_ORDER = [
     "keybinds", "system", "fleet", "weather", "github",
     "notifications", "music", "updates", "mx-battery",
-    "disk", "load", "cpu", "gpu", "uptime", "tmux", "workspace",
+    "disk", "load", "cpu", "gpu", "top-procs", "uptime", "tmux", "workspace",
     "claude-sessions", "network", "audio", "shader", "ci", "hacker",
     "calendar", "pomodoro", "token-burn", "dirty-repos", "failed-units",
     "arch-news", "smart-disk", "wifi-quality", "container-status",

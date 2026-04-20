@@ -15,6 +15,7 @@ disk
 load
 cpu
 gpu
+top-procs
 uptime
 tmux
 workspace
