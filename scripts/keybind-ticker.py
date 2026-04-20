@@ -444,27 +444,6 @@ def build_updates_markup():
     return _dup("".join(parts)), []
 
 
-def build_mx_battery_markup():
-    parts = [_badge("\U000f0379 MX BATTERY", "#ffe45e")]
-    try:
-        with open("/tmp/bar-mx.txt") as f:
-            raw = f.read().strip()
-        if not raw:
-            return _empty("\U000f0379 MX BATTERY", "#ffe45e", "no mx battery data")
-        # Extract percentage number if present
-        pct = None
-        m = re.search(r"(\d+)", raw)
-        if m:
-            pct = int(m.group(1))
-        color = "#ff5c8a" if pct is not None and pct < 20 else "#f7fbff"
-        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">  {escape(raw)}  \u00b7</span>')
-    except FileNotFoundError:
-        return _empty("\U000f0379 MX BATTERY", "#ffe45e", "mx cache missing")
-    except Exception:
-        return _empty("\U000f0379 MX BATTERY", "#ffe45e", "mx battery unavailable")
-    return _dup("".join(parts)), []
-
-
 def build_disk_markup():
     parts = [_badge("\U000f02ca DISK", "#4aa8ff")]
     try:
@@ -1135,37 +1114,6 @@ def build_pomodoro_markup():
     return _dup("".join(parts)), []
 
 
-def build_failed_units_markup():
-    try:
-        user_out = subprocess.run(
-            ["systemctl", "--user", "--failed", "--no-legend", "--plain"],
-            capture_output=True, text=True, timeout=3,
-        ).stdout
-        sys_out = subprocess.run(
-            ["systemctl", "--failed", "--no-legend", "--plain"],
-            capture_output=True, text=True, timeout=3,
-        ).stdout
-    except Exception:
-        return _empty("\U000f0028 FAILED", "#ef4444", "systemctl unavailable")
-    entries = []
-    for scope, out in (("user", user_out), ("sys", sys_out)):
-        for line in out.splitlines():
-            tok = line.split()
-            if tok:
-                entries.append((scope, tok[0]))
-    if not entries:
-        return _empty("\U000f0028 FAILED", "#34d399", "no failed units")
-    parts = [_badge("\U000f0028 FAILED", "#ef4444")]
-    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#ef4444">  {len(entries)} failed  \u00b7</span>')
-    fc = len(FONTS)
-    for i, (scope, name) in enumerate(entries[:10]):
-        font = FONTS[i % fc]
-        parts.append(
-            f'<span font_desc="{font}" foreground="#fbbf24">  [{scope}] {escape(name)}  \u00b7</span>'
-        )
-    return _dup("".join(parts)), []
-
-
 def build_wifi_quality_markup():
     try:
         dev_out = subprocess.run(
@@ -1305,39 +1253,6 @@ def build_net_throughput_markup():
         font = FONTS[i % fc]
         parts.append(
             f'<span font_desc="{font}">  {escape(iface)} \u2193 {escape(_format_rate(drx))} \u2191 {escape(_format_rate(dtx))}  \u00b7</span>'
-        )
-    return _dup("".join(parts)), []
-
-
-def build_kernel_errors_markup():
-    try:
-        out = subprocess.run(
-            ["journalctl", "-p", "err", "-k", "-n", "5",
-             "--since", "15 min ago", "--output=short-precise", "--no-pager"],
-            capture_output=True, text=True, timeout=3,
-        ).stdout
-    except Exception:
-        return _empty("\U000f00e4 KERNEL", "#dc2626", "journalctl unavailable")
-    lines = [l for l in out.splitlines() if l.strip()]
-    if not lines:
-        return _empty("\U000f00e4 KERNEL", "#34d399", "no recent errors")
-    # Dedup while preserving order; trim to 90 chars
-    seen = set()
-    uniq = []
-    for l in lines:
-        msg = l.split("kernel: ", 1)[-1][:90]
-        if msg not in seen:
-            seen.add(msg)
-            uniq.append(msg)
-    parts = [_badge("\U000f00e4 KERNEL", "#dc2626")]
-    parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#ef4444">  {len(uniq)} err  \u00b7</span>'
-    )
-    fc = len(FONTS)
-    for i, msg in enumerate(uniq[:4]):
-        font = FONTS[i % fc]
-        parts.append(
-            f'<span font_desc="{font}" foreground="#fca5a5">  {escape(msg)}  \u00b7</span>'
         )
     return _dup("".join(parts)), []
 
@@ -1499,7 +1414,6 @@ STREAMS = {
     "notifications": build_notifications_markup,
     "music":         build_music_markup,
     "updates":       build_updates_markup,
-    "mx-battery":    build_mx_battery_markup,
     "disk":          build_disk_markup,
     "load":          build_load_markup,
     "cpu":           build_cpu_markup,
@@ -1514,11 +1428,9 @@ STREAMS = {
     "shader":          build_shader_markup,
     "ci":              build_ci_markup,
     "pomodoro":        build_pomodoro_markup,
-    "failed-units":    build_failed_units_markup,
     "wifi-quality":    build_wifi_quality_markup,
     "container-status": build_container_status_markup,
     "net-throughput":  build_net_throughput_markup,
-    "kernel-errors":   build_kernel_errors_markup,
     "recording":       build_recording_markup,
     "hn-top":          build_hn_top_markup,
     "weather-alerts":  build_weather_alerts_markup,
@@ -1534,7 +1446,6 @@ STREAM_META = {
     "notifications": {"preset": None,        "refresh": 60},
     "music":         {"preset": "minimal",   "refresh": 10},
     "updates":       {"preset": None,        "refresh": 1800},
-    "mx-battery":    {"preset": None,        "refresh": 300},
     "disk":          {"preset": None,        "refresh": 60},
     "load":          {"preset": None,        "refresh": 5},
     "cpu":           {"preset": "cyberpunk", "refresh": 10},
@@ -1549,11 +1460,9 @@ STREAM_META = {
     "shader":          {"preset": "cyberpunk", "refresh": 60},
     "ci":              {"preset": "cyberpunk", "refresh": 300},
     "pomodoro":        {"preset": "cyberpunk", "refresh": 1},
-    "failed-units":    {"preset": None,        "refresh": 60},
     "wifi-quality":    {"preset": None,        "refresh": 30},
     "container-status": {"preset": None,       "refresh": 30},
     "net-throughput":  {"preset": None,        "refresh": 5},
-    "kernel-errors":   {"preset": "cyberpunk", "refresh": 60},
     "recording":       {"preset": "cyberpunk", "refresh": 1},
     "hn-top":          {"preset": "ambient",   "refresh": 600},
     "weather-alerts":  {"preset": "cyberpunk", "refresh": 900},
