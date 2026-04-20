@@ -475,51 +475,6 @@ def _find_cpu_hwmon():
     return _CPU_HWMON_CACHE
 
 
-def build_top_procs_markup():
-    parts = [_badge("\U000f0233 TOP", "#ff8855")]
-    try:
-        out = subprocess.run(
-            ["ps", "-eo", "pid,%cpu,%mem,comm", "--sort=-%cpu", "--no-headers"],
-            capture_output=True, text=True, timeout=3,
-        ).stdout.strip().splitlines()
-        # Filter out the ps invocation itself — shows up at 100%+ cpu
-        # because it burns its own init.
-        rows = []
-        for line in out:
-            fields = line.split(None, 3)
-            if len(fields) < 4:
-                continue
-            pid, cpu, mem, comm = fields
-            if comm in ("ps", "ps-procs"):
-                continue
-            try:
-                cpu_f = float(cpu)
-                mem_f = float(mem)
-            except ValueError:
-                continue
-            if cpu_f < 1.0:
-                continue
-            rows.append((pid, cpu_f, mem_f, comm[:22]))
-            if len(rows) >= 6:
-                break
-        if not rows:
-            return _empty("\U000f0233 TOP", "#ff8855", "system idle")
-        fc = len(FONTS)
-        for i, (pid, cpu_f, mem_f, comm) in enumerate(rows):
-            color = "#ff5c8a" if cpu_f > 75 else ("#ffe45e" if cpu_f > 25 else "#f7fbff")
-            font = FONTS[i % fc]
-            parts.append(
-                f'<span font_desc="{font}" foreground="{color}">'
-                f'  {escape(comm)} '
-                f'<span foreground="#9fb2ff">{cpu_f:.0f}% cpu</span> '
-                f'<span foreground="#7ad0ff">{mem_f:.1f}% mem</span>'
-                f'  \u00b7</span>'
-            )
-    except Exception:
-        return _empty("\U000f0233 TOP", "#ff8855", "ps unavailable")
-    return _dup("".join(parts)), []
-
-
 def build_cpu_markup():
     parts = [_badge("\U000f04bc CPU", "#00d4ff")]
     try:
@@ -799,99 +754,6 @@ def build_network_markup():
     return _dup("".join(parts)), segments
 
 
-def build_audio_markup():
-    parts = [_badge(" AUDIO", "#fb7185")]
-    segments = []
-    try:
-        nick = None
-        try:
-            inspect = subprocess.run(
-                ["wpctl", "inspect", "@DEFAULT_AUDIO_SINK@"],
-                capture_output=True, text=True, timeout=3,
-            ).stdout
-            m = re.search(r'node\.nick\s*=\s*"([^"]+)"', inspect)
-            if m:
-                nick = m.group(1)
-            if not nick:
-                m = re.search(r'node\.description\s*=\s*"([^"]+)"', inspect)
-                if m:
-                    nick = m.group(1)
-        except Exception:
-            pass
-        volume_pct = None
-        muted = False
-        try:
-            vol_out = subprocess.run(
-                ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"],
-                capture_output=True, text=True, timeout=3,
-            ).stdout.strip()
-            m = re.search(r"([0-9]+\.[0-9]+)", vol_out)
-            if m:
-                volume_pct = int(round(float(m.group(1)) * 100))
-            if "MUTED" in vol_out.upper():
-                muted = True
-        except Exception:
-            pass
-        if nick is None and volume_pct is None:
-            return _empty(" AUDIO", "#fb7185", "no default sink")
-        icon = "\U000f0581" if muted else "\U000f057e"
-        vol_color = "#ff5c8a" if muted else "#f7fbff"
-        nick_s = escape(nick or "default sink")
-        vol_s = f"{volume_pct}%" if volume_pct is not None else "?"
-        mute_s = "  [MUTED]" if muted else ""
-        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{vol_color}">'
-                     f'  {icon} {nick_s} · {vol_s}{escape(mute_s)}  \u00b7</span>')
-        if nick:
-            segments.append(nick)
-    except Exception:
-        return _empty(" AUDIO", "#fb7185", "audio unavailable")
-    return _dup("".join(parts)), segments
-
-
-def build_shader_markup():
-    parts = [_badge(" SHADER", "#f97316")]
-    segments = []
-    try:
-        shader_name = None
-        try:
-            out = subprocess.run(
-                ["hyprshade", "current"],
-                capture_output=True, text=True, timeout=3,
-            )
-            if out.returncode == 0:
-                shader_name = out.stdout.strip() or None
-        except Exception:
-            pass
-        sunset_state = None
-        try:
-            out = subprocess.run(
-                ["hyprctl", "hyprsunset", "temperature"],
-                capture_output=True, text=True, timeout=2,
-            )
-            if out.returncode == 0:
-                val = out.stdout.strip()
-                if val and val != "0":
-                    sunset_state = f"{val}K"
-        except Exception:
-            pass
-        if not shader_name and not sunset_state:
-            return _empty(" SHADER", "#f97316", "no shader active")
-        if shader_name:
-            parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#f97316">'
-                         f'  {escape(shader_name)}  \u00b7</span>')
-            segments.append(shader_name)
-        else:
-            parts.append('<span font_desc="Maple Mono NF CN Bold 11" foreground="#888888">'
-                         '  no shader  \u00b7</span>')
-        if sunset_state:
-            parts.append(f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#ffe45e">'
-                         f'  hyprsunset: {escape(sunset_state)}  \u00b7</span>')
-            segments.append(sunset_state)
-    except Exception:
-        return _empty(" SHADER", "#f97316", "shader unavailable")
-    return _dup("".join(parts)), segments
-
-
 # ══════════════════════════════════════════════════
 # Stream registry + metadata
 # ══════════════════════════════════════════════════
@@ -906,12 +768,9 @@ STREAMS = {
     "updates":       build_updates_markup,
     "cpu":           build_cpu_markup,
     "gpu":           build_gpu_markup,
-    "top-procs":     build_top_procs_markup,
     "workspace":     build_workspace_markup,
     "claude-sessions": build_claude_sessions_markup,
     "network":         build_network_markup,
-    "audio":           build_audio_markup,
-    "shader":          build_shader_markup,
 }
 
 # Per-stream metadata: effect preset override + refresh interval (seconds)
@@ -925,12 +784,9 @@ STREAM_META = {
     "updates":       {"preset": None,        "refresh": 1800},
     "cpu":           {"preset": "cyberpunk", "refresh": 10},
     "gpu":           {"preset": "cyberpunk", "refresh": 10},
-    "top-procs":     {"preset": "cyberpunk", "refresh": 15},
     "workspace":     {"preset": None,        "refresh": 5},
     "claude-sessions": {"preset": None,        "refresh": 120},
     "network":         {"preset": None,        "refresh": 30},
-    "audio":           {"preset": "minimal",   "refresh": 10},
-    "shader":          {"preset": "cyberpunk", "refresh": 60},
 }
 
 # Streams whose builders can block for >100ms — run on background thread
