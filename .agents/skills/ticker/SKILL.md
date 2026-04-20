@@ -178,7 +178,87 @@ Each stream has its own refresh interval (see `STREAM_META`). Slow streams (gith
 - `coding.txt` — keybinds, system, fleet, ci, claude-sessions, token-burn, dirty-repos, failed-units, kernel-errors, workspace, github, notifications, updates, shader
 - `focus.txt` — system, pomodoro, calendar, workspace, music, notifications
 
-To add a new stream, create `build_<name>_markup()` returning `(markup_str, segments_list)`, add to `STREAMS`, `STREAM_META`, `FALLBACK_ORDER`, and the relevant playlist(s). Cache-fed streams also need `scripts/bar-<name>-cache.sh` + `systemd/bar-<name>.{service,timer}` + entry in `install.sh::desktop_passive_units`.
+## Adding a stream (hybrid architecture)
+
+The ticker supports three stream shapes, ordered by how much code you write:
+
+### 1. Declarative TOML — zero Python
+
+Best for cache-fed streams that render a summary line + optional list
+without custom colour logic. Edit `ticker/streams.toml`:
+
+```toml
+[token-burn]
+type = "cache_single"
+path = "/tmp/bar-tokens.txt"
+label = "\U000f01cb TOKENS"
+color = "#fbbf24"
+preset = "cyberpunk"
+refresh = 60
+empty_message = "no token data"
+```
+
+Supported `type` values: `cache_single` (one line, bold span) and
+`cache_list` (summary + rotating-font list). See `scripts/lib/ticker_streams/__init__.py`
+for the full set of TOML fields (list_limit, fail_keywords,
+empty_is_success, summary_color, etc.). Loader at
+`keybind-ticker.py::_load_toml_catalogue` registers the resulting
+builder into `STREAMS` / `STREAM_META` / `FALLBACK_ORDER`.
+
+### 2. Python plugin — `scripts/lib/ticker_streams/<name>.py`
+
+Best for anything with custom fetch, formatting, or state. Drop a
+single-file module following this contract:
+
+```python
+"""mystream — one-line summary of what this renders."""
+from __future__ import annotations
+
+from html import escape
+
+import ticker_render as tr
+from ticker_streams import FONTS  # if you need the font cycle
+
+META = {"name": "mystream", "preset": None, "refresh": 30}
+# Optional: META["slow"] = True    — runs on a background thread
+# Optional: META["dwell"] = 20     — override dwell cap
+
+_LABEL = "\U000f0000 MYSTREAM"
+
+def build():
+    ...
+    return tr.dup("".join(parts)), segments_list
+```
+
+Filename stem becomes the stream name unless `META["name"]` overrides it
+(needed for hyphenated names — `failed_units.py` → `"failed-units"`
+stream). The plugin discovery loop (`_load_bundled_plugins` in
+`keybind-ticker.py`) imports every `*.py` in that directory at startup
+and registers each as a first-class stream. Import errors are logged
+and skipped — a broken plugin can never crash the ticker.
+
+Use `tr.badge(label, color)`, `tr.empty(label, color, message)`,
+`tr.dup(markup)` from `ticker_render` for the standard chrome.
+
+### 3. User-drop-in plugin — `~/.config/keybind-ticker/plugins/<name>.py`
+
+For experimenting outside the repo. Older contract (`build_markup()`
+instead of `build()`); see the Plugins section below.
+
+### Cache-fed streams
+
+Regardless of which shape you pick, a cache-fed stream also needs:
+
+- `scripts/bar-<name>-cache.sh` — writes `/tmp/bar-<name>.txt`
+- `systemd/bar-<name>.{service,timer}` pair
+- entry in `install.sh::desktop_passive_units`
+
+### Playlist placement
+
+Add the stream name to one or more `ticker/content-playlists/*.txt`.
+`--pin <stream>` only applies if the stream is in the active playlist's
+`stream_order` — streams absent from `main.txt` (e.g. `recording`) can
+only be pinned after switching to a playlist that contains them.
 
 ## Interactive Controls
 
