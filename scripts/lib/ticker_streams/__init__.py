@@ -21,11 +21,45 @@ from __future__ import annotations
 
 import importlib
 import os
+import time
 import tomllib
 from html import escape
 from pathlib import Path
 
 import ticker_render as tr
+
+_STALE_BADGE = "#f59e0b"  # amber — "data's late, not necessarily broken"
+
+
+def _stale_age_seconds(path: str) -> int | None:
+    """Return seconds since the cache file was last touched, or None if the
+    file doesn't exist (the caller separates missing vs stale states).
+    """
+    try:
+        return int(time.time() - os.stat(path).st_mtime)
+    except (FileNotFoundError, OSError):
+        return None
+
+
+def _maybe_stale_empty(path: str, refresh_s: int, stale_mult: float,
+                       label: str, default_color: str):
+    """Return an `_empty` payload if the cache is stale, else None.
+
+    ``refresh_s * stale_mult`` is the threshold — a cache that hasn't
+    been updated within that window is treated as stale so the ticker
+    self-reports the degradation instead of rendering last-known data.
+    """
+    if stale_mult <= 0 or refresh_s <= 0:
+        return None
+    age = _stale_age_seconds(path)
+    if age is None or age <= int(refresh_s * stale_mult):
+        return None
+    minutes = age // 60
+    if minutes >= 60:
+        age_text = f"{minutes // 60}h{minutes % 60}m"
+    else:
+        age_text = f"{minutes}m" if minutes else f"{age}s"
+    return _empty(label, _STALE_BADGE, f"cache stale ({age_text} old)")
 
 _badge = tr.badge
 _empty = tr.empty
@@ -64,10 +98,18 @@ def _make_cache_single(cfg: dict):
     text_color = cfg.get("text_color")
     empty_msg = cfg.get("empty_message", "no data")
     missing_msg = cfg.get("missing_message", "cache missing")
+    refresh_s = int(cfg.get("refresh", 300))
+    stale_mult = float(cfg.get("stale_multiplier", 3.0))
 
     fg_attr = f' foreground="{text_color}"' if text_color else ""
 
     def build():
+        # Cache-staleness gate runs before we read the file so a cache
+        # that's still present but hasn't been updated in >= refresh*mult
+        # surfaces as stale instead of silently rendering last-known data.
+        stale = _maybe_stale_empty(path, refresh_s, stale_mult, label, color)
+        if stale is not None:
+            return stale
         try:
             with open(path) as f:
                 raw = f.read().strip()
@@ -101,6 +143,8 @@ def _make_cache_list(cfg: dict):
     missing_msg = cfg.get("missing_message", "cache missing")
     empty_is_success = bool(cfg.get("empty_is_success", False))
     empty_success_color = cfg.get("empty_success_color", "#34d399")
+    refresh_s = int(cfg.get("refresh", 300))
+    stale_mult = float(cfg.get("stale_multiplier", 3.0))
 
     summary_fg_attr = (
         f' foreground="{summary_color}"' if summary_color else ""
@@ -108,6 +152,9 @@ def _make_cache_list(cfg: dict):
     item_fg_attr = f' foreground="{item_color}"' if item_color else ""
 
     def build():
+        stale = _maybe_stale_empty(path, refresh_s, stale_mult, label, color)
+        if stale is not None:
+            return stale
         lines = _read_cache_lines(path)
         if lines is None:
             return _empty(label, color, missing_msg)

@@ -545,12 +545,30 @@ def load_playlist(name=None):
 # Visual Helpers
 # ══════════════════════════════════════════════════
 
-def make_gradient(x_start, total_width, phase):
+def make_gradient(x_start, total_width, phase, hue_offset=0.0):
+    """Build the scrolling text-colour gradient.
+
+    ``phase`` scrolls the gradient horizontally (existing gradient_speed
+    animation). ``hue_offset`` rotates the colour positions circularly
+    without changing the gradient's horizontal placement — drives the
+    `hue_sweep` preset effect where the whole gradient cycles through
+    hues in place. The underlying list wraps itself with a copy of the
+    first colour so the repeat-extend stays seamless.
+    """
     x0 = x_start - phase
     grad = _cairo.LinearGradient(x0, 0, x0 + total_width, 0)
     grad.set_extend(_cairo.Extend.REPEAT)
     n = len(GRADIENT_COLORS)
-    for i, (r, g, b) in enumerate(GRADIENT_COLORS):
+    if hue_offset:
+        # Rotate the colour list by a fractional amount. The first n-1
+        # entries are the real palette; the last is a wrap of the first.
+        palette = GRADIENT_COLORS[:-1]
+        m = len(palette)
+        shift = int(hue_offset) % m
+        rotated = palette[shift:] + palette[:shift] + [palette[shift]]
+    else:
+        rotated = GRADIENT_COLORS
+    for i, (r, g, b) in enumerate(rotated):
         grad.add_color_stop_rgb(i / (n - 1), r, g, b)
     return grad
 
@@ -1847,24 +1865,42 @@ class TickerWindow(Gtk.ApplicationWindow):
         # `half_w * 2 < width`).
         xs = [x0, x0 + self.half_w]
 
+        # Hue-sweep offset: when the preset has hue_sweep=True, rotate
+        # the gradient palette over time (1 full cycle ≈ 6 s). Zero
+        # otherwise so the call is a pass-through.
+        hue_off = self._hue_offset()
+
         # Outline pass: dark static colour (non-pulse) or the cycling
         # gradient (pulse). The mask handles per-glyph shape; only the
         # source paint is per-frame.
         if ow > 0 and self._glyph_mask_outline is not None:
             if pulse:
-                tc.set_source(make_gradient(x0, self.half_w, self.gradient_phase))
+                tc.set_source(make_gradient(
+                    x0, self.half_w, self.gradient_phase, hue_off))
             else:
                 tc.set_source_rgba(0.02, 0.03, 0.05, 0.6)
             for xi in xs:
                 tc.mask_surface(self._glyph_mask_outline, xi, 0)
 
         # Fill pass: always the cycling gradient.
-        tc.set_source(make_gradient(x0, self.half_w, self.gradient_phase))
+        tc.set_source(make_gradient(
+            x0, self.half_w, self.gradient_phase, hue_off))
         for xi in xs:
             tc.mask_surface(self._glyph_mask_fill, xi, 0)
 
         surf.flush()
         return surf
+
+    def _hue_offset(self):
+        """Return a hue rotation value when preset.hue_sweep is enabled.
+
+        One colour step per ~1 s keeps the sweep noticeable but not
+        distracting. Non-sweeping presets short-circuit to 0 so the
+        gradient behaves exactly as before.
+        """
+        if not getattr(self.preset, "hue_sweep", False):
+            return 0.0
+        return self.time_s * 1.0
 
     def _apply_typewriter_clip(self, surf, width, height):
         """If reveal is active, clip to only the first N glyphs worth of pixels.
@@ -1995,7 +2031,7 @@ class TickerWindow(Gtk.ApplicationWindow):
             grad.add_color_stop_rgb((1.0 + sweep) % 1.0, 1.000, 0.278, 0.820)
             cr.set_source(grad)
         else:
-            cr.set_source(make_gradient(0, width, self.gradient_phase))
+            cr.set_source(make_gradient(0, width, self.gradient_phase, self._hue_offset()))
         cr.rectangle(0, 0, width, 1)
         cr.fill()
 
@@ -2038,7 +2074,7 @@ class TickerWindow(Gtk.ApplicationWindow):
             glow_alpha = max(0.0, min(1.0, glow_alpha))
             cr.save()
             cr.push_group()
-            cr.set_source(make_gradient(0, width, self.gradient_phase))
+            cr.set_source(make_gradient(0, width, self.gradient_phase, self._hue_offset()))
             cr.mask_surface(glow_a8, 0, 0)
             pattern = cr.pop_group()
             cr.set_source(pattern)
@@ -2105,7 +2141,9 @@ class TickerWindow(Gtk.ApplicationWindow):
             cr.rectangle(0, height - 2, width, 2)
             cr.fill()
             if prog_w > 0:
-                prog_grad = make_gradient(0, max(prog_w, 1), self.gradient_phase)
+                prog_grad = make_gradient(0, max(prog_w, 1),
+                                          self.gradient_phase,
+                                          self._hue_offset())
                 cr.set_source(prog_grad)
                 cr.rectangle(0, height - 2, prog_w, 2)
                 cr.fill()
