@@ -50,6 +50,12 @@
       "app-name": "Claude Code"
     }
   },
+  "scripts": {
+    "toast-bridge-critical": {
+      "exec": "$HOME/hairglasses-studio/dotfiles/scripts/swaync-to-toast.sh",
+      "urgency": "Critical"
+    }
+  },
   "widgets": [
     "title",
     "dnd",
