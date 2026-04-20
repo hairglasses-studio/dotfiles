@@ -1,0 +1,13 @@
+# bar-smart.timer — Periodic SMART disk health refresh
+#
+# Triggers bar-smart.service every hour.
+
+[Unit]
+Description=Refresh ticker SMART disk health cache every hour
+
+[Timer]
+OnBootSec=180
+OnUnitActiveSec=3600
+
+[Install]
+WantedBy=timers.target

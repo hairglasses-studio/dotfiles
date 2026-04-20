@@ -1,0 +1,13 @@
+# bar-dirty.timer — Periodic dirty-repos cache refresh
+#
+# Triggers bar-dirty.service every 5 minutes.
+
+[Unit]
+Description=Refresh ticker dirty-repos cache every 5 minutes
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=300
+
+[Install]
+WantedBy=timers.target

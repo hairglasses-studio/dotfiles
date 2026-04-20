@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# hg-pomo — Pomodoro timer state for the ticker pomodoro stream
+#
+# State file: ~/.local/state/keybind-ticker/pomodoro.json
+#
+# Usage:
+#   hg-pomo start [minutes]       # start a work session (default 25)
+#   hg-pomo break [minutes]       # start a break (default 5)
+#   hg-pomo pause                 # pause current session
+#   hg-pomo resume                # resume paused session
+#   hg-pomo stop                  # clear pomodoro state
+#   hg-pomo status                # print current state as JSON
+
+set -euo pipefail
+
+STATE_DIR="$HOME/.local/state/keybind-ticker"
+STATE_FILE="$STATE_DIR/pomodoro.json"
+mkdir -p "$STATE_DIR"
+
+cmd="${1:-status}"
+
+write_state() {
+  local state="$1" kind="$2" started="$3" duration="$4" remaining="${5:-}"
+  {
+    printf '{"state":"%s","session_kind":"%s","started_at":%s,"duration_s":%s' \
+      "$state" "$kind" "$started" "$duration"
+    if [[ -n "$remaining" ]]; then
+      printf ',"remaining_s":%s' "$remaining"
+    fi
+    printf '}\n'
+  } > "$STATE_FILE"
+}
+
+case "$cmd" in
+  start)
+    minutes="${2:-25}"
+    duration=$((minutes * 60))
+    write_state running work "$(date +%s)" "$duration"
+    echo "pomo: work ${minutes}m started"
+    ;;
+  break)
+    minutes="${2:-5}"
+    duration=$((minutes * 60))
+    write_state running break "$(date +%s)" "$duration"
+    echo "pomo: break ${minutes}m started"
+    ;;
+  pause)
+    if [[ ! -f "$STATE_FILE" ]]; then echo "pomo: nothing to pause" >&2; exit 1; fi
+    if command -v jq >/dev/null; then
+      state=$(jq -r '.state' "$STATE_FILE")
+      [[ "$state" != "running" ]] && { echo "pomo: not running" >&2; exit 1; }
+      started=$(jq -r '.started_at' "$STATE_FILE")
+      duration=$(jq -r '.duration_s' "$STATE_FILE")
+      kind=$(jq -r '.session_kind' "$STATE_FILE")
+      now=$(date +%s)
+      remaining=$(( started + duration - now ))
+      (( remaining < 0 )) && remaining=0
+      write_state paused "$kind" "$started" "$duration" "$remaining"
+      echo "pomo: paused (${remaining}s remaining)"
+    else
+      echo "pomo: jq required for pause/resume" >&2; exit 1
+    fi
+    ;;
+  resume)
+    if [[ ! -f "$STATE_FILE" ]]; then echo "pomo: nothing to resume" >&2; exit 1; fi
+    state=$(jq -r '.state' "$STATE_FILE")
+    [[ "$state" != "paused" ]] && { echo "pomo: not paused" >&2; exit 1; }
+    remaining=$(jq -r '.remaining_s' "$STATE_FILE")
+    kind=$(jq -r '.session_kind' "$STATE_FILE")
+    write_state running "$kind" "$(date +%s)" "$remaining"
+    echo "pomo: resumed (${remaining}s remaining)"
+    ;;
+  stop)
+    rm -f "$STATE_FILE"
+    echo "pomo: stopped"
+    ;;
+  status)
+    if [[ -f "$STATE_FILE" ]]; then
+      cat "$STATE_FILE"
+    else
+      echo '{"state":"idle"}'
+    fi
+    ;;
+  *)
+    echo "Usage: hg-pomo {start|break|pause|resume|stop|status} [minutes]" >&2
+    exit 1
+    ;;
+esac

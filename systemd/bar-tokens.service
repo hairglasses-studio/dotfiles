@@ -1,0 +1,13 @@
+# bar-tokens.service — Refresh ticker token-burn cache
+#
+# Walks today's Claude session JSONLs and sums input/output tokens.
+# Paired with bar-tokens.timer (60-second interval).
+
+[Unit]
+Description=Refresh ticker token-burn cache
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-tokens-cache.sh
+MemoryMax=128M
+CPUQuota=30%

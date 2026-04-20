@@ -20,3 +20,14 @@ audio
 shader
 ci
 hacker
+calendar
+pomodoro
+token-burn
+dirty-repos
+failed-units
+arch-news
+smart-disk
+wifi-quality
+container-status
+net-throughput
+kernel-errors

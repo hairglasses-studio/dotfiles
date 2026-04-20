@@ -2,6 +2,8 @@
 # Only essentials: time-of-day signal (system), workspace context, and music.
 # Notifications stays so urgent interrupts still surface.
 system
+pomodoro
+calendar
 workspace
 music
 notifications

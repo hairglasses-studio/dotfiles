@@ -1,0 +1,15 @@
+# bar-calendar.service — Refresh ticker calendar cache
+#
+# Runs gcalcli agenda for next 24h and writes to /tmp/bar-calendar.txt.
+# Paired with bar-calendar.timer (10-minute interval).
+
+[Unit]
+Description=Refresh ticker calendar cache
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-calendar-cache.sh
+MemoryMax=64M
+CPUQuota=20%

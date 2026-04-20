@@ -5,6 +5,10 @@ system
 fleet
 ci
 claude-sessions
+token-burn
+dirty-repos
+failed-units
+kernel-errors
 workspace
 github
 notifications

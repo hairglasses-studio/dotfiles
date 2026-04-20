@@ -1,0 +1,13 @@
+# bar-archnews.timer — Periodic Arch news cache refresh
+#
+# Triggers bar-archnews.service every hour.
+
+[Unit]
+Description=Refresh ticker Arch Linux news cache every hour
+
+[Timer]
+OnBootSec=120
+OnUnitActiveSec=3600
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,13 @@
+# bar-dirty.service — Refresh ticker dirty-repos cache
+#
+# Walks ~/hairglasses-studio/*/ and counts git dirty files per repo.
+# Paired with bar-dirty.timer (5-minute interval).
+
+[Unit]
+Description=Refresh ticker dirty-repos cache
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-dirty-cache.sh
+MemoryMax=64M
+CPUQuota=30%

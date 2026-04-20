@@ -895,6 +895,346 @@ def build_ci_markup():
     return _dup("".join(parts)), []
 
 
+# ── Phase-1 streams ────────────────────────────────
+
+# Module-level state for streams that need to remember values across rebuilds.
+_stream_state = {}
+
+
+def _read_cache_lines(path):
+    try:
+        with open(path) as f:
+            return [l.rstrip("\n") for l in f if l.strip()]
+    except FileNotFoundError:
+        return None
+    except OSError:
+        return []
+
+
+def build_calendar_markup():
+    lines = _read_cache_lines("/tmp/bar-calendar.txt")
+    if lines is None:
+        return _empty("\U000f00ed CALENDAR", "#4aa8ff", "calendar cache missing")
+    if not lines:
+        return _empty("\U000f00ed CALENDAR", "#4aa8ff", "no events")
+    parts = [_badge("\U000f00ed CALENDAR", "#4aa8ff")]
+    fc = len(FONTS)
+    for i, line in enumerate(lines[:6]):
+        font = FONTS[i % fc]
+        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
+    return _dup("".join(parts)), []
+
+
+def _pomo_state():
+    path = os.path.expanduser("~/.local/state/keybind-ticker/pomodoro.json")
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def build_pomodoro_markup():
+    st = _pomo_state()
+    if not st:
+        return _empty("\U000f050d POMODORO", "#a3e635", "idle — hg pomo start")
+    state = st.get("state", "idle")
+    started = float(st.get("started_at", 0))
+    duration = int(st.get("duration_s", 0))
+    kind = st.get("session_kind", state).upper()
+    now = _time.time()
+    if state == "running":
+        remaining = max(int(started + duration - now), 0)
+        mm, ss = divmod(remaining, 60)
+        color = "#a3e635" if kind == "WORK" else "#60a5fa"
+        status = f"{kind} {mm:02d}:{ss:02d}"
+        if remaining == 0:
+            color = "#ff5c8a"
+            status = f"{kind} done"
+    elif state == "paused":
+        remaining = int(st.get("remaining_s", duration))
+        mm, ss = divmod(remaining, 60)
+        color = "#fbbf24"
+        status = f"{kind} \u23f8 {mm:02d}:{ss:02d}"
+    else:
+        color = "#66708f"
+        status = "idle"
+    parts = [_badge("\U000f050d POMODORO", color)]
+    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">  {escape(status)}  \u00b7</span>')
+    return _dup("".join(parts)), []
+
+
+def build_token_burn_markup():
+    lines = _read_cache_lines("/tmp/bar-tokens.txt")
+    if lines is None:
+        return _empty("\U000f0238 TOKENS", "#f59e0b", "tokens cache missing")
+    if not lines:
+        return _empty("\U000f0238 TOKENS", "#f59e0b", "no token data")
+    summary = lines[0]
+    parts = [_badge("\U000f0238 TOKENS", "#f59e0b")]
+    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fbbf24">  {escape(summary)}  \u00b7</span>')
+    fc = len(FONTS)
+    for i, line in enumerate(lines[1:8]):
+        font = FONTS[i % fc]
+        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
+    return _dup("".join(parts)), []
+
+
+def build_dirty_repos_markup():
+    lines = _read_cache_lines("/tmp/bar-dirty.txt")
+    if lines is None:
+        return _empty("\U000f02a0 DIRTY", "#fb923c", "dirty cache missing")
+    if not lines:
+        return _empty("\U000f02a0 DIRTY", "#fb923c", "all clean")
+    total_line = lines[0]
+    parts = [_badge("\U000f02a0 DIRTY", "#fb923c")]
+    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">  {escape(total_line)}  \u00b7</span>')
+    fc = len(FONTS)
+    for i, line in enumerate(lines[1:10]):
+        font = FONTS[i % fc]
+        parts.append(f'<span font_desc="{font}" foreground="#fbbf24">  {escape(line)}  \u00b7</span>')
+    return _dup("".join(parts)), []
+
+
+def build_failed_units_markup():
+    try:
+        user_out = subprocess.run(
+            ["systemctl", "--user", "--failed", "--no-legend", "--plain"],
+            capture_output=True, text=True, timeout=3,
+        ).stdout
+        sys_out = subprocess.run(
+            ["systemctl", "--failed", "--no-legend", "--plain"],
+            capture_output=True, text=True, timeout=3,
+        ).stdout
+    except Exception:
+        return _empty("\U000f0028 FAILED", "#ef4444", "systemctl unavailable")
+    entries = []
+    for scope, out in (("user", user_out), ("sys", sys_out)):
+        for line in out.splitlines():
+            tok = line.split()
+            if tok:
+                entries.append((scope, tok[0]))
+    if not entries:
+        return _empty("\U000f0028 FAILED", "#34d399", "no failed units")
+    parts = [_badge("\U000f0028 FAILED", "#ef4444")]
+    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#ef4444">  {len(entries)} failed  \u00b7</span>')
+    fc = len(FONTS)
+    for i, (scope, name) in enumerate(entries[:10]):
+        font = FONTS[i % fc]
+        parts.append(
+            f'<span font_desc="{font}" foreground="#fbbf24">  [{scope}] {escape(name)}  \u00b7</span>'
+        )
+    return _dup("".join(parts)), []
+
+
+def build_arch_news_markup():
+    lines = _read_cache_lines("/tmp/bar-archnews.txt")
+    if lines is None:
+        return _empty("\U000f03ef ARCH NEWS", "#1793d1", "archnews cache missing")
+    if not lines:
+        return _empty("\U000f03ef ARCH NEWS", "#1793d1", "no news")
+    # Summary line first; rest are titles
+    parts = [_badge("\U000f03ef ARCH NEWS", "#1793d1")]
+    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">  {escape(lines[0])}  \u00b7</span>')
+    fc = len(FONTS)
+    for i, line in enumerate(lines[1:6]):
+        font = FONTS[i % fc]
+        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
+    return _dup("".join(parts)), []
+
+
+def build_smart_disk_markup():
+    lines = _read_cache_lines("/tmp/bar-smart.txt")
+    if lines is None:
+        return _empty("\U000f01bc SMART", "#8b5cf6", "smart cache missing")
+    if not lines:
+        return _empty("\U000f01bc SMART", "#8b5cf6", "no disks")
+    any_fail = any("FAIL" in l.upper() for l in lines)
+    color = "#ef4444" if any_fail else "#8b5cf6"
+    parts = [_badge("\U000f01bc SMART", color)]
+    fc = len(FONTS)
+    for i, line in enumerate(lines[:6]):
+        font = FONTS[i % fc]
+        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
+    return _dup("".join(parts)), []
+
+
+def build_wifi_quality_markup():
+    try:
+        dev_out = subprocess.run(
+            ["iw", "dev"], capture_output=True, text=True, timeout=2,
+        ).stdout
+    except Exception:
+        return _empty("\U000f05a9 WIFI", "#38bdf8", "iw unavailable")
+    iface = None
+    for line in dev_out.splitlines():
+        s = line.strip()
+        if s.startswith("Interface "):
+            iface = s.split(None, 1)[1]
+            break
+    if not iface:
+        return _empty("\U000f05a9 WIFI", "#38bdf8", "no wifi iface")
+    try:
+        link_out = subprocess.run(
+            ["iw", "dev", iface, "link"], capture_output=True, text=True, timeout=2,
+        ).stdout
+    except Exception:
+        return _empty("\U000f05a9 WIFI", "#38bdf8", "iw link failed")
+    if "Not connected" in link_out:
+        return _empty("\U000f05a9 WIFI", "#66708f", f"{iface}: not connected")
+    ssid = signal = bitrate = "—"
+    for line in link_out.splitlines():
+        s = line.strip()
+        if s.startswith("SSID:"):
+            ssid = s.split(":", 1)[1].strip()
+        elif s.startswith("signal:"):
+            signal = s.split(":", 1)[1].strip()
+        elif s.startswith("tx bitrate:"):
+            bitrate = s.split(":", 1)[1].strip().split()[0] + " Mbps"
+    # Color by signal dBm
+    try:
+        dbm = int(signal.split()[0])
+    except Exception:
+        dbm = -100
+    if dbm >= -60:
+        color = "#34d399"
+    elif dbm >= -75:
+        color = "#fbbf24"
+    else:
+        color = "#ef4444"
+    parts = [_badge("\U000f05a9 WIFI", color)]
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">  {escape(iface)}  \u00b7</span>'
+    )
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN 11">  {escape(ssid)}  \u00b7  {escape(signal)}  \u00b7  {escape(bitrate)}  \u00b7</span>'
+    )
+    return _dup("".join(parts)), []
+
+
+def build_container_status_markup():
+    try:
+        out = subprocess.run(
+            ["docker", "ps", "--format", "{{.Names}}\t{{.Status}}"],
+            capture_output=True, text=True, timeout=3,
+        )
+    except Exception:
+        return _empty("\U000f08c1 CONTAINERS", "#0db7ed", "docker unavailable")
+    if out.returncode != 0:
+        return _empty("\U000f08c1 CONTAINERS", "#0db7ed", "docker daemon down")
+    rows = [l for l in out.stdout.splitlines() if l.strip()]
+    if not rows:
+        return _empty("\U000f08c1 CONTAINERS", "#66708f", "no containers")
+    any_unhealthy = any(("Restarting" in r or "Exited" in r or "unhealthy" in r) for r in rows)
+    color = "#ef4444" if any_unhealthy else "#0db7ed"
+    parts = [_badge("\U000f08c1 CONTAINERS", color)]
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN Bold 11">  {len(rows)} running  \u00b7</span>'
+    )
+    fc = len(FONTS)
+    for i, row in enumerate(rows[:8]):
+        try:
+            name, status = row.split("\t", 1)
+        except ValueError:
+            continue
+        font = FONTS[i % fc]
+        name_c = "#ef4444" if any(s in status for s in ("Restarting", "Exited", "unhealthy")) else "#34d399"
+        parts.append(
+            f'<span font_desc="{font}" foreground="{name_c}">  {escape(name)}  \u00b7</span>'
+        )
+    return _dup("".join(parts)), []
+
+
+def _read_proc_net_dev():
+    totals = {}
+    try:
+        with open("/proc/net/dev") as f:
+            for line in f.readlines()[2:]:
+                parts = line.split()
+                if not parts:
+                    continue
+                iface = parts[0].rstrip(":")
+                rx = int(parts[1])
+                tx = int(parts[9])
+                totals[iface] = (rx, tx)
+    except OSError:
+        return {}
+    return totals
+
+
+def _format_rate(bps):
+    for unit in ("B/s", "KB/s", "MB/s", "GB/s"):
+        if bps < 1024:
+            return f"{bps:.1f} {unit}"
+        bps /= 1024
+    return f"{bps:.1f} TB/s"
+
+
+def build_net_throughput_markup():
+    now = _time.time()
+    snapshot = _read_proc_net_dev()
+    if not snapshot:
+        return _empty("\U000f0317 NET TX/RX", "#10b981", "/proc/net/dev unavailable")
+    last = _stream_state.get("net_last")
+    _stream_state["net_last"] = (now, snapshot)
+    if last is None:
+        return _empty("\U000f0317 NET TX/RX", "#10b981", "warming up…")
+    prev_now, prev_snap = last
+    dt = max(now - prev_now, 0.001)
+    rows = []
+    for iface, (rx, tx) in snapshot.items():
+        if iface == "lo" or iface.startswith(("veth", "br-", "docker", "tailscale", "p2p-")):
+            continue
+        prx, ptx = prev_snap.get(iface, (rx, tx))
+        drx = max(rx - prx, 0) / dt
+        dtx = max(tx - ptx, 0) / dt
+        rows.append((iface, drx, dtx))
+    if not rows:
+        return _empty("\U000f0317 NET TX/RX", "#10b981", "no interfaces")
+    rows.sort(key=lambda r: r[1] + r[2], reverse=True)
+    parts = [_badge("\U000f0317 NET TX/RX", "#10b981")]
+    fc = len(FONTS)
+    for i, (iface, drx, dtx) in enumerate(rows[:4]):
+        font = FONTS[i % fc]
+        parts.append(
+            f'<span font_desc="{font}">  {escape(iface)} \u2193 {escape(_format_rate(drx))} \u2191 {escape(_format_rate(dtx))}  \u00b7</span>'
+        )
+    return _dup("".join(parts)), []
+
+
+def build_kernel_errors_markup():
+    try:
+        out = subprocess.run(
+            ["journalctl", "-p", "err", "-k", "-n", "5",
+             "--since", "15 min ago", "--output=short-precise", "--no-pager"],
+            capture_output=True, text=True, timeout=3,
+        ).stdout
+    except Exception:
+        return _empty("\U000f00e4 KERNEL", "#dc2626", "journalctl unavailable")
+    lines = [l for l in out.splitlines() if l.strip()]
+    if not lines:
+        return _empty("\U000f00e4 KERNEL", "#34d399", "no recent errors")
+    # Dedup while preserving order; trim to 90 chars
+    seen = set()
+    uniq = []
+    for l in lines:
+        msg = l.split("kernel: ", 1)[-1][:90]
+        if msg not in seen:
+            seen.add(msg)
+            uniq.append(msg)
+    parts = [_badge("\U000f00e4 KERNEL", "#dc2626")]
+    parts.append(
+        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#ef4444">  {len(uniq)} err  \u00b7</span>'
+    )
+    fc = len(FONTS)
+    for i, msg in enumerate(uniq[:4]):
+        font = FONTS[i % fc]
+        parts.append(
+            f'<span font_desc="{font}" foreground="#fca5a5">  {escape(msg)}  \u00b7</span>'
+        )
+    return _dup("".join(parts)), []
+
+
 # ══════════════════════════════════════════════════
 # Stream registry + metadata
 # ══════════════════════════════════════════════════
@@ -918,6 +1258,17 @@ STREAMS = {
     "shader":          build_shader_markup,
     "ci":              build_ci_markup,
     "hacker":          build_hacker_markup,
+    "calendar":        build_calendar_markup,
+    "pomodoro":        build_pomodoro_markup,
+    "token-burn":      build_token_burn_markup,
+    "dirty-repos":     build_dirty_repos_markup,
+    "failed-units":    build_failed_units_markup,
+    "arch-news":       build_arch_news_markup,
+    "smart-disk":      build_smart_disk_markup,
+    "wifi-quality":    build_wifi_quality_markup,
+    "container-status": build_container_status_markup,
+    "net-throughput":  build_net_throughput_markup,
+    "kernel-errors":   build_kernel_errors_markup,
 }
 
 # Per-stream metadata: effect preset override + refresh interval (seconds)
@@ -940,6 +1291,17 @@ STREAM_META = {
     "shader":          {"preset": "cyberpunk", "refresh": 60},
     "ci":              {"preset": "cyberpunk", "refresh": 300},
     "hacker":          {"preset": "cyberpunk", "refresh": 45},
+    "calendar":        {"preset": "ambient",   "refresh": 600},
+    "pomodoro":        {"preset": "cyberpunk", "refresh": 1},
+    "token-burn":      {"preset": "cyberpunk", "refresh": 60},
+    "dirty-repos":     {"preset": None,        "refresh": 300},
+    "failed-units":    {"preset": None,        "refresh": 60},
+    "arch-news":       {"preset": "ambient",   "refresh": 3600},
+    "smart-disk":      {"preset": None,        "refresh": 3600},
+    "wifi-quality":    {"preset": None,        "refresh": 30},
+    "container-status": {"preset": None,       "refresh": 30},
+    "net-throughput":  {"preset": None,        "refresh": 5},
+    "kernel-errors":   {"preset": "cyberpunk", "refresh": 60},
 }
 
 # Streams whose builders can block for >100ms — run on background thread
@@ -950,6 +1312,9 @@ FALLBACK_ORDER = [
     "notifications", "music", "updates", "mx-battery",
     "disk", "load", "workspace",
     "claude-sessions", "network", "audio", "shader", "ci", "hacker",
+    "calendar", "pomodoro", "token-burn", "dirty-repos", "failed-units",
+    "arch-news", "smart-disk", "wifi-quality", "container-status",
+    "net-throughput", "kernel-errors",
 ]
 
 

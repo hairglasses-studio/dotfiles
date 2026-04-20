@@ -1,0 +1,16 @@
+# bar-smart.service — Refresh ticker SMART disk health cache
+#
+# Runs `sudo -n smartctl -H -j` against each block device and writes per-device
+# health status to /tmp/bar-smart.txt.
+# Paired with bar-smart.timer (hourly).
+#
+# Requires NOPASSWD sudoers for smartctl (already configured for user hg).
+
+[Unit]
+Description=Refresh ticker SMART disk health cache
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-smart-cache.sh
+MemoryMax=64M
+CPUQuota=20%

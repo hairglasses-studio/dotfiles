@@ -5,15 +5,15 @@ description: "Manage the keybind-ticker visual effects bar — restart, debug, t
 
 # Keybind Ticker (v3)
 
-The keybind-ticker is a standalone GTK4 PangoCairo app rendering a pixel-smooth scrolling bar at the bottom of the Samsung ultrawide (DP-3). 12 content streams rotate with per-stream refresh intervals. Multi-layer cyberpunk visual effects stack.
+The keybind-ticker is a standalone GTK4 PangoCairo app rendering a pixel-smooth scrolling bar spanning the full width of DP-2 (5120x1440) at the bottom of the display. 29 content streams rotate with per-stream refresh intervals across 3 playlists (main / coding / focus). Multi-layer cyberpunk visual effects stack.
 
 ## Architecture
 
 - **App**: `scripts/keybind-ticker.py` — GTK4 DrawingArea + `add_tick_callback` for 240Hz frame-clock sync
 - **Service**: `systemd/dotfiles-keybind-ticker.service` — Wayland-gated, sets `LD_PRELOAD` for layer-shell
 - **Layer rule**: `hyprland/hyprland.conf` matches `namespace = ^keybind-ticker$` for blur
-- **Playlist**: `ticker/content-playlists/main.txt` — one stream ID per line, read at startup
-- **State**: `~/.local/state/keybind-ticker/` — `current-stream`, `paused`, `pinned-stream`
+- **Playlists**: `ticker/content-playlists/{main,coding,focus}.txt` — one stream ID per line, picked at startup via `--playlist` or `STATE_DIR/active-playlist`
+- **State**: `~/.local/state/keybind-ticker/` — `current-stream`, `paused`, `pinned-stream`, `active-playlist`, `pomodoro.json`
 
 ## Operations
 
@@ -77,26 +77,53 @@ Per-stream preset override via `STREAM_META` dict:
 
 All tunables are constants at the top of `keybind-ticker.py` inside the `PRESETS` dict. Edit, then restart the service.
 
-## Content Streams (12 total)
+## Content Streams (29 total)
 
-Each stream has its own refresh interval (see `STREAM_META`). Slow streams (github, music, updates) run on background threads to avoid blocking the render loop.
+Each stream has its own refresh interval (see `STREAM_META`). Slow streams (github, music, updates, ci, claude-sessions, hacker) run on background threads. Cache-fed streams read `/tmp/bar-<name>.txt` written by systemd timer-paired oneshot units (`systemd/bar-<name>.{service,timer}`).
 
-| Stream | Source | Refresh | Badge | Click action |
-|--------|--------|---------|-------|--------------|
-| `keybinds` | `hyprctl binds -j` | 5 min | cyan | Copy keybind |
-| `system` | sensors / nvidia-smi / free / uptime | 10 s | yellow | — |
-| `fleet` | `/tmp/rg-status.json` | 30 s | magenta | — |
-| `weather` | `/tmp/bar-weather.txt` (cached) | 30 min | blue | — |
-| `github` | `gh api /notifications` (threaded) | 2 min | green | Open URL in browser |
-| `notifications` | `~/.local/state/.../history.jsonl` | 1 min | red | — |
-| `music` | `playerctl` (threaded) | 10 s | magenta | — |
-| `updates` | `/tmp/bar-updates.txt` + `checkupdates` | 30 min | cyan | — |
-| `mx-battery` | `/tmp/bar-mx.txt` | 5 min | yellow | — |
-| `disk` | `df -h` | 1 min | blue | — |
-| `load` | `/proc/loadavg` | 5 s | green | Sparkline |
-| `workspace` | `hyprctl activeworkspace/activewindow/workspaces -j` | 5 s | magenta | — |
+### Core streams
+| Stream | Source | Refresh | Badge |
+|--------|--------|---------|-------|
+| `keybinds` | `hyprctl binds -j` | 5 min | cyan |
+| `system` | sensors / nvidia-smi / free / uptime | 10 s | yellow |
+| `fleet` | `/tmp/rg-status.json` | 30 s | magenta |
+| `weather` | `/tmp/bar-weather.txt` (cached) | 30 min | blue |
+| `github` | `gh api /notifications` (threaded) | 2 min | green |
+| `notifications` | `~/.local/state/.../history.jsonl` | 1 min | red |
+| `music` | `playerctl` (threaded) | 10 s | magenta |
+| `updates` | `/tmp/bar-updates.txt` + `checkupdates` | 30 min | cyan |
+| `mx-battery` | `/tmp/bar-mx.txt` | 5 min | yellow |
+| `disk` | `df -h` | 1 min | blue |
+| `load` | `/proc/loadavg` | 5 s | green |
+| `workspace` | `hyprctl activeworkspace/activewindow/workspaces -j` | 5 s | magenta |
+| `network` | `nmcli` + `/proc/net/dev` | 30 s | blue |
+| `audio` | `pactl` / playerctl | 10 s | orange |
+| `shader` | `hyprshade current` | 30 s | purple |
+| `claude-sessions` | `~/.claude/projects/*/*.jsonl` scan (threaded) | 60 s | amber |
+| `ci` | `/tmp/bar-ci.txt` (gh workflow runs) | 2 min | green |
+| `hacker` | `/tmp/bar-hacker.txt` (zenquotes cached) | 10 min | red |
 
-To add a new stream, create `build_<name>_markup()` returning `(markup_str, segments_list)`, add to `STREAMS`, `STREAM_META`, and `main.txt`.
+### Phase 1 streams (April 2026)
+| Stream | Source | Refresh | Badge |
+|--------|--------|---------|-------|
+| `calendar` | `/tmp/bar-calendar.txt` (gcalcli agenda 24h) | 10 min | blue |
+| `pomodoro` | `~/.local/state/keybind-ticker/pomodoro.json` (via `hg pomo`) | 1 s | red |
+| `token-burn` | `/tmp/bar-tokens.txt` (Claude JSONL sum) | 60 s | amber |
+| `dirty-repos` | `/tmp/bar-dirty.txt` (workspace git status -s) | 5 min | orange |
+| `failed-units` | `systemctl --failed` (live subprocess) | 60 s | red |
+| `arch-news` | `/tmp/bar-archnews.txt` (RSS feed) | 1 h | blue |
+| `smart-disk` | `/tmp/bar-smart.txt` (smartctl -H -j via sudo -n) | 1 h | purple |
+| `wifi-quality` | `iw dev wlp11s0 link` (live subprocess) | 30 s | blue |
+| `container-status` | `docker ps` (live subprocess) | 30 s | cyan |
+| `net-throughput` | `/proc/net/dev` stateful delta | 5 s | green |
+| `kernel-errors` | `journalctl -p err -k -n 5` (live subprocess) | 60 s | red |
+
+### Playlists
+- `main.txt` (default) — all 29 streams cycling
+- `coding.txt` — keybinds, system, fleet, ci, claude-sessions, token-burn, dirty-repos, failed-units, kernel-errors, workspace, github, notifications, updates, shader
+- `focus.txt` — system, pomodoro, calendar, workspace, music, notifications
+
+To add a new stream, create `build_<name>_markup()` returning `(markup_str, segments_list)`, add to `STREAMS`, `STREAM_META`, `FALLBACK_ORDER`, and the relevant playlist(s). Cache-fed streams also need `scripts/bar-<name>-cache.sh` + `systemd/bar-<name>.{service,timer}` + entry in `install.sh::desktop_passive_units`.
 
 ## Interactive Controls
 
@@ -119,7 +146,8 @@ A DBus-driven watcher polls the notification history every 3 s. If a `critical`-
 
 - `--layer` — layer-shell mode (bottom-anchored, exclusive zone). Used by systemd.
 - `--preset <name>` — start with `ambient|cyberpunk|minimal|clean`
-- `--monitor <name>` — target a specific output (default `DP-3`)
+- `--monitor <name>` — target a specific output (default `DP-2`, the 5120x1440 ultrawide)
+- `--playlist <name>` — pick a playlist (main / coding / focus), or set `STATE_DIR/active-playlist` for persistence
 
 ## Hyprland Integration
 

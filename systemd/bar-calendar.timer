@@ -1,0 +1,13 @@
+# bar-calendar.timer — Periodic calendar cache refresh
+#
+# Triggers bar-calendar.service every 10 minutes.
+
+[Unit]
+Description=Refresh ticker calendar cache every 10 minutes
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=600
+
+[Install]
+WantedBy=timers.target

@@ -710,6 +710,11 @@ create_symlinks() {
             bar-mx.timer
             bar-weather.timer
             bar-ci.timer
+            bar-calendar.timer
+            bar-tokens.timer
+            bar-dirty.timer
+            bar-archnews.timer
+            bar-smart.timer
         )
         local desktop_units=("${desktop_service_units[@]}" "${desktop_passive_units[@]}")
         if systemctl --user enable "${desktop_units[@]}" >/dev/null 2>&1; then

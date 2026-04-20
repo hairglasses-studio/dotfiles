@@ -1,0 +1,13 @@
+# bar-tokens.timer — Periodic token-burn cache refresh
+#
+# Triggers bar-tokens.service every 60 seconds.
+
+[Unit]
+Description=Refresh ticker token-burn cache every 60 seconds
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=60
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,15 @@
+# bar-archnews.service — Refresh ticker arch-news cache
+#
+# Fetches archlinux.org news RSS feed and extracts recent titles.
+# Paired with bar-archnews.timer (hourly).
+
+[Unit]
+Description=Refresh ticker Arch Linux news cache
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-archnews-cache.sh
+MemoryMax=32M
+CPUQuota=10%
