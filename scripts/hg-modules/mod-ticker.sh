@@ -6,6 +6,24 @@ _TICKER_STATE="$HOME/.local/state/keybind-ticker"
 _TICKER_SERVICE="dotfiles-keybind-ticker.service"
 _TICKER_HEADLESS="$HG_DOTFILES/scripts/ticker-headless.py"
 
+# Signal the running keybind-ticker to re-read state files (SIGUSR1). Falls
+# back to a full service restart if no PID is found (e.g. during boot before
+# the ticker has started). Restart happens in the user session manager so the
+# service's Environment= lines are re-applied; a raw kill+exec would miss
+# LD_PRELOAD for gtk4-layer-shell.
+_ticker_reload() {
+  local pids rc
+  pids="$(pgrep -f 'keybind-ticker.py --layer' 2>/dev/null || true)"
+  if [[ -n "$pids" ]]; then
+    # shellcheck disable=SC2086
+    if kill -USR1 $pids 2>/dev/null; then
+      return 0
+    fi
+  fi
+  systemctl --user restart "$_TICKER_SERVICE" >/dev/null 2>&1 || true
+  return 0
+}
+
 ticker_description() {
   echo "Keybind ticker control (pin, playlist, pause, status)"
 }
@@ -13,6 +31,7 @@ ticker_description() {
 ticker_commands() {
   cat <<'CMDS'
 status	Print current stream, playlist, and pause state
+health	Per-stream success / error counters and last-ok age
 pin	Pin a specific stream (pass stream name)
 unpin	Release pin, resume rotation
 playlist	Switch playlist (pass name: main/coding/focus/lock/recording)
@@ -62,18 +81,18 @@ ticker_run() {
     pin)
       local stream="${1:?usage: hg ticker pin <stream>}"
       _ticker_write_state pinned-stream "$stream"
-      systemctl --user restart "$_TICKER_SERVICE"
+      _ticker_reload
       printf 'pinned to %s\n' "$stream"
       ;;
     unpin)
       _ticker_write_state pinned-stream ""
-      systemctl --user restart "$_TICKER_SERVICE"
+      _ticker_reload
       printf 'unpinned\n'
       ;;
     playlist)
       local name="${1:?usage: hg ticker playlist <name>}"
       _ticker_write_state active-playlist "$name"
-      systemctl --user restart "$_TICKER_SERVICE"
+      _ticker_reload
       printf 'playlist switched to %s\n' "$name"
       ;;
     pause)
@@ -85,7 +104,7 @@ ticker_run() {
         : > "$_TICKER_STATE/paused"
         printf 'paused\n'
       fi
-      systemctl --user restart "$_TICKER_SERVICE"
+      _ticker_reload
       ;;
     list-streams)
       python3 "$_TICKER_HEADLESS" --list
@@ -106,6 +125,31 @@ ticker_run() {
       ;;
     logs)
       journalctl --user -u "$_TICKER_SERVICE" --since "2 min ago" --no-pager
+      ;;
+    health)
+      local snap="/tmp/ticker-health.json"
+      if [[ ! -f "$snap" ]]; then
+        printf 'no snapshot yet; ticker writes one every 30s\n' >&2
+        return 1
+      fi
+      python3 - "$snap" <<'PY'
+import json, os, sys, time
+path = sys.argv[1]
+with open(path) as f:
+    data = json.load(f)
+now = int(time.time())
+age_snap = now - data.get("ts", now)
+print(f"playlist : {data.get('playlist','?')}   pid={data.get('pid','?')}   snapshot age={age_snap}s")
+print(f"{'stream':<20} {'last ok':>9} {'last err':>9} {'ok':>6} {'err':>6} {'streak':>6}")
+print("-" * 60)
+for name in sorted(data.get("streams", {}).keys()):
+    s = data["streams"][name]
+    last_ok = (now - s["last_ok"]) if s["last_ok"] else -1
+    last_err = (now - s["last_err"]) if s["last_err"] else -1
+    ok_s = f"{last_ok}s" if last_ok >= 0 else "-"
+    err_s = f"{last_err}s" if last_err >= 0 else "-"
+    print(f"{name:<20} {ok_s:>9} {err_s:>9} {s['total_ok']:>6} {s['total_err']:>6} {s['consecutive_err']:>6}")
+PY
       ;;
     *)
       printf 'unknown command: %s\n' "$cmd" >&2

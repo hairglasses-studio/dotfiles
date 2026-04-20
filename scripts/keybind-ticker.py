@@ -38,6 +38,7 @@ import os
 import re
 import math
 import random
+import signal
 import threading
 import time as _time
 import cairo as _cairo
@@ -45,6 +46,11 @@ import numpy as np
 from collections import deque
 from scipy.ndimage import uniform_filter1d
 from html import escape
+
+# Shared rendering helpers (badge / empty / dup / layer-shell / drawing-area).
+# Import path handling mirrors the other ticker scripts.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "lib"))
+import ticker_render as tr  # noqa: E402
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
@@ -186,18 +192,9 @@ def fmt_mods(mask):
     return out
 
 
-def _badge(text, bg_hex, fg_hex="#05070d"):
-    return f'<span background="{bg_hex}" foreground="{fg_hex}" font_desc="Maple Mono NF CN Bold 10"> {escape(text)} </span>  '
-
-
-def _empty(badge_label, bg_hex, msg):
-    # Sentinel "__EMPTY__" in segments lets _absorb_segments tag the stream as errored for backoff scheduling.
-    return _badge(badge_label, bg_hex) + f'<span font_desc="Maple Mono NF CN 11">  {escape(msg)}  \u00b7</span>', ["__EMPTY__"]
-
-
-def _dup(markup):
-    """Duplicate markup for seamless scrolling."""
-    return markup + markup
+_badge = tr.badge
+_empty = tr.empty
+_dup = tr.dup
 
 
 def build_keybinds_markup():
@@ -1380,6 +1377,78 @@ FALLBACK_ORDER = [
 ]
 
 
+# ══════════════════════════════════════════════════
+# Per-stream click action dispatch (Phase A3)
+#
+# Each entry is a callable (win, segment_idx, segment_text) → bool. Return
+# True to claim the click and skip the generic URL/clipboard fallback.
+# Actions run on the main loop so they can freely call widget APIs.
+# ══════════════════════════════════════════════════
+
+def _spawn_detached(cmd):
+    try:
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+        return True
+    except Exception:
+        return False
+
+
+def _click_ci(win, idx, text):
+    # CI segments look like "✓ <repo>" / "✗ <repo>" / "⏳ <repo>". If the
+    # clicked token has a repo name, open its latest workflow runs in gh.
+    for token in text.split():
+        if "/" in token or token.isidentifier():
+            repo = token.strip(":·")
+            return _spawn_detached(["gh", "run", "list", "--repo",
+                                    f"hairglasses-studio/{repo}", "--web"])
+    return False
+
+
+def _click_arch_news(win, idx, text):
+    return _spawn_detached(["xdg-open", "https://archlinux.org/news/"])
+
+
+def _click_calendar(win, idx, text):
+    return _spawn_detached(["xdg-open", "https://calendar.google.com/"])
+
+
+def _click_updates(win, idx, text):
+    # Opening the pacman log is more useful than copying segment text.
+    return _spawn_detached(["xdg-open", "/var/log/pacman.log"])
+
+
+def _click_github(win, idx, text):
+    # github stream already renders URL tokens — let the generic fallback
+    # handle them. But if the segment is a bare notification title, open the
+    # notifications dashboard.
+    if text.startswith(("http://", "https://")):
+        return False  # generic URL open handles it
+    return _spawn_detached(["xdg-open", "https://github.com/notifications"])
+
+
+def _click_hn(win, idx, text):
+    # Filled in by Phase C1 (hn-top stream). Tries to extract the HN item id
+    # from the segment prefix "#<id>"; falls back to HN front page.
+    import re as _re
+    m = _re.search(r"#(\d+)", text)
+    if m:
+        return _spawn_detached(
+            ["xdg-open", f"https://news.ycombinator.com/item?id={m.group(1)}"]
+        )
+    return _spawn_detached(["xdg-open", "https://news.ycombinator.com/"])
+
+
+STREAM_CLICK_ACTIONS = {
+    "ci":        _click_ci,
+    "arch-news": _click_arch_news,
+    "calendar":  _click_calendar,
+    "updates":   _click_updates,
+    "github":    _click_github,
+    "hn-top":    _click_hn,
+}
+
+
 def _playlist_path(name):
     return os.path.join(PLAYLIST_DIR, f"{name}.txt")
 
@@ -1592,6 +1661,9 @@ class TickerWindow(Gtk.ApplicationWindow):
 
         # Per-stream error flag → drives short-backoff scheduling.
         self._stream_errored = {}
+        # Per-stream health counters (Phase A4). Populated on each absorb;
+        # exported to /tmp/ticker-health.json every 30s for `hg ticker health`.
+        self._stream_health = {}
 
         self._rebuild_stream()
         self._schedule_next_advance()
@@ -1610,7 +1682,46 @@ class TickerWindow(Gtk.ApplicationWindow):
         self._last_notif_mtime = 0.0
         GLib.timeout_add_seconds(3, self._check_priority_interrupt)
 
+        # Phase A4: export per-stream health snapshot every 30s.
+        GLib.timeout_add_seconds(30, self._write_health_snapshot)
+
     # ── Persistence helpers ─────────────────────
+
+    def reload_from_state(self):
+        """Re-read state files (active-playlist, pinned-stream, paused) and
+        apply the resulting configuration without restarting. Intended to be
+        called via GLib.idle_add from a SIGUSR1 handler so external tools
+        (hg ticker playlist / pin / pause) can switch the ticker without
+        flickering. Runs on the main loop so it's safe to call widget APIs."""
+        # Playlist
+        try:
+            with open(os.path.join(STATE_DIR, "active-playlist")) as f:
+                desired_playlist = f.read().strip()
+        except OSError:
+            desired_playlist = self.playlist_name
+        if desired_playlist and desired_playlist != self.playlist_name:
+            new_order = load_playlist(desired_playlist)
+            if new_order:
+                self.playlist_name = desired_playlist
+                self.stream_order = new_order
+                self.stream_idx = 0
+                self.pinned_stream = None
+                self._save_pin_state()
+                self._rebuild_stream()
+                self._schedule_next_advance()
+        # Pinned stream
+        desired_pin = self._load_pin_state()
+        if desired_pin != self.pinned_stream:
+            self.pinned_stream = desired_pin
+            if desired_pin and desired_pin in self.stream_order:
+                self.stream_idx = self.stream_order.index(desired_pin)
+                self._rebuild_stream()
+                self._schedule_next_advance()
+        # Paused
+        desired_paused = self._load_pause_state()
+        if desired_paused != self.paused:
+            self.paused = desired_paused
+        return False  # one-shot idle_add
 
     def _load_pause_state(self):
         return os.path.exists(os.path.join(STATE_DIR, "paused"))
@@ -1667,15 +1778,47 @@ class TickerWindow(Gtk.ApplicationWindow):
 
     def _absorb_segments(self, stream_name, segments):
         """Strip control sentinels and update error/urgent state."""
+        now = int(_time.time())
+        health = self._stream_health.setdefault(
+            stream_name,
+            {"last_ok": 0, "last_err": 0, "consecutive_err": 0, "total_err": 0, "total_ok": 0},
+        )
         if segments == ["__EMPTY__"]:
             self._stream_errored[stream_name] = True
+            health["last_err"] = now
+            health["consecutive_err"] += 1
+            health["total_err"] += 1
             return []
         if segments == ["__URGENT__"]:
             self._stream_errored[stream_name] = False
+            health["last_ok"] = now
+            health["consecutive_err"] = 0
+            health["total_ok"] += 1
             self._trigger_urgent_mode()
             return []
         self._stream_errored[stream_name] = False
+        health["last_ok"] = now
+        health["consecutive_err"] = 0
+        health["total_ok"] += 1
         return segments
+
+    def _write_health_snapshot(self):
+        """Export stream health counters to tmpfs for `hg ticker health`."""
+        import json
+        path = "/tmp/ticker-health.json"
+        tmp = path + ".tmp"
+        try:
+            with open(tmp, "w") as f:
+                json.dump({
+                    "pid": os.getpid(),
+                    "ts": int(_time.time()),
+                    "playlist": self.playlist_name,
+                    "streams": self._stream_health,
+                }, f)
+            os.replace(tmp, path)
+        except OSError:
+            pass
+        return True  # keep the timer alive
 
     def _schedule_next_advance(self):
         current = self.stream_order[self.stream_idx]
@@ -1871,7 +2014,8 @@ class TickerWindow(Gtk.ApplicationWindow):
             self._show_context_menu(x, y)
             gesture.set_state(Gtk.EventSequenceState.CLAIMED)
             return
-        # Left-click: copy or open URL
+        # Left-click: first try a per-stream custom action, then fall back
+        # to URL-open / clipboard-copy.
         if button == 1:
             idx = self._segment_at_x(x)
             if idx is None or idx >= len(self.segments):
@@ -1879,6 +2023,14 @@ class TickerWindow(Gtk.ApplicationWindow):
             text = self.segments[idx]
             if not text:
                 return
+            stream = self.stream_order[self.stream_idx] if self.stream_order else None
+            action = STREAM_CLICK_ACTIONS.get(stream) if stream else None
+            if action is not None:
+                try:
+                    if action(self, idx, text):
+                        return
+                except Exception:
+                    pass
             if URL_RE.match(text) or text.startswith(("http://", "https://")):
                 try:
                     subprocess.Popen(["xdg-open", text],
@@ -2424,6 +2576,19 @@ class TickerApp(Gtk.Application):
     def do_activate(self):
         win = TickerWindow(preset_name=START_PRESET, application=self)
         win.present()
+        self._window = win
+
+        # SIGUSR1 → reload state files inline (no restart, no flicker).
+        # signal.signal handlers fire in the signal thread; marshal the work
+        # onto the GTK main loop via GLib.idle_add so widget calls are safe.
+        def _on_sigusr1(signum, frame):
+            GLib.idle_add(win.reload_from_state)
+        try:
+            signal.signal(signal.SIGUSR1, _on_sigusr1)
+        except (ValueError, OSError):
+            # Not in main thread or platform mismatch — ignore silently;
+            # `hg ticker` will fall back to `systemctl --user restart`.
+            pass
 
 
 if __name__ == "__main__":

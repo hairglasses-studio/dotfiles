@@ -21,8 +21,12 @@ CLI flags:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "lib"))
+import ticker_render as tr  # noqa: E402
 
 import gi
 
@@ -34,7 +38,7 @@ gi.require_version("PangoCairo", "1.0")
 
 from gi.repository import Gtk, Gtk4LayerShell, Gdk, GLib, Gio, Pango, PangoCairo  # noqa: E402
 
-BAR_H = 28
+BAR_H = tr.BAR_H
 SLIDE_DURATION_S = 0.35
 FADE_DURATION_S = 0.4
 DBUS_NAME = "io.hairglasses.toast"
@@ -64,28 +68,22 @@ class ToastWindow(Gtk.ApplicationWindow):
         self.state = "hidden"  # hidden | slide_in | hold | fade
         self._anim_start = 0.0
 
-        Gtk4LayerShell.init_for_window(self)
-        Gtk4LayerShell.set_layer(self, Gtk4LayerShell.Layer.OVERLAY)
-        for edge in (Gtk4LayerShell.Edge.BOTTOM, Gtk4LayerShell.Edge.RIGHT):
-            Gtk4LayerShell.set_anchor(self, edge, True)
-        Gtk4LayerShell.set_namespace(self, "hg-toast")
-        Gtk4LayerShell.set_margin(self, Gtk4LayerShell.Edge.BOTTOM, BAR_H + 8)
-        Gtk4LayerShell.set_margin(self, Gtk4LayerShell.Edge.RIGHT, 16)
-        display = Gdk.Display.get_default()
-        if display:
-            for i in range(display.get_monitors().get_n_items()):
-                mon = display.get_monitors().get_item(i)
-                if mon and monitor_name in (mon.get_connector() or ""):
-                    Gtk4LayerShell.set_monitor(self, mon)
-                    break
+        tr.setup_layer_shell(
+            self,
+            (Gtk4LayerShell.Edge.BOTTOM, Gtk4LayerShell.Edge.RIGHT),
+            "hg-toast",
+            monitor_name,
+            layer="OVERLAY",
+            margins={
+                Gtk4LayerShell.Edge.BOTTOM: BAR_H + 8,
+                Gtk4LayerShell.Edge.RIGHT: 16,
+            },
+        )
         self.set_default_size(360, BAR_H)
 
-        self.da = Gtk.DrawingArea()
-        self.da.set_content_height(BAR_H)
+        self.da = tr.make_drawing_area(BAR_H, self._draw)
         self.da.set_content_width(360)
-        self.da.set_draw_func(self._draw)
         self.set_child(self.da)
-        self.da.connect("realize", lambda w: w.get_frame_clock().begin_updating())
         self.da.add_tick_callback(self._tick)
         self.present()
 
@@ -133,10 +131,8 @@ class ToastWindow(Gtk.ApplicationWindow):
         alpha = eased
 
         # Background
-        r, g, b = _hex_to_rgb(color)
-        cr.set_source_rgba(0.02, 0.03, 0.05, 0.88 * alpha)
-        cr.rectangle(0, 0, w, h)
-        cr.fill()
+        r, g, b = tr.hex_to_rgb(color)
+        tr.fill_bg(cr, w, h, alpha=0.88 * alpha)
         # Left accent bar in the provided color
         cr.set_source_rgba(r, g, b, alpha)
         cr.rectangle(0, 0, 4, h)
@@ -160,19 +156,6 @@ class ToastWindow(Gtk.ApplicationWindow):
         if self.get_default_size()[0] != target_w:
             self.set_default_size(target_w, BAR_H)
             self.da.set_content_width(target_w)
-
-
-def _hex_to_rgb(h: str) -> tuple[float, float, float]:
-    h = h.lstrip("#")
-    if len(h) == 3:
-        h = "".join(c * 2 for c in h)
-    if len(h) != 6:
-        return (0.24, 1.0, 0.71)  # fallback green
-    return (
-        int(h[0:2], 16) / 255,
-        int(h[2:4], 16) / 255,
-        int(h[4:6], 16) / 255,
-    )
 
 
 class ToastApp(Gtk.Application):

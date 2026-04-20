@@ -11,9 +11,13 @@ factor as keybind-ticker but without scroll or stream cycling.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 import time
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "lib"))
+import ticker_render as tr  # noqa: E402
 
 import gi
 
@@ -25,7 +29,7 @@ gi.require_version("PangoCairo", "1.0")
 
 from gi.repository import Gtk, Gtk4LayerShell, Gdk, GLib, Gio, Pango, PangoCairo  # noqa: E402
 
-BAR_H = 28
+BAR_H = tr.BAR_H
 
 
 def _playerctl(fmt: str) -> str:
@@ -55,27 +59,16 @@ class LyricsWindow(Gtk.ApplicationWindow):
         self.line = "\u266a IDLE"
         self.color = "#66708f"
 
-        Gtk4LayerShell.init_for_window(self)
-        Gtk4LayerShell.set_layer(self, Gtk4LayerShell.Layer.OVERLAY)
-        for edge in (Gtk4LayerShell.Edge.TOP, Gtk4LayerShell.Edge.LEFT, Gtk4LayerShell.Edge.RIGHT):
-            Gtk4LayerShell.set_anchor(self, edge, True)
-        Gtk4LayerShell.set_exclusive_zone(self, 0)
-        Gtk4LayerShell.set_namespace(self, "hg-lyrics")
-        display = Gdk.Display.get_default()
-        if display:
-            for i in range(display.get_monitors().get_n_items()):
-                mon = display.get_monitors().get_item(i)
-                if mon and monitor_name in (mon.get_connector() or ""):
-                    Gtk4LayerShell.set_monitor(self, mon)
-                    break
-
-        self.da = Gtk.DrawingArea()
-        self.da.set_content_height(BAR_H)
-        self.da.set_vexpand(True)
-        self.da.set_hexpand(True)
-        self.da.set_draw_func(self._draw)
+        tr.setup_layer_shell(
+            self,
+            (Gtk4LayerShell.Edge.TOP, Gtk4LayerShell.Edge.LEFT, Gtk4LayerShell.Edge.RIGHT),
+            "hg-lyrics",
+            monitor_name,
+            layer="OVERLAY",
+            exclusive_zone=0,
+        )
+        self.da = tr.make_drawing_area(BAR_H, self._draw)
         self.set_child(self.da)
-        self.da.connect("realize", lambda w: w.get_frame_clock().begin_updating())
         self.present()
 
         GLib.timeout_add(2000, self._refresh)
@@ -97,9 +90,7 @@ class LyricsWindow(Gtk.ApplicationWindow):
         return True
 
     def _draw(self, widget, cr, w, h):
-        cr.set_source_rgba(0.02, 0.03, 0.05, 0.85)
-        cr.rectangle(0, 0, w, h)
-        cr.fill()
+        tr.fill_bg(cr, w, h, alpha=0.85)
         layout = PangoCairo.create_layout(cr)
         layout.set_font_description(Pango.FontDescription("Maple Mono NF CN Bold 11"))
         layout.set_markup(

@@ -11,8 +11,12 @@ stay hidden by exiting.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "lib"))
+import ticker_render as tr  # noqa: E402
 
 import gi
 
@@ -24,7 +28,7 @@ gi.require_version("PangoCairo", "1.0")
 
 from gi.repository import Gtk, Gtk4LayerShell, Gdk, GLib, Gio, Pango, PangoCairo  # noqa: E402
 
-BAR_H = 28
+BAR_H = tr.BAR_H
 
 
 def _sink_muted() -> bool:
@@ -43,27 +47,16 @@ class SubtitleWindow(Gtk.ApplicationWindow):
         super().__init__(application=app)
         self.visible_msg = False
 
-        Gtk4LayerShell.init_for_window(self)
-        Gtk4LayerShell.set_layer(self, Gtk4LayerShell.Layer.OVERLAY)
-        for edge in (Gtk4LayerShell.Edge.TOP, Gtk4LayerShell.Edge.LEFT, Gtk4LayerShell.Edge.RIGHT):
-            Gtk4LayerShell.set_anchor(self, edge, True)
-        Gtk4LayerShell.set_namespace(self, "hg-subtitle")
-        Gtk4LayerShell.set_margin(self, Gtk4LayerShell.Edge.TOP, 100)
-        display = Gdk.Display.get_default()
-        if display:
-            for i in range(display.get_monitors().get_n_items()):
-                mon = display.get_monitors().get_item(i)
-                if mon and monitor_name in (mon.get_connector() or ""):
-                    Gtk4LayerShell.set_monitor(self, mon)
-                    break
-
-        self.da = Gtk.DrawingArea()
-        self.da.set_content_height(BAR_H)
-        self.da.set_vexpand(True)
-        self.da.set_hexpand(True)
-        self.da.set_draw_func(self._draw)
+        tr.setup_layer_shell(
+            self,
+            (Gtk4LayerShell.Edge.TOP, Gtk4LayerShell.Edge.LEFT, Gtk4LayerShell.Edge.RIGHT),
+            "hg-subtitle",
+            monitor_name,
+            layer="OVERLAY",
+            margins={Gtk4LayerShell.Edge.TOP: 100},
+        )
+        self.da = tr.make_drawing_area(BAR_H, self._draw)
         self.set_child(self.da)
-        self.da.connect("realize", lambda w: w.get_frame_clock().begin_updating())
 
         GLib.timeout_add(1000, self._refresh)
         self._refresh()
@@ -82,9 +75,7 @@ class SubtitleWindow(Gtk.ApplicationWindow):
     def _draw(self, widget, cr, w, h):
         if not self.visible_msg:
             return
-        cr.set_source_rgba(0.02, 0.03, 0.05, 0.85)
-        cr.rectangle(0, 0, w, h)
-        cr.fill()
+        tr.fill_bg(cr, w, h, alpha=0.85)
         layout = PangoCairo.create_layout(cr)
         layout.set_font_description(Pango.FontDescription("Maple Mono NF CN Bold 12"))
         layout.set_markup(
