@@ -47,10 +47,19 @@ apply_shader() {
 
 boot_banner() {
   command -v tte >/dev/null 2>&1 || return 0
-  # Short matrix flash; capped at 120fps so it completes in <500ms.
-  # Fallback to silent if tte errors (e.g. unsupported terminal).
-  printf '%s\n' "◢ DEV-CONSOLE ◣ claude-code session resume" \
-    | tte --frame-rate 120 matrix --final-color "29f0ff" 2>/dev/null || true
+  # synthgrid draws a cyan→magenta grid that dissolves into text; completes
+  # in ~1s at 120fps for a 4-line banner. Palette pulled from the Hairglasses
+  # Neon set (#29f0ff primary, #ff47d1 secondary, #f7fbff foreground).
+  cat <<'BANNER' | tte --frame-rate 120 synthgrid \
+      --grid-gradient-stops 29f0ff ff47d1 \
+      --grid-gradient-direction diagonal \
+      --text-gradient-stops 29f0ff f7fbff \
+      --text-gradient-direction horizontal 2>/dev/null || true
+◢━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◣
+  DEV-CONSOLE  ::  claude-code  ::  hairglasses-studio
+  cwd: ~/hairglasses-studio/dotfiles
+◥━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━◤
+BANNER
 }
 
 apply_shader
