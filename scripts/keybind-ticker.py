@@ -1168,6 +1168,11 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.last_us = None
         self.layout = None
         self.half_w = 1.0
+        # A8 glyph-mask caches. Rendered once per layout rebuild; reused
+        # every frame via cr.mask_surface with a fresh gradient source so
+        # the colour cycle animates without re-rasterising glyphs.
+        self._glyph_mask_fill = None
+        self._glyph_mask_outline = None
 
         self.paused = self._load_pause_state()
         self.pinned_stream = self._load_pin_state()
@@ -1901,48 +1906,79 @@ class TickerWindow(Gtk.ApplicationWindow):
             cursor_char = sep_char + 1
         self.segment_bounds = bounds
 
-    def _render_text_surface(self, width, height):
-        surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
-        tc = _cairo.Context(surf)
-        x0 = -self.offset
-        # Empirical Maple Mono cap-height ≈ 0.7 × point size; centre the text
-        # block in the bar. Was hardcoded `14` tuned for 11pt / 28px; scaled
-        # proportionally for the 15pt / 39px bar so ascenders/descenders
-        # don't clip top or bottom.
+    def _rebuild_glyph_masks(self, height):
+        """Rasterise the Pango layout once into FORMAT_A8 alpha masks.
+
+        Produces up to two masks:
+        - `_glyph_mask_fill`: show_layout at alpha=1 (the glyph shapes)
+        - `_glyph_mask_outline`: layout_path + stroke at alpha=1 (the edge)
+
+        Per-frame rendering uses `mask_surface` with a gradient source so
+        the colour cycle animates while glyph rasterisation happens once
+        per stream change. Cost moves from ~2–4 ms each frame to that same
+        cost once per stream rotation.
+        """
+        w = max(int(math.ceil(self.half_w)), 1)
         y = (height - 19) / 2
         p = self.preset
 
-        # _dup already duplicates the markup once for seamless wrap. Draw
-        # exactly 2 copies so short content scrolls as a single strip with
-        # trailing empty space, rather than tiling 9+ times across ultrawides.
-        step = max(self.half_w, 1.0)
-        copies = 2
-        xs = [x0 + i * step for i in range(copies)]
+        fill = _cairo.ImageSurface(_cairo.FORMAT_A8, w, height)
+        tc = _cairo.Context(fill)
+        tc.set_source_rgba(1, 1, 1, 1)
+        tc.move_to(0, y)
+        PangoCairo.update_layout(tc, self.layout)
+        PangoCairo.show_layout(tc, self.layout)
+        fill.flush()
+        self._glyph_mask_fill = fill
 
-        # Dark stroke outline OR color-cycling pulse outline
         ow = getattr(p, "outline_width", 0.8)
         if ow > 0:
-            if getattr(p, "outline_pulse", False):
-                # Outline uses same gradient as text (lit-edge effect)
-                stroke_src = make_gradient(x0, self.half_w, self.gradient_phase)
-                tc.set_source(stroke_src)
+            outline = _cairo.ImageSurface(_cairo.FORMAT_A8, w, height)
+            tc2 = _cairo.Context(outline)
+            tc2.set_source_rgba(1, 1, 1, 1)
+            tc2.set_line_width(ow)
+            tc2.set_line_join(_cairo.LINE_JOIN_ROUND)
+            tc2.move_to(0, y)
+            PangoCairo.update_layout(tc2, self.layout)
+            PangoCairo.layout_path(tc2, self.layout)
+            tc2.stroke()
+            outline.flush()
+            self._glyph_mask_outline = outline
+        else:
+            self._glyph_mask_outline = None
+
+    def _render_text_surface(self, width, height):
+        if self._glyph_mask_fill is None:
+            self._rebuild_glyph_masks(height)
+        surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
+        tc = _cairo.Context(surf)
+        x0 = -self.offset
+        p = self.preset
+        ow = getattr(p, "outline_width", 0.8)
+        pulse = getattr(p, "outline_pulse", False)
+
+        # Tile the cached A8 masks at the same two x positions the old
+        # per-frame `show_layout` loop used — preserves identical scroll
+        # behaviour (including the intentional trailing gap when
+        # `half_w * 2 < width`).
+        xs = [x0, x0 + self.half_w]
+
+        # Outline pass: dark static colour (non-pulse) or the cycling
+        # gradient (pulse). The mask handles per-glyph shape; only the
+        # source paint is per-frame.
+        if ow > 0 and self._glyph_mask_outline is not None:
+            if pulse:
+                tc.set_source(make_gradient(x0, self.half_w, self.gradient_phase))
             else:
                 tc.set_source_rgba(0.02, 0.03, 0.05, 0.6)
-            tc.set_line_width(ow)
-            tc.set_line_join(_cairo.LINE_JOIN_ROUND)
             for xi in xs:
-                tc.move_to(xi, y)
-                PangoCairo.update_layout(tc, self.layout)
-                PangoCairo.layout_path(tc, self.layout)
-            tc.stroke()
+                tc.mask_surface(self._glyph_mask_outline, xi, 0)
 
-        # Gradient-filled text on top
-        text_grad = make_gradient(x0, self.half_w, self.gradient_phase)
-        tc.set_source(text_grad)
+        # Fill pass: always the cycling gradient.
+        tc.set_source(make_gradient(x0, self.half_w, self.gradient_phase))
         for xi in xs:
-            tc.move_to(xi, y)
-            PangoCairo.update_layout(tc, self.layout)
-            PangoCairo.show_layout(tc, self.layout)
+            tc.mask_surface(self._glyph_mask_fill, xi, 0)
+
         surf.flush()
         return surf
 
@@ -2025,6 +2061,9 @@ class TickerWindow(Gtk.ApplicationWindow):
             self.half_w = max(logical.width / 2.0, 1.0)
             self.offset = self.offset % self.half_w
             self._compute_segment_bounds()
+            # Layout changed → glyph-mask caches are stale.
+            self._glyph_mask_fill = None
+            self._glyph_mask_outline = None
 
         # ═══ BACKGROUND ═══════════════════════════
         cr.set_source_rgba(0.020, 0.027, 0.051, p.bg_alpha)
