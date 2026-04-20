@@ -50,6 +50,16 @@ detect_recorder() {
   return 1
 }
 
+# While recording, companion layer-shell surfaces (window-label,
+# fleet-sparkline) get captured in the output video if the user records
+# a full-screen region. Stop them on entry so the recording is clean
+# (just the ticker bar and whatever the user explicitly includes);
+# restart them on exit.
+COMPANION_SURFACES=(
+  dotfiles-window-label.service
+  dotfiles-fleet-sparkline.service
+)
+
 enter_recording() {
   local info="$1" pre
   pre="$(current_playlist)"
@@ -57,6 +67,7 @@ enter_recording() {
     printf '%s' "$pre" > "$PRE_FILE"
     printf '%s' "$REC_PLAYLIST" > "$ACTIVE_FILE"
     printf '%s' "$info" > "$CACHE_FILE"
+    systemctl --user stop "${COMPANION_SURFACES[@]}" 2>/dev/null || true
     systemctl --user restart "$SERVICE" 2>/dev/null || true
     notify-send -u low -t 2500 -i media-record "Recording started" \
       "Ticker swapped to recording playlist." 2>/dev/null || true
@@ -76,6 +87,7 @@ exit_recording() {
   : > "$CACHE_FILE"
   printf '%s' "$restore" > "$ACTIVE_FILE"
   systemctl --user restart "$SERVICE" 2>/dev/null || true
+  systemctl --user start "${COMPANION_SURFACES[@]}" 2>/dev/null || true
   notify-send -u low -t 2500 -i media-playback-stop "Recording stopped" \
     "Ticker restored to '$restore' playlist." 2>/dev/null || true
 }

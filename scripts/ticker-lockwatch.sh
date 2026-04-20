@@ -37,12 +37,23 @@ current_playlist() {
   fi
 }
 
+# Companion layer-shell surfaces (window-label, fleet-sparkline) render
+# potentially private context — the active-window title / class and the
+# live fleet-cost number. On lock they get stopped alongside the ticker
+# playlist swap so the lock screen leaks nothing from them. They come
+# back on unlock.
+COMPANION_SURFACES=(
+  dotfiles-window-label.service
+  dotfiles-fleet-sparkline.service
+)
+
 enter_lock() {
   local pre
   pre="$(current_playlist)"
   [[ "$pre" == "$LOCK_PLAYLIST" ]] && return
   printf '%s' "$pre" > "$PRELOCK_FILE"
   printf '%s' "$LOCK_PLAYLIST" > "$ACTIVE_FILE"
+  systemctl --user stop "${COMPANION_SURFACES[@]}" 2>/dev/null || true
   systemctl --user restart "$SERVICE" 2>/dev/null || true
 }
 
@@ -55,6 +66,7 @@ exit_lock() {
   [[ -z "$restore" ]] && restore="$DEFAULT_PLAYLIST"
   printf '%s' "$restore" > "$ACTIVE_FILE"
   systemctl --user restart "$SERVICE" 2>/dev/null || true
+  systemctl --user start "${COMPANION_SURFACES[@]}" 2>/dev/null || true
 }
 
 prev_state=""

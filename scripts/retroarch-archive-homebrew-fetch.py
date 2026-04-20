@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -78,6 +79,7 @@ def main(argv: list[str] | None = None) -> int:
 
     downloaded = 0
     skipped = 0
+    failed = 0
     for entry in selected:
         rel = _safe_relative(entry)
         dest = download_root / rel
@@ -89,11 +91,17 @@ def main(argv: list[str] | None = None) -> int:
         if args.dry_run:
             continue
         dest.parent.mkdir(parents=True, exist_ok=True)
-        urllib.request.urlretrieve(entry["download_url"], dest)
-        downloaded += 1
+        try:
+            urllib.request.urlretrieve(entry["download_url"], dest)
+            downloaded += 1
+        except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+            failed += 1
+            if dest.exists():
+                dest.unlink()
+            print(f"ERR  {entry['download_url']} -> {dest} :: {exc}")
 
-    print(f"selected={len(selected)} downloaded={downloaded} skipped={skipped} dry_run={int(args.dry_run)}")
-    return 0
+    print(f"selected={len(selected)} downloaded={downloaded} skipped={skipped} failed={failed} dry_run={int(args.dry_run)}")
+    return 0 if failed == 0 else 1
 
 
 if __name__ == "__main__":
