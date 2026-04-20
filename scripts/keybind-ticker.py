@@ -706,6 +706,10 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.pinned_stream = self._load_pin_state()
         self.urgent_mode = False
         self.urgent_timer_handle = None
+        # Restore an in-flight urgent-mode escalation across service
+        # restarts — the file holds the epoch second at which urgent
+        # should clear. Anything in the past is ignored and cleaned up.
+        self._restore_urgent_state()
 
         self.hover_x = 0
         self.is_hovering = False
@@ -1100,22 +1104,61 @@ class TickerWindow(Gtk.ApplicationWindow):
 
     # ── Urgency surge ─────────────────────────
 
-    def _trigger_urgent_mode(self):
+    def _trigger_urgent_mode(self, seconds: int = 10):
         self.urgent_mode = True
         # Cancel existing timer if any
         if self.urgent_timer_handle is not None:
             GLib.source_remove(self.urgent_timer_handle)
         self.urgent_timer_handle = GLib.timeout_add_seconds(
-            10, self._clear_urgent_mode)
+            seconds, self._clear_urgent_mode)
+        # Persist "clears at epoch X" so a service restart during the
+        # escalation window restores urgent-mode with the remaining time.
+        self._write_urgent_state(int(_time.time()) + seconds)
         self._emit_app_signal("UrgentMode", (GLib.Variant("b", True),))
 
     def _clear_urgent_mode(self):
         was = self.urgent_mode
         self.urgent_mode = False
         self.urgent_timer_handle = None
+        try:
+            os.remove(os.path.join(STATE_DIR, "urgent-until"))
+        except FileNotFoundError:
+            pass
+        except OSError:
+            pass
         if was:
             self._emit_app_signal("UrgentMode", (GLib.Variant("b", False),))
         return GLib.SOURCE_REMOVE
+
+    def _write_urgent_state(self, until_epoch: int):
+        os.makedirs(STATE_DIR, exist_ok=True)
+        path = os.path.join(STATE_DIR, "urgent-until")
+        tmp = path + ".tmp"
+        try:
+            with open(tmp, "w") as f:
+                f.write(str(until_epoch))
+            os.replace(tmp, path)
+        except OSError:
+            pass
+
+    def _restore_urgent_state(self):
+        path = os.path.join(STATE_DIR, "urgent-until")
+        try:
+            with open(path) as f:
+                until = int(f.read().strip())
+        except (OSError, ValueError):
+            return
+        remaining = until - int(_time.time())
+        if remaining <= 0:
+            # Stale file from a completed session — clean up silently.
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+            return
+        # Re-enter urgent mode for the remaining window. Reuse the
+        # public trigger so the GLib timer + DBus signal both fire.
+        self._trigger_urgent_mode(seconds=remaining)
 
     # ── DBus handlers ─────────────────────────
     # All methods below run on the GTK main thread via GLib.idle_add

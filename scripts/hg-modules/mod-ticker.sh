@@ -8,6 +8,7 @@ _TICKER_HEADLESS="$HG_DOTFILES/scripts/ticker-headless.py"
 _TICKER_SHOT="$HG_DOTFILES/scripts/ticker-shot.sh"
 _TICKER_RECORD="$HG_DOTFILES/scripts/ticker-record.sh"
 _TICKER_SMOKE="$HG_DOTFILES/scripts/ticker-smoke-test.py"
+_TICKER_GOLDEN="$HG_DOTFILES/scripts/ticker-golden.sh"
 
 # Signal the running keybind-ticker to re-read state files (SIGUSR1). Falls
 # back to a full service restart if no PID is found (e.g. during boot before
@@ -55,6 +56,7 @@ pin-toggle	Pin current stream if unpinned, else unpin
 reload	Hot-reload plugin modules + TOML catalogue (via DBus)
 banner	Flash a toast banner via DBus — `hg ticker banner <text> [color]`
 snooze-urgent	Dismiss an active urgent-mode escalation early
+golden	Capture / diff per-stream reference PNGs (save | diff | list | clean)
 CMDS
 }
 
@@ -274,6 +276,9 @@ PY
         -o /io/hairglasses/Ticker \
         -m io.hairglasses.Ticker.ShowBanner \
         "$text" "$color" >/dev/null
+      ;;
+    golden)
+      "$_TICKER_GOLDEN" "$@"
       ;;
     *)
       printf 'unknown command: %s\n' "$cmd" >&2
