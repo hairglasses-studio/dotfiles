@@ -1091,9 +1091,12 @@ def water_caustic_surface(width, height, time_s):
     argb[:, :, 3] = (bright * 0.25 * 255).astype(np.uint8)  # A
     surf = _cairo.ImageSurface(_cairo.FORMAT_ARGB32, width, height)
     stride = surf.get_stride()
-    buf = surf.get_data()
-    for row in range(height):
-        buf[row * stride: row * stride + width * 4] = argb[row].tobytes()
+    # Vectorised row copy. Cairo pads rows to a 4-byte stride, which is
+    # already satisfied at width*4 for ARGB32 so we can write a contiguous
+    # block. Replaces a Python for-row loop + per-row .tobytes() that cost
+    # ~10-15 ms per caustic frame at BAR_H=39.
+    buf_view = np.frombuffer(surf.get_data(), dtype=np.uint8).reshape(height, stride)
+    buf_view[:, :width * 4] = argb.reshape(height, width * 4)
     surf.mark_dirty()
     return surf
 
@@ -1804,6 +1807,14 @@ class TickerWindow(Gtk.ApplicationWindow):
 
     def _tick(self, widget, frame_clock):
         now = frame_clock.get_frame_time()
+        # DPMS-stall guard: when the monitor enters DPMS-off the compositor
+        # stops firing frame callbacks, but the GLib tick callback keeps
+        # running. `get_frame_time()` returns the same timestamp until the
+        # clock resumes, so an early-exit here avoids all per-tick math
+        # (glitch RNG, dt accumulation, gradient phase) while the display
+        # is asleep. Costs one monotonic comparison on the hot path.
+        if self.last_us is not None and now <= self.last_us:
+            return GLib.SOURCE_CONTINUE
         p = self.preset
         if self.last_us is not None:
             dt = min((now - self.last_us) / 1_000_000.0, 0.05)
