@@ -4,7 +4,7 @@
 # Entries are .glsl filenames; the launcher strips the extension before
 # dispatching via `hyprctl dispatch darkwindow:shade`.
 cyber-glitch-holo.glsl
-cyberpunk-hud.glsl
+holo-shimmer.glsl
 circuit-trace.glsl
 matrix-glow.glsl
 neon-hex-grid.glsl
