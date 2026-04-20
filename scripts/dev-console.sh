@@ -47,9 +47,21 @@ apply_shader() {
 
 boot_banner() {
   command -v tte >/dev/null 2>&1 || return 0
-  # synthgrid draws a cyan→magenta grid that dissolves into text; completes
-  # in ~1s at 120fps for a 4-line banner. Palette pulled from the Hairglasses
-  # Neon set (#29f0ff primary, #ff47d1 secondary, #f7fbff foreground).
+
+  # Stage 1 — laser-etch the studio logo.
+  # toilet renders "HG // DEV-CONSOLE" in its Unicode block `future` font
+  # (~3 lines, ~50 cols). tte laseretch then writes it char-by-char with
+  # a white→cyan laser and yellow→magenta cool-down for ~1.5s.
+  if command -v toilet >/dev/null 2>&1; then
+    toilet -f future "HG // DEV-CONSOLE" 2>/dev/null \
+      | tte --frame-rate 120 laseretch \
+          --laser-gradient-stops f7fbff 29f0ff \
+          --cool-gradient-stops ffe45e ff47d1 \
+          --final-gradient-stops 29f0ff ff47d1 f7fbff 2>/dev/null || true
+  fi
+
+  # Stage 2 — context panel via synthgrid. Grid dissolves cyan→magenta;
+  # text fills cyan→white. ~1s.
   cat <<'BANNER' | tte --frame-rate 120 synthgrid \
       --grid-gradient-stops 29f0ff ff47d1 \
       --grid-gradient-direction diagonal \
