@@ -157,7 +157,7 @@ PRESETS = {
         "glitch_prob": 0.0, "glitch_frames": 0, "ca_offset": 0,
         "bg_alpha": 0.90, "outline_width": 0.5, "outline_pulse": False,
         "wave_amp": 0, "wave_freq": 0, "wave_speed": 0,
-        "edge_fade": 60, "progress_bar": False, "phosphor_trail": 0.0,
+        "edge_fade": 60, "progress_bar": True, "phosphor_trail": 0.0,
         "ghost_echo": 0.0, "synthwave_border": False, "holo_shimmer": 0.0,
         "hue_sweep": False,
     },
@@ -169,7 +169,7 @@ PRESETS = {
         "glitch_prob": 0.0, "glitch_frames": 0, "ca_offset": 0,
         "bg_alpha": 0.92, "outline_width": 0.0, "outline_pulse": False,
         "wave_amp": 0, "wave_freq": 0, "wave_speed": 0,
-        "edge_fade": 0, "progress_bar": False, "phosphor_trail": 0.0,
+        "edge_fade": 0, "progress_bar": True, "phosphor_trail": 0.0,
         "ghost_echo": 0.0, "synthwave_border": False, "holo_shimmer": 0.0,
         "hue_sweep": False,
     },
@@ -2778,7 +2778,7 @@ class TickerWindow(Gtk.ApplicationWindow):
             cr.rectangle(width - fade_px, 0, fade_px, height)
             cr.fill()
 
-        # Progress indicator — 1px bar at bottom
+        # Progress indicator — 2px bar at bottom, filling as dwell elapses
         if getattr(p, "progress_bar", False):
             current = (self.pinned_stream if self.pinned_stream
                        else self.stream_order[self.stream_idx])
@@ -2786,11 +2786,32 @@ class TickerWindow(Gtk.ApplicationWindow):
             elapsed = self.time_s - self.stream_start_s
             pct = min(elapsed / max(interval, 1), 1.0)
             prog_w = int(width * pct)
+            # Dim rail spanning full width so the bar is always anchored
+            cr.set_source_rgba(0.35, 0.40, 0.60, 0.22)
+            cr.rectangle(0, height - 2, width, 2)
+            cr.fill()
             if prog_w > 0:
-                prog_grad = make_gradient(0, prog_w, self.gradient_phase)
+                prog_grad = make_gradient(0, max(prog_w, 1), self.gradient_phase)
                 cr.set_source(prog_grad)
-                cr.rectangle(0, height - 1, prog_w, 1)
+                cr.rectangle(0, height - 2, prog_w, 2)
                 cr.fill()
+
+        # Stream-change wipe — brief gradient sweep the first 400ms after a
+        # stream rotation, signalling new content has arrived.
+        wipe_dur = 0.4
+        wipe_age = self.time_s - self.stream_start_s
+        if wipe_age < wipe_dur:
+            progress = wipe_age / wipe_dur
+            band_w = max(int(width * 0.18), 80)
+            lead = int((width + band_w) * progress) - band_w
+            alpha = 0.55 * (1.0 - progress)
+            sweep = _cairo.LinearGradient(lead, 0, lead + band_w, 0)
+            sweep.add_color_stop_rgba(0.0, 0.161, 0.941, 1.000, 0.0)
+            sweep.add_color_stop_rgba(0.5, 1.000, 0.278, 0.820, alpha)
+            sweep.add_color_stop_rgba(1.0, 0.161, 0.941, 1.000, 0.0)
+            cr.set_source(sweep)
+            cr.rectangle(0, 0, width, height)
+            cr.fill()
 
         # Paused overlay
         if self.paused:
