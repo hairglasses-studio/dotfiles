@@ -1,0 +1,18 @@
+# bar-ci.service — Refresh CI status cache for the ticker
+#
+# Queries gh for the latest workflow run on each active CI repo in
+# workspace/manifest.json, writes the aggregate to /tmp/bar-ci.txt.
+# The keybind-ticker reads the cache instead of blocking on gh API I/O.
+#
+# Paired with bar-ci.timer (5-minute interval).
+
+[Unit]
+Description=Refresh ticker CI status cache
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-ci-cache.sh
+MemoryMax=64M
+CPUQuota=20%

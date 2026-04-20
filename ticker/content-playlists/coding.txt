@@ -1,0 +1,12 @@
+# Coding playlist — dev-focused rotation.
+# Surfaces keybinds, fleet status, claude sessions, workspace, and updates.
+keybinds
+system
+fleet
+ci
+claude-sessions
+workspace
+github
+notifications
+updates
+shader

@@ -498,7 +498,7 @@ install_omz_plugins() {
         "zsh-completions|https://github.com/zsh-users/zsh-completions.git"
         "you-should-use|https://github.com/MichaelAquilina/zsh-you-should-use.git"
         "fzf-tab|https://github.com/Aloxaf/fzf-tab.git"
-        "zsh-auto-notify|https://github.com/MichaelAquilina/zsh-auto-notify.git"
+        "auto-notify|https://github.com/MichaelAquilina/zsh-auto-notify.git"
     )
 
     for entry in "${plugin_list[@]}"; do
@@ -705,6 +705,11 @@ create_symlinks() {
         )
         local desktop_passive_units=(
             rg-status-bar.timer
+            bar-gpu.timer
+            bar-updates.timer
+            bar-mx.timer
+            bar-weather.timer
+            bar-ci.timer
         )
         local desktop_units=("${desktop_service_units[@]}" "${desktop_passive_units[@]}")
         if systemctl --user enable "${desktop_units[@]}" >/dev/null 2>&1; then

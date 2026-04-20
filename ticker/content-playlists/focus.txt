@@ -1,0 +1,7 @@
+# Focus playlist — quiet rotation for deep work.
+# Only essentials: time-of-day signal (system), workspace context, and music.
+# Notifications stays so urgent interrupts still surface.
+system
+workspace
+music
+notifications

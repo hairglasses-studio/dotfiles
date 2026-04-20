@@ -4,8 +4,9 @@
 GTK4 DrawingArea with PangoCairo at 240Hz frame-clock sync.
 
 Features:
-  - Multi-stream content (12 streams): keybinds, system, fleet, weather,
-    github, notifications, music, updates, mx-battery, disk, load, workspace
+  - Multi-stream content (16 streams): keybinds, system, fleet, weather,
+    github, notifications, music, updates, mx-battery, disk, load, workspace,
+    claude-sessions, network, audio, shader
   - Visual effects: water caustic, neon glow (breathing), gradient text,
     scanlines, text outline (solid or color-cycling pulse), wave distortion,
     edge fade vignette, typewriter reveal, urgency glitch surge, phosphor
@@ -25,6 +26,7 @@ Usage:
   keybind-ticker.py --layer             # layer-shell bar (for systemd)
   keybind-ticker.py --preset minimal    # start with a preset
   keybind-ticker.py --monitor DP-2      # target a different output
+  keybind-ticker.py --playlist focus    # load a non-default playlist
 """
 
 import gi
@@ -63,6 +65,7 @@ def _cli_value(flag, default=None):
 
 MONITOR_NAME = _cli_value("--monitor", "DP-3")
 START_PRESET = _cli_value("--preset", "ambient")
+START_PLAYLIST = _cli_value("--playlist", None)  # None → resolved at runtime via state file or "main"
 
 if LAYER_MODE:
     gi.require_version("Gtk4LayerShell", "1.0")
@@ -75,9 +78,13 @@ if LAYER_MODE:
 
 BAR_H = 28
 DEFAULT_REFRESH_S = 300
+ERROR_BACKOFF_S = 30  # Streams that returned _empty() advance after this instead of their full refresh interval, so a broken stream cannot freeze the ticker.
 STATE_DIR = os.path.expanduser("~/.local/state/keybind-ticker")
-PLAYLIST_FILE = os.path.expanduser(
-    "~/hairglasses-studio/dotfiles/ticker/content-playlists/main.txt")
+PLAYLIST_DIR = os.path.expanduser(
+    "~/hairglasses-studio/dotfiles/ticker/content-playlists")
+QUOTES_DIR = os.path.expanduser(
+    "~/hairglasses-studio/dotfiles/ticker/quotes")
+DEFAULT_PLAYLIST = "main"
 
 # Maple font weight cycle
 FONTS = [
@@ -182,7 +189,8 @@ def _badge(text, bg_hex, fg_hex="#05070d"):
 
 
 def _empty(badge_label, bg_hex, msg):
-    return _badge(badge_label, bg_hex) + f'<span font_desc="Maple Mono NF CN 11">  {escape(msg)}  \u00b7</span>', []
+    # Sentinel "__EMPTY__" in segments lets _absorb_segments tag the stream as errored for backoff scheduling.
+    return _badge(badge_label, bg_hex) + f'<span font_desc="Maple Mono NF CN 11">  {escape(msg)}  \u00b7</span>', ["__EMPTY__"]
 
 
 def _dup(markup):
@@ -560,6 +568,333 @@ def build_workspace_markup():
     return _dup("".join(parts)), []
 
 
+# ── New streams (Phase 4) ──────────────────────────
+
+def build_claude_sessions_markup():
+    parts = [_badge(" CLAUDE", "#c084fc")]
+    segments = []
+    try:
+        projects_dir = os.path.expanduser("~/.claude/projects")
+        if not os.path.isdir(projects_dir):
+            return _empty(" CLAUDE", "#c084fc", "no ~/.claude/projects")
+        now = _time.time()
+        cutoff = now - 86400  # last 24h
+        project_stats = []
+        for entry in os.scandir(projects_dir):
+            if not entry.is_dir():
+                continue
+            session_mtimes = []
+            try:
+                for f in os.scandir(entry.path):
+                    if f.name.endswith(".jsonl") and f.is_file():
+                        st = f.stat()
+                        if st.st_mtime >= cutoff:
+                            session_mtimes.append(st.st_mtime)
+            except OSError:
+                continue
+            if session_mtimes:
+                project_stats.append((entry.name, len(session_mtimes), max(session_mtimes)))
+        if not project_stats:
+            return _empty(" CLAUDE", "#c084fc", "no recent sessions")
+        project_stats.sort(key=lambda t: t[2], reverse=True)
+        total_projects = len(project_stats)
+        total_sessions = sum(s for _, s, _ in project_stats)
+        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">'
+                     f'  {total_projects} projects · {total_sessions} sessions  \u00b7</span>')
+        STUDIO_PREFIX = "-home-hg-hairglasses-studio-"
+        HOME_PREFIX = "-home-hg-"
+        fc = len(FONTS)
+        for i, (encoded, count, mtime) in enumerate(project_stats[:8]):
+            if encoded.startswith(STUDIO_PREFIX):
+                short = encoded[len(STUDIO_PREFIX):]
+                display_path = f"~/hairglasses-studio/{short}"
+            elif encoded.startswith(HOME_PREFIX):
+                short = encoded[len(HOME_PREFIX):]
+                display_path = f"~/{short}"
+            else:
+                short = encoded.lstrip("-")
+                display_path = encoded
+            age_s = now - mtime
+            if age_s < 60:
+                age = f"{int(age_s)}s"
+            elif age_s < 3600:
+                age = f"{int(age_s / 60)}m"
+            else:
+                age = f"{int(age_s / 3600)}h"
+            font = FONTS[i % fc]
+            parts.append(f'<span font_desc="{font}">  {escape(short)} ({count}×, {age} ago)  \u00b7</span>')
+            segments.append(display_path)
+    except Exception:
+        return _empty(" CLAUDE", "#c084fc", "session scan failed")
+    return _dup("".join(parts)), segments
+
+
+def build_network_markup():
+    parts = [_badge(" NET", "#38bdf8")]
+    segments = []
+    try:
+        ssid = None
+        signal = None
+        try:
+            wifi = subprocess.run(
+                ["nmcli", "-t", "-f", "IN-USE,SSID,SIGNAL",
+                 "device", "wifi", "list", "--rescan", "no"],
+                capture_output=True, text=True, timeout=3,
+            ).stdout.strip().splitlines()
+            for line in wifi:
+                if line.startswith(("*:", "*\\:")):
+                    fields = line.split(":")
+                    if len(fields) >= 3:
+                        ssid = fields[1] or None
+                        signal = fields[2] or None
+                        break
+        except Exception:
+            pass
+        ipv4 = None
+        try:
+            addrs = subprocess.run(
+                ["ip", "-o", "-4", "addr", "show", "scope", "global"],
+                capture_output=True, text=True, timeout=3,
+            ).stdout.strip().splitlines()
+            for line in addrs:
+                fields = line.split()
+                if len(fields) >= 4:
+                    iface = fields[1]
+                    if iface.startswith(("docker", "br-", "veth", "tailscale")):
+                        continue
+                    ipv4 = fields[3].split("/")[0]
+                    break
+        except Exception:
+            pass
+        ts_info = None
+        try:
+            ts = subprocess.run(
+                ["ip", "-o", "-4", "addr", "show", "tailscale0"],
+                capture_output=True, text=True, timeout=2,
+            )
+            if ts.returncode == 0 and ts.stdout.strip():
+                fields = ts.stdout.strip().split()
+                if len(fields) >= 4:
+                    ts_ip = fields[3].split("/")[0]
+                    ts_info = f"tailscale:{ts_ip}"
+        except Exception:
+            pass
+        if not (ssid or ipv4 or ts_info):
+            return _empty(" NET", "#38bdf8", "offline")
+        fc = len(FONTS)
+        ix = 0
+        if ssid:
+            sig_color = "#f7fbff"
+            try:
+                if int(signal or 0) < 40:
+                    sig_color = "#ff5c8a"
+            except ValueError:
+                pass
+            font = FONTS[ix % fc]
+            parts.append(f'<span font_desc="{font}" foreground="{sig_color}">'
+                         f'  {escape(ssid)} {escape(signal or "?")}%  \u00b7</span>')
+            segments.append(ssid)
+            ix += 1
+        if ipv4:
+            font = FONTS[ix % fc]
+            parts.append(f'<span font_desc="{font}">  {escape(ipv4)}  \u00b7</span>')
+            segments.append(ipv4)
+            ix += 1
+        if ts_info:
+            font = FONTS[ix % fc]
+            parts.append(f'<span font_desc="{font}" foreground="#c084fc">'
+                         f'  {escape(ts_info)}  \u00b7</span>')
+            segments.append(ts_info)
+            ix += 1
+    except Exception:
+        return _empty(" NET", "#38bdf8", "network unavailable")
+    return _dup("".join(parts)), segments
+
+
+def build_audio_markup():
+    parts = [_badge(" AUDIO", "#fb7185")]
+    segments = []
+    try:
+        nick = None
+        try:
+            inspect = subprocess.run(
+                ["wpctl", "inspect", "@DEFAULT_AUDIO_SINK@"],
+                capture_output=True, text=True, timeout=3,
+            ).stdout
+            m = re.search(r'node\.nick\s*=\s*"([^"]+)"', inspect)
+            if m:
+                nick = m.group(1)
+            if not nick:
+                m = re.search(r'node\.description\s*=\s*"([^"]+)"', inspect)
+                if m:
+                    nick = m.group(1)
+        except Exception:
+            pass
+        volume_pct = None
+        muted = False
+        try:
+            vol_out = subprocess.run(
+                ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"],
+                capture_output=True, text=True, timeout=3,
+            ).stdout.strip()
+            m = re.search(r"([0-9]+\.[0-9]+)", vol_out)
+            if m:
+                volume_pct = int(round(float(m.group(1)) * 100))
+            if "MUTED" in vol_out.upper():
+                muted = True
+        except Exception:
+            pass
+        if nick is None and volume_pct is None:
+            return _empty(" AUDIO", "#fb7185", "no default sink")
+        icon = "\U000f0581" if muted else "\U000f057e"
+        vol_color = "#ff5c8a" if muted else "#f7fbff"
+        nick_s = escape(nick or "default sink")
+        vol_s = f"{volume_pct}%" if volume_pct is not None else "?"
+        mute_s = "  [MUTED]" if muted else ""
+        parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{vol_color}">'
+                     f'  {icon} {nick_s} · {vol_s}{escape(mute_s)}  \u00b7</span>')
+        if nick:
+            segments.append(nick)
+    except Exception:
+        return _empty(" AUDIO", "#fb7185", "audio unavailable")
+    return _dup("".join(parts)), segments
+
+
+def build_shader_markup():
+    parts = [_badge(" SHADER", "#f97316")]
+    segments = []
+    try:
+        shader_name = None
+        try:
+            out = subprocess.run(
+                ["hyprshade", "current"],
+                capture_output=True, text=True, timeout=3,
+            )
+            if out.returncode == 0:
+                shader_name = out.stdout.strip() or None
+        except Exception:
+            pass
+        sunset_state = None
+        try:
+            out = subprocess.run(
+                ["hyprctl", "hyprsunset", "temperature"],
+                capture_output=True, text=True, timeout=2,
+            )
+            if out.returncode == 0:
+                val = out.stdout.strip()
+                if val and val != "0":
+                    sunset_state = f"{val}K"
+        except Exception:
+            pass
+        if not shader_name and not sunset_state:
+            return _empty(" SHADER", "#f97316", "no shader active")
+        if shader_name:
+            parts.append(f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#f97316">'
+                         f'  {escape(shader_name)}  \u00b7</span>')
+            segments.append(shader_name)
+        else:
+            parts.append('<span font_desc="Maple Mono NF CN Bold 11" foreground="#888888">'
+                         '  no shader  \u00b7</span>')
+        if sunset_state:
+            parts.append(f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#ffe45e">'
+                         f'  hyprsunset: {escape(sunset_state)}  \u00b7</span>')
+            segments.append(sunset_state)
+    except Exception:
+        return _empty(" SHADER", "#f97316", "shader unavailable")
+    return _dup("".join(parts)), segments
+
+
+_quotes_cache = {}  # {name: (mtime, [lines])}
+
+
+def _load_quotes(name):
+    path = os.path.join(QUOTES_DIR, f"{name}.txt")
+    try:
+        mtime = os.path.getmtime(path)
+    except OSError:
+        return []
+    cached = _quotes_cache.get(name)
+    if cached and cached[0] == mtime:
+        return cached[1]
+    try:
+        with open(path) as f:
+            lines = [l.rstrip("\n") for l in f
+                     if l.strip() and not l.lstrip().startswith("#")]
+    except OSError:
+        return cached[1] if cached else []
+    _quotes_cache[name] = (mtime, lines)
+    return lines
+
+
+def build_hacker_markup():
+    quotes = _load_quotes("hacker")
+    if not quotes:
+        return _empty("\U000f05f3 HACKER", "#34d399", "no quotes file")
+    line = random.choice(quotes)
+    parts = [_badge("\U000f05f3 HACKER", "#34d399")]
+    if "\t" in line:
+        quote, attribution = line.split("\t", 1)
+        parts.append(
+            f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#a3e635">  {escape(quote)}  </span>'
+        )
+        parts.append(
+            f'<span font_desc="Maple Mono NF CN Bold 10" foreground="#6ee7b7">\u2014 {escape(attribution)}  \u00b7</span>'
+        )
+    else:
+        parts.append(
+            f'<span font_desc="Maple Mono NF CN Italic 11" foreground="#a3e635">  {escape(line)}  \u00b7</span>'
+        )
+    return _dup("".join(parts)), []
+
+
+def build_ci_markup():
+    try:
+        with open("/tmp/bar-ci.txt") as f:
+            lines = [l.rstrip("\n") for l in f if l.strip()]
+    except FileNotFoundError:
+        return _empty("\U000f03a0 CI", "#a3e635", "ci cache missing")
+    except Exception:
+        return _empty("\U000f03a0 CI", "#a3e635", "ci unavailable")
+
+    if not lines:
+        return _empty("\U000f03a0 CI", "#a3e635", "no ci data")
+    if lines[0] == "CI=unavailable":
+        return _empty("\U000f03a0 CI", "#a3e635", "gh or jq missing")
+
+    counts = {"PASS": 0, "FAIL": 0, "RUN": 0}
+    for tok in lines[0].split():
+        k, _, v = tok.partition("=")
+        if k in counts and v.isdigit():
+            counts[k] = int(v)
+
+    if counts["FAIL"] > 0:
+        badge_color = "#ff5c8a"  # red — something is broken
+    elif counts["RUN"] > 0:
+        badge_color = "#ffe45e"  # yellow — runs in progress
+    elif counts["PASS"] == 0:
+        return _empty("\U000f03a0 CI", "#a3e635", "no ci runs")
+    else:
+        badge_color = "#a3e635"  # green — all passing
+
+    parts = [_badge("\U000f03a0 CI", badge_color)]
+    summary = f"\u2713{counts['PASS']}  \u2717{counts['FAIL']}  \u23f3{counts['RUN']}"
+    parts.append(f'<span font_desc="Maple Mono NF CN Bold 11">  {escape(summary)}  \u00b7</span>')
+
+    fc = len(FONTS)
+    for i, line in enumerate(lines[1:15]):
+        fields = line.split("\t")
+        if len(fields) < 2:
+            continue
+        repo, outcome = fields[0], fields[1]
+        mark = "\u23f3" if outcome.startswith("running") else "\u2717"
+        name_color = "#fbbf24" if outcome.startswith("running") else "#fb7185"
+        font = FONTS[i % fc]
+        parts.append(
+            f'<span font_desc="{font}" foreground="{name_color}">  {mark} {escape(repo)}  \u00b7</span>'
+        )
+    return _dup("".join(parts)), []
+
+
 # ══════════════════════════════════════════════════
 # Stream registry + metadata
 # ══════════════════════════════════════════════════
@@ -577,6 +912,12 @@ STREAMS = {
     "disk":          build_disk_markup,
     "load":          build_load_markup,
     "workspace":     build_workspace_markup,
+    "claude-sessions": build_claude_sessions_markup,
+    "network":         build_network_markup,
+    "audio":           build_audio_markup,
+    "shader":          build_shader_markup,
+    "ci":              build_ci_markup,
+    "hacker":          build_hacker_markup,
 }
 
 # Per-stream metadata: effect preset override + refresh interval (seconds)
@@ -593,22 +934,60 @@ STREAM_META = {
     "disk":          {"preset": None,        "refresh": 60},
     "load":          {"preset": None,        "refresh": 5},
     "workspace":     {"preset": None,        "refresh": 5},
+    "claude-sessions": {"preset": None,        "refresh": 120},
+    "network":         {"preset": None,        "refresh": 30},
+    "audio":           {"preset": "minimal",   "refresh": 10},
+    "shader":          {"preset": "cyberpunk", "refresh": 60},
+    "ci":              {"preset": "cyberpunk", "refresh": 300},
+    "hacker":          {"preset": "cyberpunk", "refresh": 45},
 }
 
 # Streams whose builders can block for >100ms — run on background thread
-SLOW_STREAMS = {"github", "music", "updates"}
+SLOW_STREAMS = {"github", "music", "updates", "claude-sessions"}
 
 FALLBACK_ORDER = [
     "keybinds", "system", "fleet", "weather", "github",
     "notifications", "music", "updates", "mx-battery",
     "disk", "load", "workspace",
+    "claude-sessions", "network", "audio", "shader", "ci", "hacker",
 ]
 
 
-def load_playlist():
-    """Read playlist file; fall back to FALLBACK_ORDER if missing/empty."""
+def _playlist_path(name):
+    return os.path.join(PLAYLIST_DIR, f"{name}.txt")
+
+
+def list_playlists():
+    """Enumerate available playlist names from PLAYLIST_DIR."""
     try:
-        with open(PLAYLIST_FILE) as f:
+        names = sorted(
+            f[:-4] for f in os.listdir(PLAYLIST_DIR)
+            if f.endswith(".txt") and not f.startswith(".")
+        )
+        return names or [DEFAULT_PLAYLIST]
+    except OSError:
+        return [DEFAULT_PLAYLIST]
+
+
+def resolve_playlist_name():
+    """Pick the active playlist name: CLI > state file > default."""
+    if START_PLAYLIST:
+        return START_PLAYLIST
+    try:
+        with open(os.path.join(STATE_DIR, "active-playlist")) as f:
+            name = f.read().strip()
+        if name:
+            return name
+    except OSError:
+        pass
+    return DEFAULT_PLAYLIST
+
+
+def load_playlist(name=None):
+    """Read playlist <name>.txt; fall back to FALLBACK_ORDER if missing/empty."""
+    name = name or resolve_playlist_name()
+    try:
+        with open(_playlist_path(name)) as f:
             lines = [line.strip() for line in f]
         order = [l for l in lines
                  if l and not l.startswith("#") and l in STREAMS]
@@ -771,13 +1150,17 @@ class TickerWindow(Gtk.ApplicationWindow):
         self.phosphor_frame_ctr = 0
 
         # ── Content stream state ──────────────────
-        self.stream_order = load_playlist()
+        self.playlist_name = resolve_playlist_name()
+        self.stream_order = load_playlist(self.playlist_name)
         self.stream_idx = self._restore_stream_idx()
 
         # Background thread state for slow streams
         self._bg_lock = threading.Lock()
         self._bg_result = {}  # stream_name -> (markup, segments)
         self._bg_inflight = set()
+
+        # Per-stream error flag → drives short-backoff scheduling.
+        self._stream_errored = {}
 
         self._rebuild_stream()
         self._schedule_next_advance()
@@ -837,9 +1220,26 @@ class TickerWindow(Gtk.ApplicationWindow):
 
     # ── Stream scheduling ─────────────────────
 
+    def _current_interval(self, stream_name):
+        if self._stream_errored.get(stream_name):
+            return ERROR_BACKOFF_S
+        return STREAM_META.get(stream_name, {}).get("refresh", DEFAULT_REFRESH_S)
+
+    def _absorb_segments(self, stream_name, segments):
+        """Strip control sentinels and update error/urgent state."""
+        if segments == ["__EMPTY__"]:
+            self._stream_errored[stream_name] = True
+            return []
+        if segments == ["__URGENT__"]:
+            self._stream_errored[stream_name] = False
+            self._trigger_urgent_mode()
+            return []
+        self._stream_errored[stream_name] = False
+        return segments
+
     def _schedule_next_advance(self):
         current = self.stream_order[self.stream_idx]
-        interval = STREAM_META.get(current, {}).get("refresh", DEFAULT_REFRESH_S)
+        interval = self._current_interval(current)
         GLib.timeout_add_seconds(interval, self._maybe_advance_stream,
                                  current)
 
@@ -881,23 +1281,23 @@ class TickerWindow(Gtk.ApplicationWindow):
             with self._bg_lock:
                 cached = self._bg_result.get(stream_name)
             if cached is not None:
-                self.ticker_markup, self.segments = cached
+                markup, segments = cached
             else:
                 # Show placeholder while fetching
-                self.ticker_markup, self.segments = _empty(
+                markup, segments = _empty(
                     f" {stream_name.upper()}", "#66708f", "loading...")
+            self.ticker_markup = markup
+            self.segments = self._absorb_segments(stream_name, segments)
             self._dispatch_bg_fetch(stream_name)
         else:
             try:
                 builder = STREAMS.get(stream_name, build_keybinds_markup)
-                self.ticker_markup, self.segments = builder()
+                markup, segments = builder()
             except Exception:
-                self.ticker_markup, self.segments = _empty(
+                markup, segments = _empty(
                     stream_name.upper(), "#ff5c8a", "builder error")
-            # Check for urgency side-channel (notifications stream)
-            if self.segments == ["__URGENT__"]:
-                self.segments = []
-                self._trigger_urgent_mode()
+            self.ticker_markup = markup
+            self.segments = self._absorb_segments(stream_name, segments)
 
         self.layout = None
         self.segment_bounds = []
@@ -928,10 +1328,9 @@ class TickerWindow(Gtk.ApplicationWindow):
         current = (self.pinned_stream if self.pinned_stream
                    else self.stream_order[self.stream_idx])
         if current == stream_name:
-            self.ticker_markup, self.segments = result
-            if self.segments == ["__URGENT__"]:
-                self.segments = []
-                self._trigger_urgent_mode()
+            markup, segments = result
+            self.ticker_markup = markup
+            self.segments = self._absorb_segments(stream_name, segments)
             self.layout = None
             self.segment_bounds = []
             self.da.queue_draw()
@@ -1077,6 +1476,12 @@ class TickerWindow(Gtk.ApplicationWindow):
             stream_section.append(name, f"ticker.stream::{name}")
         menu.append_section("Streams", stream_section)
 
+        playlist_section = Gio.Menu()
+        for name in list_playlists():
+            label = f"{name} \u2713" if name == self.playlist_name else name
+            playlist_section.append(label, f"ticker.playlist::{name}")
+        menu.append_section("Playlists", playlist_section)
+
         preset_section = Gio.Menu()
         for name in PRESETS.keys():
             preset_section.append(name, f"ticker.preset::{name}")
@@ -1130,12 +1535,34 @@ class TickerWindow(Gtk.ApplicationWindow):
             self.pinned_stream = None
             self._save_pin_state()
 
+        def on_playlist(action, param):
+            new_name = param.get_string()
+            if new_name == self.playlist_name:
+                return
+            new_order = load_playlist(new_name)
+            if not new_order:
+                return
+            self.playlist_name = new_name
+            self.stream_order = new_order
+            self.stream_idx = 0
+            self.pinned_stream = None
+            self._save_pin_state()
+            os.makedirs(STATE_DIR, exist_ok=True)
+            try:
+                with open(os.path.join(STATE_DIR, "active-playlist"), "w") as f:
+                    f.write(new_name)
+            except OSError:
+                pass
+            self._rebuild_stream()
+            self._schedule_next_advance()
+
         for act_name, cb, ptype in (
-            ("stream", on_stream, GLib.VariantType.new("s")),
-            ("preset", on_preset, GLib.VariantType.new("s")),
-            ("pause",  on_pause,  None),
-            ("pin",    on_pin,    None),
-            ("unpin",  on_unpin,  None),
+            ("stream",   on_stream,   GLib.VariantType.new("s")),
+            ("preset",   on_preset,   GLib.VariantType.new("s")),
+            ("playlist", on_playlist, GLib.VariantType.new("s")),
+            ("pause",    on_pause,    None),
+            ("pin",      on_pin,      None),
+            ("unpin",    on_unpin,    None),
         ):
             act = Gio.SimpleAction.new(act_name, ptype)
             act.connect("activate", cb)
@@ -1164,6 +1591,7 @@ class TickerWindow(Gtk.ApplicationWindow):
         status_line = " \u00b7 ".join(status) + "\n" if status else ""
         tooltip.set_markup(
             f'{status_line}'
+            f'<b>Playlist:</b> {escape(self.playlist_name)}\n'
             f'<b>Stream:</b> {escape(stream)}\n'
             f'<b>Preset:</b> {escape(self._base_preset_name)}\n'
             f'<b>Speed:</b> {self.preset.speed:.0f} px/s\n'
@@ -1522,8 +1950,7 @@ class TickerWindow(Gtk.ApplicationWindow):
         if getattr(p, "progress_bar", False):
             current = (self.pinned_stream if self.pinned_stream
                        else self.stream_order[self.stream_idx])
-            interval = STREAM_META.get(current, {}).get("refresh",
-                                                        DEFAULT_REFRESH_S)
+            interval = self._current_interval(current)
             elapsed = self.time_s - self.stream_start_s
             pct = min(elapsed / max(interval, 1), 1.0)
             prog_w = int(width * pct)

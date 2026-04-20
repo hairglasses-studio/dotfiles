@@ -1,0 +1,15 @@
+# bar-ci.timer — Periodic CI status refresh for the ticker
+#
+# Triggers bar-ci.service every 5 minutes.
+#
+# Enable: systemctl --user enable --now bar-ci.timer
+
+[Unit]
+Description=Refresh ticker CI status every 5 minutes
+
+[Timer]
+OnBootSec=90
+OnUnitActiveSec=300
+
+[Install]
+WantedBy=timers.target

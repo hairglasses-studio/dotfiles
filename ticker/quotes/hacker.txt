@@ -1,0 +1,66 @@
+# Hacker / cyberpunk quotes for the ticker.
+# Format: <quote>\t<attribution>  (tab-separated)
+# Lines starting with # are ignored. Blank lines are ignored.
+# Keep each quote short enough to scroll comfortably across a 2560-wide bar.
+This is our world now. The world of the electron and the switch.	The Mentor, 1986
+We exist without skin color, without nationality, without religious bias — and you call us criminals.	The Mentor
+Yes, I am a criminal. My crime is that of curiosity.	The Mentor
+The sky above the port was the color of television, tuned to a dead channel.	William Gibson, Neuromancer
+Cyberspace. A consensual hallucination experienced daily by billions of legitimate operators.	William Gibson
+The future is already here — it's just not evenly distributed.	William Gibson
+I wanted to save the world.	Elliot Alderson
+Control can sometimes be an illusion. But sometimes you need illusion to gain control.	Mr. Robot
+Every hacker has her fixation. You hack people, I hack time.	Whiterose
+Give a man a program, frustrate him for a day. Teach a man to program, frustrate him for a lifetime.	Muhammad Waseem
+Controlling complexity is the essence of computer programming.	Brian Kernighan
+Any sufficiently advanced technology is indistinguishable from magic.	Arthur C. Clarke
+Program testing can be used to show the presence of bugs, but never to show their absence.	Edsger Dijkstra
+Simplicity is prerequisite for reliability.	Edsger Dijkstra
+The computing scientist's main challenge is not to get confused by the complexities of his own making.	Edsger Dijkstra
+Talk is cheap. Show me the code.	Linus Torvalds
+Given enough eyeballs, all bugs are shallow.	Linus's Law
+Premature optimization is the root of all evil.	Donald Knuth
+Beware of bugs in the above code; I have only proved it correct, not tried it.	Donald Knuth
+Smart data structures and dumb code works a lot better than the other way around.	Eric S. Raymond
+Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.	Antoine de Saint-Exupéry
+It is always something.	RFC 1925, Truth 11
+With sufficient thrust, pigs fly just fine.	RFC 1925, Truth 3
+Every problem in computer science can be solved by another layer of indirection — except too many layers of indirection.	David Wheeler
+The best way to predict the future is to implement it.	David Heinemeier Hansson
+Weeks of coding can save you hours of planning.	unknown
+When in doubt, use brute force.	Ken Thompson
+One of my most productive days was throwing away 1000 lines of code.	Ken Thompson
+UNIX is simple. It just takes a genius to understand its simplicity.	Dennis Ritchie
+C is quirky, flawed, and an enormous success.	Dennis Ritchie
+The only way to learn a new programming language is by writing programs in it.	Brian Kernighan
+Debugging is twice as hard as writing the code in the first place.	Brian Kernighan
+If you think it's simple, then you have misunderstood the problem.	Bjarne Stroustrup
+There are only two hard things in computer science: cache invalidation and naming things.	Phil Karlton
+Make it work, make it right, make it fast.	Kent Beck
+Don't use a rope where a cable is required.	2600 Magazine
+Hack the planet.	Hackers, 1995
+Mess with the best, die like the rest.	Hackers, 1995
+The quieter you become, the more you are able to hear.	Kali Linux motto
+Information wants to be free.	Stewart Brand
+Security is a process, not a product.	Bruce Schneier
+Attackers always have the advantage, defenders have to get it right every time.	Bruce Schneier
+The cloud is just someone else's computer.	unknown
+There is no cloud. It's just someone else's server.	GNU Not Unix
+Real programmers can write assembly code in any language.	Larry Wall
+Perl: the duct tape that holds the Internet together.	Hassan Schroeder
+Go doesn't have classes, it has structs. Because that's what they are.	Rob Pike
+Don't communicate by sharing memory; share memory by communicating.	Rob Pike
+A language that doesn't affect the way you think about programming is not worth knowing.	Alan Perlis
+Syntactic sugar causes cancer of the semicolon.	Alan Perlis
+When I'm explaining something to a programmer, I wish I could just use a brain-to-brain protocol.	Guido van Rossum
+Code is read far more often than it is written.	Guido van Rossum
+Ship it. Iterate.	unknown
+Move fast. Don't break prod.	unknown
+Plan B is usually Plan A with more caffeine.	unknown
+The network is the computer.	John Gage, Sun
+The only secure computer is one that's unplugged — and even then I have my doubts.	unknown
+Rubber duck debugging is a real methodology.	The Pragmatic Programmer
+A good programmer is someone who always looks both ways before crossing a one-way street.	Doug Linder
+Walking on water and developing software from a specification are easy — if both are frozen.	Edward V. Berard
+If brute force doesn't solve your problem, you aren't using enough of it.	unknown
+Keep hacking.	2600

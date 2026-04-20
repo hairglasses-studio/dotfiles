@@ -1,0 +1,4 @@
+# Presenting playlist — calm, minimal, screen-recording-safe.
+# Just system (clock + temps) and workspace. No notifications, no chatty streams.
+system
+workspace

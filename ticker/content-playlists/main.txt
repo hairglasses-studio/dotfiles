@@ -14,3 +14,9 @@ mx-battery
 disk
 load
 workspace
+claude-sessions
+network
+audio
+shader
+ci
+hacker
