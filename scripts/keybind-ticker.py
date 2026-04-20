@@ -1114,92 +1114,6 @@ def build_pomodoro_markup():
     return _dup("".join(parts)), []
 
 
-def build_wifi_quality_markup():
-    try:
-        dev_out = subprocess.run(
-            ["iw", "dev"], capture_output=True, text=True, timeout=2,
-        ).stdout
-    except Exception:
-        return _empty("\U000f05a9 WIFI", "#38bdf8", "iw unavailable")
-    iface = None
-    for line in dev_out.splitlines():
-        s = line.strip()
-        if s.startswith("Interface "):
-            iface = s.split(None, 1)[1]
-            break
-    if not iface:
-        return _empty("\U000f05a9 WIFI", "#38bdf8", "no wifi iface")
-    try:
-        link_out = subprocess.run(
-            ["iw", "dev", iface, "link"], capture_output=True, text=True, timeout=2,
-        ).stdout
-    except Exception:
-        return _empty("\U000f05a9 WIFI", "#38bdf8", "iw link failed")
-    if "Not connected" in link_out:
-        return _empty("\U000f05a9 WIFI", "#66708f", f"{iface}: not connected")
-    ssid = signal = bitrate = "—"
-    for line in link_out.splitlines():
-        s = line.strip()
-        if s.startswith("SSID:"):
-            ssid = s.split(":", 1)[1].strip()
-        elif s.startswith("signal:"):
-            signal = s.split(":", 1)[1].strip()
-        elif s.startswith("tx bitrate:"):
-            bitrate = s.split(":", 1)[1].strip().split()[0] + " Mbps"
-    # Color by signal dBm
-    try:
-        dbm = int(signal.split()[0])
-    except Exception:
-        dbm = -100
-    if dbm >= -60:
-        color = "#34d399"
-    elif dbm >= -75:
-        color = "#fbbf24"
-    else:
-        color = "#ef4444"
-    parts = [_badge("\U000f05a9 WIFI", color)]
-    parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{color}">  {escape(iface)}  \u00b7</span>'
-    )
-    parts.append(
-        f'<span font_desc="Maple Mono NF CN 11">  {escape(ssid)}  \u00b7  {escape(signal)}  \u00b7  {escape(bitrate)}  \u00b7</span>'
-    )
-    return _dup("".join(parts)), []
-
-
-def build_container_status_markup():
-    try:
-        out = subprocess.run(
-            ["docker", "ps", "--format", "{{.Names}}\t{{.Status}}"],
-            capture_output=True, text=True, timeout=3,
-        )
-    except Exception:
-        return _empty("\U000f08c1 CONTAINERS", "#0db7ed", "docker unavailable")
-    if out.returncode != 0:
-        return _empty("\U000f08c1 CONTAINERS", "#0db7ed", "docker daemon down")
-    rows = [l for l in out.stdout.splitlines() if l.strip()]
-    if not rows:
-        return _empty("\U000f08c1 CONTAINERS", "#66708f", "no containers")
-    any_unhealthy = any(("Restarting" in r or "Exited" in r or "unhealthy" in r) for r in rows)
-    color = "#ef4444" if any_unhealthy else "#0db7ed"
-    parts = [_badge("\U000f08c1 CONTAINERS", color)]
-    parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11">  {len(rows)} running  \u00b7</span>'
-    )
-    fc = len(FONTS)
-    for i, row in enumerate(rows[:8]):
-        try:
-            name, status = row.split("\t", 1)
-        except ValueError:
-            continue
-        font = FONTS[i % fc]
-        name_c = "#ef4444" if any(s in status for s in ("Restarting", "Exited", "unhealthy")) else "#34d399"
-        parts.append(
-            f'<span font_desc="{font}" foreground="{name_c}">  {escape(name)}  \u00b7</span>'
-        )
-    return _dup("".join(parts)), []
-
-
 def _read_proc_net_dev():
     totals = {}
     try:
@@ -1315,93 +1229,6 @@ def build_recording_markup():
     return _dup("".join(parts)), []
 
 
-def build_hn_top_markup():
-    lines = _read_cache_lines("/tmp/bar-hn.txt")
-    if lines is None:
-        return _empty("\U000f00cd HN", "#ff6600", "hn cache missing")
-    if not lines:
-        return _empty("\U000f00cd HN", "#ff6600", "no hn items")
-    parts = [_badge("\U000f00cd HN", "#ff6600")]
-    fc = len(FONTS)
-    segments: list[str] = []
-    for i, line in enumerate(lines[:8]):
-        cells = line.split("\t", 2)
-        if len(cells) != 3:
-            continue
-        item_id, score, title = cells
-        font = FONTS[i % fc]
-        parts.append(
-            f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fbbf24">'
-            f'  {escape(score)}pts  </span>'
-            f'<span font_desc="{font}">{escape(title)}  \u00b7</span>'
-        )
-        # Keep item id prefix in the segment so the click handler can parse it.
-        segments.append(f"{item_id} {title}")
-    return _dup("".join(parts)), segments
-
-
-def build_cve_alerts_markup():
-    lines = _read_cache_lines("/tmp/bar-cve.txt")
-    if lines is None:
-        return _empty("\U000f0ce4 CVE", "#ef4444", "cve cache missing")
-    if not lines:
-        return _empty("\U000f0ce4 CVE", "#34d399", "no advisories")
-    first = lines[0]
-    # When arch-audit is missing, first line is an install hint — render it.
-    if first.startswith("install arch-audit"):
-        parts = [_badge("\U000f0ce4 CVE", "#f59e0b")]
-        parts.append(
-            f'<span font_desc="Maple Mono NF CN 11" foreground="#fbbf24">'
-            f'  {escape(first)}  \u00b7</span>'
-        )
-        return _dup("".join(parts)), []
-    # Severity-coloured badge based on worst advisory.
-    any_critical = any("Critical" in l for l in lines[1:])
-    any_high = any("High" in l for l in lines[1:])
-    color = "#dc2626" if any_critical else ("#f97316" if any_high else "#f59e0b")
-    parts = [_badge("\U000f0ce4 CVE", color)]
-    parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fca5a5">'
-        f'  {escape(first)}  \u00b7</span>'
-    )
-    fc = len(FONTS)
-    for i, line in enumerate(lines[1:7]):
-        font = FONTS[i % fc]
-        parts.append(
-            f'<span font_desc="{font}" foreground="#fecaca">  {escape(line)}  \u00b7</span>'
-        )
-    return _dup("".join(parts)), []
-
-
-def build_weather_alerts_markup():
-    lines = _read_cache_lines("/tmp/bar-weather-alerts.txt")
-    if lines is None:
-        return _empty("\U000f0e6e ALERT", "#94a3b8", "alerts cache missing")
-    if not lines:
-        # No active alerts is the expected quiet case — return an _empty
-        # sentinel so the stream advances quickly via backoff.
-        return _empty("\U000f0e6e ALERT", "#34d399", "no active alerts")
-    summary = lines[0]
-    # Colour the badge by worst severity (first token on first line).
-    severity = summary.split()[0].lower() if summary else ""
-    color = {
-        "extreme":  "#dc2626",
-        "severe":   "#f97316",
-        "moderate": "#f59e0b",
-        "minor":    "#3b82f6",
-    }.get(severity, "#f97316")
-    parts = [_badge("\U000f0e6e ALERT", color)]
-    parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#fca5a5">'
-        f'  {escape(summary)}  \u00b7</span>'
-    )
-    fc = len(FONTS)
-    for i, line in enumerate(lines[1:6]):
-        font = FONTS[i % fc]
-        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
-    return _dup("".join(parts)), []
-
-
 # ══════════════════════════════════════════════════
 # Stream registry + metadata
 # ══════════════════════════════════════════════════
@@ -1428,13 +1255,8 @@ STREAMS = {
     "shader":          build_shader_markup,
     "ci":              build_ci_markup,
     "pomodoro":        build_pomodoro_markup,
-    "wifi-quality":    build_wifi_quality_markup,
-    "container-status": build_container_status_markup,
     "net-throughput":  build_net_throughput_markup,
     "recording":       build_recording_markup,
-    "hn-top":          build_hn_top_markup,
-    "weather-alerts":  build_weather_alerts_markup,
-    "cve-alerts":      build_cve_alerts_markup,
 }
 
 # Per-stream metadata: effect preset override + refresh interval (seconds)
@@ -1460,13 +1282,8 @@ STREAM_META = {
     "shader":          {"preset": "cyberpunk", "refresh": 60},
     "ci":              {"preset": "cyberpunk", "refresh": 300},
     "pomodoro":        {"preset": "cyberpunk", "refresh": 1},
-    "wifi-quality":    {"preset": None,        "refresh": 30},
-    "container-status": {"preset": None,       "refresh": 30},
     "net-throughput":  {"preset": None,        "refresh": 5},
     "recording":       {"preset": "cyberpunk", "refresh": 1},
-    "hn-top":          {"preset": "ambient",   "refresh": 600},
-    "weather-alerts":  {"preset": "cyberpunk", "refresh": 900},
-    "cve-alerts":      {"preset": "cyberpunk", "refresh": 3600},
 }
 
 # Streams whose builders can block for >100ms — run on background thread
