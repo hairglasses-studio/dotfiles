@@ -37,7 +37,36 @@ journalctl --user -u dotfiles-keybind-ticker.service --since "1 min ago"
 ```
 
 ### Screenshot
-`mcp__dotfiles__hypr_screenshot` with `output: DP-3` and look at the bottom 28px. Or `scripts/capture-window-gif.sh ticker 3` for a 3-second GIF.
+
+**Always use `scripts/ticker-shot.sh` (or `hg ticker shot`).** Full-monitor
+screenshots (3840×1080 on DP-2, 5120×1440 in scaled mode) are rejected by
+Claude with "image exceeds dimension limits" — the ingestion cap is ~1568 px
+on the longer side. The ticker itself is a 28 px strip at the bottom; this
+tool captures exactly that region via `grim -g "0,1052 3840x28"`, producing
+a ~25 KB PNG that always ingests cleanly.
+
+```bash
+# Current on-screen content
+hg ticker shot                                    # → /tmp/ticker-shot.png
+
+# Pin a specific stream, wait past the 400 ms wipe, shoot, auto-unpin
+hg ticker shot calendar                           # → /tmp/ticker-shot.png
+hg ticker shot github-prs /tmp/prs.png            # explicit path
+
+# Passthrough flags (any flag ends the positional parse)
+hg ticker shot --monitor DP-3                     # secondary instance
+hg ticker shot load --scale 0.5                   # 1920×14 for extra-small file
+hg ticker shot --print-geom                       # just echo "X,Y WxH"
+```
+
+The `--pin` path (`hg ticker shot <stream>`) saves any existing pin, applies
+the requested one, sends SIGUSR1 to reload, sleeps 0.7 s past the wipe,
+shoots, then restores the prior pin on EXIT via a trap — so an interrupted
+shot never leaves the ticker stuck on a pinned stream.
+
+For motion capture (effects tuning, scroll-speed iteration) use
+`scripts/capture-window-gif.sh ticker 3` for a 3 s GIF — same cropping
+principle, temporal output.
 
 ## Visual Effects Stack (v3)
 

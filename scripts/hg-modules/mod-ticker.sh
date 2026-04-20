@@ -5,6 +5,7 @@
 _TICKER_STATE="$HOME/.local/state/keybind-ticker"
 _TICKER_SERVICE="dotfiles-keybind-ticker.service"
 _TICKER_HEADLESS="$HG_DOTFILES/scripts/ticker-headless.py"
+_TICKER_SHOT="$HG_DOTFILES/scripts/ticker-shot.sh"
 
 # Signal the running keybind-ticker to re-read state files (SIGUSR1). Falls
 # back to a full service restart if no PID is found (e.g. during boot before
@@ -41,6 +42,7 @@ list-playlists	List playlist files
 show	Render a single stream plain-text once (pass stream name)
 restart	Restart the ticker systemd service
 logs	Tail the ticker systemd logs
+shot	Capture a 28px-tall ticker-only PNG (safe for Claude ingestion)
 CMDS
 }
 
@@ -125,6 +127,21 @@ ticker_run() {
       ;;
     logs)
       journalctl --user -u "$_TICKER_SERVICE" --since "2 min ago" --no-pager
+      ;;
+    shot)
+      # Usage:
+      #   hg ticker shot                 # current content → /tmp/ticker-shot.png
+      #   hg ticker shot <stream>        # pin, wait past wipe, shoot, unpin
+      #   hg ticker shot <stream> <path> # …and write to an explicit path
+      # Any extra flags (e.g. --monitor DP-3 --scale 0.5) pass straight through.
+      local -a args=()
+      if [[ $# -ge 1 && "$1" != --* ]]; then
+        args+=(--pin "$1"); shift
+      fi
+      if [[ $# -ge 1 && "$1" != --* ]]; then
+        args+=(--output "$1"); shift
+      fi
+      "$_TICKER_SHOT" "${args[@]}" "$@"
       ;;
     health)
       local snap="/tmp/ticker-health.json"
