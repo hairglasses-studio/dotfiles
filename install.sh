@@ -704,6 +704,7 @@ create_symlinks() {
             dotfiles-keybind-ticker@DP-3_focus.service
             dotfiles-ticker-lockwatch.service
             dotfiles-ticker-recordwatch.service
+            dotfiles-hypr-monitor-watch.service
             dotfiles-window-label.service
             dotfiles-fleet-sparkline.service
             dotfiles-cliphist.service

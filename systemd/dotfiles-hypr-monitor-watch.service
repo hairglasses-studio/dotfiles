@@ -1,0 +1,15 @@
+[Unit]
+Description=dotfiles Hyprland monitor-state watcher (reapplies DP-3 transform on reload)
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -n "$HYPRLAND_INSTANCE_SIGNATURE"'
+ExecStartPre=/usr/bin/sh -c 'for i in $(seq 1 20); do hyprctl version > /dev/null 2>&1 && exit 0; sleep 0.5; done; exit 1'
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/hypr-monitor-watch.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

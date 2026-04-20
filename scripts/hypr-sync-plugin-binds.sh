@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # hypr-sync-plugin-binds.sh — reload plugin-backed keybinds after plugins load.
-# Called from Hyprland `exec =` so plugin dispatchers are registered on startup
-# and after config reloads, without parse-time "Invalid dispatcher" errors.
+# Called from Hyprland `exec =` at startup so plugin dispatchers are registered
+# without parse-time "Invalid dispatcher" errors. Note: `exec =` does NOT
+# fire on `hyprctl reload` in Hyprland 0.54.2 (verified empirically). Runtime
+# re-application of monitor transforms is handled by
+# dotfiles-hypr-monitor-watch.service.
 
 set -euo pipefail
 
