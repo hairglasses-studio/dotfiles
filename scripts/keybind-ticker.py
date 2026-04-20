@@ -1139,20 +1139,6 @@ def _read_cache_lines(path):
         return []
 
 
-def build_calendar_markup():
-    lines = _read_cache_lines("/tmp/bar-calendar.txt")
-    if lines is None:
-        return _empty("\U000f00ed CALENDAR", "#4aa8ff", "calendar cache missing")
-    if not lines:
-        return _empty("\U000f00ed CALENDAR", "#4aa8ff", "no events")
-    parts = [_badge("\U000f00ed CALENDAR", "#4aa8ff")]
-    fc = len(FONTS)
-    for i, line in enumerate(lines[:6]):
-        font = FONTS[i % fc]
-        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
-    return _dup("".join(parts)), []
-
-
 def _pomo_state():
     path = os.path.expanduser("~/.local/state/keybind-ticker/pomodoro.json")
     try:
@@ -1482,25 +1468,6 @@ def build_hn_top_markup():
     return _dup("".join(parts)), segments
 
 
-def build_github_prs_markup():
-    lines = _read_cache_lines("/tmp/bar-prs.txt")
-    if lines is None:
-        return _empty("\U000f0a1e PRs", "#a3e635", "prs cache missing")
-    if not lines:
-        return _empty("\U000f0a1e PRs", "#a3e635", "no open prs")
-    summary = lines[0]
-    parts = [_badge("\U000f0a1e PRs", "#a3e635")]
-    parts.append(
-        f'<span font_desc="Maple Mono NF CN Bold 11" foreground="#d1fae5">'
-        f'  {escape(summary)}  \u00b7</span>'
-    )
-    fc = len(FONTS)
-    for i, line in enumerate(lines[1:9]):
-        font = FONTS[i % fc]
-        parts.append(f'<span font_desc="{font}">  {escape(line)}  \u00b7</span>')
-    return _dup("".join(parts)), []
-
-
 def build_cve_alerts_markup():
     lines = _read_cache_lines("/tmp/bar-cve.txt")
     if lines is None:
@@ -1590,7 +1557,6 @@ STREAMS = {
     "shader":          build_shader_markup,
     "ci":              build_ci_markup,
     "hacker":          build_hacker_markup,
-    "calendar":        build_calendar_markup,
     "pomodoro":        build_pomodoro_markup,
     "failed-units":    build_failed_units_markup,
     "wifi-quality":    build_wifi_quality_markup,
@@ -1599,7 +1565,6 @@ STREAMS = {
     "kernel-errors":   build_kernel_errors_markup,
     "recording":       build_recording_markup,
     "hn-top":          build_hn_top_markup,
-    "github-prs":      build_github_prs_markup,
     "weather-alerts":  build_weather_alerts_markup,
     "cve-alerts":      build_cve_alerts_markup,
 }
@@ -1628,7 +1593,6 @@ STREAM_META = {
     "shader":          {"preset": "cyberpunk", "refresh": 60},
     "ci":              {"preset": "cyberpunk", "refresh": 300},
     "hacker":          {"preset": "cyberpunk", "refresh": 45},
-    "calendar":        {"preset": "ambient",   "refresh": 600},
     "pomodoro":        {"preset": "cyberpunk", "refresh": 1},
     "failed-units":    {"preset": None,        "refresh": 60},
     "wifi-quality":    {"preset": None,        "refresh": 30},
@@ -1637,13 +1601,12 @@ STREAM_META = {
     "kernel-errors":   {"preset": "cyberpunk", "refresh": 60},
     "recording":       {"preset": "cyberpunk", "refresh": 1},
     "hn-top":          {"preset": "ambient",   "refresh": 600},
-    "github-prs":      {"preset": None,        "refresh": 300},
     "weather-alerts":  {"preset": "cyberpunk", "refresh": 900},
     "cve-alerts":      {"preset": "cyberpunk", "refresh": 3600},
 }
 
 # Streams whose builders can block for >100ms — run on background thread
-SLOW_STREAMS = {"github", "music", "updates", "claude-sessions", "github-prs"}
+SLOW_STREAMS = {"github", "music", "updates", "claude-sessions"}
 
 FALLBACK_ORDER = [
     "keybinds", "system", "fleet", "weather", "github",

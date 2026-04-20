@@ -73,3 +73,26 @@ empty_is_success = true
 empty_success_color = "#34d399"
 empty_message = "all clean"
 missing_message = "dirty cache missing"
+
+[calendar]
+type = "cache_list"
+path = "/tmp/bar-calendar.txt"
+label = "\U000f00ed CALENDAR"
+color = "#4aa8ff"
+preset = "ambient"
+refresh = 600
+list_limit = 6
+has_summary = false
+empty_message = "no events"
+missing_message = "calendar cache missing"
+
+[github-prs]
+type = "cache_list"
+path = "/tmp/bar-prs.txt"
+label = "\U000f0a1e PRs"
+color = "#a3e635"
+refresh = 300
+list_limit = 8
+summary_color = "#d1fae5"
+empty_message = "no open prs"
+missing_message = "prs cache missing"
