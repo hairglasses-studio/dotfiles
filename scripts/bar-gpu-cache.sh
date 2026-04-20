@@ -1,23 +1,39 @@
 #!/usr/bin/env bash
-# bar-gpu-cache.sh — Cache writer for the Ironbar GPU power widget
+# bar-gpu-cache.sh — Cache writer for GPU telemetry
 #
-# Reads nvidia-smi power draw and writes a label to /tmp/bar-gpu.txt.
-# Ironbar reads the cache file with `cat`, never blocking the GTK main loop
-# on an nvidia-smi fork + driver IPC.
-#
-# Cache format: plain text label, e.g. "125W"  (empty string on failure).
+# Writes two caches from a single nvidia-smi call:
+#   /tmp/bar-gpu.txt      — plain power label (e.g. "124W") consumed by the
+#                           Ironbar GPU widget (cat'd directly).
+#   /tmp/bar-gpu-full.txt — pipe-separated snapshot consumed by the ticker's
+#                           `gpu` stream:
+#                             POWER_W|UTIL_PCT|TEMP_C|MEM_USED|MEM_TOTAL|NAME
 
 set -euo pipefail
 
-CACHE_FILE="/tmp/bar-gpu.txt"
-TMPFILE="$(mktemp /tmp/bar-gpu.XXXXXX)"
-trap 'rm -f "$TMPFILE"' EXIT
+CACHE_POWER="/tmp/bar-gpu.txt"
+CACHE_FULL="/tmp/bar-gpu-full.txt"
+TMP_POWER="$(mktemp /tmp/bar-gpu.XXXXXX)"
+TMP_FULL="$(mktemp /tmp/bar-gpu-full.XXXXXX)"
+trap 'rm -f "$TMP_POWER" "$TMP_FULL"' EXIT
 
-power=$(nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits 2>/dev/null | awk 'NR==1 {printf "%.0f", $1}')
+row=$(nvidia-smi \
+  --query-gpu=power.draw,utilization.gpu,temperature.gpu,memory.used,memory.total,name \
+  --format=csv,noheader,nounits 2>/dev/null \
+  | awk 'NR==1')
 
-if [[ -n "$power" ]]; then
-  printf '%sW\n' "$power" > "$TMPFILE"
+if [[ -n "$row" ]]; then
+  IFS=',' read -r power util temp mem_used mem_total name <<< "$row"
+  power=$(echo "${power:-0}" | awk '{printf "%.0f", $1}')
+  util=$(echo "${util:-0}" | awk '{printf "%.0f", $1}')
+  temp=$(echo "${temp:-0}" | awk '{printf "%.0f", $1}')
+  mem_used=$(echo "${mem_used:-0}" | awk '{printf "%.0f", $1}')
+  mem_total=$(echo "${mem_total:-0}" | awk '{printf "%.0f", $1}')
+  name=$(echo "${name:-GPU}" | sed -e 's/^ *//' -e 's/ *$//')
+  printf '%sW\n' "$power" > "$TMP_POWER"
+  printf '%s|%s|%s|%s|%s|%s\n' "$power" "$util" "$temp" "$mem_used" "$mem_total" "$name" > "$TMP_FULL"
 else
-  printf '' > "$TMPFILE"
+  printf '' > "$TMP_POWER"
+  printf '' > "$TMP_FULL"
 fi
-mv "$TMPFILE" "$CACHE_FILE"
+mv "$TMP_POWER" "$CACHE_POWER"
+mv "$TMP_FULL" "$CACHE_FULL"

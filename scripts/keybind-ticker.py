@@ -546,6 +546,48 @@ def build_load_markup():
     return _dup("".join(parts)), []
 
 
+def build_gpu_markup():
+    parts = [_badge("\U000f0a2d GPU", "#76ff03")]
+    try:
+        with open("/tmp/bar-gpu-full.txt") as f:
+            raw = f.read().strip()
+        if not raw or "|" not in raw:
+            return _empty("\U000f0a2d GPU", "#76ff03", "no gpu data")
+        fields = raw.split("|", 5)
+        if len(fields) < 6:
+            return _empty("\U000f0a2d GPU", "#76ff03", "gpu cache short")
+        power, util, temp, mem_used, mem_total, name = fields
+        try:
+            util_n = int(util)
+            temp_n = int(temp)
+            mem_used_n = int(mem_used)
+            mem_total_n = int(mem_total)
+        except ValueError:
+            return _empty("\U000f0a2d GPU", "#76ff03", "gpu cache parse")
+        util_color = "#ff5c8a" if util_n > 85 else ("#ffe45e" if util_n > 50 else "#76ff03")
+        temp_color = "#ff5c8a" if temp_n >= 80 else ("#ffe45e" if temp_n >= 70 else "#76ff03")
+        mem_pct = (mem_used_n / mem_total_n * 100) if mem_total_n else 0
+        mem_color = "#ff5c8a" if mem_pct > 90 else ("#ffe45e" if mem_pct > 70 else "#76ff03")
+        spark = _sparkline([util_n / 100.0 for _ in range(6)])  # placeholder — single reading
+        parts.append(
+            f'<span font_desc="Maple Mono NF CN Bold 11" foreground="{util_color}">'
+            f'  {util_n}% util  \u00b7</span>'
+            f'<span font_desc="Maple Mono NF CN 11" foreground="{temp_color}">'
+            f'  {temp_n}°C  \u00b7</span>'
+            f'<span font_desc="Maple Mono NF CN 11" foreground="#7ad0ff">'
+            f'  {power}W  \u00b7</span>'
+            f'<span font_desc="Maple Mono NF CN 11" foreground="{mem_color}">'
+            f'  {mem_used_n}/{mem_total_n} MiB ({mem_pct:.0f}%)  \u00b7</span>'
+            f'<span font_desc="Maple Mono NF CN 11" foreground="#9fb2ff">'
+            f'  {escape(name)}  \u00b7</span>'
+        )
+    except FileNotFoundError:
+        return _empty("\U000f0a2d GPU", "#76ff03", "gpu cache missing")
+    except Exception:
+        return _empty("\U000f0a2d GPU", "#76ff03", "gpu unavailable")
+    return _dup("".join(parts)), []
+
+
 def build_workspace_markup():
     parts = [_badge("\U000f0708 WORKSPACE", "#ff47d1")]
     try:
@@ -1427,6 +1469,7 @@ STREAMS = {
     "mx-battery":    build_mx_battery_markup,
     "disk":          build_disk_markup,
     "load":          build_load_markup,
+    "gpu":           build_gpu_markup,
     "workspace":     build_workspace_markup,
     "claude-sessions": build_claude_sessions_markup,
     "network":         build_network_markup,
@@ -1465,6 +1508,7 @@ STREAM_META = {
     "mx-battery":    {"preset": None,        "refresh": 300},
     "disk":          {"preset": None,        "refresh": 60},
     "load":          {"preset": None,        "refresh": 5},
+    "gpu":           {"preset": "cyberpunk", "refresh": 10},
     "workspace":     {"preset": None,        "refresh": 5},
     "claude-sessions": {"preset": None,        "refresh": 120},
     "network":         {"preset": None,        "refresh": 30},
@@ -1496,7 +1540,7 @@ SLOW_STREAMS = {"github", "music", "updates", "claude-sessions", "github-prs"}
 FALLBACK_ORDER = [
     "keybinds", "system", "fleet", "weather", "github",
     "notifications", "music", "updates", "mx-battery",
-    "disk", "load", "workspace",
+    "disk", "load", "gpu", "workspace",
     "claude-sessions", "network", "audio", "shader", "ci", "hacker",
     "calendar", "pomodoro", "token-burn", "dirty-repos", "failed-units",
     "arch-news", "smart-disk", "wifi-quality", "container-status",
