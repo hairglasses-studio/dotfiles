@@ -64,9 +64,38 @@ the requested one, sends SIGUSR1 to reload, sleeps 0.7 s past the wipe,
 shoots, then restores the prior pin on EXIT via a trap — so an interrupted
 shot never leaves the ticker stuck on a pinned stream.
 
-For motion capture (effects tuning, scroll-speed iteration) use
-`scripts/capture-window-gif.sh ticker 3` for a 3 s GIF — same cropping
-principle, temporal output.
+### Recording
+
+For video (effects tuning, review, sharing) use `scripts/ticker-record.sh`
+or `hg ticker record`. Same geometry-discovery + pin + auto-playlist-switch
+machinery as `ticker-shot`, but wraps `wf-recorder` to produce an H.264
+MP4 of only the ticker strip — no wallpaper, no other layer surfaces.
+
+```bash
+# 60-second recording → ~/Videos/recordings/ticker-YYYYMMDD_HHMMSS.mp4
+hg ticker record
+
+# Custom duration (first positional int = seconds)
+hg ticker record 30
+
+# Pin a stream for the recording (auto-switches playlist if needed, restores on EXIT)
+hg ticker record 90 calendar
+hg ticker record calendar          # 60 s on `calendar`
+
+# Passthrough flags
+hg ticker record 30 --audio        # include default-source audio
+hg ticker record --codec libx265   # swap codec
+hg ticker record --output /tmp/foo.mp4
+hg ticker record --monitor DP-3    # secondary instance
+hg ticker record --print-geom      # just echo the capture region
+```
+
+On SIGINT (timeout expires or Ctrl-C) wf-recorder gets a clean shutdown
+to finalise the MP4 — don't SIGTERM or you'll end up with a truncated
+file. The script already handles this via `timeout -s INT`.
+
+For a quick 3 s GIF (short, easy to embed), `scripts/capture-window-gif.sh ticker 3`
+is still the right tool.
 
 ## Visual Effects Stack (v3)
 

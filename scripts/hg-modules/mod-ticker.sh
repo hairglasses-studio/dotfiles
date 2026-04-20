@@ -6,6 +6,7 @@ _TICKER_STATE="$HOME/.local/state/keybind-ticker"
 _TICKER_SERVICE="dotfiles-keybind-ticker.service"
 _TICKER_HEADLESS="$HG_DOTFILES/scripts/ticker-headless.py"
 _TICKER_SHOT="$HG_DOTFILES/scripts/ticker-shot.sh"
+_TICKER_RECORD="$HG_DOTFILES/scripts/ticker-record.sh"
 _TICKER_SMOKE="$HG_DOTFILES/scripts/ticker-smoke-test.py"
 
 # Signal the running keybind-ticker to re-read state files (SIGUSR1). Falls
@@ -45,6 +46,7 @@ show	Render a single stream plain-text once (pass stream name)
 restart	Restart the ticker systemd service
 logs	Tail the ticker systemd logs
 shot	Capture a 28px-tall ticker-only PNG (safe for Claude ingestion)
+record	Record a ticker-only MP4 via wf-recorder (default 60s)
 smoke-test	Load every plugin + TOML stream and call build() — PASS/FAIL report
 recover-monitor	Restore DP-2 to native mode after DSC fallback (ticker clipping)
 CMDS
@@ -173,6 +175,23 @@ ticker_run() {
       ;;
     smoke-test)
       python3 "$_TICKER_SMOKE" "$@"
+      ;;
+    record)
+      # Usage:
+      #   hg ticker record                  60s → ~/Videos/recordings/ticker-<ts>.mp4
+      #   hg ticker record 30               30s recording
+      #   hg ticker record 90 calendar      90s pinned on `calendar`
+      #   hg ticker record <stream>         60s pinned on <stream>
+      # Any extra flags (--audio, --codec, --monitor, --output, --no-switch)
+      # pass straight through.
+      local -a args=()
+      if [[ $# -ge 1 && "$1" =~ ^[0-9]+$ ]]; then
+        args+=("$1"); shift
+      fi
+      if [[ $# -ge 1 && "$1" != --* ]]; then
+        args+=(--pin "$1"); shift
+      fi
+      "$_TICKER_RECORD" "${args[@]}" "$@"
       ;;
     recover-monitor)
       # Diagnose + restore the ultrawide from DSC fallback to native mode.
