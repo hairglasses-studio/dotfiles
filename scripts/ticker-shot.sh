@@ -17,6 +17,7 @@
 #   ticker-shot.sh --scale 0.5       downscale output via magick (default 1.0)
 #   ticker-shot.sh --print-geom      just print "X,Y WxH" for the strip and exit
 #   ticker-shot.sh --no-switch       fail (don't auto-switch) when pin isn't in playlist
+#   ticker-shot.sh --max-width N     cap output width (default 1536 — Claude ingestion limit)
 #
 # When `--pin <stream>` targets a stream not in the active playlist
 # (e.g. `recording` when main.txt is active), the tool auto-switches to
@@ -35,6 +36,7 @@ SCALE="1.0"
 HEIGHT=28
 PRINT_GEOM=0
 NO_SWITCH=0
+MAX_WIDTH=1536
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 PLAYLISTS_DIR="$(dirname "$SCRIPT_DIR")/ticker/content-playlists"
@@ -51,6 +53,7 @@ while [[ $# -gt 0 ]]; do
     --height)     HEIGHT="${2:-}";  shift 2 ;;
     --print-geom) PRINT_GEOM=1;     shift ;;
     --no-switch)  NO_SWITCH=1;      shift ;;
+    --max-width)  MAX_WIDTH="${2:-}"; shift 2 ;;
     -h|--help)
       sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
       exit 0 ;;
@@ -61,13 +64,18 @@ done
 command -v grim    >/dev/null 2>&1 || _die "grim not installed"
 command -v hyprctl >/dev/null 2>&1 || _die "hyprctl not found (Hyprland not running?)"
 
-# Resolve monitor geometry via hyprctl
+# Resolve monitor geometry via hyprctl. `x`/`y` are already in LOGICAL
+# coordinates, but `width`/`height` are PHYSICAL pixels on HiDPI outputs
+# (scale > 1). grim -g takes logical coords — so divide by scale.
 read -r MX MY MW MH < <(hyprctl monitors -j | python3 -c "
 import json, sys
 name = '$MONITOR'
 for m in json.load(sys.stdin):
     if m['name'] == name:
-        print(m['x'], m['y'], m['width'], m['height'])
+        scale = float(m.get('scale', 1)) or 1.0
+        lw = int(round(m['width']  / scale))
+        lh = int(round(m['height'] / scale))
+        print(m['x'], m['y'], lw, lh)
         break
 ")
 [[ -n "${MX:-}" ]] || _die "monitor $MONITOR not found in hyprctl monitors"
@@ -152,20 +160,29 @@ if [[ "$WAIT" != "0" && "$WAIT" != "0.0" ]]; then
 fi
 
 TMP="$(mktemp /tmp/ticker-shot-XXXXXX.png)"
-if ! grim -g "$GEOM" "$TMP" 2>/dev/null; then
+# `-s 1.0` forces logical-sized output; without it grim uses the greatest
+# output scale factor and doubles pixels on HiDPI (scale=2) monitors,
+# which trips Claude's dimension cap even when the logical region is tiny.
+if ! grim -s 1.0 -g "$GEOM" "$TMP" 2>/dev/null; then
   rm -f "$TMP"
   _die "grim capture failed for region '$GEOM'"
 fi
 
-# Optional downscale (e.g. --scale 0.5 → 1920x14, further reducing file size)
+# Explicit user-requested rescale (kept for legacy callers)
 if [[ "$SCALE" != "1.0" && "$SCALE" != "1" ]]; then
-  if ! command -v magick >/dev/null 2>&1; then
-    rm -f "$TMP"
-    _die "magick not installed (required for --scale)"
-  fi
+  command -v magick >/dev/null 2>&1 || { rm -f "$TMP"; _die "magick required for --scale"; }
   PERCENT="$(python3 -c "print(int(float('$SCALE') * 100))")"
   magick "$TMP" -filter Lanczos -resize "${PERCENT}%" "$TMP" \
     || { rm -f "$TMP"; _die "magick resize failed"; }
+fi
+
+# Automatic width cap so the PNG always ingests into Claude (1568 px limit
+# on the longer side — we use 1536 by default for a safety margin).
+# No-op when the region is already narrow enough.
+OUT_W="$(magick identify -format '%w' "$TMP" 2>/dev/null || echo 0)"
+if [[ "$OUT_W" -gt "$MAX_WIDTH" && "$MAX_WIDTH" -gt 0 ]]; then
+  magick "$TMP" -filter Lanczos -resize "${MAX_WIDTH}x" "$TMP" \
+    || { rm -f "$TMP"; _die "auto-resize to ${MAX_WIDTH}px failed"; }
 fi
 
 mkdir -p "$(dirname "$OUTPUT")"
