@@ -87,6 +87,8 @@ if LAYER_MODE:
 BAR_H = 28
 DEFAULT_REFRESH_S = 300
 ERROR_BACKOFF_S = 30  # Streams that returned _empty() advance after this instead of their full refresh interval, so a broken stream cannot freeze the ticker.
+MAX_DWELL_S = 30  # Cap on how long any single stream stays on screen. Prevents long cache TTLs (weather=1800, arch-news=3600) from freezing rotation.
+MIN_DWELL_S = 8   # Floor so real-time streams (pomodoro, recording) stay readable.
 STATE_DIR = os.path.expanduser(STATE_DIR_OVERRIDE) if STATE_DIR_OVERRIDE else os.path.expanduser("~/.local/state/keybind-ticker")
 PLAYLIST_DIR = os.path.expanduser(
     "~/hairglasses-studio/dotfiles/ticker/content-playlists")
@@ -1943,7 +1945,9 @@ class TickerWindow(Gtk.ApplicationWindow):
     def _current_interval(self, stream_name):
         if self._stream_errored.get(stream_name):
             return ERROR_BACKOFF_S
-        return STREAM_META.get(stream_name, {}).get("refresh", DEFAULT_REFRESH_S)
+        meta = STREAM_META.get(stream_name, {})
+        raw = meta.get("dwell", meta.get("refresh", DEFAULT_REFRESH_S))
+        return max(MIN_DWELL_S, min(raw, MAX_DWELL_S))
 
     def _absorb_segments(self, stream_name, segments):
         """Strip control sentinels and update error/urgent state."""
