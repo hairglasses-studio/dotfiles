@@ -92,6 +92,18 @@ EXCLUDED_PATTERNS = [
     r"\btest\b",
 ]
 
+FRANCHISE_RISK_PATTERNS = [
+    r"\bmario\b",
+    r"\bzelda\b",
+    r"\bpokemon\b",
+    r"\bmetroid\b",
+    r"\bkirby\b",
+    r"\bsonic\b",
+    r"\bkong\b",
+    r"\bflappy bird\b",
+    r"\bpringles\b",
+]
+
 
 def _expand(path: str | None, default: Path) -> Path:
     if not path:
@@ -131,6 +143,9 @@ def _classify_entry(source: SourceItem, system_id: str, name: str) -> tuple[str,
         return "utility_unverified", reasons
 
     if _matches_any(PUBLIC_DOMAIN_PATTERNS, lowered):
+        if _matches_any(FRANCHISE_RISK_PATTERNS, lowered):
+            reasons.append("filename says PD, but title appears to use an obvious protected game franchise")
+            return "homebrew_unverified", reasons
         reasons.append("filename explicitly marked PD/public domain")
         return "public_domain", reasons
 

@@ -344,14 +344,36 @@ def _spawn_detached(cmd):
 
 
 def _click_ci(win, idx, text):
-    # CI segments look like "✓ <repo>" / "✗ <repo>" / "⏳ <repo>". If the
-    # clicked token has a repo name, open its latest workflow runs in gh.
+    # CI segments look like "✗ <repo>" (failing), "⏳ <repo>" (running), or
+    # "✓ <repo>" (passing — but those are filtered out at build time). For
+    # a failing click we skip straight to the most recent *failed* run via
+    # `gh run view --web <run-id>`; for running or passing we fall back to
+    # the per-repo workflow list.
+    repo = None
     for token in text.split():
         if "/" in token or token.isidentifier():
             repo = token.strip(":·")
-            return _spawn_detached(["gh", "run", "list", "--repo",
-                                    f"hairglasses-studio/{repo}", "--web"])
-    return False
+            break
+    if not repo:
+        return False
+    full = f"hairglasses-studio/{repo}"
+    if text.lstrip().startswith("\u2717"):  # ✗ — failing
+        try:
+            rid = subprocess.run(
+                ["gh", "run", "list", "--repo", full, "--limit", "10",
+                 "--json", "databaseId,status,conclusion",
+                 "--jq", ".[] | select(.conclusion==\"failure\") | .databaseId"],
+                capture_output=True, text=True, timeout=5,
+            ).stdout.strip().splitlines()
+            if rid:
+                return _spawn_detached(
+                    ["gh", "run", "view", "--repo", full, "--web", rid[0]]
+                )
+        except Exception:
+            pass
+    return _spawn_detached(
+        ["gh", "run", "list", "--repo", full, "--web"]
+    )
 
 
 def _click_arch_news(win, idx, text):
@@ -388,13 +410,89 @@ def _click_hn(win, idx, text):
     return _spawn_detached(["xdg-open", "https://news.ycombinator.com/"])
 
 
+def _click_tmux(win, idx, text):
+    # tmux segments encode the session name as the first bare token
+    # after the attached-indicator glyph (●/○). Attach in a new kitty
+    # window — new-os-window so we don't pile into an existing one.
+    for token in text.split():
+        t = token.strip(":·()w").strip()
+        if not t or t in ("\u25cf", "\u25cb"):
+            continue
+        if t.endswith(")") or t.startswith("("):
+            continue
+        # First clean alnum-ish token is the session name.
+        session = t
+        return _spawn_detached(
+            ["kitty", "--detach", "--title", f"tmux: {session}",
+             "--", "tmux", "attach", "-t", session]
+        )
+    return False
+
+
+def _click_github_prs(win, idx, text):
+    # github-prs segments are repo/#N or "<repo>: <title> #<n>" — extract
+    # the repo + PR number, open github.com/<owner>/<repo>/pull/<n>.
+    import re as _re
+    m = _re.search(r"([A-Za-z0-9_.-]+)[^\d]+#?(\d+)", text)
+    if not m:
+        return False
+    repo, pr = m.group(1), m.group(2)
+    # Assume hairglasses-studio org unless repo already contains a slash.
+    owner_repo = repo if "/" in repo else f"hairglasses-studio/{repo}"
+    return _spawn_detached(
+        ["xdg-open", f"https://github.com/{owner_repo}/pull/{pr}"]
+    )
+
+
+def _click_claude_sessions(win, idx, text):
+    # Segment is already the display path (~/hairglasses-studio/<project>).
+    # Expand ~ then xdg-open. Falls back to copying the path if xdg-open
+    # has no handler for directories.
+    path = os.path.expanduser(text.strip()) if text else ""
+    if path and os.path.isdir(path):
+        return _spawn_detached(["xdg-open", path])
+    return False
+
+
+def _click_recording(win, idx, text):
+    # If a recording is active, stop it by signalling wf-recorder /
+    # wl-screenrec. Otherwise open the recordings directory so the user
+    # can review past clips.
+    try:
+        hit = subprocess.run(
+            ["pgrep", "-x", "wf-recorder"],
+            capture_output=True, text=True, timeout=1,
+        )
+        if hit.returncode == 0:
+            # Send SIGINT so the recorder finalises the MP4 cleanly.
+            subprocess.run(["pkill", "-INT", "-x", "wf-recorder"], timeout=2)
+            return True
+        hit = subprocess.run(
+            ["pgrep", "-x", "wl-screenrec"],
+            capture_output=True, text=True, timeout=1,
+        )
+        if hit.returncode == 0:
+            subprocess.run(["pkill", "-INT", "-x", "wl-screenrec"], timeout=2)
+            return True
+    except Exception:
+        pass
+    rec_dir = os.path.expanduser("~/Videos/recordings")
+    if os.path.isdir(rec_dir):
+        return _spawn_detached(["xdg-open", rec_dir])
+    return False
+
+
 STREAM_CLICK_ACTIONS = {
-    "ci":        _click_ci,
-    "arch-news": _click_arch_news,
-    "calendar":  _click_calendar,
-    "updates":   _click_updates,
-    "github":    _click_github,
-    "hn-top":    _click_hn,
+    "ci":              _click_ci,
+    "arch-news":       _click_arch_news,
+    "calendar":        _click_calendar,
+    "updates":         _click_updates,
+    "github":          _click_github,
+    "github-prs":      _click_github_prs,
+    "hn-top":          _click_hn,
+    "tmux":            _click_tmux,
+    "claude-sessions": _click_claude_sessions,
+    "recording":       _click_recording,
 }
 
 
