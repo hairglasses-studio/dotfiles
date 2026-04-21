@@ -2,6 +2,19 @@
   "entries": [
     {
       "source_identifier": "homebrew-romsets",
+      "archive_path": "Game Boy Advance/varooom-3d.zip",
+      "tier": "verified_redistributable",
+      "reasons": [
+        "official itch page lists zlib code licensing and CC BY-NC-SA 4.0 asset licensing",
+        "official project page offers direct ROM downloads and links to the source tree"
+      ],
+      "evidence": [
+        "https://gvaliente.itch.io/varooom-3d",
+        "https://github.com/GValiente/butano/blob/master/LICENSE"
+      ]
+    },
+    {
+      "source_identifier": "homebrew-romsets",
       "archive_path": "Game Boy/TobuTobuGirl.zip",
       "tier": "verified_redistributable",
       "reasons": [
