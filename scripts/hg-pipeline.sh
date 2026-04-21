@@ -62,7 +62,7 @@ if [[ -f .mcp.json ]]; then
   IS_MCP=true
 elif [[ "$REPO_NAME" == *-mcp ]]; then
   IS_MCP=true
-elif [[ -d cmd ]] && ls cmd/ 2>/dev/null | grep -q mcp; then
+elif [[ -d cmd ]] && compgen -G 'cmd/*mcp*' >/dev/null; then
   IS_MCP=true
 elif [[ -f "$DOTFILES_MCP" ]] && grep -q "$REPO_NAME" "$DOTFILES_MCP" 2>/dev/null; then
   IS_MCP=true
