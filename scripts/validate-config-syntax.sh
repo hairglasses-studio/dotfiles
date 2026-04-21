@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# validate-config-syntax.sh — repo-wide TOML + JSON syntax gate.
+# validate-config-syntax.sh — repo-wide TOML + JSON + YAML syntax gate.
 #
 # ci-lint.yml validates JSON under clipse/ and TOML via a pip-installed
-# legacy library; this gate runs against every tracked *.toml / *.json
-# using python's built-in tomllib + json modules (Python 3.11+), so it's
-# fast and requires no extra install.
+# legacy library; this gate runs against every tracked *.toml / *.json /
+# *.yml / *.yaml using python's built-in tomllib + json modules (Python
+# 3.11+) and PyYAML, so it's fast and only needs PyYAML on the runner.
 #
 # Skips chezmoi `symlink_*` source files — those contain just a target
-# path, not valid TOML/JSON.
+# path, not valid config.
 #
 # Usage:
 #   validate-config-syntax.sh          # validate all tracked configs
@@ -37,6 +37,11 @@ import subprocess
 import sys
 import tomllib
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
 quiet = sys.argv[1] == "1"
 tracked = subprocess.check_output(["git", "ls-files"]).decode().splitlines()
 
@@ -48,6 +53,7 @@ def skip(path: str) -> bool:
 
 toml_files = [f for f in tracked if f.endswith(".toml") and not skip(f)]
 json_files = [f for f in tracked if f.endswith(".json") and not skip(f)]
+yaml_files = [f for f in tracked if f.endswith((".yml", ".yaml")) and not skip(f)]
 
 errors = 0
 for f in toml_files:
@@ -64,9 +70,30 @@ for f in json_files:
     except Exception as exc:
         print(f"JSON FAIL {f}: {exc}")
         errors += 1
+if yaml is None:
+    # PyYAML missing — report once, don't fail, let the surrounding test
+    # decide whether that's acceptable. Keeping the gate soft so the
+    # repo-smoke bats on a fresh checkout can still report TOML+JSON
+    # without requiring a pip install.
+    if not quiet:
+        print(f"yaml=skipped (PyYAML not installed)")
+else:
+    for f in yaml_files:
+        try:
+            with open(f) as fh:
+                list(yaml.safe_load_all(fh))
+        except Exception as exc:
+            print(f"YAML FAIL {f}: {exc}")
+            errors += 1
 
 if not quiet or errors:
-    print(f"toml={len(toml_files)} json={len(json_files)} errors={errors}")
+    if yaml is None:
+        print(f"toml={len(toml_files)} json={len(json_files)} yaml=skipped errors={errors}")
+    else:
+        print(
+            f"toml={len(toml_files)} json={len(json_files)} "
+            f"yaml={len(yaml_files)} errors={errors}"
+        )
 
 sys.exit(0 if errors == 0 else 1)
 PY
