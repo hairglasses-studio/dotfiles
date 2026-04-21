@@ -45,6 +45,7 @@ current_playlist() {
 COMPANION_SURFACES=(
   dotfiles-window-label.service
   dotfiles-fleet-sparkline.service
+  dotfiles-lyrics-ticker.service
 )
 
 enter_lock() {

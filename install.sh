@@ -14,14 +14,68 @@ PRINT_LINK_SPECS=false
 DOTFILES_TOPLEVEL="$DOTFILES_DIR"
 DOTFILES_GIT_COMMON_DIR=""
 
+_print_help() {
+    cat <<'EOF'
+install.sh — Hairglasses dotfiles installer
+
+Symlinks configs from this repo to $HOME and enables the systemd
+user units that drive the Hyprland desktop (ticker, overlays, cache
+timers, notification daemon, etc).
+
+Idempotent — safe to rerun after edits; re-applies the symlinks that
+differ and leaves untouched ones alone.
+
+USAGE:
+  install.sh                 apply symlinks + enable services
+  install.sh --check         print what would change, don't modify anything
+  install.sh --print-link-specs
+                             dump the link-spec catalogue and exit
+  install.sh --list-services list the systemd user units this script enables
+  install.sh -h | --help     this text
+
+The service list is hardcoded in the `desktop_service_units` and
+`desktop_passive_units` arrays near line 700 — use --list-services
+for the current set without scanning the source.
+EOF
+}
+
+LIST_SERVICES=false
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --check) CHECK_ONLY=true ;;
         --print-link-specs) PRINT_LINK_SPECS=true ;;
-        *) printf 'Unknown option: %s\n' "$1" >&2; exit 2 ;;
+        --list-services) LIST_SERVICES=true ;;
+        -h|--help) _print_help; exit 0 ;;
+        *) printf 'Unknown option: %s\n' "$1" >&2
+           printf 'Try: install.sh --help\n' >&2
+           exit 2 ;;
     esac
     shift
 done
+
+if $LIST_SERVICES; then
+    # Catalogue extraction: parse the arrays from this file itself so
+    # the listing stays in lockstep even when someone bumps the arrays
+    # but forgets to update a separate doc.
+    # Extract unit names from the arrays by slicing between the opening
+    # `local <name>=(` and the closing `)`, then keep just the unit-name
+    # lines (strip leading whitespace, trailing comments, blanks).
+    _extract_units() {
+        awk -v start_re="local $1=\\\\(" '
+            $0 ~ start_re { in_block=1; next }
+            in_block && /^\s*\)/ { in_block=0; exit }
+            in_block && NF > 0 {
+                sub(/^[ \t]+/, "")
+                sub(/[ \t]*#.*$/, "")
+                if ($0 != "") print "  " $0
+            }
+        ' "${BASH_SOURCE[0]}" | sort -u
+    }
+    printf 'desktop_service_units:\n';  _extract_units desktop_service_units
+    printf '\ndesktop_passive_units:\n'; _extract_units desktop_passive_units
+    exit 0
+fi
 
 if git -C "$DOTFILES_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     DOTFILES_TOPLEVEL="$(git -C "$DOTFILES_DIR" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$DOTFILES_DIR")"
@@ -713,6 +767,7 @@ create_symlinks() {
             dotfiles-keybind-ticker@DP-3_focus.service
             dotfiles-ticker-lockwatch.service
             dotfiles-ticker-recordwatch.service
+            dotfiles-lyrics-ticker.service
             dotfiles-hypr-monitor-watch.service
             dotfiles-window-label.service
             dotfiles-fleet-sparkline.service

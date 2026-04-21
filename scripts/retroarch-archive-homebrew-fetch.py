@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
+import subprocess
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -22,6 +24,81 @@ def _safe_relative(entry: dict) -> Path:
     source = entry["source_identifier"]
     name = Path(entry["archive_path"]).name
     return Path(system) / source / name
+
+
+def _ia_nested_dest(entry: dict, dest: Path) -> Path:
+    return dest.parent / Path(entry["archive_path"])
+
+
+def _cleanup_empty_parents(path: Path, stop_at: Path) -> None:
+    current = path
+    while current != stop_at and current.exists():
+        try:
+            current.rmdir()
+        except OSError:
+            break
+        current = current.parent
+
+
+def _normalize_ia_download(entry: dict, dest: Path) -> None:
+    nested = _ia_nested_dest(entry, dest)
+    if dest.exists() or not nested.exists():
+        return
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(nested), str(dest))
+    _cleanup_empty_parents(nested.parent, dest.parent)
+
+
+def _ia_authenticated() -> bool:
+    if shutil.which("ia") is None:
+        return False
+    result = subprocess.run(
+        ["ia", "configure", "--check"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def _download_via_ia(entry: dict, dest: Path, dry_run: bool) -> None:
+    cmd = [
+        "ia",
+        "download",
+        entry["source_identifier"],
+        entry["archive_path"],
+        "--destdir",
+        str(dest.parent),
+        "--no-directories",
+    ]
+    if dry_run:
+        return
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        if dest.exists():
+            dest.unlink()
+        detail = (result.stderr or result.stdout).strip() or f"exit {result.returncode}"
+        raise RuntimeError(detail)
+    _normalize_ia_download(entry, dest)
+
+
+def _download_direct(entry: dict, dest: Path, dry_run: bool) -> None:
+    print(f"GET  {entry['download_url']} -> {dest}")
+    if dry_run:
+        return
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        urllib.request.urlretrieve(entry["download_url"], dest)
+    except (urllib.error.HTTPError, urllib.error.URLError):
+        if dest.exists():
+            dest.unlink()
+        raise
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -51,6 +128,12 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Print what would be downloaded without writing files.",
     )
+    parser.add_argument(
+        "--transport",
+        choices=["auto", "direct", "ia"],
+        default="auto",
+        help="Download transport. Default prefers authenticated ia when available.",
+    )
     args = parser.parse_args(argv)
 
     manifest_path = _expand(
@@ -65,6 +148,11 @@ def main(argv: list[str] | None = None) -> int:
     manifest = json.loads(manifest_path.read_text())
     allowed_tiers = set(args.tier or ["public_domain"])
     allowed_systems = set(args.system or [])
+    ia_ready = _ia_authenticated()
+    use_ia = args.transport == "ia" or (args.transport == "auto" and ia_ready)
+    if args.transport == "ia" and not ia_ready:
+        print("ERR  requested ia transport, but `ia configure --check` failed")
+        return 1
 
     selected = []
     for entry in manifest.get("entries", []):
@@ -83,24 +171,32 @@ def main(argv: list[str] | None = None) -> int:
     for entry in selected:
         rel = _safe_relative(entry)
         dest = download_root / rel
+        _normalize_ia_download(entry, dest)
         if dest.exists():
             skipped += 1
             print(f"SKIP {dest}")
             continue
-        print(f"GET  {entry['download_url']} -> {dest}")
-        if args.dry_run:
-            continue
-        dest.parent.mkdir(parents=True, exist_ok=True)
         try:
-            urllib.request.urlretrieve(entry["download_url"], dest)
-            downloaded += 1
-        except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+            if use_ia:
+                print(f"IA   {entry['source_identifier']}:{entry['archive_path']} -> {dest}")
+                _download_via_ia(entry, dest, args.dry_run)
+            else:
+                _download_direct(entry, dest, args.dry_run)
+            if not args.dry_run:
+                downloaded += 1
+        except (urllib.error.HTTPError, urllib.error.URLError, RuntimeError) as exc:
             failed += 1
             if dest.exists():
                 dest.unlink()
-            print(f"ERR  {entry['download_url']} -> {dest} :: {exc}")
+            if use_ia:
+                print(f"ERR  {entry['source_identifier']}:{entry['archive_path']} -> {dest} :: {exc}")
+            else:
+                print(f"ERR  {entry['download_url']} -> {dest} :: {exc}")
 
-    print(f"selected={len(selected)} downloaded={downloaded} skipped={skipped} failed={failed} dry_run={int(args.dry_run)}")
+    print(
+        f"selected={len(selected)} downloaded={downloaded} skipped={skipped} "
+        f"failed={failed} dry_run={int(args.dry_run)} transport={'ia' if use_ia else 'direct'}"
+    )
     return 0 if failed == 0 else 1
 
 

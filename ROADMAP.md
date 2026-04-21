@@ -1,5 +1,9 @@
 # Roadmap
 
+## Completed Marathon Phases
+
+- 2026-04-21 `ticker`: Phase 7 — Phase 7 — input device integrations + smoke harness (`4b6c7dc`)
+
 ## Current State
 
 Manjaro Linux dotfiles with 90+ managed configs (chezmoi + install.sh), 139 DarkWindow GLSL shaders with shuffled playlists, Hairglasses Neon palette applied to 20+ tools, Hyprland-first compositor automation, an Ironbar menubar on the theme pipeline, and a full boot stack (rEFInd + Plymouth). Idempotent installer with chezmoi declarative management (134 managed entries, 6 lifecycle scripts).

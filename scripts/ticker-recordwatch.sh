@@ -58,6 +58,7 @@ detect_recorder() {
 COMPANION_SURFACES=(
   dotfiles-window-label.service
   dotfiles-fleet-sparkline.service
+  dotfiles-lyrics-ticker.service
 )
 
 enter_recording() {
