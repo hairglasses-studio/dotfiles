@@ -29,7 +29,7 @@ func maybeRunAuxiliaryCommand(args []string) bool {
 	write := fs.Bool("contract-write", false, "Write snapshots and .well-known/mcp.json into the repo")
 	check := fs.Bool("contract-check", false, "Fail if committed snapshots or .well-known/mcp.json drift from generated output")
 	printOverview := fs.Bool("contract-print", false, "Print the generated overview snapshot to stdout")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	bundle, err := BuildContractSnapshotBundle(*profile)
 	if err != nil {
