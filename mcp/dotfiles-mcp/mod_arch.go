@@ -27,7 +27,6 @@ var (
 	archWikiAPIURL            = "https://wiki.archlinux.org/api.php"
 	archPackagesSearchURL     = "https://archlinux.org/packages/search/json/"
 	archAURSearchURL          = "https://aur.archlinux.org/rpc/v5/search/"
-	archAURInfoURL            = "https://aur.archlinux.org/rpc/v5/info"
 	archAURPKGBUILDURLPattern = "https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=%s"
 	archNewsFeedURL           = "https://archlinux.org/feeds/news/"
 	archMirrorStatusURL       = "https://archlinux.org/mirrors/status/json/"
