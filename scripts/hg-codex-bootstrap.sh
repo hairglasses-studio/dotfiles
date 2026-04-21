@@ -152,7 +152,9 @@ ensure_skill_surface() {
   while IFS= read -r skill_dir; do
     [[ -f "$skill_dir/SKILL.md" ]] || continue
     skill_name="$(basename "$skill_dir")"
-    if [[ ! " ${skills[*]} " =~ " ${skill_name} " ]]; then
+    # Literal substring membership check — glob form is shellcheck-clean
+    # and semantically equivalent to the bash-3.2 quoted-=~ idiom.
+    if [[ " ${skills[*]} " != *" ${skill_name} "* ]]; then
       copy_skill_if_missing "$skill_dir/SKILL.md" "$skill_name"
       skills+=("$skill_name")
     fi
