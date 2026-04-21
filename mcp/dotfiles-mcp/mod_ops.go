@@ -907,6 +907,8 @@ type OpsChangelogGenerateOutput struct {
 // ---------------------------------------------------------------------------
 
 // --- ops_auto_fix ---
+
+// OpsAutoFixInput is the request payload for ops_auto_fix.
 type OpsAutoFixInput struct {
 	Repo    string          `json:"repo,omitempty" jsonschema:"description=Repository path (default: cwd)"`
 	Issues  []AnalyzedIssue `json:"issues" jsonschema:"description=Issues from ops_analyze_failures"`
@@ -932,6 +934,8 @@ type OpsAutoFixOutput struct {
 }
 
 // --- ops_fleet_diff ---
+
+// OpsFleetDiffInput is the request payload for ops_fleet_diff.
 type OpsFleetDiffInput struct {
 	Dir      string `json:"dir,omitempty" jsonschema:"description=Root directory (default: ~/hairglasses-studio)"`
 	Since    string `json:"since" jsonschema:"description=Date (2024-04-01) or relative (3d/1w) or git ref"`
@@ -960,6 +964,8 @@ type OpsFleetDiffOutput struct {
 }
 
 // --- ops_tech_debt ---
+
+// OpsTechDebtInput is the request payload for ops_tech_debt.
 type OpsTechDebtInput struct {
 	Repo  string `json:"repo,omitempty" jsonschema:"description=Single repo path (omit for fleet mode)"`
 	Dir   string `json:"dir,omitempty" jsonschema:"description=Fleet root directory (default: ~/hairglasses-studio)"`
@@ -981,6 +987,8 @@ type OpsTechDebtOutput struct {
 }
 
 // --- ops_research_check ---
+
+// OpsResearchCheckInput is the request payload for ops_research_check.
 type OpsResearchCheckInput struct {
 	Query      string `json:"query" jsonschema:"description=Topic or keywords to search for"`
 	DocsPath   string `json:"docs_path,omitempty" jsonschema:"description=Docs repo path (default: ~/hairglasses-studio/docs)"`
@@ -1004,6 +1012,8 @@ type OpsResearchCheckOutput struct {
 }
 
 // --- ops_session_handoff ---
+
+// OpsSessionHandoffInput is the request payload for ops_session_handoff.
 type OpsSessionHandoffInput struct {
 	SessionID string `json:"session_id,omitempty" jsonschema:"description=Ops session ID (default: most recent)"`
 	Repo      string `json:"repo,omitempty" jsonschema:"description=Repository path (default: cwd)"`
@@ -1019,6 +1029,8 @@ type OpsSessionHandoffOutput struct {
 }
 
 // --- ops_iteration_patterns ---
+
+// OpsIterationPatternsInput is the request payload for ops_iteration_patterns.
 type OpsIterationPatternsInput struct {
 	Window string `json:"window,omitempty" jsonschema:"description=Time window (default: 30d)"`
 	Repo   string `json:"repo,omitempty" jsonschema:"description=Filter to specific repo"`

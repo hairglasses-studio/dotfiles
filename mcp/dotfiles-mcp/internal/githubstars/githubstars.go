@@ -1,3 +1,8 @@
+// Package githubstars implements the GitHub Stars tool surface: list
+// management, membership mutation, taxonomy audits, and the bootstrap
+// helpers that seed a fresh account with the dotfiles-opinionated list
+// layout. The package is consumed by dotfiles-mcp via the
+// github_stars_* family of tools.
 package githubstars
 
 import (
