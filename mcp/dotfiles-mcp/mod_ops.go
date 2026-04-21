@@ -3793,12 +3793,13 @@ func opsScoreRepoDebt(repoPath, name string) TechDebtScore {
 
 	// 4. CI health
 	ciScore := 0
-	if sandboxFileExists(filepath.Join(repoPath, ".github", "workflows")) {
+	switch {
+	case sandboxFileExists(filepath.Join(repoPath, ".github", "workflows")):
 		ciScore = 100
-	} else if sandboxFileExists(filepath.Join(repoPath, "Makefile")) {
+	case sandboxFileExists(filepath.Join(repoPath, "Makefile")):
 		ciScore = 50
 		actions = append(actions, "Add CI workflow")
-	} else {
+	default:
 		actions = append(actions, "Add CI/CD pipeline")
 	}
 	dims["ci_health"] = ciScore
