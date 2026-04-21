@@ -185,6 +185,29 @@ teardown() {
     assert_output --partial "orphans=0"
 }
 
+@test "skill surface matches the .agents/skills/ directory listing" {
+    # .agents/skills/surface.yaml is the curated registry that drives
+    # chezmoi skill publication. A skill dir on disk without an entry
+    # in surface.yaml silently fails to publish; an entry without a
+    # directory points at nothing. This gate catches both kinds of
+    # drift. Runs in ~100ms.
+    run python3 -c "
+import json, os, sys
+d = json.load(open('${DOTFILES_DIR}/.agents/skills/surface.yaml'))
+declared = {s['name'] for s in d['skills']}
+dirs = {e for e in os.listdir('${DOTFILES_DIR}/.agents/skills/') if os.path.isdir(os.path.join('${DOTFILES_DIR}/.agents/skills/', e))}
+only_declared = declared - dirs
+only_dirs = dirs - declared
+if only_declared or only_dirs:
+    print(f'declared_but_no_dir={sorted(only_declared)}')
+    print(f'dir_but_not_declared={sorted(only_dirs)}')
+    sys.exit(1)
+print(f'skills={len(declared)} drift=0')
+"
+    assert_success
+    assert_output --partial "drift=0"
+}
+
 @test "install.sh retroarch entries resolve to executable scripts" {
     # install.sh maps \$DOTFILES_DIR/scripts/retroarch-*.{py,sh} to
     # \$HOME/.local/bin/retroarch-*. A rename that misses one side silently
