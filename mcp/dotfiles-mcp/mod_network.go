@@ -141,7 +141,9 @@ type NetworkDNSEntry struct {
 	Servers   []string `json:"servers"`
 }
 
-// Wrapper types to ensure MCP returns JSON objects (not bare arrays).
+// NetworkWifiListOutput wraps a wifi network list in an object so MCP
+// callers see a JSON object instead of a bare array (easier to extend
+// with metadata such as the active SSID).
 type NetworkWifiListOutput struct {
 	Networks []NetworkWifiEntry `json:"networks"`
 	Total    int                `json:"total"`

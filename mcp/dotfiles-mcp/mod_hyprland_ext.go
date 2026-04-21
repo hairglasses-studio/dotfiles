@@ -424,7 +424,7 @@ func hyprSocket2Path() (string, error) {
 	}
 	socket := filepath.Join(runtimeDir, "hypr", sig, ".socket2.sock")
 	if _, err := os.Stat(socket); err != nil {
-		return "", fmt.Errorf("Hyprland event socket not found: %s", socket)
+		return "", fmt.Errorf("hyprland event socket not found: %s", socket)
 	}
 	return socket, nil
 }
