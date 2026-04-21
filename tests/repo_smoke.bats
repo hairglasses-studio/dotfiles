@@ -165,6 +165,16 @@ teardown() {
     refute_output --partial "ORPHAN"
 }
 
+@test "scripts/lib Python modules all import cleanly" {
+    # py_compile (ok 19) catches syntax errors. Import attempts catch
+    # the next layer: module-scope NameError, ModuleNotFoundError at
+    # the \`from foo import\` site, side-effect failures at module
+    # load. scripts/lib/ + scripts/lib/ticker_streams/ is ~38 modules.
+    run bash "${SCRIPTS_DIR}/validate-python-imports.sh"
+    assert_success
+    assert_output --partial "errors=0"
+}
+
 @test "README/ROADMAP tool counts stay within 15% of the live snapshot" {
     # Human-readable \"~N tools\" figures in README.md, ROADMAP.md,
     # and mcp/dotfiles-mcp/CLAUDE.md are easy to leave stale when
