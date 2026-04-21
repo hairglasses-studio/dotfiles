@@ -185,7 +185,7 @@ func (m *KeybindsModule) Tools() []registry.ToolDefinition {
 				}
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
-					json.Unmarshal(b, &input)
+					_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 				}
 				if input.Query == "" {
 					return handler.CodedErrorResult(handler.ErrInvalidParam, fmt.Errorf("query must not be empty")), nil
