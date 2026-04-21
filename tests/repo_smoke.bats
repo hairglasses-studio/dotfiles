@@ -116,6 +116,17 @@ teardown() {
     refute_output --partial "MISSING"
 }
 
+@test "scripts/ has no unreferenced orphans outside the allowlist" {
+    # A new script that neither lands in the allowlist nor gets wired into a
+    # consumer (install.sh, systemd, a config, another script, etc.) is a
+    # common class of cleanup debt. Keep the audit green; if a genuinely
+    # new hook-installable or manual-invoke utility lands, extend the
+    # allowlist inside audit-orphan-scripts.sh with a category comment.
+    run bash "${SCRIPTS_DIR}/audit-orphan-scripts.sh" --strict
+    assert_success
+    assert_output --partial "orphans=0"
+}
+
 @test "install.sh retroarch entries resolve to executable scripts" {
     # install.sh maps \$DOTFILES_DIR/scripts/retroarch-*.{py,sh} to
     # \$HOME/.local/bin/retroarch-*. A rename that misses one side silently
