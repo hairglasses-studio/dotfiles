@@ -1211,7 +1211,7 @@ func extractSnippet(line, queryLower string) string {
 		snippet = "..." + snippet
 	}
 	if end < len(text) {
-		snippet = snippet + "..."
+		snippet += "..."
 	}
 	return snippet
 }
