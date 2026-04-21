@@ -56,10 +56,13 @@ mirror_excludes=(
   --exclude 'coverage.html'
   --exclude '*.test'
   --exclude '*.log'
+  # Don't sync other modules' root dirs into the mirror. Only
+  # dotfiles-mcp, mapitall, and mapping still exist after the April
+  # 2026 consolidation (process-mcp/systemd-mcp/tmux-mcp were
+  # absorbed into dotfiles-mcp).
   --exclude 'dotfiles-mcp'
-  --exclude 'process-mcp'
-  --exclude 'systemd-mcp'
-  --exclude 'tmux-mcp'
+  --exclude 'mapitall'
+  --exclude 'mapping'
   --exclude '.DS_Store'
   --exclude '.goreleaser.yaml'
   --exclude '.goreleaser.yml'

@@ -46,7 +46,7 @@ LANG_GO=false;     $HAS_GOMOD && LANG_GO=true
 LANG_NODE=false;   $HAS_PACKAGE && LANG_NODE=true
 LANG_PYTHON=false; $HAS_PYTHON && LANG_PYTHON=true
 
-# Hybrid: Go + Node (e.g., hg-mcp with web UI)
+# Hybrid: Go + Node (e.g., a Go server with a bundled web UI)
 LANG_HYBRID=false
 $LANG_GO && $LANG_NODE && LANG_HYBRID=true
 

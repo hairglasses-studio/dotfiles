@@ -1,5 +1,6 @@
 // Package executil provides a shared command-execution helper used by
-// the small dotfiles MCP servers (systemd-mcp, tmux-mcp, process-mcp).
+// dotfiles-mcp and its consolidated handler set (mod_systemd, mod_tmux,
+// mod_process, etc.) plus mapitall.
 package executil
 
 import (
