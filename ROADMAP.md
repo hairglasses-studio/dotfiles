@@ -12,6 +12,18 @@ Single consolidated MCP server (dotfiles-mcp) with ~400 tools across 30+ modules
 
 ## Recently Completed
 
+### RetroArch Workstation Tranche (2026-04-21)
+Shared RetroArch profile drives core + BIOS + runtime automation:
+
+- **Shared profile**: `~/hairglasses-studio/romhub/configs/device-profiles/retroarch.yaml` now carries the authoritative `retroarch_playlist_map` and `retroarch_requirements` rows (19 systems + 17 BIOS/helper entries). `scripts/lib/retroarch_profile.py` keeps built-in defaults as a safety net.
+- **Audit** (`retroarch-workstation-audit`): cores, BIOS/helper assets, display profile, runtime status → `$XDG_STATE_HOME/retroarch/workstation-audit.json`.
+- **BIOS/helper apply** (`retroarch-bios-apply`): populates missing required `dc/` (Flycast) and `PPSSPP/` (PSP helper assets via sparse clone of `hrydgard/ppsspp#assets`). `--dry-run` + `--source-dir` for local BIOS drops.
+- **Cores**: pacman-first installer with optional AUR pass (`libretro-beetle-vb-git` for Virtual Boy, yay/paru auto-detected, `--skip-aur` for CI). `retroarch-build-libretro-cores` source-builds `race` (NGP) and `beetle-wswan` (WonderSwan) into `/usr/lib/libretro/` for the two cores with no package.
+- **Runtime OSD** (`retroarch-apply-network-cmd`): atomic `retroarch.cfg` writer library with timestamped backup, UDP `VERSION` probe, `--revert`, `--dry-run`. Enables `retroarch-archive-homebrew-sync --notify-runtime` to deliver `SHOW_MSG` notifications.
+- **Orchestrator** (`retroarch-archive-homebrew-sync`): chains manifest → fetch → import → playlists → audit with env-overridable tool paths for testing.
+- **Tests** (`tests/retroarch_workstation.bats`): six cases covering profile-driven playlist mapping, zip-backed ROM counts, conditional BIOS, orchestrator wiring, atomic cfg writer with `--revert`, bios-apply dry-run, and source-build dry-run.
+- **Docs**: `docs/retroarch-workstation.md` operator-facing reference with first-run workflow and state file map.
+
 ### Dotfiles Cleanup & Wiring (2026-04-16)
 Major cleanup removing -27k lines of accumulated config debt:
 
@@ -168,4 +180,4 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 
 - [ ] [P2][M] Phase-gated pipeline — hard enforcement of plan -> human review -> implement -> verify phases in dev-loop; agents cannot skip steps. Ref: avifenesh/agentsys
 - [x] [P2][S] Hidden assumption surfacer — `.agents/skills/common_ground/SKILL.md` deployed. Surfaces Claude's implicit priors about a repo (language, build system, test framework, CI, etc.), verifies each in parallel via fast file checks, reports confirmed/rebutted/unknown deltas, and prompts the user for redirect before code changes start. Read-only, 2-3 minute budget. Ref: jeffallan/claude-skills
-- [ ] [P2][S] Decision journal skill — auto-record architectural decisions with rationale, exportable for docs. Ref: pcatattacks/solopreneur-plugin
+- [x] [P2][S] Decision journal skill — `.agents/skills/decision_journal/SKILL.md` deployed. Appends ADR-lite entries (context, decision, rationale, alternatives, consequences) to `docs/decisions.md`, dedup by title + date, supports `--export` for stakeholder markdown tables. Ref: pcatattacks/solopreneur-plugin + Michael Nygard ADR template.

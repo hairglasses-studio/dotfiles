@@ -154,6 +154,11 @@
       "name": "common_ground",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "decision_journal",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
