@@ -134,6 +134,15 @@ teardown() {
     refute_output --partial "Failed to"
 }
 
+@test "matugen templates only reference palette tokens every palette carries" {
+    # Guard against the drift where a new matugen template references
+    # ${THEME_FOO} but FOO isn't in every palette env — envsubst would
+    # render the placeholder empty, silently breaking palette swaps.
+    run bash "${SCRIPTS_DIR}/validate-palette-tokens.sh"
+    assert_success
+    assert_output --partial "errors=0"
+}
+
 @test "tracked TOML, JSON, and YAML configs parse cleanly" {
     # Repo-wide syntax gate for config files. Uses Python's built-in
     # tomllib + json modules (Python 3.11+) and PyYAML for YAML. Skips
