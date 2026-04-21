@@ -9,6 +9,7 @@ This directory holds the searchable, repo-local documents that sit below the roo
 - `RESOURCES.md`: external community references and upstream project links.
 - `SPRINT-NEXT.md`: historical sprint handoff and session context.
 - `retroarch-workstation.md`: RetroArch workstation tooling — audit, BIOS/helper apply, core install/build, network-command toggle, and one-shot Archive.org sync.
+- `decisions.md`: Append-only ADR-lite log of architectural decisions, managed by the `decision_journal` skill.
 
 ## Use
 
