@@ -17,6 +17,10 @@ Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual r
 
 ![Desktop — Hyprland + Ironbar menubar + tiled terminals (Hairglasses Neon)](.github/assets/desktop.png)
 
+The bottom `keybind-ticker` scrolls 39 live streams across a pixel-smooth 30 Hz cyberpunk-effect stack — water caustic, phosphor trail, neon-gradient text, synthwave sweep:
+
+![Ticker demo — scrolling across 39 live streams (10s loop)](docs/assets/ticker-demo.gif)
+
 ### Technical Highlights
 
 - **GPU Shaders**: 139 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation
