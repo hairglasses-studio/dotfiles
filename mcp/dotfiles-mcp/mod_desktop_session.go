@@ -528,11 +528,24 @@ func resolveDesktopSession(id string) (desktopSessionRecord, error) {
 func desktopSessionEnv(record desktopSessionRecord) []string {
 	hydrateDesktopSessionRecord(&record)
 	env := os.Environ()
+	// Replace the key in place if present; fall through to append otherwise.
+	// If `value` is empty the caller's intent is "this session has no value
+	// here" — drop the key entirely so the OS-level env doesn't leak in
+	// (e.g., live tests setting DBUSSessionBusAddress:"" should actually
+	// see it absent, not inherit the shell's DBUS_SESSION_BUS_ADDRESS).
 	setEnv := func(key, value string) {
-		if strings.TrimSpace(value) == "" {
+		prefix := key + "="
+		value = strings.TrimSpace(value)
+		if value == "" {
+			filtered := env[:0]
+			for _, entry := range env {
+				if !strings.HasPrefix(entry, prefix) {
+					filtered = append(filtered, entry)
+				}
+			}
+			env = filtered
 			return
 		}
-		prefix := key + "="
 		replaced := false
 		for i := range env {
 			if strings.HasPrefix(env[i], prefix) {
