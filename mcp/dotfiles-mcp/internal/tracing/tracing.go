@@ -87,12 +87,13 @@ func Middleware() registry.Middleware {
 
 			result, err := next(ctx, req)
 
-			if err != nil {
+			switch {
+			case err != nil:
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
-			} else if result != nil && registry.IsResultError(result) {
+			case result != nil && registry.IsResultError(result):
 				span.SetStatus(codes.Error, "tool returned error result")
-			} else {
+			default:
 				span.SetStatus(codes.Ok, "")
 			}
 
