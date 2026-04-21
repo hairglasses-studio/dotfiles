@@ -115,3 +115,27 @@ teardown() {
     assert_output --partial "all resolve"
     refute_output --partial "MISSING"
 }
+
+@test "install.sh retroarch entries resolve to executable scripts" {
+    # install.sh maps \$DOTFILES_DIR/scripts/retroarch-*.{py,sh} to
+    # \$HOME/.local/bin/retroarch-*. A rename that misses one side silently
+    # breaks the installer; this test catches that by verifying every
+    # retroarch link-spec on the left side exists and is executable.
+    run bash "${DOTFILES_DIR}/install.sh" --print-link-specs
+    assert_success
+
+    local missing=()
+    local non_executable=()
+    while IFS='|' read -r src dest; do
+        [[ "${src}" == *retroarch-* ]] || continue
+        local resolved="${src/\$DOTFILES_DIR/${DOTFILES_DIR}}"
+        if [[ ! -f "${resolved}" ]]; then
+            missing+=("${resolved}")
+        elif [[ ! -x "${resolved}" ]]; then
+            non_executable+=("${resolved}")
+        fi
+    done <<< "${output}"
+
+    [[ ${#missing[@]} -eq 0 ]] || fail "missing retroarch sources: ${missing[*]}"
+    [[ ${#non_executable[@]} -eq 0 ]] || fail "retroarch scripts missing +x bit: ${non_executable[*]}"
+}
