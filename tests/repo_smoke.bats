@@ -85,15 +85,20 @@ teardown() {
     assert_output --partial "manual_projection"
     assert_output --partial "mapitall"
     assert_output --partial "mapping"
-    assert_output --partial "tmux-mcp"
 }
 
 @test "hg mcp mirror parity check passes for the tracked mirror set" {
     run bash "${SCRIPTS_DIR}/hg-mcp-mirror-parity.sh" --check
     assert_success
     assert_output --partial "PASS  dotfiles-mcp"
+    assert_output --partial "PASS  mapitall"
     assert_output --partial "PASS  mapping"
-    assert_output --partial "PASS  tmux-mcp"
+    # tmux-mcp, systemd-mcp, process-mcp were consolidated into dotfiles-mcp
+    # on 2026-04-16; they now live in the `consolidated` array of
+    # mcp/mirror-parity.json and are no longer tracked by the parity checker.
+    refute_output --partial "PASS  tmux-mcp"
+    refute_output --partial "PASS  systemd-mcp"
+    refute_output --partial "PASS  process-mcp"
 }
 
 @test "kitty theme playlists all resolve against the bundled catalog" {

@@ -11,9 +11,16 @@ The machine-readable manifest lives at [`mcp/mirror-parity.json`](../mcp/mirror-
 | `dotfiles-mcp` | `hairglasses-studio/dotfiles-mcp` | `mcp/dotfiles-mcp` | `manual_projection` | Desktop and workstation control-plane MCP server |
 | `mapitall` | `hairglasses-studio/mapitall` | `mcp/mapitall` | `tree_sync` | Controller and input mapping MCP runtime |
 | `mapping` | `hairglasses-studio/mapping` | `mcp/mapping` | `tree_sync` | Shared Go package for mapping and profile resolution |
-| `process-mcp` | `hairglasses-studio/process-mcp` | `mcp/process-mcp` | `tree_sync` | Linux process inspection and debugging MCP server |
-| `systemd-mcp` | `hairglasses-studio/systemd-mcp` | `mcp/systemd-mcp` | `tree_sync` | Systemd service and timer management MCP server |
-| `tmux-mcp` | `hairglasses-studio/tmux-mcp` | `mcp/tmux-mcp` | `tree_sync` | Tmux session and workspace orchestration MCP server |
+
+## Consolidated Modules (2026-04-16)
+
+These modules used to live as separate mirrored repos but were absorbed into `dotfiles-mcp` during the April 2026 MCP consolidation. The standalone repos are retired and no longer tracked by the parity checker. Machine-readable record: `mcp/mirror-parity.json` `consolidated` array.
+
+| Former module | Absorbed handler | Notes |
+|---------------|------------------|-------|
+| `tmux-mcp` | `mcp/dotfiles-mcp/mod_tmux.go` | Tmux session + workspace orchestration |
+| `systemd-mcp` | `mcp/dotfiles-mcp/mod_systemd.go` | Systemd service + timer management |
+| `process-mcp` | `mcp/dotfiles-mcp/mod_process.go` | Linux process inspection + debugging |
 
 ## Verification
 
