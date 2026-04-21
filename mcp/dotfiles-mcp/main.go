@@ -2482,7 +2482,7 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 										lineNum := 0
 										if len(parts) >= 2 {
 											file = parts[0]
-											fmt.Sscanf(parts[1], "%d", &lineNum)
+											_, _ = fmt.Sscanf(parts[1], "%d", &lineNum)
 										}
 										result.PaletteViolations = append(result.PaletteViolations, PaletteViolation{
 											File:  filepath.Base(file),

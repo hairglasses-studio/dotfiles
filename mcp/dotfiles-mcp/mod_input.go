@@ -539,7 +539,7 @@ func detectMidiDevices() []midiDevice {
 	for _, m := range matches {
 		base := filepath.Base(m)
 		var card, dev int
-		fmt.Sscanf(base, "midiC%dD%d", &card, &dev)
+		_, _ = fmt.Sscanf(base, "midiC%dD%d", &card, &dev)
 
 		nameBytes, _ := os.ReadFile(fmt.Sprintf("/proc/asound/card%d/id", card))
 		name := strings.TrimSpace(string(nameBytes))

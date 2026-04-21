@@ -154,7 +154,7 @@ func currentIronbarStatus() ironbarRuntimeStatus {
 
 	countOut, err := exec.Command("pgrep", "-c", "ironbar").CombinedOutput()
 	if err == nil {
-		fmt.Sscanf(strings.TrimSpace(string(countOut)), "%d", &status.ProcessCount)
+		_, _ = fmt.Sscanf(strings.TrimSpace(string(countOut)), "%d", &status.ProcessCount)
 	}
 	status.Running = status.ProcessCount > 0 || status.ServiceActive || processRunningExact("ironbar")
 	status.Layers = ironbarLayerBindings()

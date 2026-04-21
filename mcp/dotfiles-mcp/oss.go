@@ -795,7 +795,7 @@ func goTestCoverage(repo string) float64 {
 					start--
 				}
 				var pct float64
-				fmt.Sscanf(lastLine[start+1:pctIdx], "%f", &pct)
+				_, _ = fmt.Sscanf(lastLine[start+1:pctIdx], "%f", &pct)
 				if pct > 0 {
 					return pct
 				}
@@ -811,7 +811,7 @@ func goTestCoverage(repo string) float64 {
 			sub = strings.TrimSpace(sub)
 			if pctIdx := strings.Index(sub, "%"); pctIdx > 0 {
 				var pct float64
-				fmt.Sscanf(sub[:pctIdx], "%f", &pct)
+				_, _ = fmt.Sscanf(sub[:pctIdx], "%f", &pct)
 				totalCov += pct
 				count++
 			}
