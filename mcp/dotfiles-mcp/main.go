@@ -927,11 +927,12 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					}
 
 					target, err := os.Readlink(l.dst)
-					if err != nil {
+					switch {
+					case err != nil:
 						ss.Status = "missing"
-					} else if target == l.src {
+					case target == l.src:
 						ss.Status = "healthy"
-					} else {
+					default:
 						ss.Status = "broken"
 						ss.Actual = target
 					}

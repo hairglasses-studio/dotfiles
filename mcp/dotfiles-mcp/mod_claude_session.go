@@ -2534,11 +2534,12 @@ func (m *ClaudeSessionModule) Tools() []registry.ToolDefinition {
 					lower := strings.ToLower(display)
 
 					var eventType string
-					if strings.Contains(lower, "session crashed") || strings.Contains(lower, "crash") {
+					switch {
+					case strings.Contains(lower, "session crashed") || strings.Contains(lower, "crash"):
 						eventType = "crash"
-					} else if strings.Contains(lower, "--resume") || strings.Contains(lower, "resume") {
+					case strings.Contains(lower, "--resume") || strings.Contains(lower, "resume"):
 						eventType = "resume"
-					} else {
+					default:
 						continue
 					}
 
