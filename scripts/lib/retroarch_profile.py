@@ -30,7 +30,7 @@ DEFAULT_PLAYLIST_MAP_ROWS = [
     "wii|Nintendo - Wii.lpl|dolphin_libretro.so|Nintendo - GameCube / Wii (Dolphin)|.iso,.rvz,.wad,.wbfs|libretro-dolphin",
     "nds|Nintendo - Nintendo DS.lpl|desmume_libretro.so|Nintendo - DS (DeSmuME)|.bin,.nds|libretro-desmume",
     "psp|Sony - PlayStation Portable.lpl|ppsspp_libretro.so|Sony - PlayStation Portable (PPSSPP)|.chd,.cso,.elf,.iso,.pbp,.prx|libretro-ppsspp",
-    "vb|Nintendo - Virtual Boy.lpl|beetle_vb_libretro.so|Nintendo - Virtual Boy (Beetle VB)|.bin,.vb,.vboy|",
+    "vb|Nintendo - Virtual Boy.lpl|mednafen_vb_libretro.so|Nintendo - Virtual Boy (Beetle VB)|.bin,.vb,.vboy|",
 ]
 
 DEFAULT_REQUIREMENT_ROWS = [
