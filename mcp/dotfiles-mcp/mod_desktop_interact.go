@@ -471,7 +471,11 @@ func (m *DesktopInteractModule) Tools() []registry.ToolDefinition {
 			var input DesktopScreenshotOCRInput
 			if req.Params.Arguments != nil {
 				b, _ := json.Marshal(req.Params.Arguments)
-				json.Unmarshal(b, &input)
+				// Ignore error — unmarshal failure leaves input at zero-value
+				// and downstream handler validation surfaces the missing required
+				// fields via ErrInvalidParam. Keeping the explicit _ = marker so
+				// errcheck stays clean and the intent is obvious.
+				_ = json.Unmarshal(b, &input)
 			}
 
 			cap, err := diCapture(input.Address, input.Class, input.Region, input.MaxSize, false)
@@ -544,7 +548,11 @@ func (m *DesktopInteractModule) Tools() []registry.ToolDefinition {
 			var input DesktopFindTextInput
 			if req.Params.Arguments != nil {
 				b, _ := json.Marshal(req.Params.Arguments)
-				json.Unmarshal(b, &input)
+				// Ignore error — unmarshal failure leaves input at zero-value
+				// and downstream handler validation surfaces the missing required
+				// fields via ErrInvalidParam. Keeping the explicit _ = marker so
+				// errcheck stays clean and the intent is obvious.
+				_ = json.Unmarshal(b, &input)
 			}
 
 			if input.Text == "" {
@@ -641,7 +649,11 @@ func (m *DesktopInteractModule) Tools() []registry.ToolDefinition {
 			var input DesktopClickTextInput
 			if req.Params.Arguments != nil {
 				b, _ := json.Marshal(req.Params.Arguments)
-				json.Unmarshal(b, &input)
+				// Ignore error — unmarshal failure leaves input at zero-value
+				// and downstream handler validation surfaces the missing required
+				// fields via ErrInvalidParam. Keeping the explicit _ = marker so
+				// errcheck stays clean and the intent is obvious.
+				_ = json.Unmarshal(b, &input)
 			}
 
 			if input.Text == "" {
@@ -748,7 +760,11 @@ func (m *DesktopInteractModule) Tools() []registry.ToolDefinition {
 			var input DesktopWaitForTextInput
 			if req.Params.Arguments != nil {
 				b, _ := json.Marshal(req.Params.Arguments)
-				json.Unmarshal(b, &input)
+				// Ignore error — unmarshal failure leaves input at zero-value
+				// and downstream handler validation surfaces the missing required
+				// fields via ErrInvalidParam. Keeping the explicit _ = marker so
+				// errcheck stays clean and the intent is obvious.
+				_ = json.Unmarshal(b, &input)
 			}
 
 			if input.Text == "" {
