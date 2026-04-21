@@ -37,7 +37,11 @@ teardown() {
 }
 
 @test "launcher consumers stay pinned to the managed kitty wrappers" {
-    run bash -lc "grep -F '\$HOME/.local/bin/kitty-dev-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/pypr/config.toml' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/hyprland/pyprland.toml' && grep -F 'kitty-visual-launch' '${DOTFILES_DIR}/ironbar/config.toml' '${DOTFILES_DIR}/makima/Microsoft Xbox Series S|X Controller.toml'"
+    # hyprland/pyprland.toml was removed as a stale duplicate of pypr/config.toml
+    # in the April 2026 cleanup; the makima Xbox controller TOML was dropped with
+    # the gamepad-remapper retirement. The live pinned consumers are just the
+    # three below.
+    run bash -lc "grep -F '\$HOME/.local/bin/kitty-dev-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/pypr/config.toml' && grep -F 'kitty-visual-launch' '${DOTFILES_DIR}/ironbar/config.toml'"
     assert_success
 }
 
@@ -56,11 +60,15 @@ teardown() {
     assert_output --partial "config"
 }
 
-@test "hg input help exposes the verify workflow" {
-    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_DIR}/hg" input --help
+@test "hg gamepad help exposes the controller workflow" {
+    # Replaces the old `hg input` test. The `input` module was retired when
+    # makima/juhradial were removed; the surviving controller surface is
+    # `hg gamepad` (Xbox + makima service control).
+    run env HOME="${HOME}" HG_STUDIO_ROOT="${HG_STUDIO_ROOT}" bash "${SCRIPTS_DIR}/hg" gamepad --help
     assert_success
-    assert_output --partial "verify"
-    assert_output --partial "wheel-fix"
+    assert_output --partial "status"
+    assert_output --partial "profiles"
+    assert_output --partial "restart"
 }
 
 @test "hg workflow sync help stays informational" {
