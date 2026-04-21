@@ -143,6 +143,16 @@ teardown() {
     assert_output --partial "errors=0"
 }
 
+@test "compositor and bar configs only reference install.sh .local/bin wrappers" {
+    # Guard against the case where install.sh drops a symlink (rename,
+    # cleanup) but a hyprland/pypr/ironbar config still invokes the old
+    # name — the keybind/widget would silently no-op on dispatch.
+    run bash "${SCRIPTS_DIR}/validate-local-bin-refs.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "MISSING"
+}
+
 @test "tracked TOML, JSON, and YAML configs parse cleanly" {
     # Repo-wide syntax gate for config files. Uses Python's built-in
     # tomllib + json modules (Python 3.11+) and PyYAML for YAML. Skips
