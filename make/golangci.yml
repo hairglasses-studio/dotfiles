@@ -30,6 +30,19 @@ linters:
         - (io.Closer).Close
         - (net/http.ResponseWriter).Write
         - (*database/sql.Rows).Close
+        # Cleanup paths — failing removal of a temp file or stale dir
+        # shouldn't mask the main operation's result, and the Go
+        # community standard is to leave these unchecked. Common
+        # patterns: `defer os.Remove(tmp)`, `os.RemoveAll(stale)` on
+        # an error path.
+        - os.Remove
+        - os.RemoveAll
+        # File/connection Close() in defer contexts. (io.Closer).Close
+        # above doesn't catch receiver-typed calls like `f.Close()`
+        # where f is *os.File. Adding explicit entries for the common
+        # concrete types.
+        - (*os.File).Close
+        - (*net.Conn).Close
 
     govet:
       enable:
