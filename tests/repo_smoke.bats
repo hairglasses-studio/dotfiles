@@ -230,6 +230,48 @@ print(f'skills={len(declared)} drift=0')
     assert_output --partial "drift=0"
 }
 
+@test "install.sh --list-services units all resolve to a unit file" {
+    # install.sh's desktop_service_units + desktop_passive_units arrays drive
+    # systemctl --user enable/start. A unit declared in the array but missing
+    # on disk silently fails to enable — systemctl reports "Unit … not found"
+    # and the installer moves on. Gate every listed unit against:
+    #   systemd/<name>                   — plain unit
+    #   systemd/<base>@.<suffix>         — template for name@instance.service
+    #   home/dot_config/systemd/user/symlink_<name>   — chezmoi placeholder
+    #   home/dot_config/systemd/user/<name>           — literal placeholder
+    #   manjaro/systemd/<name>           — Manjaro-only variant
+    run bash -c '
+        declared=$(bash "'"${DOTFILES_DIR}"'"/install.sh --list-services 2>&1 \
+            | grep -E "^[[:space:]]+[a-z]" | awk "{print \$1}")
+        missing=0
+        while IFS= read -r unit; do
+            [[ -z "$unit" ]] && continue
+            base="${unit%%@*}"
+            suffix="${unit##*.}"
+            found=""
+            for p in \
+                "'"${DOTFILES_DIR}"'/systemd/${unit}" \
+                "'"${DOTFILES_DIR}"'/systemd/${base}@.${suffix}" \
+                "'"${DOTFILES_DIR}"'/manjaro/systemd/${unit}" \
+                "'"${DOTFILES_DIR}"'/home/dot_config/systemd/user/${unit}" \
+                "'"${DOTFILES_DIR}"'/home/dot_config/systemd/user/symlink_${unit}"; do
+                if [[ -f "$p" || -L "$p" ]]; then
+                    found="$p"
+                    break
+                fi
+            done
+            if [[ -z "$found" ]]; then
+                echo "MISSING: $unit"
+                missing=$((missing + 1))
+            fi
+        done <<< "$declared"
+        echo "missing_units=$missing"
+        [[ $missing -eq 0 ]]
+    '
+    assert_success
+    assert_output --partial "missing_units=0"
+}
+
 @test "install.sh retroarch entries resolve to executable scripts" {
     # install.sh maps \$DOTFILES_DIR/scripts/retroarch-*.{py,sh} to
     # \$HOME/.local/bin/retroarch-*. A rename that misses one side silently
