@@ -116,6 +116,15 @@ teardown() {
     refute_output --partial "MISSING"
 }
 
+@test "scripts Python sources all py_compile cleanly" {
+    # Cheap repo-wide syntax gate for Python scripts (~0.1s on 63 files).
+    # Catches SyntaxError / IndentationError / unterminated f-strings before
+    # they ship — the retroarch bats already does py_compile for its own
+    # helper set, this generalizes the check to every *.py under scripts/.
+    run bash -c "find '${DOTFILES_DIR}/scripts' -name '*.py' -type f -exec python3 -m py_compile {} +"
+    assert_success
+}
+
 @test "scripts/ has no unreferenced orphans outside the allowlist" {
     # A new script that neither lands in the allowlist nor gets wired into a
     # consumer (install.sh, systemd, a config, another script, etc.) is a
