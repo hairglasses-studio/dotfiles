@@ -154,6 +154,14 @@ jobs:
             exit 1
           fi
 
+      - name: Check contract snapshot is up-to-date
+        if: matrix.module == 'dotfiles-mcp'
+        # Fails if the committed .well-known/mcp.json or contract/
+        # snapshots drift from what the live tool registry would
+        # produce. Forces authors who add/remove MCP tools to
+        # regen via `make contract-snapshot` before landing.
+        run: make contract-check
+
   smoke:
     name: MCP Smoke Test
     runs-on: [self-hosted, archglasses, optimized]
