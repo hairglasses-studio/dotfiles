@@ -77,7 +77,7 @@ func runListStars(ctx context.Context, args []string) {
 	limit := fs.Int("limit", 100, "result limit")
 	sortBy := fs.String("sort", "starred", "starred|updated|stars|name")
 	includeLists := fs.Bool("include-lists", false, "include GitHub list membership")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	client := mustClient(ctx)
 	viewer, err := client.Viewer(ctx)
@@ -103,7 +103,7 @@ func runSummary(ctx context.Context, args []string) {
 	fs := flag.NewFlagSet("summary", flag.ExitOnError)
 	topN := fs.Int("top", 10, "max buckets per section")
 	managedPrefix := fs.String("managed-prefix", "", "optional managed list prefix")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	client := mustClient(ctx)
 	viewer, err := client.Viewer(ctx)
@@ -120,7 +120,7 @@ func runListLists(ctx context.Context, args []string) {
 	fs := flag.NewFlagSet("list-lists", flag.ExitOnError)
 	includeItems := fs.Bool("include-items", false, "include repositories in each list")
 	itemsPerList := fs.Int("items-per-list", 0, "item cap per list when include-items is set")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	client := mustClient(ctx)
 	viewer, err := client.Viewer(ctx)
@@ -139,7 +139,7 @@ func runRenameList(ctx context.Context, args []string) {
 	oldName := fs.String("from", "", "current list name")
 	newName := fs.String("to", "", "desired list name")
 	execute := fs.Bool("execute", false, "rename the list")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	client := mustClient(ctx)
 	result, err := client.RenameList(ctx, *oldName, *newName, *execute)
@@ -156,7 +156,7 @@ func runSetMembership(ctx context.Context, args []string) {
 	createMissingLists := fs.Bool("create-missing-lists", false, "create missing target lists")
 	starMissing := fs.Bool("star-missing", false, "star repositories before assigning them to lists")
 	execute := fs.Bool("execute", false, "apply membership changes")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	repoList := splitCSV(*repos)
 	if len(repoList) == 0 {
@@ -184,7 +184,7 @@ func runSuggestTaxonomy(ctx context.Context, args []string) {
 	fs := flag.NewFlagSet("suggest-taxonomy", flag.ExitOnError)
 	query := fs.String("query", "", "substring filter")
 	limit := fs.Int("limit", 8, "max suggestions")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	client := mustClient(ctx)
 	viewer, err := client.Viewer(ctx)
@@ -211,7 +211,7 @@ func runCleanupCandidates(ctx context.Context, args []string) {
 	requireUnlisted := fs.Bool("require-unlisted", false, "flag repositories that are not in any list")
 	managedPrefix := fs.String("managed-prefix", "", "flag repositories missing this managed list prefix")
 	limit := fs.Int("limit", 100, "max candidates to return")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	client := mustClient(ctx)
 	viewer, err := client.Viewer(ctx)
@@ -240,7 +240,7 @@ func runAuditTaxonomy(ctx context.Context, args []string) {
 	production := fs.String("production", "", "comma-separated production repo slugs")
 	experimental := fs.String("experimental", "", "comma-separated experimental repo slugs")
 	alpha := fs.String("alpha", "", "comma-separated alpha repo slugs")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	assignments := taxonomyAssignmentsFromBands(splitCSV(*production), splitCSV(*experimental), splitCSV(*alpha))
 	if *bootstrapDefaults && len(assignments) == 0 {
@@ -264,7 +264,7 @@ func runAuditMarkdown(ctx context.Context, args []string) {
 	sourceDir := fs.String("source-dir", "", "directory containing markdown source files")
 	sources := fs.String("sources", "", "comma-separated markdown file paths")
 	maxItems := fs.Int("max-items", 100, "max missing or extra repos per list")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	if strings.TrimSpace(*sourceDir) == "" && strings.TrimSpace(*sources) == "" {
 		if path := defaultMarkdownSourceDir(); path != "" {
@@ -294,7 +294,7 @@ func runSyncMarkdown(ctx context.Context, args []string) {
 	isPrivate := fs.Bool("private", true, "create or update target lists as private")
 	starMissing := fs.Bool("star-missing", true, "star repositories before assigning them to lists")
 	execute := fs.Bool("execute", false, "apply star and list changes")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	if strings.TrimSpace(*sourceDir) == "" && strings.TrimSpace(*sources) == "" {
 		if path := defaultMarkdownSourceDir(); path != "" {
@@ -332,7 +332,7 @@ func runInstallCodex(args []string) {
 	configPath := fs.String("config", "", "Codex config path override")
 	dotfilesDir := fs.String("dotfiles-dir", "", "dotfiles root override")
 	execute := fs.Bool("execute", false, "write the config instead of dry-run")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	result, err := githubstars.InstallCodexConfig(*configPath, *dotfilesDir, *execute)
 	fatalIf(err)
@@ -348,7 +348,7 @@ func runBootstrap(ctx context.Context, args []string) {
 	configPath := fs.String("config", "", "Codex config path override")
 	dotfilesDir := fs.String("dotfiles-dir", "", "dotfiles root override")
 	execute := fs.Bool("execute", false, "apply star and list mutations")
-	fs.Parse(args)
+	_ = fs.Parse(args)
 
 	client := mustClient(ctx)
 	plan, err := client.Bootstrap(ctx, splitCSV(*production), splitCSV(*experimental), splitCSV(*alpha), *installCodex, *configPath, *dotfilesDir, *execute)
