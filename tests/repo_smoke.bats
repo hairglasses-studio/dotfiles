@@ -325,6 +325,17 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "MISSING"
 }
 
+@test "shader preset blocks all resolve to darkwindow .glsl files" {
+    # Every [shaders.<name>.presets.*] in presets.toml must correspond
+    # to <name>.glsl. The shader_preset_apply MCP tool opens the shader
+    # source by this derived path; a rename that misses presets.toml
+    # makes the preset silently no-op at invocation time.
+    run bash "${SCRIPTS_DIR}/validate-shader-presets.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "MISSING"
+}
+
 @test "install.sh retroarch entries resolve to executable scripts" {
     # install.sh maps \$DOTFILES_DIR/scripts/retroarch-*.{py,sh} to
     # \$HOME/.local/bin/retroarch-*. A rename that misses one side silently
