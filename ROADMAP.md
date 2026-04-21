@@ -150,6 +150,7 @@ Standalone GTK4 PangoCairo 240Hz scrolling ticker replacing ironbar script-based
 - [x] [P2][S] `tests/repo_smoke.bats ok 4` — trimmed the kitty-wrapper pinning grep to the three live consumer files (`44014e8`). The stale `hyprland/pyprland.toml` and makima Xbox controller paths are gone.
 - [x] [P2][S] `tests/repo_smoke.bats ok 7` — replaced the retired `hg input --help` test with an equivalent `hg gamepad --help` assertion (`44014e8`). All 12 smoke tests now pass.
 - [x] [P2][S] `tests/repo_smoke.bats ok 13` — walk install.sh `--print-link-specs`, filter to `retroarch-*` sources, assert each exists and has +x (`1753da3`). Landing the gate caught three scripts missing +x (sync/audit/install-workstation-cores) from the 2026-04-21 workstation commit.
+- [x] [P2][S] `tests/migrate_repo_crontab_paths.bats` — added the missing `scripts/migrate-repo-crontab-paths.sh` so the three orphaned bats cases go green (`e2a3a2a`). `--check` / `--apply` modes rewrite `chromecast4k/scripts/` → `hg-android/scripts/` in the user crontab.
 
 ### Blocked (needs external infrastructure)
 - [ ] [BLOCKED: needs headless Hyprland] Shader: preview gallery with static renders
