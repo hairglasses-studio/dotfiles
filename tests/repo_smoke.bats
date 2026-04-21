@@ -304,6 +304,17 @@ print(f'skills={len(declared)} drift=0')
     assert_output --partial "missing_units=0"
 }
 
+@test "shader playlists all resolve to darkwindow .glsl files" {
+    # Parallel to the kitty theme playlist gate (ok 12), but for the
+    # shader rotation. kitty-shader-playlist.sh silently drops entries
+    # that don't resolve, so a rename or a cleanup that deletes a .glsl
+    # without updating the playlist quietly shrinks the rotation.
+    run bash "${SCRIPTS_DIR}/validate-shader-playlists.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "MISSING"
+}
+
 @test "install.sh retroarch entries resolve to executable scripts" {
     # install.sh maps \$DOTFILES_DIR/scripts/retroarch-*.{py,sh} to
     # \$HOME/.local/bin/retroarch-*. A rename that misses one side silently
