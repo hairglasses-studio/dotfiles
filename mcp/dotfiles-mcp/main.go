@@ -2146,12 +2146,13 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					pullCmd.Dir = repoPath
 					out, err := pullCmd.CombinedOutput()
 					outStr := strings.TrimSpace(string(out))
-					if err != nil {
+					switch {
+					case err != nil:
 						failed++
 						details = append(details, FullSyncDetail{Repo: e.Name(), Action: "pull-failed", Detail: outStr})
-					} else if strings.Contains(outStr, "Already up to date") || strings.Contains(outStr, "Already up-to-date") {
+					case strings.Contains(outStr, "Already up to date") || strings.Contains(outStr, "Already up-to-date"):
 						current++
-					} else {
+					default:
 						pulled++
 						details = append(details, FullSyncDetail{Repo: e.Name(), Action: "pulled", Detail: outStr})
 					}
@@ -2365,11 +2366,12 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 				dir := dotfilesDir()
 
 				// Compositor detection.
-				if os.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "" {
+				switch {
+				case os.Getenv("HYPRLAND_INSTANCE_SIGNATURE") != "":
 					result.Compositor = "hyprland"
-				} else if os.Getenv("SWAYSOCK") != "" {
+				case os.Getenv("SWAYSOCK") != "":
 					result.Compositor = "sway"
-				} else {
+				default:
 					result.Compositor = "unknown"
 				}
 
