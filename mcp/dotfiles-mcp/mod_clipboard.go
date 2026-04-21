@@ -132,7 +132,11 @@ func (m *ClipboardModule) Tools() []registry.ToolDefinition {
 				}
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
-					json.Unmarshal(b, &input)
+					// Ignore error — unmarshal failure leaves input at zero-value
+					// and downstream handler validation surfaces the missing required
+					// fields via ErrInvalidParam. Keeping the explicit _ = marker so
+					// errcheck stays clean and the intent is obvious.
+					_ = json.Unmarshal(b, &input)
 				}
 
 				if input.Text == "" {
@@ -315,7 +319,11 @@ func (m *ClipboardModule) Tools() []registry.ToolDefinition {
 					ID string `json:"id"`
 				}
 				b, _ := json.Marshal(req.Params.Arguments)
-				json.Unmarshal(b, &input)
+				// Ignore error — unmarshal failure leaves input at zero-value
+				// and downstream handler validation surfaces the missing required
+				// fields via ErrInvalidParam. Keeping the explicit _ = marker so
+				// errcheck stays clean and the intent is obvious.
+				_ = json.Unmarshal(b, &input)
 
 				if input.ID == "" {
 					return handler.CodedErrorResult(handler.ErrInvalidParam, fmt.Errorf("id must not be empty")), nil
@@ -367,7 +375,11 @@ func (m *ClipboardModule) Tools() []registry.ToolDefinition {
 					Execute bool   `json:"execute"`
 				}
 				b, _ := json.Marshal(req.Params.Arguments)
-				json.Unmarshal(b, &input)
+				// Ignore error — unmarshal failure leaves input at zero-value
+				// and downstream handler validation surfaces the missing required
+				// fields via ErrInvalidParam. Keeping the explicit _ = marker so
+				// errcheck stays clean and the intent is obvious.
+				_ = json.Unmarshal(b, &input)
 
 				if input.Query == "" {
 					return handler.CodedErrorResult(handler.ErrInvalidParam, fmt.Errorf("query must not be empty")), nil
@@ -428,7 +440,11 @@ func (m *ClipboardModule) Tools() []registry.ToolDefinition {
 					Execute bool `json:"execute"`
 				}
 				b, _ := json.Marshal(req.Params.Arguments)
-				json.Unmarshal(b, &input)
+				// Ignore error — unmarshal failure leaves input at zero-value
+				// and downstream handler validation surfaces the missing required
+				// fields via ErrInvalidParam. Keeping the explicit _ = marker so
+				// errcheck stays clean and the intent is obvious.
+				_ = json.Unmarshal(b, &input)
 
 				if !input.Execute {
 					return &registry.CallToolResult{
