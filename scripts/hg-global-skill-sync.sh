@@ -63,23 +63,16 @@ extract_description() {
 # placeholder with a note. The natural language instructions remain identical.
 transform_stdin() {
   # Rewrite Claude-only tokens into provider-neutral prose.
-  # Specific rules fire first; a catch-all at the end strips the leading "/"
-  # from any remaining backticked slash-command so it reads as a skill name
-  # rather than a Claude-specific slash invocation.
+  # Order matters: specific rules fire first, then a catch-all strips the
+  # leading "/" from any remaining backticked slash-command so it reads as a
+  # skill name rather than a Claude-specific slash invocation.
   sed \
     -e 's/\$ARGUMENTS/[user-provided arguments]/g' \
     -e 's|`/reconnect`|reconnect all MCP servers|g' \
     -e 's|`/commit`|`git commit`|g' \
-    -e 's|`/loop \([^`]*\)`|set up a recurring loop (\1)|g' \
     -e 's|`/pipeline ship`|`make ship` (or repo-equivalent push pipeline)|g' \
     -e 's|`/pipeline check`|`make ci` (or repo-equivalent verify pipeline)|g' \
-    -e 's|`/pipeline \([^`]*\)`|re-run the pipeline (\1)|g' \
-    -e 's|`/pipeline`|the pipeline|g' \
     -e 's| /commit| git commit|g' \
-    -e 's| /pipeline | the pipeline |g' \
-    -e 's|inside `/loop`|in recurring mode|g' \
-    -e 's|`/loop`|a recurring loop|g' \
-    -e 's| /loop | a recurring loop |g' \
     -e 's|Run `/reconnect`|Reconnect all MCP servers|g' \
     -e 's|`/\([a-z][a-z0-9-]*\)|`\1|g'
 }
