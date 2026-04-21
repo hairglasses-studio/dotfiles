@@ -165,6 +165,16 @@ teardown() {
     refute_output --partial "ORPHAN"
 }
 
+@test "README/ROADMAP tool counts stay within 15% of the live snapshot" {
+    # Human-readable \"~N tools\" figures in README.md, ROADMAP.md,
+    # and mcp/dotfiles-mcp/CLAUDE.md are easy to leave stale when
+    # tools land or retire. Tolerance band of ±15% keeps rough claims
+    # honest without demanding exact-number churn on every tool add.
+    run bash "${SCRIPTS_DIR}/validate-tool-count-claims.sh"
+    assert_success
+    assert_output --partial "errors=0"
+}
+
 @test "tracked TOML, JSON, and YAML configs parse cleanly" {
     # Repo-wide syntax gate for config files. Uses Python's built-in
     # tomllib + json modules (Python 3.11+) and PyYAML for YAML. Skips

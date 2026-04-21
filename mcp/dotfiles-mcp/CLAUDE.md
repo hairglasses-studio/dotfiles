@@ -10,9 +10,9 @@ GOWORK=off go test ./... -count=1
 GOWORK=off go install .
 ```
 
-## Tools (~355)
+## Tools (~420)
 
-This server has grown to 30+ modules with ~355 tools. Use the discovery tools (`dotfiles_tool_search`, `dotfiles_tool_catalog`, `dotfiles_tool_schema`) to browse the full live catalog. The sections below cover the core tools.
+This server has grown to 30+ modules with ~420 tools (see `.well-known/mcp.json` for the exact count). Use the discovery tools (`dotfiles_tool_search`, `dotfiles_tool_catalog`, `dotfiles_tool_schema`) to browse the full live catalog. The sections below cover the core tools.
 
 ### Config Management (4)
 - `dotfiles_list_configs` — List dotfiles config directories with symlink health and format
