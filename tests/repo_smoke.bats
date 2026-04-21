@@ -135,6 +135,27 @@ teardown() {
     assert_success
 }
 
+@test "scripts shell sources all pass bash -n" {
+    # Repo-wide parse-time gate for bash scripts under scripts/ and
+    # scripts/lib/. Catches syntax errors shellcheck warnings don't —
+    # e.g. a stray \`; do\` on its own line, an unmatched \`fi\`, or a
+    # heredoc with a mismatched terminator. Skips the one zsh script
+    # (scripts/ccg.sh) and the one python-shebang helper
+    # (scripts/hypr-monitor-watch.sh). Runs in well under a second.
+    run bash -c '
+        fails=0
+        for f in "'"${DOTFILES_DIR}"'"/scripts/*.sh "'"${DOTFILES_DIR}"'"/scripts/lib/*.sh; do
+            [[ -f "$f" ]] || continue
+            head -c 40 "$f" | grep -q -E "env (bash|sh)" || continue
+            bash -n "$f" 2>&1 || { echo "FAIL: $f"; fails=$((fails + 1)); }
+        done
+        echo "shell_fails=$fails"
+        [[ $fails -eq 0 ]]
+    '
+    assert_success
+    assert_output --partial "shell_fails=0"
+}
+
 @test "scripts/ has no unreferenced orphans outside the allowlist" {
     # A new script that neither lands in the allowlist nor gets wired into a
     # consumer (install.sh, systemd, a config, another script, etc.) is a
