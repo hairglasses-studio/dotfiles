@@ -2735,9 +2735,12 @@ func main() {
 	}
 
 	// Initialize OpenTelemetry tracing (no-op unless OTEL_ENABLED=true).
+	// Intentionally NOT using defer here — the error path below calls
+	// os.Exit(1) which skips deferred functions and would drop
+	// in-flight spans. Both success and failure paths invoke
+	// shutdownTracing explicitly.
 	ctx := context.Background()
 	shutdownTracing := tracing.Init(ctx, dotfilesMCPVersion)
-	defer shutdownTracing(ctx)
 
 	cbRegistry := resilience.NewCircuitBreakerRegistry(nil)
 	mw := []registry.Middleware{
@@ -2761,6 +2764,8 @@ func main() {
 
 	if err := registry.ServeAuto(s); err != nil {
 		slog.Error("server stopped", "error", err)
+		shutdownTracing(ctx)
 		os.Exit(1)
 	}
+	shutdownTracing(ctx)
 }

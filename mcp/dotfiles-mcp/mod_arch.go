@@ -386,9 +386,7 @@ func (m *ArchModule) Tools() []registry.ToolDefinition {
 		handler.TypedHandler[ArchPkgbuildAuditInput, archPKGBuildAuditOutput](
 			"arch_pkgbuild_audit",
 			"Audit an AUR PKGBUILD or raw PKGBUILD content for risky patterns.",
-			func(ctx context.Context, input ArchPkgbuildAuditInput) (archPKGBuildAuditOutput, error) {
-				return archAuditPKGBUILD(ctx, input)
-			},
+			archAuditPKGBUILD,
 		),
 		handler.TypedHandler[ArchNewsInput, archNewsOutput](
 			"arch_news_latest",
@@ -437,9 +435,7 @@ func (m *ArchModule) Tools() []registry.ToolDefinition {
 		handler.TypedHandler[ArchMirrorStatusInput, archMirrorStatusOutput](
 			"arch_mirror_status",
 			"Return the healthiest official Arch Linux mirrors from the mirror-status JSON feed.",
-			func(ctx context.Context, input ArchMirrorStatusInput) (archMirrorStatusOutput, error) {
-				return archMirrorStatus(ctx, input)
-			},
+			archMirrorStatus,
 		),
 		handler.TypedHandler[ArchPacmanLogInput, archPacmanLogOutput](
 			"arch_pacman_log",

@@ -412,10 +412,8 @@ func TestDeviceRe(t *testing.T) {
 			if m[2] != tc.name {
 				t.Errorf("name = %q, want %q", m[2], tc.name)
 			}
-		} else {
-			if m != nil {
-				t.Errorf("unexpected match for %q", tc.input)
-			}
+		} else if m != nil {
+			t.Errorf("unexpected match for %q", tc.input)
 		}
 	}
 }
