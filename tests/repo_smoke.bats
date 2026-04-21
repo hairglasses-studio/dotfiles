@@ -116,6 +116,16 @@ teardown() {
     refute_output --partial "MISSING"
 }
 
+@test "tracked TOML and JSON configs parse cleanly" {
+    # Repo-wide syntax gate for config files. Uses Python's built-in
+    # tomllib + json modules (Python 3.11+), so no pip install needed.
+    # Skips chezmoi symlink_* source files — those carry a target path,
+    # not config. Runs in ~30ms.
+    run bash "${SCRIPTS_DIR}/validate-config-syntax.sh"
+    assert_success
+    assert_output --partial "errors=0"
+}
+
 @test "scripts Python sources all py_compile cleanly" {
     # Cheap repo-wide syntax gate for Python scripts (~0.1s on 63 files).
     # Catches SyntaxError / IndentationError / unterminated f-strings before
