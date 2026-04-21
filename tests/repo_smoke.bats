@@ -153,6 +153,18 @@ teardown() {
     refute_output --partial "MISSING"
 }
 
+@test "/tmp/bar-*.txt cache consumers all have producers" {
+    # Every /tmp/bar-<name>.txt path read by ironbar widgets, ticker
+    # streams.toml entries, or ticker Python plugins must have a
+    # writer under scripts/bar-*-cache.sh or systemd/bar-*.service.
+    # A new widget pointing at an unwritten cache renders blank; a
+    # new cache file no consumer reads is dead work each refresh.
+    run bash "${SCRIPTS_DIR}/validate-bar-cache-refs.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "ORPHAN"
+}
+
 @test "tracked TOML, JSON, and YAML configs parse cleanly" {
     # Repo-wide syntax gate for config files. Uses Python's built-in
     # tomllib + json modules (Python 3.11+) and PyYAML for YAML. Skips
