@@ -261,6 +261,9 @@ $DOTFILES_DIR/scripts/dev-console.sh|$HOME/.local/bin/dev-console
 $DOTFILES_DIR/scripts/pin-dev-console-session.sh|$HOME/.local/bin/pin-dev-console-session
 $DOTFILES_DIR/scripts/retroarch-archive-homebrew-manifest.py|$HOME/.local/bin/retroarch-archive-homebrew-manifest
 $DOTFILES_DIR/scripts/retroarch-archive-homebrew-fetch.py|$HOME/.local/bin/retroarch-archive-homebrew-fetch
+$DOTFILES_DIR/scripts/retroarch-archive-homebrew-review.py|$HOME/.local/bin/retroarch-archive-homebrew-review
+$DOTFILES_DIR/scripts/retroarch-archive-homebrew-import.py|$HOME/.local/bin/retroarch-archive-homebrew-import
+$DOTFILES_DIR/scripts/retroarch-archive-homebrew-playlists.py|$HOME/.local/bin/retroarch-archive-homebrew-playlists
 $DOTFILES_DIR/scripts/retroarch-install-widescreen-cores.sh|$HOME/.local/bin/retroarch-install-widescreen-cores
 $DOTFILES_DIR/scripts/retroarch-dolphin-sync-sys.sh|$HOME/.local/bin/retroarch-dolphin-sync-sys
 $DOTFILES_DIR/scripts/retroarch-next-widescreen-setup.sh|$HOME/.local/bin/retroarch-next-widescreen-setup
