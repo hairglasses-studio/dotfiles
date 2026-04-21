@@ -159,6 +159,11 @@
       "name": "decision_journal",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "ticker",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
