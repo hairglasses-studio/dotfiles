@@ -750,6 +750,7 @@ func captureEventsIPC(ctx context.Context, deviceName string, durationSec int) (
 	byCode := make(map[string]*eventData)
 	totalEvents := 0
 
+learnLoop:
 	for {
 		var notif ipcNotification
 		if err := dec.Decode(&notif); err != nil {
@@ -783,7 +784,9 @@ func captureEventsIPC(ctx context.Context, deviceName string, durationSec int) (
 
 		select {
 		case <-ctx.Done():
-			break
+			// Labeled break — without the label we'd only exit the
+			// select and keep reading events past ctx cancellation.
+			break learnLoop
 		default:
 		}
 	}
@@ -856,6 +859,7 @@ func monitorEventsIPC(ctx context.Context, deviceName string, durationSec int) [
 
 	var events []MonitorEvent
 
+monitorLoop:
 	for {
 		var notif ipcNotification
 		if err := dec.Decode(&notif); err != nil {
@@ -883,7 +887,9 @@ func monitorEventsIPC(ctx context.Context, deviceName string, durationSec int) [
 
 		select {
 		case <-ctx.Done():
-			break
+			// Labeled break — without the label we'd only exit the
+			// select and keep appending events past ctx cancellation.
+			break monitorLoop
 		default:
 		}
 	}
