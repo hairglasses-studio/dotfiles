@@ -6,75 +6,39 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 import zipfile
 from pathlib import Path
 
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), "lib"))
+
+import retroarch_profile
+
+
 SAFE_DEFAULT_TIERS = {"public_domain", "verified_redistributable"}
 DEFAULT_SUBDIR = "archive-homebrew"
-
-SYSTEM_PLAYLISTS = {
-    "gb": {
-        "playlist": "Nintendo - Game Boy.lpl",
-        "core_path": "/usr/lib/libretro/sameboy_libretro.so",
-        "core_name": "Nintendo - Game Boy / Color (SameBoy)",
-        "extensions": {".gb"},
-    },
-    "gba": {
-        "playlist": "Nintendo - Game Boy Advance.lpl",
-        "core_path": "/usr/lib/libretro/mgba_libretro.so",
-        "core_name": "Nintendo - Game Boy Advance (mGBA)",
-        "extensions": {".gba"},
-    },
-    "gbc": {
-        "playlist": "Nintendo - Game Boy Color.lpl",
-        "core_path": "/usr/lib/libretro/sameboy_libretro.so",
-        "core_name": "Nintendo - Game Boy / Color (SameBoy)",
-        "extensions": {".gbc", ".gb"},
-    },
-    "genesis": {
-        "playlist": "Sega - Mega Drive - Genesis.lpl",
-        "core_path": "/usr/lib/libretro/genesis_plus_gx_libretro.so",
-        "core_name": "Sega - MS/GG/MD/CD (Genesis Plus GX)",
-        "extensions": {".bin", ".gen", ".md"},
-    },
-    "nes": {
-        "playlist": "Nintendo - Nintendo Entertainment System.lpl",
-        "core_path": "/usr/lib/libretro/mesen_libretro.so",
-        "core_name": "Nintendo - NES / Famicom (Mesen)",
-        "extensions": {".nes"},
-    },
-    "ngp": {
-        "playlist": "SNK - Neo Geo Pocket Color.lpl",
-        "core_path": "",
-        "core_name": "DETECT",
-        "extensions": {".ngc", ".ngp"},
-    },
-    "pce": {
-        "playlist": "NEC - PC Engine - TurboGrafx 16.lpl",
-        "core_path": "/usr/lib/libretro/mednafen_pce_fast_libretro.so",
-        "core_name": "NEC - PC Engine / CD (Beetle PCE FAST)",
-        "extensions": {".pce"},
-    },
-    "snes": {
-        "playlist": "Nintendo - Super Nintendo Entertainment System.lpl",
-        "core_path": "/usr/lib/libretro/bsnes_hd_beta_libretro.so",
-        "core_name": "Nintendo - SNES (bsnes-hd beta)",
-        "extensions": {".sfc", ".smc", ".fig"},
-    },
-    "wonderswan": {
-        "playlist": "Bandai - WonderSwan.lpl",
-        "core_path": "",
-        "core_name": "DETECT",
-        "extensions": {".ws", ".wsc"},
-    },
-}
+SYSTEM_PLAYLISTS: dict[str, dict] = {}
 
 
 def _expand(path: str | None, default: Path) -> Path:
     if not path:
         return default
     return Path(os.path.expandvars(os.path.expanduser(path)))
+
+
+def _load_system_playlists(profile_path: str | None = None) -> dict[str, dict]:
+    raw = retroarch_profile.load_playlist_map(profile_path)
+    systems: dict[str, dict] = {}
+    for system, entry in raw.items():
+        core_filename = str(entry["core_filename"])
+        systems[system] = {
+            "playlist": entry["playlist"],
+            "core_path": str(Path("/usr/lib/libretro") / core_filename),
+            "core_name": entry["core_name"],
+            "extensions": set(entry["extensions"]),
+        }
+    return systems
 
 
 def _load_playlist(path: Path) -> dict:
@@ -142,6 +106,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--playlist-root", help="RetroArch playlist directory.")
     parser.add_argument("--subdir", default=DEFAULT_SUBDIR, help="Imported ROM subdirectory under each system dir.")
     parser.add_argument(
+        "--retroarch-profile",
+        help="Optional path to the shared RomHub RetroArch profile YAML.",
+    )
+    parser.add_argument(
         "--tier",
         action="append",
         choices=["public_domain", "verified_redistributable", "homebrew_unverified", "utility_unverified"],
@@ -167,6 +135,8 @@ def main(argv: list[str] | None = None) -> int:
     manifest = json.loads(manifest_path.read_text())
     allowed_tiers = set(args.tier or sorted(SAFE_DEFAULT_TIERS))
     allowed_systems = set(args.system or [])
+    global SYSTEM_PLAYLISTS
+    SYSTEM_PLAYLISTS = _load_system_playlists(args.retroarch_profile)
 
     playlist_cache: dict[Path, dict] = {}
     existing_paths: dict[Path, set[str]] = {}
