@@ -18,7 +18,10 @@ BUS="io.hairglasses.keybind_ticker"
 OBJ="/io/hairglasses/Ticker"
 IFACE="io.hairglasses.Ticker"
 
-_gdbus() { gdbus call --session -d "$BUS" -o "$OBJ" -m "$IFACE.$@" 2>&1; }
+_gdbus() {
+  local method="$1"; shift
+  gdbus call --session -d "$BUS" -o "$OBJ" -m "$IFACE.$method" "$@" 2>&1
+}
 
 _prop() {
   gdbus call --session -d "$BUS" -o "$OBJ" \
