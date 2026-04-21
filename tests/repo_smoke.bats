@@ -95,3 +95,10 @@ teardown() {
     assert_output --partial "PASS  mapping"
     assert_output --partial "PASS  tmux-mcp"
 }
+
+@test "kitty theme playlists all resolve against the bundled catalog" {
+    run bash "${SCRIPTS_DIR}/kitty-playlist-validate.sh"
+    assert_success
+    assert_output --partial "all resolve"
+    refute_output --partial "MISSING"
+}
