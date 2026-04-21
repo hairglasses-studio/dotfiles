@@ -167,5 +167,5 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 ### Tier 2 — Medium Priority Skills
 
 - [ ] [P2][M] Phase-gated pipeline — hard enforcement of plan -> human review -> implement -> verify phases in dev-loop; agents cannot skip steps. Ref: avifenesh/agentsys
-- [ ] [P2][S] Hidden assumption surfacer — `/common-ground` skill revealing Claude's implicit priors about the repo before starting work. Ref: jeffallan/claude-skills
+- [x] [P2][S] Hidden assumption surfacer — `.agents/skills/common_ground/SKILL.md` deployed. Surfaces Claude's implicit priors about a repo (language, build system, test framework, CI, etc.), verifies each in parallel via fast file checks, reports confirmed/rebutted/unknown deltas, and prompts the user for redirect before code changes start. Read-only, 2-3 minute budget. Ref: jeffallan/claude-skills
 - [ ] [P2][S] Decision journal skill — auto-record architectural decisions with rationale, exportable for docs. Ref: pcatattacks/solopreneur-plugin

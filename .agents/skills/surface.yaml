@@ -149,6 +149,11 @@
       "name": "perf_profile",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "common_ground",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
