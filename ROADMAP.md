@@ -147,8 +147,8 @@ Standalone GTK4 PangoCairo 240Hz scrolling ticker replacing ironbar script-based
 
 ### Test Infra
 - [x] [P2][S] `tests/repo_smoke.bats` / `hg mcp mirror parity check` — trimmed the parity manifest to the three still-mirrored modules; the consolidated record lives in the new `mcp/mirror-parity.json` `consolidated` array (commit `dbcddab`).
-- [ ] [P2][S] `tests/repo_smoke.bats` `ok 4 launcher consumers stay pinned to the managed kitty wrappers` — asserts the removed `hyprland/pyprland.toml` file; the pyprland config lives at `pypr/config.toml` after the 2026-04-16 cleanup. Drop that path from the grep chain.
-- [ ] [P2][S] `tests/repo_smoke.bats` `ok 7 hg input help exposes the verify workflow` — the `input` module was removed from `scripts/hg` when makima/juhradial were dropped. Either reinstate a no-op `input` stub or retire the test. Gamepad / mapping workflows now live under `hg gamepad` and `mapping` MCP tools.
+- [x] [P2][S] `tests/repo_smoke.bats ok 4` — trimmed the kitty-wrapper pinning grep to the three live consumer files (`44014e8`). The stale `hyprland/pyprland.toml` and makima Xbox controller paths are gone.
+- [x] [P2][S] `tests/repo_smoke.bats ok 7` — replaced the retired `hg input --help` test with an equivalent `hg gamepad --help` assertion (`44014e8`). All 12 smoke tests now pass.
 
 ### Blocked (needs external infrastructure)
 - [ ] [BLOCKED: needs headless Hyprland] Shader: preview gallery with static renders
