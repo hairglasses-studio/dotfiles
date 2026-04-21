@@ -364,15 +364,18 @@ func (m *LearnModule) Tools() []registry.ToolDefinition {
 					}
 					content := fmt.Sprintf(tmpl, c.Name, c.Brand, labels)
 
-					if err := os.MkdirAll(makimaDir(), 0755); err == nil {
-						os.WriteFile(profilePath, []byte(content), 0644)
+					action := "generated"
+					if err := os.MkdirAll(makimaDir(), 0755); err != nil {
+						action = "failed"
+					} else if err := os.WriteFile(profilePath, []byte(content), 0644); err != nil {
+						action = "failed"
 					}
 
 					results = append(results, DeviceSetupResult{
 						Name:    c.Name,
 						Type:    "gamepad",
 						Brand:   c.Brand,
-						Action:  "generated",
+						Action:  action,
 						Profile: profilePath,
 					})
 				}
@@ -399,8 +402,11 @@ func (m *LearnModule) Tools() []registry.ToolDefinition {
 							}
 							if tmpl, ok := midiTemplates[tmplName]; ok {
 								content := fmt.Sprintf(tmpl, d.Name, d.RawPath, d.Name, d.RawPath)
-								os.MkdirAll(midiDir(), 0755)
-								os.WriteFile(mappingPath, []byte(content), 0644)
+								if err := os.MkdirAll(midiDir(), 0755); err != nil {
+									action = "failed"
+								} else if err := os.WriteFile(mappingPath, []byte(content), 0644); err != nil {
+									action = "failed"
+								}
 							}
 						}
 						results = append(results, DeviceSetupResult{

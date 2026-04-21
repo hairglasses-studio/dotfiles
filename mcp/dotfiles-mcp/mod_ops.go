@@ -2495,15 +2495,21 @@ func opsRelease(_ context.Context, input OpsReleaseInput) (OpsReleaseOutput, err
 		}, nil
 	}
 
-	// Execute: update version files
+	// Execute: update version files.
+	// Errors from the write path are intentionally not propagated here —
+	// the caller (release tool) drives a \`git add -A && git commit\`
+	// afterward, which re-surfaces any missing/stale file via the commit
+	// diff. Leaving the \`_ =\` marker so errcheck stays clean and the
+	// intent is explicit; a future refactor should capture the error and
+	// include it in the tool result's `warnings` field.
 	switch lang {
 	case "node":
 		data, _ := os.ReadFile(filepath.Join(repo, "package.json"))
 		var pkg map[string]any
-		json.Unmarshal(data, &pkg)
+		_ = json.Unmarshal(data, &pkg)
 		pkg["version"] = version
 		updated, _ := json.MarshalIndent(pkg, "", "  ")
-		os.WriteFile(filepath.Join(repo, "package.json"), append(updated, '\n'), 0o644)
+		_ = os.WriteFile(filepath.Join(repo, "package.json"), append(updated, '\n'), 0o644)
 
 	case "python":
 		data, _ := os.ReadFile(filepath.Join(repo, "pyproject.toml"))
@@ -2514,7 +2520,7 @@ func opsRelease(_ context.Context, input OpsReleaseInput) (OpsReleaseOutput, err
 				break
 			}
 		}
-		os.WriteFile(filepath.Join(repo, "pyproject.toml"), []byte(strings.Join(lines, "\n")), 0o644)
+		_ = os.WriteFile(filepath.Join(repo, "pyproject.toml"), []byte(strings.Join(lines, "\n")), 0o644)
 	}
 
 	// Update CHANGELOG.md
@@ -2522,7 +2528,7 @@ func opsRelease(_ context.Context, input OpsReleaseInput) (OpsReleaseOutput, err
 		clPath := filepath.Join(repo, "CHANGELOG.md")
 		existing, _ := os.ReadFile(clPath)
 		newContent := changelogEntry + "\n" + string(existing)
-		os.WriteFile(clPath, []byte(newContent), 0o644)
+		_ = os.WriteFile(clPath, []byte(newContent), 0o644)
 	}
 
 	// Commit

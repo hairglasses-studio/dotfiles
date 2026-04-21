@@ -862,8 +862,12 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					base := filepath.Base(input.Path)
 					backupPath := filepath.Join(backupDir, fmt.Sprintf("%s.%s.bak", base, ts))
 					if data, err := os.ReadFile(input.Path); err == nil {
-						os.WriteFile(backupPath, data, 0o644)
-						result.BackupPath = backupPath
+						// Only report BackupPath on a successful write; a
+						// failed backup would make the reply claim a path
+						// that doesn't exist.
+						if err := os.WriteFile(backupPath, data, 0o644); err == nil {
+							result.BackupPath = backupPath
+						}
 					}
 				}
 
