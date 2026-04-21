@@ -2,6 +2,14 @@
 Description=dotfiles keybind ticker (pixel-smooth scrolling bar)
 PartOf=graphical-session.target
 After=graphical-session.target ironbar.service
+# Crash-loop guard: after 5 starts in 60s systemd stops retrying so we
+# don't mask a genuine bug behind a silent retry loop. Prior default
+# (5 in 10s) was too aggressive — brief hyprland reloads tripped it.
+# Note: these StartLimit* directives only parse under [Unit]; placing
+# them under [Service] emits an "Unknown key" warning and leaves the
+# guard inactive (systemd-analyze verify catches this).
+StartLimitBurst=5
+StartLimitIntervalSec=60
 
 [Service]
 Type=simple
@@ -20,11 +28,6 @@ ExecStart=/usr/bin/python3 %h/hairglasses-studio/dotfiles/scripts/keybind-ticker
 SuccessExitStatus=143
 Restart=on-failure
 RestartSec=2
-# Crash-loop guard: after 5 starts in 60s systemd stops retrying so we
-# don't mask a genuine bug behind a silent retry loop. Prior default
-# (5 in 10s) was too aggressive — brief hyprland reloads tripped it.
-StartLimitBurst=5
-StartLimitIntervalSec=60
 # Resource caps: ticker peaks at ~100M RSS after glyph-mask caching;
 # 160M leaves breathing room for phosphor_trail + ghost_echo frames.
 MemoryMax=160M
