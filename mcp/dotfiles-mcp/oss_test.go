@@ -620,10 +620,11 @@ func TestCheckRelease_MinimalRepo(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module github.com/test/repo\n\ngo 1.21\n"), 0644)
 	os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\nfunc main() {}\n"), 0644)
 
-	// Initialize git repo for semver tag check
-	if _, err := os.Stat(filepath.Join(dir, ".git")); err != nil {
-		// Not a git repo -- checkRelease won't find tags, which is fine
-	}
+	// Not a git repo (no .git dir) — checkRelease has to tolerate that
+	// and produce a structured result instead of crashing. The test
+	// doesn't need to probe .git itself; if checkRelease grew a crash
+	// path that only fires without .git, the result-shape assertion
+	// below catches it.
 
 	results := checkRelease(dir)
 	if len(results) == 0 {

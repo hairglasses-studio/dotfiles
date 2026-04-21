@@ -2568,13 +2568,17 @@ func (m *ClaudeSessionModule) Tools() []registry.ToolDefinition {
 				if window == "" {
 					window = "4h"
 				}
-				studioPath := input.StudioPath
-				if studioPath == "" {
-					studioPath = filepath.Join(homeDir(), "hairglasses-studio")
-				}
-				if strings.HasPrefix(studioPath, "~/") {
-					studioPath = filepath.Join(homeDir(), studioPath[2:])
-				}
+				// input.StudioPath is part of FleetRecoveryInput for API
+				// symmetry with the other recovery tools (see RecoveryReport
+				// at line 1835, SessionsByRepo at 2356). Fleet recovery
+				// itself operates on the global session scan and doesn't
+				// yet scope repo enumeration by studio path — intentionally
+				// leaving the field accepted-but-ignored so callers passing
+				// `studio_path` don't see a schema break when/if it gets
+				// wired in. staticcheck (SA4006) would flag a local copy
+				// of this value as dead, so we read it directly when we
+				// actually need it below.
+				_ = input.StudioPath
 
 				windowDur, err := parseDurationString(window)
 				if err != nil {
