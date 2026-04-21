@@ -1,5 +1,5 @@
 ---
-name: dotfiles-audit
+name: dotfiles_audit
 description: Run a comprehensive dotfiles health and stale-reference audit. Use when cleaning up after removing tools/terminals/bars, after palette changes, after MCP consolidation, or whenever you want to verify the repo is internally consistent. Also use proactively before commits that touch many files, after major refactors, or when the user says "audit", "check for stale", "verify cleanup", "anything left?", or "is the repo clean?".
 ---
 
