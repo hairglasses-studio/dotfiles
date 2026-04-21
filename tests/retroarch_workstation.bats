@@ -266,3 +266,116 @@ PY
     assert_success
     assert_output "ok"
 }
+
+@test "retroarch-apply-network-cmd flips cfg atomically with backup and supports --revert" {
+    local config_dir="${XDG_CONFIG_HOME}/retroarch"
+    local cfg="${config_dir}/retroarch.cfg"
+    mkdir -p "${config_dir}"
+    cat > "${cfg}" <<'EOF'
+video_fullscreen_x = "5120"
+video_fullscreen_y = "1440"
+network_cmd_enable = "false"
+EOF
+    local original_contents
+    original_contents="$(cat "${cfg}")"
+
+    # Dry-run must leave the file untouched and print no-op.
+    run env HOME="${HOME}" XDG_CONFIG_HOME="${XDG_CONFIG_HOME}" \
+        python3 "${DOTFILES_DIR}/scripts/retroarch-apply-network-cmd.py" \
+        --config-dir "${config_dir}" --dry-run
+    assert_success
+    assert_output --partial "applied=no"
+    [[ "$(cat "${cfg}")" == "${original_contents}" ]]
+
+    # Live apply flips enable + sets port, writes a backup copy.
+    run env HOME="${HOME}" XDG_CONFIG_HOME="${XDG_CONFIG_HOME}" \
+        python3 "${DOTFILES_DIR}/scripts/retroarch-apply-network-cmd.py" \
+        --config-dir "${config_dir}"
+    assert_success
+    assert_output --partial "applied=yes"
+    assert_output --partial "backup="
+    grep -q 'network_cmd_enable = "true"' "${cfg}"
+    grep -q 'network_cmd_port = "55355"' "${cfg}"
+    run bash -c "ls ${cfg}.bak.* 2>/dev/null | head -1"
+    assert_success
+    [[ -n "$output" ]]
+
+    # --revert flips back to false without touching the port.
+    run env HOME="${HOME}" XDG_CONFIG_HOME="${XDG_CONFIG_HOME}" \
+        python3 "${DOTFILES_DIR}/scripts/retroarch-apply-network-cmd.py" \
+        --config-dir "${config_dir}" --revert
+    assert_success
+    grep -q 'network_cmd_enable = "false"' "${cfg}"
+    grep -q 'network_cmd_port = "55355"' "${cfg}"
+}
+
+@test "retroarch-bios-apply --dry-run reports planned steps without touching the system dir" {
+    local config_dir="${XDG_CONFIG_HOME}/retroarch"
+    local system_dir="${config_dir}/system"
+    local output_path="${BATS_TEST_TMPDIR}/bios-apply.json"
+    local profile="${BATS_TEST_TMPDIR}/retroarch.yaml"
+
+    mkdir -p "${config_dir}"
+    cat > "${config_dir}/retroarch.cfg" <<EOF
+system_directory = "${system_dir}"
+EOF
+
+    cat > "${profile}" <<'YAML'
+id: retroarch
+name: "RetroArch"
+description: "test"
+path_template: "/roms/{platform}/{game}{ext}"
+max_filename_length: 255
+strip_region: false
+strip_revision: false
+supported_platforms:
+  - dreamcast
+  - psp
+preferred_extensions:
+  - .iso
+default_regions: ["USA"]
+default_languages: ["En"]
+retroarch_requirements:
+  - "dreamcast|dir|required|dc||Flycast system subdirectory"
+  - "psp|dir_nonempty|required|PPSSPP||PPSSPP helper asset directory"
+YAML
+
+    run env HOME="${HOME}" XDG_CONFIG_HOME="${XDG_CONFIG_HOME}" \
+        python3 "${DOTFILES_DIR}/scripts/retroarch-bios-apply.py" \
+        --config-dir "${config_dir}" \
+        --retroarch-profile "${profile}" \
+        --dry-run \
+        --output "${output_path}"
+    assert_success
+    assert_output --partial "dry_run=yes"
+
+    [[ ! -e "${system_dir}/dc" ]]
+    [[ ! -e "${system_dir}/PPSSPP" ]]
+
+    run python3 - <<PY
+import json
+from pathlib import Path
+data = json.loads(Path("${output_path}").read_text())
+assert data["dry_run"] is True
+assert data["applied_steps"] == []
+planned = data["planned_steps"]
+kinds = {(step["system"], step["kind"]) for step in planned}
+assert ("dreamcast", "mkdir") in kinds
+assert ("psp", "sparse_clone") in kinds
+print("ok")
+PY
+    assert_success
+    assert_output "ok"
+}
+
+@test "retroarch-build-libretro-cores --dry-run lists race and beetle-wswan steps" {
+    run bash "${DOTFILES_DIR}/scripts/retroarch-build-libretro-cores.sh" --dry-run
+    assert_success
+    assert_output --partial "DRY-RUN race"
+    assert_output --partial "libretro/race.git"
+    assert_output --partial "race_libretro.so"
+    assert_output --partial "DRY-RUN beetle-wswan"
+    assert_output --partial "beetle-wswan-libretro.git"
+    assert_output --partial "mednafen_wswan_libretro.so"
+    refute_output --partial "make -C"
+}

@@ -267,6 +267,9 @@ $DOTFILES_DIR/scripts/retroarch-archive-homebrew-playlists.py|$HOME/.local/bin/r
 $DOTFILES_DIR/scripts/retroarch-archive-homebrew-sync.py|$HOME/.local/bin/retroarch-archive-homebrew-sync
 $DOTFILES_DIR/scripts/retroarch-workstation-audit.py|$HOME/.local/bin/retroarch-workstation-audit
 $DOTFILES_DIR/scripts/retroarch-install-workstation-cores.sh|$HOME/.local/bin/retroarch-install-workstation-cores
+$DOTFILES_DIR/scripts/retroarch-bios-apply.py|$HOME/.local/bin/retroarch-bios-apply
+$DOTFILES_DIR/scripts/retroarch-apply-network-cmd.py|$HOME/.local/bin/retroarch-apply-network-cmd
+$DOTFILES_DIR/scripts/retroarch-build-libretro-cores.sh|$HOME/.local/bin/retroarch-build-libretro-cores
 $DOTFILES_DIR/scripts/retroarch-install-widescreen-cores.sh|$HOME/.local/bin/retroarch-install-widescreen-cores
 $DOTFILES_DIR/scripts/retroarch-dolphin-sync-sys.sh|$HOME/.local/bin/retroarch-dolphin-sync-sys
 $DOTFILES_DIR/scripts/retroarch-next-widescreen-setup.sh|$HOME/.local/bin/retroarch-next-widescreen-setup

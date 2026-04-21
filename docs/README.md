@@ -8,6 +8,7 @@ This directory holds the searchable, repo-local documents that sit below the roo
 - `MCP-MIRROR-PARITY.md`: mirrored MCP module inventory and the parity verification contract.
 - `RESOURCES.md`: external community references and upstream project links.
 - `SPRINT-NEXT.md`: historical sprint handoff and session context.
+- `retroarch-workstation.md`: RetroArch workstation tooling — audit, BIOS/helper apply, core install/build, network-command toggle, and one-shot Archive.org sync.
 
 ## Use
 
