@@ -116,6 +116,24 @@ teardown() {
     refute_output --partial "MISSING"
 }
 
+@test "systemd units under systemd/ pass systemd-analyze verify" {
+    # Parse-time gate for .service / .timer unit files. Skips if
+    # systemd-analyze is missing on the runner (some minimal CI images).
+    # Filters the one intentional informational warning about the
+    # opt-in kitty-save-session service whose ExecStart is gated by
+    # ConditionPathExists — that file isn't installed by default and
+    # the condition makes the missing script a no-op, not a bug.
+    command -v systemd-analyze >/dev/null 2>&1 || skip "systemd-analyze not installed"
+    run bash -c "systemd-analyze verify '${DOTFILES_DIR}'/systemd/*.service '${DOTFILES_DIR}'/systemd/*.timer 2>&1 \
+        | grep -vE 'kitty-save-session\\.service: Command .* is not executable' \
+        | grep -vE '^[[:space:]]*$' \
+        || true"
+    assert_success
+    # Assert the filtered output has no residual 'Unknown key' or error lines.
+    refute_output --partial "Unknown key"
+    refute_output --partial "Failed to"
+}
+
 @test "tracked TOML, JSON, and YAML configs parse cleanly" {
     # Repo-wide syntax gate for config files. Uses Python's built-in
     # tomllib + json modules (Python 3.11+) and PyYAML for YAML. Skips
