@@ -59,7 +59,9 @@ for dep in "${DEPS[@]}"; do
 
   # Check if all versions are the same
   if [[ ${#VERSIONS[@]} -eq 1 ]]; then
-    ver="${!VERSIONS[@]}"
+    # Single key — `[*]` form expresses the string-assignment intent
+    # (and silences SC2124; `[@]` in a string context is ambiguous).
+    ver="${!VERSIONS[*]}"
     count=$(echo "${VERSIONS[$ver]}" | wc -w)
     printf "%s%-45s %s (%d repos)%s\n" "$HG_GREEN" "$dep" "$ver" "$count" "$HG_RESET"
   else

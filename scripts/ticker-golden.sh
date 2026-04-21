@@ -93,7 +93,7 @@ _streams_for() {
 case "$SUBCMD" in
   list)
     if [[ -d "$BASELINE_DIR" ]]; then
-      cd "$BASELINE_DIR"
+      cd "$BASELINE_DIR" || exit 1
       for f in *.png; do
         [[ -f "$f" ]] || continue
         printf '%-25s  %s  %s\n' \
