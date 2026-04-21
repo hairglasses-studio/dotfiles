@@ -110,13 +110,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--tier",
         action="append",
-        choices=["public_domain", "homebrew_unverified", "utility_unverified"],
-        help="Download additional tiers. Default is public_domain only.",
+        choices=["public_domain", "verified_redistributable", "homebrew_unverified", "utility_unverified"],
+        help="Download additional tiers. Default includes public_domain and verified_redistributable.",
     )
     parser.add_argument(
         "--system",
         action="append",
-        choices=["dreamcast", "wii", "n64", "snes", "genesis"],
         help="Limit downloads to specific systems.",
     )
     parser.add_argument(
@@ -146,7 +145,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     manifest = json.loads(manifest_path.read_text())
-    allowed_tiers = set(args.tier or ["public_domain"])
+    allowed_tiers = set(args.tier or ["public_domain", "verified_redistributable"])
     allowed_systems = set(args.system or [])
     ia_ready = _ia_authenticated()
     use_ia = args.transport == "ia" or (args.transport == "auto" and ia_ready)
@@ -160,7 +159,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         if allowed_systems and entry["system"] not in allowed_systems:
             continue
-        if entry["tier"] == "public_domain" or entry.get("default_selected"):
+        if entry["tier"] in {"public_domain", "verified_redistributable"} or entry.get("default_selected"):
             selected.append(entry)
         elif args.tier:
             selected.append(entry)

@@ -1,0 +1,44 @@
+{
+  "entries": [
+    {
+      "source_identifier": "homebrew-romsets",
+      "archive_path": "Game Boy/TobuTobuGirl.zip",
+      "tier": "verified_redistributable",
+      "reasons": [
+        "official source code is MIT licensed and assets are CC BY 4.0 licensed",
+        "official project pages provide playable/downloadable ROM binaries"
+      ],
+      "evidence": [
+        "https://github.com/SimonLarsen/tobutobugirl/blob/master/README.md",
+        "https://github.com/SimonLarsen/tobutobugirl/blob/master/LICENSE",
+        "https://tangramgames.itch.io/tobutobugirl"
+      ]
+    },
+    {
+      "source_identifier": "homebrew-romsets",
+      "archive_path": "Game Boy Color/Tobu Tobu Girl Deluxe.zip",
+      "tier": "verified_redistributable",
+      "reasons": [
+        "official source code is MIT licensed and assets are CC BY 4.0 licensed",
+        "official project pages provide playable/downloadable ROM binaries"
+      ],
+      "evidence": [
+        "https://github.com/SimonLarsen/tobutobugirl-dx/blob/master/README.md",
+        "https://github.com/SimonLarsen/tobutobugirl-dx/blob/master/LICENSE",
+        "https://tangramgames.itch.io/tobutobugirldx"
+      ]
+    },
+    {
+      "source_identifier": "homebrew-romsets",
+      "archive_path": "Game Boy Color/Postie-1.1.zip",
+      "tier": "verified_redistributable",
+      "reasons": [
+        "official itch page lists MIT code license and CC BY 4.0 asset license",
+        "official project page offers direct ROM downloads"
+      ],
+      "evidence": [
+        "https://invertedhat.itch.io/postie"
+      ]
+    }
+  ]
+}

@@ -18,6 +18,9 @@ from typing import Any
 
 ARCHIVE_METADATA_URL = "https://archive.org/metadata/{identifier}"
 ARCHIVE_DOWNLOAD_URL = "https://archive.org/download/{identifier}/{path}"
+DEFAULT_VERIFIED_OVERRIDES_PATH = (
+    Path(__file__).resolve().parent / "lib" / "retroarch_archive_homebrew_verified.json"
+)
 
 
 @dataclass(frozen=True)
@@ -35,9 +38,21 @@ SOURCES: list[SourceItem] = [
         kind="romset",
         system_dirs={
             "Dreamcast": "dreamcast",
-            "Nintendo 64": "n64",
-            "Super Nintendo": "snes",
+            "Game Boy": "gb",
+            "Game Boy Advance": "gba",
+            "Game Boy Color": "gbc",
             "Genesis": "genesis",
+            "Nintendo 64": "n64",
+            "Nintendo DS": "nds",
+            "NES": "nes",
+            "Neo Geo Pocket": "ngp",
+            "PC Engine": "pce",
+            "PlayStation": "psx",
+            "PlayStation Portable": "psp",
+            "Pokemon Mini": "pokemonmini",
+            "Super Nintendo": "snes",
+            "Virtual Boy": "vb",
+            "Wonderswan": "wonderswan",
         },
     ),
     SourceItem(
@@ -50,11 +65,17 @@ SOURCES: list[SourceItem] = [
     ),
 ]
 
+SYSTEM_CHOICES = tuple(sorted({system_id for source in SOURCES for system_id in source.system_dirs.values()}))
+SAFE_DEFAULT_TIERS = {"public_domain", "verified_redistributable"}
+
 
 CONTENT_EXTENSIONS = {
     ".zip",
     ".7z",
     ".rar",
+    ".gba",
+    ".gb",
+    ".gbc",
     ".cdi",
     ".chd",
     ".cue",
@@ -66,12 +87,16 @@ CONTENT_EXTENSIONS = {
     ".z64",
     ".v64",
     ".n64",
+    ".nds",
+    ".nes",
     ".sfc",
     ".smc",
     ".fig",
     ".bin",
     ".md",
     ".gen",
+    ".min",
+    ".wsc",
 }
 
 
@@ -102,6 +127,9 @@ FRANCHISE_RISK_PATTERNS = [
     r"\bkong\b",
     r"\bflappy bird\b",
     r"\bpringles\b",
+    r"\bbattle kid\b",
+    r"\bmr\.?\s*do!?\b",
+    r"\bpicross\b",
 ]
 
 
@@ -128,6 +156,19 @@ def _is_content_file(name: str) -> bool:
 
 def _matches_any(patterns: list[str], text: str) -> bool:
     return any(re.search(pattern, text, re.IGNORECASE) for pattern in patterns)
+
+
+def _load_verified_overrides(path: Path) -> dict[tuple[str, str], dict[str, Any]]:
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text())
+    entries = payload.get("entries", payload)
+    overrides: dict[tuple[str, str], dict[str, Any]] = {}
+    for entry in entries:
+        source_identifier = entry["source_identifier"]
+        archive_path = entry["archive_path"]
+        overrides[(source_identifier, archive_path)] = entry
+    return overrides
 
 
 def _classify_entry(source: SourceItem, system_id: str, name: str) -> tuple[str, list[str]]:
@@ -157,7 +198,7 @@ def _classify_entry(source: SourceItem, system_id: str, name: str) -> tuple[str,
         reasons.append("aftermarket/unlicensed marker without explicit public-domain grant")
         return "homebrew_unverified", reasons
 
-    if system_id in {"dreamcast", "n64", "snes", "genesis"}:
+    if source.kind == "romset":
         reasons.append("sourced from a homebrew collection, but no explicit public-domain marker")
         return "homebrew_unverified", reasons
 
@@ -165,10 +206,14 @@ def _classify_entry(source: SourceItem, system_id: str, name: str) -> tuple[str,
     return "excluded", reasons
 
 
-def build_manifest(selected_systems: set[str] | None = None) -> dict[str, Any]:
+def build_manifest(
+    selected_systems: set[str] | None = None,
+    verified_overrides: dict[tuple[str, str], dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     entries: list[dict[str, Any]] = []
     summary_by_system: dict[str, Counter] = defaultdict(Counter)
     source_summaries: list[dict[str, Any]] = []
+    verified_overrides = verified_overrides or {}
 
     for source in SOURCES:
         metadata = _fetch_metadata(source.identifier)
@@ -190,6 +235,12 @@ def build_manifest(selected_systems: set[str] | None = None) -> dict[str, Any]:
 
             tier, reasons = _classify_entry(source, system_id, name)
             rel_path = name
+            override = verified_overrides.get((source.identifier, rel_path))
+            evidence = []
+            if override:
+                tier = override.get("tier", "verified_redistributable")
+                reasons = list(override.get("reasons", reasons))
+                evidence = list(override.get("evidence", []))
             entry = {
                 "system": system_id,
                 "source_identifier": source.identifier,
@@ -197,8 +248,9 @@ def build_manifest(selected_systems: set[str] | None = None) -> dict[str, Any]:
                 "archive_path": rel_path,
                 "file_name": Path(rel_path).name,
                 "tier": tier,
-                "default_selected": tier == "public_domain",
+                "default_selected": tier in SAFE_DEFAULT_TIERS,
                 "reasons": reasons,
+                "evidence": evidence,
                 "download_url": ARCHIVE_DOWNLOAD_URL.format(
                     identifier=source.identifier,
                     path=urllib.parse.quote(rel_path, safe="/()[]!'+,.-_ "),
@@ -221,6 +273,7 @@ def build_manifest(selected_systems: set[str] | None = None) -> dict[str, Any]:
         system: {
             "count": sum(counter.values()),
             "public_domain_count": counter["public_domain"],
+            "verified_redistributable_count": counter["verified_redistributable"],
             "homebrew_unverified_count": counter["homebrew_unverified"],
             "utility_unverified_count": counter["utility_unverified"],
             "excluded_count": counter["excluded"],
@@ -241,17 +294,26 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--system",
         action="append",
-        choices=["dreamcast", "wii", "n64", "snes", "genesis"],
+        choices=SYSTEM_CHOICES,
         help="Limit manifest generation to specific system ids.",
     )
     parser.add_argument(
         "--output",
         help="Write manifest JSON to a custom path.",
     )
+    parser.add_argument(
+        "--verified-overrides",
+        help="Path to JSON overrides for verified redistributable items.",
+    )
     args = parser.parse_args(argv)
 
     selected_systems = set(args.system) if args.system else None
-    manifest = build_manifest(selected_systems)
+    overrides_path = _expand(
+        args.verified_overrides or os.environ.get("RETROARCH_ARCHIVE_VERIFIED_OVERRIDES"),
+        DEFAULT_VERIFIED_OVERRIDES_PATH,
+    )
+    verified_overrides = _load_verified_overrides(overrides_path)
+    manifest = build_manifest(selected_systems, verified_overrides)
     output_path = _expand(
         args.output or os.environ.get("RETROARCH_ARCHIVE_HOMEBREW_MANIFEST"),
         Path.home() / ".local" / "state" / "retroarch-archive" / "homebrew-manifest.json",
@@ -263,6 +325,7 @@ def main(argv: list[str] | None = None) -> int:
     for system, counts in manifest["summary"].items():
         summary_bits.append(
             f"{system}:count={counts['count']},pd={counts['public_domain_count']},"
+            f"verified={counts['verified_redistributable_count']},"
             f"unverified={counts['homebrew_unverified_count']},utility={counts['utility_unverified_count']}"
         )
     print(output_path)
