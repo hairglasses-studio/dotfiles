@@ -315,12 +315,9 @@ func (m *KeybindsModule) Tools() []registry.ToolDefinition {
 					return handler.ErrorResult(err), nil
 				}
 
-				// Group by modmask+key
-				type groupKey struct {
-					Modmask int
-					Key     string
-					Submap  string
-				}
+				// Group by modmask+key (the composite key is built inline
+				// below as a formatted string; the type was planned but
+				// the map ended up keyed by string).
 				groups := make(map[string][]hyprBind)
 				for _, r := range raw {
 					mask := rawGetInt(r, "modmask")

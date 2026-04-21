@@ -43,14 +43,6 @@ func audioSinkArg(sink string) string {
 	return sink
 }
 
-// audioSourceArg returns the wpctl source identifier, defaulting to @DEFAULT_AUDIO_SOURCE@.
-func audioSourceArg(source string) string {
-	if source == "" {
-		return "@DEFAULT_AUDIO_SOURCE@"
-	}
-	return source
-}
-
 // ---------------------------------------------------------------------------
 // Input types
 // ---------------------------------------------------------------------------
