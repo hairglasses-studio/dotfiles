@@ -116,11 +116,11 @@ teardown() {
     refute_output --partial "MISSING"
 }
 
-@test "tracked TOML and JSON configs parse cleanly" {
+@test "tracked TOML, JSON, and YAML configs parse cleanly" {
     # Repo-wide syntax gate for config files. Uses Python's built-in
-    # tomllib + json modules (Python 3.11+), so no pip install needed.
-    # Skips chezmoi symlink_* source files — those carry a target path,
-    # not config. Runs in ~30ms.
+    # tomllib + json modules (Python 3.11+) and PyYAML for YAML. Skips
+    # chezmoi symlink_* source files — those carry a target path, not
+    # config. Runs in ~50ms across ~160 files.
     run bash "${SCRIPTS_DIR}/validate-config-syntax.sh"
     assert_success
     assert_output --partial "errors=0"

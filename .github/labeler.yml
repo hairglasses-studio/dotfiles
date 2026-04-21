@@ -1,23 +1,23 @@
-area: ci:
+"area: ci":
   - changed-files:
       - any-glob-to-any-file:
           - '.github/**'
           - '.codex/**'
 
-area: docs:
+"area: docs":
   - changed-files:
       - any-glob-to-any-file:
           - '**/*.md'
           - 'LICENSE'
 
-area: tools:
+"area: tools":
   - changed-files:
       - any-glob-to-any-file:
           - '*.go'
           - 'go.mod'
           - 'go.sum'
 
-area: tests:
+"area: tests":
   - changed-files:
       - any-glob-to-any-file:
           - '*_test.go'
