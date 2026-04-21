@@ -942,7 +942,7 @@ func sandboxScreenshotHandler(_ context.Context, req registry.CallToolRequest) (
 	var input SandboxScreenshotInput
 	if req.Params.Arguments != nil {
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 	}
 
 	if input.ID == "" {
@@ -1024,7 +1024,7 @@ func sandboxVisualDiffHandler(_ context.Context, req registry.CallToolRequest) (
 	var input SandboxVisualDiffInput
 	if req.Params.Arguments != nil {
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 	}
 
 	if input.ID == "" {

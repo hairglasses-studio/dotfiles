@@ -128,7 +128,7 @@ func (m *HyprshadeModule) Tools() []registry.ToolDefinition {
 				}
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
-					json.Unmarshal(b, &input)
+					_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 				}
 
 				if strings.TrimSpace(input.Shader) == "" {
@@ -181,7 +181,7 @@ func (m *HyprshadeModule) Tools() []registry.ToolDefinition {
 				}
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
-					json.Unmarshal(b, &input)
+					_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 				}
 
 				if strings.TrimSpace(input.Shader) == "" {

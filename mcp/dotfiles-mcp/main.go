@@ -1797,7 +1797,10 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 					currentCmd.Stdout = &currentOut
 					var previous map[string]bool
 					if err := currentCmd.Run(); err == nil {
-						json.Unmarshal(currentOut.Bytes(), &previous)
+						// Ignore parse errors — previous stays nil and the
+						// allMatch check below treats that as "no prior state,
+						// apply settings fresh".
+						_ = json.Unmarshal(currentOut.Bytes(), &previous)
 					}
 
 					// Check if all settings already match.

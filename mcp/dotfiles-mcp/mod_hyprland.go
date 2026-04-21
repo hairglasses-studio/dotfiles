@@ -271,7 +271,7 @@ func (m *HyprlandModule) Tools() []registry.ToolDefinition {
 				var input ScreenshotInput
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
-					json.Unmarshal(b, &input)
+					_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 				}
 
 				raw := "/tmp/hypr-screenshot-raw.png"
@@ -993,7 +993,7 @@ func (m *HyprlandModule) Tools() []registry.ToolDefinition {
 				input.Save = &defaultSave
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
-					json.Unmarshal(b, &input)
+					_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 				}
 				doSave := input.Save == nil || *input.Save
 
@@ -1076,7 +1076,7 @@ func handleHyprMoveWindow(_ context.Context, req registry.CallToolRequest) (*reg
 	}
 	if req.Params.Arguments != nil {
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 	}
 
 	selector, err := resolveHyprWindow(input.Address, input.Class, "")
@@ -1106,7 +1106,7 @@ func handleHyprResizeWindow(_ context.Context, req registry.CallToolRequest) (*r
 	}
 	if req.Params.Arguments != nil {
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 	}
 
 	selector, err := resolveHyprWindow(input.Address, input.Class, "")
@@ -1134,7 +1134,7 @@ func handleHyprCloseWindow(_ context.Context, req registry.CallToolRequest) (*re
 	}
 	if req.Params.Arguments != nil {
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 	}
 
 	selector, err := resolveHyprWindow(input.Address, input.Class, "")
@@ -1161,7 +1161,7 @@ func handleHyprToggleFloating(_ context.Context, req registry.CallToolRequest) (
 	}
 	if req.Params.Arguments != nil {
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 	}
 
 	selector, err := resolveHyprWindow(input.Address, input.Class, "")
@@ -1188,7 +1188,7 @@ func handleHyprMinimizeWindow(_ context.Context, req registry.CallToolRequest) (
 	}
 	if req.Params.Arguments != nil {
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 	}
 
 	selector, err := resolveHyprWindow(input.Address, input.Class, "")
@@ -1217,7 +1217,7 @@ func handleHyprFullscreenWindow(_ context.Context, req registry.CallToolRequest)
 	}
 	if req.Params.Arguments != nil {
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 	}
 
 	selector, err := resolveHyprWindow(input.Address, input.Class, "")
@@ -1260,7 +1260,7 @@ func handleHyprScreenshotWindow(_ context.Context, req registry.CallToolRequest)
 			MaxSize float64 `json:"max_size"`
 		}
 		b, _ := json.Marshal(req.Params.Arguments)
-		json.Unmarshal(b, &input)
+		_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 		address = input.Address
 		class = input.Class
 		if input.MaxSize > 0 {

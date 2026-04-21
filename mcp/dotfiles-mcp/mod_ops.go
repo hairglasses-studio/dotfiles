@@ -2448,7 +2448,7 @@ func opsRelease(_ context.Context, input OpsReleaseInput) (OpsReleaseOutput, err
 		data, err := os.ReadFile(filepath.Join(repo, "package.json"))
 		if err == nil {
 			var pkg map[string]any
-			json.Unmarshal(data, &pkg)
+			_ = json.Unmarshal(data, &pkg) // parse failure leaves pkg nil; the `ok` check below handles it
 			if v, ok := pkg["version"].(string); ok {
 				currentVersion = v
 			}
@@ -3158,7 +3158,7 @@ func opsRepoAnalyze(_ context.Context, input OpsRepoAnalyzeInput) (OpsRepoAnalyz
 				Dependencies    map[string]string `json:"dependencies"`
 				DevDependencies map[string]string `json:"devDependencies"`
 			}
-			json.Unmarshal(data, &pkg)
+			_ = json.Unmarshal(data, &pkg) // parse failure leaves both maps nil; the range loops below no-op
 			allDeps := make(map[string]string)
 			for k, v := range pkg.Dependencies {
 				allDeps[k] = v

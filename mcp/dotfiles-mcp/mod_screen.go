@@ -153,7 +153,7 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				var input ScreenScreenshotInput
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
-					json.Unmarshal(b, &input)
+					_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 				}
 
 				outPath := input.OutputPath
@@ -521,7 +521,7 @@ func (m *ScreenModule) Tools() []registry.ToolDefinition {
 				var input ScreenScreenshotAnnotatedInput
 				if req.Params.Arguments != nil {
 					b, _ := json.Marshal(req.Params.Arguments)
-					json.Unmarshal(b, &input)
+					_ = json.Unmarshal(b, &input) // zero-value input on malformed args; downstream validation surfaces missing fields
 				}
 
 				outPath := input.OutputPath
