@@ -259,6 +259,7 @@ $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
 $DOTFILES_DIR/scripts/dev-console.sh|$HOME/.local/bin/dev-console
 $DOTFILES_DIR/scripts/pin-dev-console-session.sh|$HOME/.local/bin/pin-dev-console-session
+$DOTFILES_DIR/scripts/palette-playlist.sh|$HOME/.local/bin/palette-playlist
 $DOTFILES_DIR/scripts/retroarch-archive-homebrew-manifest.py|$HOME/.local/bin/retroarch-archive-homebrew-manifest
 $DOTFILES_DIR/scripts/retroarch-archive-homebrew-fetch.py|$HOME/.local/bin/retroarch-archive-homebrew-fetch
 $DOTFILES_DIR/scripts/retroarch-archive-homebrew-review.py|$HOME/.local/bin/retroarch-archive-homebrew-review

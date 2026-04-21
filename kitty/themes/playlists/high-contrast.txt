@@ -1,0 +1,20 @@
+# High-contrast playlist — sharp blacks, bright foregrounds.
+# For outdoor / bright-room use or when you want maximum legibility.
+GitHub Dark High Contrast
+Solarized Dark Higher Contrast
+Solarized Dark - Patched
+Dot Gov
+Smyck
+Tomorrow Night Bright
+Thayer Bright
+Vibrant Ink
+Bright Lights
+Hardcore
+IR Black
+ANSI 1987
+1984 Dark
+E-Ink Dark
+Wizzy Bright
+Gruvbox Dark Hard
+Everforest Dark Hard
+Gruvbox Material Dark Hard

@@ -1,0 +1,33 @@
+# Cyberpunk / neon / synthwave playlist — high-saturation, retro-future.
+# Entries must match display names in kitty/themes/themes.json.
+# Validate with: kitty +kitten themes --dump-theme "<name>"
+Cyberpunk
+Cyberpunk Neon
+Pastel Cyberpunk
+ENCOM
+Neowave
+SynthWave 84 python
+VividPunk
+Cobalt Neon
+Cobalt2
+Tropical Neon
+Warm Neon
+Thayer Bright
+Vibrant Ink
+Nightfly
+Tokyo Night
+Tokyo Night Moon
+Tokyo Night Storm
+Spiderman
+Popping and Locking
+Laserwave
+Blood Moon
+Fairyfloss
+Copland OS
+Spacedust
+Galaxy
+Duotone Dark
+Kanagawa_dragon
+noirblaze
+purpurite
+Vesper
