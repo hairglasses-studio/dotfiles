@@ -189,18 +189,31 @@ teardown() {
     # .agents/skills/surface.yaml is the curated registry that drives
     # chezmoi skill publication. A skill dir on disk without an entry
     # in surface.yaml silently fails to publish; an entry without a
-    # directory points at nothing. This gate catches both kinds of
-    # drift. Runs in ~100ms.
+    # directory points at nothing. This gate also checks each canonical
+    # SKILL.md carries a frontmatter `name:` matching its directory —
+    # a hyphen-vs-underscore drift silently breaks invocation routing.
+    # Runs in ~100ms.
     run python3 -c "
-import json, os, sys
-d = json.load(open('${DOTFILES_DIR}/.agents/skills/surface.yaml'))
+import json, os, re, sys
+root = '${DOTFILES_DIR}/.agents/skills'
+d = json.load(open(f'{root}/surface.yaml'))
 declared = {s['name'] for s in d['skills']}
-dirs = {e for e in os.listdir('${DOTFILES_DIR}/.agents/skills/') if os.path.isdir(os.path.join('${DOTFILES_DIR}/.agents/skills/', e))}
+dirs = {e for e in os.listdir(root) if os.path.isdir(os.path.join(root, e))}
 only_declared = declared - dirs
 only_dirs = dirs - declared
-if only_declared or only_dirs:
+name_drift = []
+for subdir in sorted(dirs):
+    skill_md = os.path.join(root, subdir, 'SKILL.md')
+    if not os.path.isfile(skill_md):
+        continue
+    text = open(skill_md).read()
+    m = re.search(r'^name:\s*(\S+)', text, re.M)
+    if m and m.group(1) != subdir:
+        name_drift.append(f'{subdir}: frontmatter name={m.group(1)}')
+if only_declared or only_dirs or name_drift:
     print(f'declared_but_no_dir={sorted(only_declared)}')
     print(f'dir_but_not_declared={sorted(only_dirs)}')
+    print(f'name_drift={name_drift}')
     sys.exit(1)
 print(f'skills={len(declared)} drift=0')
 "
