@@ -115,8 +115,7 @@ case "$file_path" in
       for ref in \
         "Hack Nerd Font|legacy UI font" \
         "Matcha-dark-sea|legacy GTK theme" \
-        "JetBrains Mono|legacy font"
-      ; do
+        "JetBrains Mono|legacy font"; do
         IFS='|' read -r pattern label <<<"$ref"
         if grep -qi "$pattern" "$file_path" 2>/dev/null; then
           palette_warnings+=("[theme] ${label} reference in $file_path")
