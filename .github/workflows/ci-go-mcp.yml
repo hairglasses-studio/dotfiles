@@ -22,6 +22,13 @@ concurrency:
   group: ci-go-mcp-${{ github.ref }}
   cancel-in-progress: true
 
+# After the April 2026 consolidation, the bundled MCP modules are
+# dotfiles-mcp, mapitall, and mapping. Absorbed into dotfiles-mcp:
+# tmux-mcp (mod_tmux.go), systemd-mcp (mod_systemd.go), process-mcp
+# (mod_process.go). hg-mcp moved to the standalone
+# hairglasses-studio/hg-mcp repo. See mcp/mirror-parity.json's
+# `consolidated` array.
+
 jobs:
   lint:
     name: Lint (${{ matrix.module }})
@@ -31,18 +38,10 @@ jobs:
         include:
           - module: dotfiles-mcp
             gowork: ""
-          - module: hg-mcp
-            gowork: ""
           - module: mapitall
             gowork: ""
           - module: mapping
             gowork: off
-          - module: process-mcp
-            gowork: ""
-          - module: systemd-mcp
-            gowork: ""
-          - module: tmux-mcp
-            gowork: ""
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -63,18 +62,10 @@ jobs:
         include:
           - module: dotfiles-mcp
             gowork: ""
-          - module: hg-mcp
-            gowork: ""
           - module: mapitall
             gowork: ""
           - module: mapping
             gowork: off
-          - module: process-mcp
-            gowork: ""
-          - module: systemd-mcp
-            gowork: ""
-          - module: tmux-mcp
-            gowork: ""
     defaults:
       run:
         working-directory: mcp/${{ matrix.module }}
@@ -120,107 +111,6 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  systemd-live:
-    name: Test (systemd-mcp live)
-    runs-on: [self-hosted, archglasses, optimized]
-    defaults:
-      run:
-        working-directory: mcp/systemd-mcp
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
-        with:
-          go-version-file: mcp/go.work
-
-      - name: Preflight live systemd capabilities
-        id: preflight
-        run: |
-          user_manager=false
-          system_manager=false
-
-          if command -v systemctl >/dev/null 2>&1; then
-            if systemctl --user show-environment >/tmp/systemd-mcp-user.out 2>/tmp/systemd-mcp-user.err; then
-              user_manager=true
-            fi
-            if systemctl show-environment >/tmp/systemd-mcp-system.out 2>/tmp/systemd-mcp-system.err; then
-              system_manager=true
-            fi
-          fi
-
-          echo "user_manager=$user_manager" >> "$GITHUB_OUTPUT"
-          echo "system_manager=$system_manager" >> "$GITHUB_OUTPUT"
-
-          {
-            echo "### systemd-mcp live preflight"
-            echo "- user_manager: $user_manager"
-            echo "- system_manager: $system_manager"
-            if [ "$user_manager" != "true" ] && [ -f /tmp/systemd-mcp-user.err ]; then
-              echo
-              echo "user-manager probe stderr:"
-              echo '```'
-              cat /tmp/systemd-mcp-user.err
-              echo '```'
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Run live integration tests
-        if: steps.preflight.outputs.user_manager == 'true'
-        env:
-          SYSTEMD_MCP_LIVE: "1"
-        run: go test -race -count=1 ./...
-
-      - name: Skip note
-        if: steps.preflight.outputs.user_manager != 'true'
-        run: echo "Skipping systemd-mcp live integration tests because the runner does not expose a usable user manager." >> "$GITHUB_STEP_SUMMARY"
-
-  systemd-live-system:
-    name: Test (systemd-mcp system scope)
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted, archglasses, optimized]
-    defaults:
-      run:
-        working-directory: mcp/systemd-mcp
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
-        with:
-          go-version-file: mcp/go.work
-
-      - name: Preflight system-scope capabilities
-        id: preflight
-        run: |
-          system_manager=false
-
-          if command -v systemctl >/dev/null 2>&1; then
-            if systemctl show-environment >/tmp/systemd-mcp-system.out 2>/tmp/systemd-mcp-system.err; then
-              system_manager=true
-            fi
-          fi
-
-          echo "system_manager=$system_manager" >> "$GITHUB_OUTPUT"
-
-          {
-            echo "### systemd-mcp system-scope preflight"
-            echo "- system_manager: $system_manager"
-            if [ "$system_manager" != "true" ] && [ -f /tmp/systemd-mcp-system.err ]; then
-              echo
-              echo "system-manager probe stderr:"
-              echo '```'
-              cat /tmp/systemd-mcp-system.err
-              echo '```'
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Run system-scope live tests
-        if: steps.preflight.outputs.system_manager == 'true'
-        env:
-          SYSTEMD_MCP_LIVE: "1"
-        run: go test -race -count=1 -run 'TestStatus_SystemScope' ./...
-
-      - name: Skip note
-        if: steps.preflight.outputs.system_manager != 'true'
-        run: echo "Skipping system-scope live tests because the runner does not expose a usable system manager." >> "$GITHUB_STEP_SUMMARY"
-
   build:
     name: Build (${{ matrix.module }})
     runs-on: [self-hosted, archglasses, optimized]
@@ -229,18 +119,10 @@ jobs:
         include:
           - module: dotfiles-mcp
             gowork: ""
-          - module: hg-mcp
-            gowork: ""
           - module: mapitall
             gowork: ""
           - module: mapping
             gowork: off
-          - module: process-mcp
-            gowork: ""
-          - module: systemd-mcp
-            gowork: ""
-          - module: tmux-mcp
-            gowork: ""
     defaults:
       run:
         working-directory: mcp/${{ matrix.module }}
@@ -256,16 +138,17 @@ jobs:
         run: go build ./...
 
       - name: Check go.mod tidy
-        if: matrix.module == 'hg-mcp'
+        if: matrix.module == 'dotfiles-mcp'
         run: |
-          for dir in dotfiles-mcp hg-mcp mapitall mapping process-mcp systemd-mcp tmux-mcp; do
+          for dir in dotfiles-mcp mapitall mapping; do
             echo "Checking $dir..."
             if [ "$dir" = "mapping" ]; then
-              (cd "$dir" && GOWORK=off go mod tidy)
+              (cd "../$dir" && GOWORK=off go mod tidy)
             else
-              (cd "$dir" && go mod tidy)
+              (cd "../$dir" && go mod tidy)
             fi
           done
+          cd ..
           if ! git diff --exit-code -- '*/go.mod' '*/go.sum'; then
             echo "::error::go.mod or go.sum is not tidy. Run 'go mod tidy' in the affected module(s)."
             exit 1
@@ -286,9 +169,9 @@ jobs:
 
       - name: Build server binaries
         run: |
-          for srv in dotfiles-mcp process-mcp systemd-mcp tmux-mcp; do
-            go build -o "$srv/$srv" "./$srv"
-          done
+          # Only dotfiles-mcp has a root-level main.go producing a server
+          # binary (mapitall uses cmd/mapitall; mapping is a library).
+          go build -o dotfiles-mcp/dotfiles-mcp ./dotfiles-mcp
 
       - name: Smoke test — JSON-RPC initialize
         run: |
@@ -296,7 +179,7 @@ jobs:
           PASS=0
           FAIL=0
 
-          for srv in dotfiles-mcp process-mcp systemd-mcp tmux-mcp; do
+          for srv in dotfiles-mcp; do
             echo -n "Testing $srv... "
             RESPONSE=$(echo "$INIT" | timeout 10 "./$srv/$srv" 2>/dev/null || true)
 
