@@ -12,6 +12,14 @@ Single consolidated MCP server (dotfiles-mcp) with ~400 tools across 30+ modules
 
 ## Recently Completed
 
+### Palette Playlist + Kitty Theme Validator (2026-04-21)
+Turns the desktop color pipeline into a rotatable playlist and hardens the kitty theme rotation against typos:
+
+- **Palette playlist** (`scripts/palette-playlist.sh`): `theme/palette.env` becomes a symlink into `theme/palettes/<name>.env` — 9 curated palettes (hairglasses-neon, amber, deep-purple, forest, ice, matrix, rose-pine, sunset, synthwave) filling an identical 23-token schema. `list / current / status / set / next / prev / random / reset / preview`, atomic symlink swap, first-time migration backup, state recorded in `$XDG_STATE_HOME/palette/`, delegates to `palette-propagate.sh` for reload.
+- **Palette rules doc**: `.claude/rules/snazzy-palette.md` rewritten to token-first model with semantic invariants (`THEME_PRIMARY` always headline, `THEME_DANGER` always destructive) palettes must honor.
+- **Kitty theme playlists**: 5 new curated rotations (cool, cyberpunk, high-contrast, pastel, warm) consumed by `kitty-shader-playlist.sh`.
+- **Kitty playlist validator** (`scripts/kitty-playlist-validate.sh`): millisecond-fast edit-time check that resolves every playlist entry against `kitty/themes/themes.json` with fuzzy-match suggestions. Exposed via `~/.local/bin/kitty-playlist-validate`; wired into `tests/repo_smoke.bats` so `ci-bats` + `ci-smoke` enforce catalog parity on every push.
+
 ### RetroArch Workstation Tranche (2026-04-21)
 Shared RetroArch profile drives core + BIOS + runtime automation:
 
@@ -136,6 +144,9 @@ Standalone GTK4 PangoCairo 240Hz scrolling ticker replacing ironbar script-based
 - [ ] [P2][M] Record 30-sec demo GIF for README
 - [ ] [P3][M] Blog post: "Controlling Hyprland with an AI Agent via MCP"
 - [ ] [P3][S] Submit to PulseMCP, Glama, MCP Market directories
+
+### Test Infra
+- [ ] [P2][S] `tests/repo_smoke.bats` / `hg mcp mirror parity check` — test asserts `PASS tmux-mcp` but the `tmux-mcp`, `systemd-mcp`, and `process-mcp` modules were consolidated into `dotfiles-mcp` (see CLAUDE.md). The parity check needs the expected mirror set trimmed, or the test needs to tolerate consolidated modules. Currently a pre-existing `not ok 11` in CI.
 
 ### Blocked (needs external infrastructure)
 - [ ] [BLOCKED: needs headless Hyprland] Shader: preview gallery with static renders
