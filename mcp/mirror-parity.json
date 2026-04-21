@@ -21,27 +21,29 @@
       "canonical_path": "mcp/mapping",
       "purpose": "Shared Go package for mapping and profile resolution",
       "sync_strategy": "tree_sync"
-    },
+    }
+  ],
+  "consolidated": [
     {
-      "module": "process-mcp",
-      "standalone_repo": "process-mcp",
-      "canonical_path": "mcp/process-mcp",
-      "purpose": "Linux process inspection and debugging MCP server",
-      "sync_strategy": "tree_sync"
+      "module": "tmux-mcp",
+      "absorbed_into": "dotfiles-mcp",
+      "absorbed_at": "2026-04-16",
+      "handler": "mcp/dotfiles-mcp/mod_tmux.go",
+      "note": "Tmux session and workspace orchestration now lives under dotfiles-mcp. Standalone tmux-mcp repo is retired."
     },
     {
       "module": "systemd-mcp",
-      "standalone_repo": "systemd-mcp",
-      "canonical_path": "mcp/systemd-mcp",
-      "purpose": "Systemd service and timer management MCP server",
-      "sync_strategy": "tree_sync"
+      "absorbed_into": "dotfiles-mcp",
+      "absorbed_at": "2026-04-16",
+      "handler": "mcp/dotfiles-mcp/mod_systemd.go",
+      "note": "Systemd service and timer management now lives under dotfiles-mcp. Standalone systemd-mcp repo is retired."
     },
     {
-      "module": "tmux-mcp",
-      "standalone_repo": "tmux-mcp",
-      "canonical_path": "mcp/tmux-mcp",
-      "purpose": "Tmux session and workspace orchestration MCP server",
-      "sync_strategy": "tree_sync"
+      "module": "process-mcp",
+      "absorbed_into": "dotfiles-mcp",
+      "absorbed_at": "2026-04-16",
+      "handler": "mcp/dotfiles-mcp/mod_process.go",
+      "note": "Linux process inspection now lives under dotfiles-mcp. Standalone process-mcp repo is retired."
     }
   ]
 }
