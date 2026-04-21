@@ -146,8 +146,12 @@ exit 1
 	if out.IssueCount == 0 {
 		t.Fatal("expected degraded desktop issues")
 	}
-	if !hasIssueComponent(out.Issues, "desktop.hyprland") {
-		t.Fatalf("expected desktop.hyprland issue, got %+v", out.Issues)
+	// Hyprland-readiness issues are surfaced under rice.hyprland in the
+	// diagnostic namespace — the refactor that split rice-* out from
+	// desktop-* renamed this component. The shell-level readiness still
+	// falls under desktop.shell which is also checked below.
+	if !hasIssueComponent(out.Issues, "rice.hyprland") {
+		t.Fatalf("expected rice.hyprland issue, got %+v", out.Issues)
 	}
 	if !hasIssueComponent(out.Issues, "desktop.accessibility") {
 		t.Fatalf("expected desktop.accessibility issue, got %+v", out.Issues)
