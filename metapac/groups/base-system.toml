@@ -77,7 +77,7 @@ packages = [
     { name = "manjaro-settings-manager" },
     { name = "manjaro-settings-manager-notifier" },
     { name = "manjaro-browser-settings" },
-    { name = "manjaro-aur-support" },
+    # manjaro-aur-support: package not found in AUR/repos as of 2026-04-21; appears retired upstream
     { name = "manjaro-pipewire" },
     { name = "manjaro-zsh-config" },
     { name = "mhwd" },

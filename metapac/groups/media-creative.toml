@@ -21,7 +21,7 @@ packages = [
     { name = "jellyfin-web" },
 
     # Cloud storage
-    { name = "megacmd-bin" },
+    # megacmd-bin disabled: upstream URL (mega.nz/linux/repo/Arch_Extra/.../megacmd-2.5.1-1) 404s as of 2026-04-21
     { name = "megasync-bin" },
 
     # Document tools

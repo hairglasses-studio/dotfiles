@@ -6,7 +6,7 @@ packages = [
     { name = "foot" },
 
     # Shell
-    { name = "oh-my-zsh" },
+    # oh-my-zsh: installed by install.sh via upstream curl script (AUR package renamed to oh-my-zsh-git; install.sh handles bootstrap directly)
 
     # Prompt & history
     { name = "starship" },

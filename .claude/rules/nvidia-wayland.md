@@ -155,7 +155,7 @@ Recovery procedure:
 2. Hold monitor power button ~8 seconds until fully off.
 3. Unplug monitor power for 10+ seconds.
 4. Replug, let the monitor fully boot.
-5. Log back in through greetd → fresh Hyprland reads EDID with DSC restored.
+5. Log back in through SDDM → fresh Hyprland reads EDID with DSC restored.
 
 ## Known-bad settings to avoid
 

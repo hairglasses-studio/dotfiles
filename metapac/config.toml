@@ -20,6 +20,20 @@ archglasses = [
     "visual-effects",
     "utilities",
 ]
+archglasses-2 = [
+    "base-system",
+    "desktop-hyprland",
+    "terminal-shell",
+    "dev-tools",
+    "dev-languages",
+    "devops-cloud",
+    "media-creative",
+    "gaming",
+    "fonts",
+    "ai-ml",
+    "visual-effects",
+    "utilities",
+]
 
 [arch]
 package_manager = "paru"
