@@ -359,3 +359,15 @@ print(f'skills={len(declared)} drift=0')
     [[ ${#missing[@]} -eq 0 ]] || fail "missing retroarch sources: ${missing[*]}"
     [[ ${#non_executable[@]} -eq 0 ]] || fail "retroarch scripts missing +x bit: ${non_executable[*]}"
 }
+
+@test "compositor/bar configs only reference existing dotfiles paths" {
+    # Bypass the $HOME/.local/bin indirection: hyprland binds and
+    # ironbar/pypr commands sometimes point straight at
+    # $HOME/hairglasses-studio/dotfiles/<path>. ok 15 only covers
+    # ~/.local/bin/ wrappers — direct dotfile paths slip through, and
+    # a rename leaves a bind that silently no-ops on hyprctl dispatch.
+    run bash "${SCRIPTS_DIR}/validate-dotfiles-refs.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "MISSING"
+}

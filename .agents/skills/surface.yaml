@@ -164,6 +164,11 @@
       "name": "ticker",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "shader_forge",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
