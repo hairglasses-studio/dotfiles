@@ -53,14 +53,18 @@ declare -A SHADER_SOURCE
 declare -A SHADER_CATEGORY
 declare -A SHADER_DESC
 
-# Load all metadata from shaders.toml in a single pass
-while IFS=$'\t' read -r name cat cost src desc; do
+# Load all metadata from shaders.toml in a single pass.
+# Uses ASCII Unit Separator (0x1F) instead of tab: bash treats tab as IFS
+# whitespace and collapses consecutive tabs, so an empty source field would
+# shift description into the src slot. \x1f is non-whitespace and preserves
+# empty fields correctly.
+while IFS=$'\x1f' read -r name cat cost src desc; do
   SHADER_SOURCE["${name}.glsl"]="$src"
   SHADER_CATEGORY["${name}.glsl"]="$cat"
   SHADER_DESC["${name}.glsl"]="$desc"
-done < <(awk '
+done < <(awk -v SEP=$'\x1f' '
   /^\[shaders\."/ {
-    if (name != "") print name "\t" cat "\t" cost "\t" src "\t" desc
+    if (name != "") print name SEP cat SEP cost SEP src SEP desc
     name = $0
     gsub(/^\[shaders\."/, "", name)
     gsub(/"\].*/, "", name)
@@ -70,7 +74,7 @@ done < <(awk '
   /^cost *= */     { val=$0; sub(/^[^=]*= *"/, "", val); gsub(/"$/, "", val); cost=val }
   /^source *= */   { val=$0; sub(/^[^=]*= *"/, "", val); gsub(/"$/, "", val); src=val }
   /^description *= */ { val=$0; sub(/^[^=]*= *"/, "", val); gsub(/"$/, "", val); desc=val }
-  END { if (name != "") print name "\t" cat "\t" cost "\t" src "\t" desc }
+  END { if (name != "") print name SEP cat SEP cost SEP src SEP desc }
 ' "$MANIFEST")
 
 # ── List mode ──────────────────────────────────────

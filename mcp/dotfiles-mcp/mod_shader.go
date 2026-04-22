@@ -26,9 +26,9 @@ import (
 
 func shadersDir() string {
 	if d := os.Getenv("DOTFILES_DIR"); d != "" {
-		return filepath.Join(d, "kitty", "shaders", "crtty")
+		return filepath.Join(d, "kitty", "shaders", "darkwindow")
 	}
-	return filepath.Join(os.Getenv("HOME"), "hairglasses-studio", "dotfiles", "kitty", "shaders", "crtty")
+	return filepath.Join(os.Getenv("HOME"), "hairglasses-studio", "dotfiles", "kitty", "shaders", "darkwindow")
 }
 
 func wallpaperShadersDir() string {

@@ -77,11 +77,14 @@ _toml_list_names() {
   }' "$MANIFEST"
 }
 
-# Dump all entries as tab-separated: name\tcategory\tcost\tsource\tdescription
+# Dump all entries as \x1f-separated: name<US>category<US>cost<US>source<US>description
+# Uses Unit Separator (ASCII 0x1F) so bash `read -r` preserves empty fields.
+# Tab IFS collapses consecutive tabs (treated as whitespace), shifting empty
+# fields into the next column; \x1f is non-whitespace so empty fields survive.
 _toml_dump_all() {
-  awk '
+  awk -v SEP=$'\x1f' '
     /^\[shaders\."/ {
-      if (name != "") print name "\t" cat "\t" cost "\t" src "\t" desc
+      if (name != "") print name SEP cat SEP cost SEP src SEP desc
       name = $0
       gsub(/^\[shaders\."/, "", name)
       gsub(/"\].*/, "", name)
@@ -91,7 +94,7 @@ _toml_dump_all() {
     /^cost *= */     { val=$0; sub(/^[^=]*= *"/, "", val); gsub(/"$/, "", val); cost=val }
     /^source *= */   { val=$0; sub(/^[^=]*= *"/, "", val); gsub(/"$/, "", val); src=val }
     /^description *= */ { val=$0; sub(/^[^=]*= *"/, "", val); gsub(/"$/, "", val); desc=val }
-    END { if (name != "") print name "\t" cat "\t" cost "\t" src "\t" desc }
+    END { if (name != "") print name SEP cat SEP cost SEP src SEP desc }
   ' "$MANIFEST"
 }
 
@@ -115,7 +118,7 @@ cmd_list() {
     esac
   done
 
-  _toml_dump_all | while IFS=$'\t' read -r name cat cost src desc; do
+  _toml_dump_all | while IFS=$'\x1f' read -r name cat cost src desc; do
     [[ -n "$filter_cat" && "$cat" != "$filter_cat" ]] && continue
     [[ -n "$filter_cost" && "$cost" != "$filter_cost" ]] && continue
     echo "${name}.glsl"
@@ -124,7 +127,7 @@ cmd_list() {
 
 cmd_fzf_lines() {
   # Output: "name.glsl\tCategory\tDescription" for fzf --with-nth
-  _toml_dump_all | while IFS=$'\t' read -r name cat cost src desc; do
+  _toml_dump_all | while IFS=$'\x1f' read -r name cat cost src desc; do
     printf '%s.glsl\t%-12s\t%s\n' "$name" "$cat" "$desc"
   done | sort -t$'\t' -k2,2 -k1,1
 }

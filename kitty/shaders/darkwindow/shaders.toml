@@ -1,0 +1,1127 @@
+# shaders.toml — DarkWindow shader manifest
+# Generated from in-file header comments + kitty/shaders/playlists/*.txt
+# Schema (ShaderMeta in mcp/dotfiles-mcp/mod_shader.go):
+#   category     — one of: CRT, Post-FX, Cursor, Cyberpunk, Watercolor, Background
+#   cost         — tier classification: LOW (tier-cheap) / MED (tier-mid) / HIGH (tier-heavy)
+#   source       — upstream URL (gist, shadertoy, github) if known
+#   description  — one-line human summary
+#   playlists    — non-tier playlist membership (ambient, best-of, crt, ...)
+#
+# Section headers are quoted to satisfy the awk parser in
+# kitty/shaders/bin/shader-meta.sh: /^\[shaders\."/
+#
+# Author attribution is carried in the .glsl header (`// Shader attribution: <author>`)
+# and surfaced here alongside the schema fields declared in Go.
+
+
+[shaders."KroneCorylus-cursor_blaze"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://iquilezles.org/articles/distfunctions2d/"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."amber-crt"]
+category    = "CRT"
+cost        = "LOW"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."animated-gradient-shader"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/unkn0wncode"
+description = "Animated color gradient background"
+author      = "0xhckr"
+playlists   = ["ambient"]
+
+[shaders."bettercrt"]
+category    = "CRT"
+cost        = "LOW"
+source      = "https://www.shadertoy.com/view/WsVSzV"
+description = "Enhanced CRT with barrel distortion and vignette"
+author      = "chuhlomin"
+playlists   = ["ambient", "best-of", "high-intensity", "tattoy-background"]
+
+[shaders."blackwall"]
+category    = "Background"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."blaze_sparks"]
+category    = "Cursor"
+cost        = "MED"
+source      = ""
+description = "Sparking blaze cursor effect"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."bloom"]
+category    = "Post-FX"
+cost        = "MED"
+source      = "https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."blue-crt"]
+category    = "CRT"
+cost        = "LOW"
+source      = ""
+description = "Blue phosphor CRT with scanlines and flicker"
+author      = "thijskok"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."cauliflower-bg"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."cineShader-Lava"]
+category    = "Background"
+cost        = "MED"
+source      = "https://www.shadertoy.com/view/3sySRK"
+description = "Animated lava/magma shader"
+author      = "m-ahdal"
+playlists   = ["ambient", "best-of", "high-intensity", "tattoy-background"]
+
+[shaders."circuit-trace"]
+category    = "Background"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient", "dev-console"]
+
+[shaders."computer-glitchy-2"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Computer glitch variant 2"
+author      = "fearlessgeekmedia"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."computer-glitchy-3"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Computer glitch variant 3"
+author      = "fearlessgeekmedia"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."computer-glitchy-4"]
+category    = "Post-FX"
+cost        = "MED"
+source      = ""
+description = "Computer glitch variant 4"
+author      = "fearlessgeekmedia"
+playlists   = []
+
+[shaders."computer-glitchy"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Computer glitch distortion"
+author      = "fearlessgeekmedia"
+playlists   = ["ambient", "best-of", "dev-console", "high-intensity", "tattoy-background"]
+
+[shaders."crt-full"]
+category    = "CRT"
+cost        = "HIGH"
+source      = "https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."crt-shader-with-chromatic-aberration-glow-scanlines-dot-matrix"]
+category    = "CRT"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = []
+
+[shaders."crt-shutdown"]
+category    = "CRT"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."crt"]
+category    = "CRT"
+cost        = "HIGH"
+source      = "https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f"
+description = "Classic CRT scanlines and curvature"
+author      = "0xhckr"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."crt_glitch"]
+category    = "CRT"
+cost        = "MED"
+source      = ""
+description = "CRT with glitch distortion"
+author      = "12jihan"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."cubes"]
+category    = "Background"
+cost        = "MED"
+source      = "https://github.com/rymdlego"
+description = "Animated 3D cube grid"
+author      = "0xhckr"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."cursor_blaze"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://gist.github.com/chardskarth/95874c54e29da6b5a36ab7b50ae2d088"
+description = "Fire trail behind cursor"
+author      = "0xhckr"
+playlists   = []
+
+[shaders."cursor_blaze_no_trail"]
+category    = "Cursor"
+cost        = "MED"
+source      = ""
+description = "Blaze cursor without trail"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_blaze_tapered"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://iquilezles.org/articles/distfunctions2d/"
+description = "Tapered fire trail cursor"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_border_1"]
+category    = "Cursor"
+cost        = "LOW"
+source      = ""
+description = "Cursor border glow"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_flock"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."cursor_flock_rainbow"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."cursor_frozen"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://iquilezles.org/articles/distfunctions2d/"
+description = "Frozen/ice cursor effect"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_rainbow_tapered_boing"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://github.com/KroneCorylus/ghostty-shader-playground/blob/main/shaders/cursor_blaze_tapered.glsl"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."cursor_smear"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = "Smear trail cursor"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_smear_fade"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = "Smear with fade cursor"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_smear_fade_original"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://iquilezles.org/articles/distfunctions2d/"
+description = "Original smear-fade cursor (pre-edit)"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_smear_gradient"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://github.com/PremModhaOfficial"
+description = "Gradient smear cursor"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_smear_gradient_original"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://github.com/PremModhaOfficial"
+description = "Original gradient smear cursor (pre-edit)"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_smear_original"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://iquilezles.org/articles/distfunctions2d/"
+description = "Original smear trail cursor (pre-edit)"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_smear_rainbow"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = "Rainbow smear cursor"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_smear_rainbow_original"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://iquilezles.org/articles/distfunctions2d/"
+description = "Original rainbow smear cursor (pre-edit)"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."cursor_sparkling_star_trails"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."cursor_sweep"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = "Sweep trail behind cursor movement"
+author      = "sahaj-b"
+playlists   = ["ambient"]
+
+[shaders."cursor_tail"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = "Fading tail trail behind cursor"
+author      = "sahaj-b"
+playlists   = ["ambient"]
+
+[shaders."cursor_warp"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = "Warp distortion around cursor"
+author      = "sahaj-b"
+playlists   = ["ambient"]
+
+[shaders."cyber-glitch-holo"]
+category    = "Cyberpunk"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient", "dev-console"]
+
+[shaders."cyber-grid"]
+category    = "Background"
+cost        = "LOW"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."cyberpunk-hud"]
+category    = "Cyberpunk"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."cyberpunk"]
+category    = "Post-FX"
+cost        = "MED"
+source      = ""
+description = "Cyberpunk neon color grade"
+author      = "fearlessgeekmedia"
+playlists   = ["ambient", "best-of", "high-intensity", "tattoy-background"]
+
+[shaders."digital-mist"]
+category    = "Background"
+cost        = "LOW"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."dither"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = "https://github.com/moni-dz)"
+description = "Dithering effect on terminal output"
+author      = "0xhckr"
+playlists   = []
+
+[shaders."drunkard"]
+category    = "Post-FX"
+cost        = "MED"
+source      = "https://github.com/moni-dz)"
+description = "Wobbly/distorted screen effect"
+author      = "0xhckr"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."erniee-crt"]
+category    = "CRT"
+cost        = "HIGH"
+source      = "https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."erniee-inside-the-matrix"]
+category    = "Background"
+cost        = "HIGH"
+source      = "https://www.shadertoy.com/view/4ltyDM)"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."erniee-just-snow"]
+category    = "Background"
+cost        = "LOW"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."erniee-matrix-hallway"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://www.shadertoy.com/view/ldjBW1"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."erniee-sparks-from-fire"]
+category    = "Background"
+cost        = "HIGH"
+source      = "https://www.shadertoy.com/view/wl2Gzc"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."erniee-starfield-colors"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."erniee-starfield"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."film-grain-pro"]
+category    = "Watercolor"
+cost        = "LOW"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."fireworks-rockets"]
+category    = "Background"
+cost        = "MED"
+source      = "https://www.shadertoy.com/view/4dBGRw"
+description = "Fireworks with rocket trails"
+author      = "m-ahdal"
+playlists   = ["ambient", "best-of", "high-intensity", "tattoy-background"]
+
+[shaders."fireworks"]
+category    = "Background"
+cost        = "MED"
+source      = "https://www.shadertoy.com/view/lscGRl"
+description = "Fireworks burst animation"
+author      = "m-ahdal"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."flat-wash-bg"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."flicker"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Screen flicker effect"
+author      = "12jihan"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."galaxy"]
+category    = "Background"
+cost        = "HIGH"
+source      = ""
+description = "Animated galaxy/nebula background"
+author      = "0xhckr"
+playlists   = ["ambient", "best-of", "high-intensity", "tattoy-background"]
+
+[shaders."gears-and-belts"]
+category    = "Background"
+cost        = "HIGH"
+source      = "https://www.shadertoy.com/view/DsVSDV"
+description = "Mechanical gears animation"
+author      = "0xhckr"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."glazing-bg"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."glitchy"]
+category    = "Post-FX"
+cost        = "MED"
+source      = "https://www.shadertoy.com/view/wld3WN"
+description = "Digital glitch/corruption effect"
+author      = "0xhckr"
+playlists   = []
+
+[shaders."glow-rgbsplit-twitchy"]
+category    = "Post-FX"
+cost        = "HIGH"
+source      = "https://github.com/kalgynirae/dotfiles/blob/main/ghostty/glow.glsl"
+description = "RGB split with glow and twitch"
+author      = "0xhckr"
+playlists   = ["ambient"]
+
+[shaders."glow"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Simple bloom/glow effect"
+author      = "12jihan"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."graded-wash-bg"]
+category    = "Watercolor"
+cost        = "MED"
+source      = ""
+description = "Graded wash with color transition"
+author      = "JRMeyer"
+playlists   = ["ambient"]
+
+[shaders."gradient-background"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/unkn0wncode"
+description = "Static color gradient background"
+author      = "0xhckr"
+playlists   = ["ambient"]
+
+[shaders."granulating-bg"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."green-crt"]
+category    = "CRT"
+cost        = "LOW"
+source      = ""
+description = "Green phosphor CRT with scanlines and flicker"
+author      = "thijskok"
+playlists   = ["ambient", "best-of", "high-intensity", "tattoy-background"]
+
+[shaders."holo-display"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient", "dev-console"]
+
+[shaders."holo-shimmer"]
+category    = "Post-FX"
+cost        = "MED"
+source      = ""
+description = "Holographic shimmer effect"
+author      = "fearlessgeekmedia"
+playlists   = ["ambient", "best-of", "dev-console", "low-intensity", "tattoy-background"]
+
+[shaders."in-game-crt-cursor"]
+category    = "CRT"
+cost        = "HIGH"
+source      = ""
+description = "In-game CRT with cursor highlight"
+author      = "0xhckr"
+playlists   = []
+
+[shaders."in-game-crt"]
+category    = "CRT"
+cost        = "HIGH"
+source      = "https://gist.github.com/mitchellh/39d62186910dcc27cad097fed16eb882"
+description = "In-game style CRT monitor effect"
+author      = "0xhckr"
+playlists   = []
+
+[shaders."inside-the-matrix"]
+category    = "Background"
+cost        = "HIGH"
+source      = "https://www.shadertoy.com/view/4ltyDM)"
+description = "Matrix rain animation"
+author      = "0xhckr"
+playlists   = []
+
+[shaders."just-snow"]
+category    = "Background"
+cost        = "LOW"
+source      = ""
+description = "Falling snow particle effect"
+author      = "0xhckr"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."kosa12-retro"]
+category    = "Background"
+cost        = "MED"
+source      = "https://github.com/kosa12/CRTty/blob/main/examples/retro.glsl"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."kosa12-wave"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/kosa12/CRTty/blob/main/examples/wave.glsl"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."last_letter_zoom"]
+category    = "Cursor"
+cost        = "MED"
+source      = ""
+description = "Zoom effect on last typed character"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."manga_slash"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://github.com/komsit37)"
+description = "Manga-style slash effect"
+author      = "KroneCorylus"
+playlists   = []
+
+[shaders."matrix-glow"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient", "dev-console"]
+
+[shaders."matrix-hallway"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://www.shadertoy.com/view/ldjBW1"
+description = "Matrix code hallway fly-through"
+author      = "0xhckr"
+playlists   = ["ambient"]
+
+[shaders."matrix"]
+category    = "Background"
+cost        = "LOW"
+source      = ""
+description = "Matrix digital rain"
+author      = "erniee"
+playlists   = []
+
+[shaders."matrix_rain"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://www.shadertoy.com/view/ldjBW1"
+description = "Matrix rain with green glow"
+author      = "erniee"
+playlists   = []
+
+[shaders."mnoise"]
+category    = "Post-FX"
+cost        = "MED"
+source      = ""
+description = "Perlin/simplex noise overlay"
+author      = "0xhckr"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."negative"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Color negative/inversion filter"
+author      = "m-ahdal"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."neon-glow"]
+category    = "Cyberpunk"
+cost        = "LOW"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."neon-hex-grid"]
+category    = "Cyberpunk"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient", "dev-console"]
+
+[shaders."old-film"]
+category    = "Post-FX"
+cost        = "MED"
+source      = ""
+description = "Old film grain and scratches"
+author      = "fearlessgeekmedia"
+playlists   = ["ambient", "best-of", "low-intensity", "tattoy-background"]
+
+[shaders."party_sparks"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://www.shadertoy.com/user/yakovgal"
+description = "Colorful party sparks"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."picom-bloom"]
+category    = "Post-FX"
+cost        = "MED"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "post-fx"]
+
+[shaders."picom-border-glow"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "cyberpunk", "picom"]
+
+[shaders."picom-brightness"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom"]
+
+[shaders."picom-chroma-key"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom"]
+
+[shaders."picom-chromatic"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "post-fx"]
+
+[shaders."picom-cross"]
+category    = "Background"
+cost        = "MED"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "trippy"]
+
+[shaders."picom-crt-retro"]
+category    = "CRT"
+cost        = "MED"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "crt", "picom"]
+
+[shaders."picom-cube"]
+category    = "Background"
+cost        = "HIGH"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = []
+
+[shaders."picom-cylinder"]
+category    = "Background"
+cost        = "MED"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "trippy"]
+
+[shaders."picom-dissolve"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "post-fx"]
+
+[shaders."picom-dither"]
+category    = "Background"
+cost        = "MED"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "post-fx"]
+
+[shaders."picom-gamma"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom"]
+
+[shaders."picom-glass"]
+category    = "Background"
+cost        = "MED"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "post-fx"]
+
+[shaders."picom-grayscale"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom"]
+
+[shaders."picom-pixelize"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "post-fx"]
+
+[shaders."picom-plane"]
+category    = "Background"
+cost        = "MED"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "trippy"]
+
+[shaders."picom-shiny"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "cyberpunk", "picom"]
+
+[shaders."picom-sphere"]
+category    = "Background"
+cost        = "MED"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom", "trippy"]
+
+[shaders."picom-value-fade"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom"]
+
+[shaders."picom-vignette"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = []
+
+[shaders."picom-zoom"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://github.com/ikz87/picom-shaders"
+description = ""
+author      = ""
+playlists   = ["ambient", "picom"]
+
+[shaders."rain-on-glass"]
+category    = "Watercolor"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."rbarrielabrystech-bloom"]
+category    = "Post-FX"
+cost        = "MED"
+source      = "https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."rbarrielabrystech-crt"]
+category    = "CRT"
+cost        = "HIGH"
+source      = "https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."rectangle_boom_cursor"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."retro-crt"]
+category    = "CRT"
+cost        = "HIGH"
+source      = "https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f"
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."retro-terminal"]
+category    = "CRT"
+cost        = "LOW"
+source      = "https://www.shadertoy.com/view/WsVSzV"
+description = "Retro green phosphor terminal"
+author      = "0xhckr"
+playlists   = ["ambient", "best-of", "low-intensity", "tattoy-background"]
+
+[shaders."ripple_cursor"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = "Ripple wave from cursor position"
+author      = "sahaj-b"
+playlists   = ["ambient"]
+
+[shaders."ripple_rectangle_cursor"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = "Rectangular ripple from cursor"
+author      = "sahaj-b"
+playlists   = ["ambient"]
+
+[shaders."salt-bg"]
+category    = "Watercolor"
+cost        = "MED"
+source      = ""
+description = "Salt texture on watercolor wash"
+author      = "JRMeyer"
+playlists   = ["ambient"]
+
+[shaders."scanbars"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Horizontal scan bar effect"
+author      = "fearlessgeekmedia"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."shake"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Screen shake effect"
+author      = "KroneCorylus"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."sin-interference"]
+category    = "Background"
+cost        = "LOW"
+source      = "https://www.shadertoy.com/view/ms3cWn"
+description = "Sine wave interference pattern"
+author      = "m-ahdal"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."smoke-and-ghost"]
+category    = "Background"
+cost        = "HIGH"
+source      = ""
+description = "Smoke and ghost particle effect"
+author      = "m-ahdal"
+playlists   = ["ambient", "best-of", "high-intensity", "tattoy-background"]
+
+[shaders."sonic_boom_cursor"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."sparks-from-fire"]
+category    = "Background"
+cost        = "HIGH"
+source      = "https://www.shadertoy.com/view/wl2Gzc"
+description = "Fire sparks particle effect"
+author      = "0xhckr"
+playlists   = ["ambient", "high-intensity", "tattoy-background"]
+
+[shaders."sparks"]
+category    = "Cursor"
+cost        = "HIGH"
+source      = "https://www.shadertoy.com/user/yakovgal"
+description = "Spark particles from cursor"
+author      = "KroneCorylus"
+playlists   = ["ambient"]
+
+[shaders."splatter-bg"]
+category    = "Watercolor"
+cost        = "HIGH"
+source      = ""
+description = "Paint splatter effect"
+author      = "JRMeyer"
+playlists   = ["ambient"]
+
+[shaders."spotlight"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Spotlight/vignette following cursor"
+author      = "m-ahdal"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."starfield-colors"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = "Colorful animated starfield"
+author      = "0xhckr"
+playlists   = ["ambient"]
+
+[shaders."starfield"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = "Classic starfield fly-through"
+author      = "0xhckr"
+playlists   = ["ambient"]
+
+[shaders."static"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "Static/snow noise overlay"
+author      = "fearlessgeekmedia"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."synthwave-horizon"]
+category    = "Background"
+cost        = "MED"
+source      = ""
+description = ""
+author      = ""
+playlists   = ["ambient"]
+
+[shaders."tft"]
+category    = "Post-FX"
+cost        = "LOW"
+source      = ""
+description = "TFT/LCD subpixel rendering simulation"
+author      = "0xhckr"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."underwater"]
+category    = "Background"
+cost        = "MED"
+source      = "https://www.shadertoy.com/view/lljGDt"
+description = "Underwater caustics and light rays"
+author      = "alex-sherwin"
+playlists   = ["ambient", "best-of", "low-intensity", "tattoy-background"]
+
+[shaders."variegated-wash-bg"]
+category    = "Watercolor"
+cost        = "MED"
+source      = ""
+description = "Variegated multi-color wash"
+author      = "JRMeyer"
+playlists   = ["ambient"]
+
+[shaders."water"]
+category    = "Background"
+cost        = "LOW"
+source      = ""
+description = "Water ripple/wave effect"
+author      = "0xhckr"
+playlists   = ["ambient", "low-intensity", "tattoy-background"]
+
+[shaders."wet-on-wet-bg"]
+category    = "Watercolor"
+cost        = "MED"
+source      = ""
+description = "Wet-on-wet watercolor blending"
+author      = "JRMeyer"
+playlists   = ["ambient"]
+
+[shaders."zoom_and_aberration"]
+category    = "Post-FX"
+cost        = "MED"
+source      = ""
+description = "Zoom with chromatic aberration"
+author      = "KroneCorylus"
+playlists   = ["ambient"]

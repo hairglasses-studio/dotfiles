@@ -194,7 +194,7 @@ func writeDesktopStatusFixtureTree(t *testing.T, homeDir, dotfilesRoot, stateDir
 		filepath.Join(homeDir, ".config", "ironbar"),
 		filepath.Join(dotfilesRoot, "scripts"),
 		filepath.Join(dotfilesRoot, "ironbar"),
-		filepath.Join(dotfilesRoot, "kitty", "shaders", "crtty"),
+		filepath.Join(dotfilesRoot, "kitty", "shaders", "darkwindow"),
 		filepath.Join(dotfilesRoot, "ghostty"),
 		filepath.Join(runtimeDir, "hypr"),
 		filepath.Join(stateDir, "hypr"),

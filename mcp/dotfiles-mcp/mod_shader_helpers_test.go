@@ -55,7 +55,7 @@ func TestFindShader_Found(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
 
-	shadersPath := filepath.Join(dir, "kitty", "shaders", "crtty")
+	shadersPath := filepath.Join(dir, "kitty", "shaders", "darkwindow")
 	os.MkdirAll(shadersPath, 0755)
 	os.WriteFile(filepath.Join(shadersPath, "test-shader.glsl"), []byte("// shader"), 0644)
 
@@ -81,7 +81,7 @@ func TestFindShader_Found(t *testing.T) {
 func TestFindShader_NotFound(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "crtty"), 0755)
+	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "darkwindow"), 0755)
 
 	_, err := findShader("nonexistent-shader")
 	if err == nil {
@@ -97,7 +97,7 @@ func TestListGLSL(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
 
-	shadersPath := filepath.Join(dir, "kitty", "shaders", "crtty")
+	shadersPath := filepath.Join(dir, "kitty", "shaders", "darkwindow")
 	os.MkdirAll(shadersPath, 0755)
 
 	// Create some shader files and a non-shader file.
@@ -121,7 +121,7 @@ func TestListGLSL(t *testing.T) {
 func TestListGLSL_EmptyDir(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "crtty"), 0755)
+	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "darkwindow"), 0755)
 
 	shaders, err := listGLSL()
 	if err != nil {
@@ -368,7 +368,7 @@ func TestReadAnimationState(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
 
-	shadersPath := filepath.Join(dir, "kitty", "shaders", "crtty")
+	shadersPath := filepath.Join(dir, "kitty", "shaders", "darkwindow")
 	os.MkdirAll(shadersPath, 0755)
 
 	// Animated shader (contains iTime).
@@ -389,7 +389,7 @@ func TestReadAnimationState(t *testing.T) {
 func TestLoadManifest_Valid(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	shadersPath := filepath.Join(dir, "kitty", "shaders", "crtty")
+	shadersPath := filepath.Join(dir, "kitty", "shaders", "darkwindow")
 	os.MkdirAll(shadersPath, 0755)
 
 	manifest := `[shaders.crt-effect]
@@ -425,7 +425,7 @@ description = "Bloom glow effect"
 func TestLoadManifest_Missing(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("DOTFILES_DIR", dir)
-	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "crtty"), 0755)
+	os.MkdirAll(filepath.Join(dir, "kitty", "shaders", "darkwindow"), 0755)
 
 	m, err := loadManifest()
 	if err != nil {

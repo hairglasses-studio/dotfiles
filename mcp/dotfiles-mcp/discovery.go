@@ -608,7 +608,7 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 			}
 
 			shaderScriptPath := filepath.Join(dotfilesDir(), "scripts", "kitty-shader-playlist.sh")
-			shaderDir := filepath.Join(dotfilesDir(), "kitty", "shaders", "crtty")
+			shaderDir := filepath.Join(dotfilesDir(), "kitty", "shaders", "darkwindow")
 			shaderMissing := make([]string, 0)
 			shaderDetails := make([]string, 0)
 			if _, err := os.Stat(shaderScriptPath); err == nil {

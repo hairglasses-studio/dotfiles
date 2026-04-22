@@ -18,10 +18,10 @@ cd dotfiles
 
 ## Shader Contributions
 
-Kitty CRTty shaders live in `kitty/shaders/crtty/`. To add a new shader:
-1. Place your `.glsl` file in the directory
-2. Add metadata to `kitty/shaders/crtty/shaders.toml`
-3. Test with `shader-test` (requires glslangValidator)
+Kitty DarkWindow shaders live in `kitty/shaders/darkwindow/`. To add a new shader:
+1. Place your `.glsl` file in the directory with a header comment (`// Shader attribution: <author>` + `// (<category>) — <one-line description>`)
+2. Add the shader name to the relevant playlist(s) under `kitty/shaders/playlists/*.txt`
+3. Test with `kitty/shaders/bin/shader-test.sh <name>.glsl` (requires glslangValidator)
 4. Submit a PR
 
 ## Code Style
