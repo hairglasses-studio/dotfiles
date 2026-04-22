@@ -1,7 +1,15 @@
-# Higher-contrast themes for more dramatic visual swaps.
-Tokyo Night
+# Higher-contrast + signature cyberpunk themes for dramatic visual swaps.
+# Curated 2026-04-21 from ambient.txt and cyberpunk.txt.
+Cyberpunk Neon
 Dracula
+ENCOM
+Galaxy
+Kanagawa_dragon
 Nord
-Snazzy
 One Half Dark
+Snazzy
 Solarized Dark
+SynthWave 84 python
+Tokyo Night
+Tokyo Night Storm
+Vesper

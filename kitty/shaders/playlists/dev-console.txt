@@ -1,12 +1,28 @@
-# dev-console shader playlist — hacker-coded cyberpunk aesthetic.
 # Applied to the Mod+` dropdown claude-code console on each fresh spawn
-# (pypr lazy=true means the console only spawns once per session).
-# Entries are .glsl filenames; the launcher strips the extension before
-# dispatching via `hyprctl dispatch darkwindow:shade`.
-cyber-glitch-holo.glsl
-holo-shimmer.glsl
 circuit-trace.glsl
+computer-glitchy.glsl
+cyber-glitch-holo.glsl
+# dev-console shader playlist — hacker-coded cyberpunk aesthetic.
+# dispatching via `hyprctl dispatch darkwindow:shade`.
+# Entries are .glsl filenames; the launcher strips the extension before
+hg-ascii-rain.glsl
+hg-cyber-glyph-rain.glsl
+hg-hacker-terminal.glsl
+hg-holo-globe.glsl
+hg-hologram-scan.glsl
+hg-holo-projection.glsl
+hg-infrared-scanner.glsl
+hg-laser-grid.glsl
+hg-matrix-glitch.glsl
+hg-matryoshka-rings.glsl
+hg-nuclear-reactor.glsl
+hg-photonics-chip.glsl
+hg-qr-glitch.glsl
+hg-sound-wave.glsl
+hg-spectrum-analyzer.glsl
+hg-time-crystal.glsl
+holo-display.glsl
+holo-shimmer.glsl
 matrix-glow.glsl
 neon-hex-grid.glsl
-holo-display.glsl
-computer-glitchy.glsl
+# (pypr lazy=true means the console only spawns once per session).

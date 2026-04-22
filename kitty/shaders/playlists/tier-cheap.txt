@@ -16,6 +16,8 @@ flicker.glsl
 glow.glsl
 gradient-background.glsl
 green-crt.glsl
+hg-mandala.glsl
+hg-plasma-storm.glsl
 just-snow.glsl
 kosa12-wave.glsl
 matrix.glsl
@@ -43,3 +45,4 @@ spotlight.glsl
 static.glsl
 tft.glsl
 water.glsl
+zoitrok-scanline.glsl

@@ -1,0 +1,65 @@
+---
+name: shader_forge
+description: Generate new heavy DarkWindow GLSL shaders with full pipeline integration — write, compile-check, register, tier, and live-test a single hg-*.glsl original each invocation. Use when asked to create shaders, expand the rotation, or run autonomously via /loop.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+---
+
+# Shader Forge
+
+One invocation = one new awesome shader, end-to-end.
+
+## The ritual (execute every time)
+
+1. **Pick an unused genre** — open `references/genre-backlog.md`, choose an idea that *hasn't been built yet* (check `ls kitty/shaders/darkwindow/hg-*.glsl` against the backlog). Strike it off after shipping. If the backlog runs dry, invent a new genre in the user's favored lane (radial/plasma/cosmic/cyberpunk/volumetric/fractal).
+2. **Write the shader** — single file at `kitty/shaders/darkwindow/hg-<slug>.glsl`. Follow `references/template.glsl` exactly for the header/composite pattern. Target tier-mid or tier-heavy (heavy is encouraged — RTX 3090, `misc:vfr=false` committed).
+3. **Compile-check** — build preamble + shader + footer, run `glslangValidator -S frag`. MUST PASS. If it fails on reserved words (`sample`, `active`, `filter`, `input`, `output`, `noise1..4`, `texture1D..3D`), rename and retry.
+4. **Register** — run the sync block in `references/pipeline.md` to: add to `ambient.txt`, `best-of.txt`, `cyberpunk.txt`, `high-intensity.txt`; add to 1-2 thematic playlists based on genre (radial-plasma / trippy / post-fx / low-intensity / dev-console); regen registry from ambient; regen tier playlists; `hyprctl reload`.
+5. **Verify consistency** — `scripts/check-shader-consistency.sh` must return `ok: all consistent` with matching disk/playlist/registry counts.
+6. **Live-test 10s** — `hyprctl dispatch darkwindow:shadeactive hg-<slug>` → `sleep 10` → restore `water` → `swaync-client --close-all`.
+7. **Report** — one concise paragraph: name, genre, what makes it distinct, tier it landed in, updated totals.
+
+## Non-negotiables
+
+- Preserve terminal readability: use the `termLuma`-modulated visibility pattern from the template. Never output raw shader color without blending with `terminal.rgb`.
+- Every shader uses `void windowShader(inout vec4 _wShaderOut)` as entrypoint. Access terminal via `x_Texture(uv)`. Use `x_Time`, `x_WindowSize`, `x_PixelPos`, `x_CursorPos`.
+- Palette: the `hg_pal` pattern in the template cycles through the established neon palette (cyan ↔ violet ↔ magenta ↔ gold ↔ mint). Stay in this lane unless the genre demands otherwise (e.g. `hg-zen-garden` uses warm sand/shadow/rock/moss).
+- Attribution header: `// Shader attribution: hairglasses (original)\n// License: MIT\n// (Cyberpunk — showcase/heavy) — <one-line genre description>`
+- DO NOT duplicate existing shaders. Check `ls kitty/shaders/darkwindow/hg-*.glsl` first.
+- Per-shader helper functions use a 2-3 letter prefix (`bc_hash`, `qu_pal`, etc.) to avoid name collisions when multiple shaders are referenced in the preview transpile shim.
+
+## Quality bar
+
+Good shaders have:
+- 3+ distinct layered visual elements (e.g. background + mid + accent)
+- Time-animated motion (don't just output a static pattern)
+- A palette-cycling `hg_pal`-style function
+- Either raymarching, iterative math (FBM, Voronoi, fractal iteration), or many-sample accumulation — use the RTX 3090 budget
+- A composite mask that keeps bright terminal text legible
+
+Avoid:
+- Static frames, plain gradients, trivial color shifts
+- More than a minor hit to text readability
+- Reserved words in local variables
+- Duplicating effects already in the library (check genre list below)
+
+## Already shipped (don't repeat)
+
+`ls kitty/shaders/darkwindow/hg-*.glsl` is the source of truth. At last check, 180+ hg-* originals exist covering: plasma (storm, globe, lattice), tunnel (neon, warp, menger, apollonian, kaleido, psychedelic, warp-corridor, wave-tunnel), stars (starfield analogs, supernova, nebula-flow, nebula-swirl, gas-nebula, pinwheel-galaxy, neural-galaxy, stellar-nursery, comet), electric (lightning-storm, tesla-coil, fielding-electric, electric-sphere, lightning-network, electric-eel), 3D solids (mandelbulb-slice, mandelbrot-zoom, mandelbox-slice, crystal-shard, crystal-lattice, sierpinski-3d, bismuth-crystal, cube-array, clifford-torus, tesseract, moebius-strip, wormhole), cyber/scene (cyber-city, hacker-terminal, spectrum-analyzer, photonics-chip, holo-ui, holo-projection, holo-globe, infrared-scanner, nuclear-reactor, oscilloscope, radio-waves, laser-grid, tokamak, particle-collider, ion-trap), natural (cherry-blossom, coral-reef, jellyfish-cloud, bioluminescence, pool-ripples, wave-pool, caustic-water, volumetric-ocean, aurora, aurora-veil, aurora-dome, aurora-whirlpool, auroracube, fireflies-meadow, pollen-cloud, sand-dunes, zen-garden, petroglyphs, glow-worms, cellular-automata, slime-mould, dna-helix, morpho-butterfly, chameleon, fractal-tree, fractal-feather, snowflake-tiling, ice-crystal, crystalline-growth, fire-storm, fire-spiral, volcanic-eruption, lava-lamp, magma-flow, tornado), matrix/glyph (data-stream, ascii-rain, cyber-glyph-rain, matrix-glitch, pixel-rain, glitchmatrix, qr-glitch, neon-glyphs), physics (neural-mesh, neural-storm, quantum-field, quantum-foam, wave-particle-duality, time-crystal, cosmic-rays, cosmic-string, gravitational-waves, black-hole, pulsar-jet, magnetar-lines, quasar-core, binary-collision, twin-suns, solar-flare, solar-system, mushroom-cloud, cherenkov, tachyon-beam, shockwave-pulse), post-fx/abstract (god-rays, lens-flare, bloom-storm, wave-interference, moire-pattern, chromatic-lens, ripple-drops, heat-shimmer, analog-static, rain-droplets, glass-shatter, refractive-droplet, splash-crown, shatter-impact, fluid-flow, vector-field, meteor-shower, fireworks-display, spiral-staircase, spirograph, hexagon-data-flow, hex/grids: neon-hex-grid, hex-data-flow, truchet-tiles, penrose-tiling, stained-glass), organic (metaballs, shimmer-dust, pulsing-heart, retrowave-sun, synthwave-horizon analogs).
+
+## Memory signals to honour
+
+- `feedback_shader_preferences.md` — user loves radial/plasma/tunnel originals; ship 5-7 per session without trimming
+- `feedback_gpu_budget.md` — heavy/showcase encouraged, don't trim octaves "to be safe"
+- `feedback_glsl_reserved.md` — watch for reserved-word collisions (`sample`, `active`, and others)
+
+## Integration references
+
+- `references/template.glsl` — copy this skeleton
+- `references/pipeline.md` — the full sync + test commands (copy-paste after shader writes)
+- `references/genre-backlog.md` — unused ideas, mark off as you ship

@@ -1,1 +1,16 @@
+amber-crt.glsl
+bettercrt.glsl
+blue-crt.glsl
+crt-full.glsl
+crt_glitch.glsl
+crt.glsl
+crt-shader-with-chromatic-aberration-glow-scanlines-dot-matrix.glsl
+crt-shutdown.glsl
+erniee-crt.glsl
+green-crt.glsl
+in-game-crt-cursor.glsl
+in-game-crt.glsl
 picom-crt-retro.glsl
+retro-crt.glsl
+retro-terminal.glsl
+tft.glsl
