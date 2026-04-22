@@ -249,7 +249,7 @@ void windowShader(inout vec4 _wShaderOut)
 
     vec2 uv = x_PixelPos.xy / x_WindowSize;
 
-    float time = mod(x_Time, 300) * SPEED; //reset time every 5 minutes, as large values lead to the same (and eventually no) rune(s)
+    float time = mod(x_Time, 300.0) * SPEED; //reset time every 5 minutes, as large values lead to the same (and eventually no) rune(s)
 
     const float turn_rad = 0.25 / BLOCKS_BEFORE_TURN;   //0 .. 0.5
     const float turn_abs_time = (PI/2.*turn_rad) * 1.5;  //multiplier different than 1 means a slow down on turns

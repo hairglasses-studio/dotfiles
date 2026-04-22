@@ -254,17 +254,17 @@ void windowShader(inout vec4 _wShaderOut) {
 
 
     // Add aperture grille
-    int apertureGrilleStep = int(8 * mod(x_PixelPos.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD);
+    int apertureGrilleStep = int(8.0 * mod(x_PixelPos.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD);
     float apertureGrilleMask;
 
     if (apertureGrilleStep < 3)
         apertureGrilleMask = 0.0;
     else if (apertureGrilleStep < 4)
-        apertureGrilleMask = mod(8*x_PixelPos.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
+        apertureGrilleMask = mod(8.0*x_PixelPos.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
     else if (apertureGrilleStep < 7)
         apertureGrilleMask = 1.0;
     else if (apertureGrilleStep < 8)
-        apertureGrilleMask = mod(-8*x_PixelPos.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
+        apertureGrilleMask = mod(-8.0*x_PixelPos.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
 
     _wShaderOut.rgb *= 1.0 - APERTURE_GRILLE_STRENGTH*apertureGrilleMask;
 
@@ -277,7 +277,7 @@ void windowShader(inout vec4 _wShaderOut) {
     // NOTE: Hard-coded noise distributions
     float noise = smoothstep(0.4, 0.6, gold_v2_noise(x_PixelPos.xy, fract(x_Time*0.001)));
     _wShaderOut.rgb *= clamp(noise + 1.0 - NOISE_CONTENT_STRENGTH, 0.0, 1.0);
-    _wShaderOut.rgb = clamp(_wShaderOut.rgb + noise * NOISE_UNIFORM_STRENGTH / 100, 0.0, 1.0);
+    _wShaderOut.rgb = clamp(_wShaderOut.rgb + noise * NOISE_UNIFORM_STRENGTH / 100.0, 0.0, 1.0);
 
 
     // NOTE: At this point, RGB values are again within [0, 1]

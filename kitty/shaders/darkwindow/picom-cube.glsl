@@ -65,11 +65,11 @@ void windowShader(inout vec4 _wShaderOut) {
     vec3 pixPos = cam.center_point + coords.x * cam.base_x + coords.y * cam.base_y;
     vec3 fv = pixPos - cam.focal_point;
 
-    float half = wss * 0.5;
+    float halfSize = wss * 0.5;
     float planeA[6] = float[6](0.0, 0.0, 1.0, 1.0, 0.0, 0.0);
     float planeB[6] = float[6](0.0, 0.0, 0.0, 0.0, 1.0, 1.0);
     float planeC[6] = float[6](1.0, 1.0, 0.0, 0.0, 0.0, 0.0);
-    float planeD[6] = float[6](-half, half, -half, half, -half, half);
+    float planeD[6] = float[6](-halfSize, halfSize, -halfSize, halfSize, -halfSize, halfSize);
 
     float tVals[6];
     int faceIds[6];

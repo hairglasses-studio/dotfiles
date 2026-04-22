@@ -106,9 +106,9 @@ void windowShader(inout vec4 _wShaderOut)
     distortion -= smoothstep(.999, 1., sin((uv.y + t) * 2.)) * .02;
     st = uv + vec2(distortion, 0.);
     // chromatic aberration
-    col.r += textureLod(x_Texture, st + eps + distortion, 0.).r;
-    col.g += textureLod(x_Texture, st, 0.).g;
-    col.b += textureLod(x_Texture, st - eps - distortion, 0.).b;
+    col.r += textureLod(tex, st + eps + distortion, 0.).r;
+    col.g += textureLod(tex, st, 0.).g;
+    col.b += textureLod(tex, st - eps - distortion, 0.).b;
     
     // white noise + scanlines
     displayNoise = 0.2 * clamp(displayNoise, 0., 1.);

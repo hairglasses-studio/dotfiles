@@ -22,9 +22,9 @@ void windowShader(inout vec4 _wShaderOut) {
         pixelCoord.x += int(splitIntensity * 10.0 * sin(x_Time * 50.0));
         
         // Direct pixel sampling with sharp shifts
-        vec3 rChannel = vec3(texelFetch(x_Texture, pixelCoord + ivec2(2, 0), 0).r, 0.0, 0.0);
-        vec3 gChannel = vec3(0.0, texelFetch(x_Texture, pixelCoord, 0).g, 0.0);
-        vec3 bChannel = vec3(0.0, 0.0, texelFetch(x_Texture, pixelCoord - ivec2(2, 0), 0).b);
+        vec3 rChannel = vec3(texelFetch(tex, pixelCoord + ivec2(2, 0), 0).r, 0.0, 0.0);
+        vec3 gChannel = vec3(0.0, texelFetch(tex, pixelCoord, 0).g, 0.0);
+        vec3 bChannel = vec3(0.0, 0.0, texelFetch(tex, pixelCoord - ivec2(2, 0), 0).b);
         
         // Harsh color manipulation
         vec3 glitchColor = rChannel + gChannel + bChannel;
@@ -46,9 +46,9 @@ void windowShader(inout vec4 _wShaderOut) {
     }
     
     // Fallback to standard rendering with minimal glitch
-    vec3 rChannel = vec3(texelFetch(x_Texture, ivec2(x_PixelPos + vec2(1.0, 0.0)), 0).r, 0.0, 0.0);
-    vec3 gChannel = vec3(0.0, texelFetch(x_Texture, ivec2(x_PixelPos), 0).g, 0.0);
-    vec3 bChannel = vec3(0.0, 0.0, texelFetch(x_Texture, ivec2(x_PixelPos - vec2(1.0, 0.0)), 0).b);
+    vec3 rChannel = vec3(texelFetch(tex, ivec2(x_PixelPos + vec2(1.0, 0.0)), 0).r, 0.0, 0.0);
+    vec3 gChannel = vec3(0.0, texelFetch(tex, ivec2(x_PixelPos), 0).g, 0.0);
+    vec3 bChannel = vec3(0.0, 0.0, texelFetch(tex, ivec2(x_PixelPos - vec2(1.0, 0.0)), 0).b);
     
     vec3 glitchColor = rChannel + gChannel + bChannel;
     
