@@ -16,7 +16,7 @@ Desktop automation, local workstation config, MCP server scaffolding, and org-wi
 - Agent entrypoints are centralized in `scripts/hg-codex-launch.sh`, `scripts/hg-claude-launch.sh`, and `scripts/hg-gemini-launch.sh`. Keep shell wrappers and tmux/bootstrap helpers pointed at those launchers instead of raw provider binaries.
 - Preserve provider-neutral behavior in repo scaffolding. New repo setup should not reintroduce placeholder Codex configs or Claude-only defaults.
 - Canonical reusable workflows live under `.agents/skills/`; `.claude/skills/` is a generated compatibility layer, not the source of truth.
-- When editing hook-related scripts, document what is repo-local versus what is installed into user scope by tools such as `hgmux`.
+- When editing hook-related scripts, document what is repo-local versus what is installed into user scope.
 
 ## Build And Verify
 
