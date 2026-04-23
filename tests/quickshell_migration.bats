@@ -255,6 +255,19 @@ MOCK
     assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
 }
 
+@test "shell stack mode supports companion-only cutover" {
+    run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" companion-cutover
+    assert_success
+    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
+    assert_output --partial "[dry] systemctl --user start ironbar.service"
+    assert_output --partial "[dry] systemctl --user start dotfiles-keybind-ticker.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
+    refute_output --partial "[dry] systemctl --user stop ironbar.service"
+    refute_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
+}
+
 @test "shell stack mode status has machine-readable json" {
     run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" --json status
     assert_success
@@ -362,4 +375,13 @@ MOCK
     assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
     assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
     assert_output --partial "[dry] systemctl --user stop swaync.service"
+}
+
+@test "hg shell module exposes companion cutover mode" {
+    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell companion-cutover
+    assert_success
+    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
+    assert_output --partial "[dry] systemctl --user start ironbar.service"
+    assert_output --partial "[dry] systemctl --user start dotfiles-keybind-ticker.service"
 }

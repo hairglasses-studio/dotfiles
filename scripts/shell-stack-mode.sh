@@ -19,13 +19,15 @@ COMPANION_UNITS=(
 
 usage() {
   cat <<'EOF'
-Usage: shell-stack-mode.sh [--apply] [--json] <status|pilot|bar-cutover|ticker-cutover|notification-cutover|full-pilot|full-cutover|rollback>
+Usage: shell-stack-mode.sh [--apply] [--json] <status|pilot|bar-cutover|ticker-cutover|companion-cutover|notification-cutover|full-pilot|full-cutover|rollback>
 
 Modes:
   status          Show current shell service state.
   pilot           Start Quickshell; keep ironbar, ticker, swaync, and companions live.
   bar-cutover     Start Quickshell; stop ironbar; keep ticker, swaync, and companions live.
   ticker-cutover  Start Quickshell; stop keybind ticker; keep ironbar, swaync, and companions live.
+  companion-cutover
+                  Start Quickshell companion overlays; keep ironbar, ticker, and swaync live.
   notification-cutover
                   Start Quickshell notification owner; stop swaync; keep companions live.
   full-pilot      Start Quickshell; stop ironbar, keybind ticker, and companion overlays; keep swaync live.
@@ -51,7 +53,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    status|pilot|bar-cutover|ticker-cutover|notification-cutover|full-pilot|full-cutover|rollback)
+    status|pilot|bar-cutover|ticker-cutover|companion-cutover|notification-cutover|full-pilot|full-cutover|rollback)
       MODE="$1"
       shift
       ;;
@@ -102,7 +104,7 @@ mode_flag() {
       [[ "$mode" == "notification-cutover" || "$mode" == "full-cutover" ]]
       ;;
     companions)
-      [[ "$mode" == "full-pilot" || "$mode" == "full-cutover" ]]
+      [[ "$mode" == "companion-cutover" || "$mode" == "full-pilot" || "$mode" == "full-cutover" ]]
       ;;
     *)
       return 1
@@ -268,6 +270,15 @@ case "$MODE" in
     start_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
     start_companion_units
+    start_swaync
+    start_unit dotfiles-notification-history.service
+    ;;
+  companion-cutover)
+    persist_mode "$MODE"
+    restart_unit dotfiles-quickshell.service
+    start_unit ironbar.service
+    start_unit dotfiles-keybind-ticker.service
+    stop_companion_units
     start_swaync
     start_unit dotfiles-notification-history.service
     ;;

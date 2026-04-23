@@ -12,7 +12,7 @@ PanelWindow {
 
     screen: screenModel
     anchors { top: true; left: true; right: true }
-    margins { top: shellState && shellState.barCutover ? 34 : 4 }
+    margins { top: 34 }
     implicitHeight: 28
     exclusiveZone: 0
     color: "transparent"

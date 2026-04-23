@@ -11,6 +11,7 @@ status	Show current shell service state
 pilot	Start Quickshell while keeping ironbar, ticker, swaync, and companions live
 bar-cutover	Start Quickshell and stop ironbar
 ticker-cutover	Start Quickshell and stop keybind ticker
+companion-cutover	Start Quickshell companion overlays and stop standalone companion services
 notification-cutover	Start Quickshell notification owner and stop swaync
 full-pilot	Start Quickshell and stop ironbar + keybind ticker + companion overlays
 full-cutover	Start Quickshell as bar + ticker + notification + companion owner
@@ -31,7 +32,7 @@ shell_run() {
   shift || true
 
   case "$cmd" in
-    status|pilot|bar-cutover|ticker-cutover|notification-cutover|full-pilot|full-cutover|rollback)
+    status|pilot|bar-cutover|ticker-cutover|companion-cutover|notification-cutover|full-pilot|full-cutover|rollback)
       _shell_stack_mode "$cmd" "$@"
       ;;
     *) hg_die "Unknown shell command: $cmd. Run 'hg shell --help'." ;;
