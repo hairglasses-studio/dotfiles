@@ -371,3 +371,16 @@ print(f'skills={len(declared)} drift=0')
     assert_output --partial "errors=0"
     refute_output --partial "MISSING"
 }
+
+@test "retroarch_archive_homebrew_verified.json entries match manifest sources" {
+    # verified.json declares source_identifier + archive_path per entry.
+    # The orchestrator splits archive_path on the first `/` and looks
+    # the display name up in the SourceItem.system_dirs map from
+    # retroarch-archive-homebrew-manifest.py. An entry with a prefix
+    # that isn't in the map produces no playlist row — silent skip.
+    # Likewise a source_identifier that doesn't match any SourceItem.
+    run bash "${SCRIPTS_DIR}/validate-archive-homebrew-manifest.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
