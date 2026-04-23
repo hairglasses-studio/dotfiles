@@ -55,7 +55,8 @@ Item {
     }
 
     function toggleDnd() {
-        runAction(["--dnd", "toggle"]);
+        root.dnd = !root.dnd;
+        runAction(["--dnd", root.dnd ? "true" : "false"]);
     }
 
     function closeAll() {

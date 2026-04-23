@@ -21,6 +21,8 @@ from typing import Any
 
 STATE_HOME = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local" / "state"))
 DEFAULT_HISTORY = STATE_HOME / "dotfiles" / "desktop-control" / "notifications" / "history.jsonl"
+DEFAULT_DND_STATE = STATE_HOME / "dotfiles" / "desktop-control" / "notifications" / "dnd"
+SWAYNC_CLIENT = os.environ.get("SWAYNC_CLIENT_BIN", "swaync-client")
 
 
 def _entry_text(entry: dict[str, Any]) -> str:
@@ -55,7 +57,7 @@ def _read_entries(path: Path, limit: int, include_dismissed: bool) -> list[dict[
 def _swaync_text(*args: str) -> str | None:
     try:
         return subprocess.check_output(
-            ["swaync-client", *args],
+            [SWAYNC_CLIENT, *args],
             stderr=subprocess.DEVNULL,
             text=True,
             timeout=2,
@@ -67,7 +69,7 @@ def _swaync_text(*args: str) -> str | None:
 def _swaync_call(*args: str) -> bool:
     try:
         subprocess.run(
-            ["swaync-client", *args],
+            [SWAYNC_CLIENT, *args],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=2,
@@ -95,17 +97,30 @@ def _swaync_dnd() -> bool | None:
     return text.lower() == "true"
 
 
-def _payload(path: Path, limit: int, include_dismissed: bool) -> dict[str, Any]:
+def _read_local_dnd(path: Path) -> bool:
+    try:
+        return path.read_text(encoding="utf-8").strip().lower() == "true"
+    except FileNotFoundError:
+        return False
+
+
+def _write_local_dnd(path: Path, value: bool) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("true\n" if value else "false\n", encoding="utf-8")
+
+
+def _payload(path: Path, dnd_path: Path, limit: int, include_dismissed: bool) -> dict[str, Any]:
     entries = _read_entries(path, limit, include_dismissed)
     critical = sum(1 for entry in entries if entry.get("urgency") == "critical")
     latest = entries[0] if entries else None
+    swaync_dnd = _swaync_dnd()
     return {
         "ok": True,
         "ts": int(time.time()),
         "log_path": str(path),
         "visible": len(entries),
         "daemon_count": _swaync_count(),
-        "dnd": _swaync_dnd(),
+        "dnd": _read_local_dnd(dnd_path) if swaync_dnd is None else swaync_dnd,
         "critical": critical,
         "latest": latest,
         "entries": entries,
@@ -116,16 +131,19 @@ def _emit(payload: dict[str, Any]) -> None:
     print(json.dumps(payload, ensure_ascii=True, separators=(",", ":")), flush=True)
 
 
-def _set_dnd(value: str) -> dict[str, Any]:
+def _set_dnd(path: Path, value: str) -> dict[str, Any]:
     if value == "toggle":
         current = _swaync_dnd()
-        target = not current if current is not None else True
+        target = not current if current is not None else not _read_local_dnd(path)
     else:
         target = value == "true"
+    _write_local_dnd(path, target)
+    swaync_ok = _swaync_call("-dn", "true" if target else "false")
     return {
-        "ok": _swaync_call("-dn", "true" if target else "false"),
+        "ok": True,
         "action": "dnd",
         "dnd": target,
+        "swaync_ok": swaync_ok,
     }
 
 
@@ -174,6 +192,7 @@ def _append_entry(path: Path, entry_json: str) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--history", type=Path, default=DEFAULT_HISTORY)
+    parser.add_argument("--dnd-state", type=Path, default=DEFAULT_DND_STATE)
     parser.add_argument("--limit", type=int, default=12)
     parser.add_argument("--include-dismissed", action="store_true")
     parser.add_argument("--watch", action="store_true")
@@ -185,7 +204,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.dnd:
-        _emit(_set_dnd(args.dnd))
+        _emit(_set_dnd(args.dnd_state, args.dnd))
         return 0
     if args.close_all:
         _emit(_close_all())
@@ -199,7 +218,7 @@ def main() -> int:
 
     interval = max(1.0, args.interval)
     while True:
-        _emit(_payload(args.history, max(1, args.limit), args.include_dismissed))
+        _emit(_payload(args.history, args.dnd_state, max(1, args.limit), args.include_dismissed))
         if not args.watch:
             return 0
         time.sleep(interval)

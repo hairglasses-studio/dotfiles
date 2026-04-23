@@ -4,6 +4,7 @@
 // ticker, and notification owners controlled by scripts/shell-stack-mode.sh.
 
 import Quickshell
+import Quickshell.Io
 import QtQuick
 import "modules" as Modules
 import "services" as Services
@@ -19,6 +20,31 @@ ShellRoot {
     Services.NotificationService {
         id: notificationServiceObj
         ownerEnabled: shellStateObj.notificationOwner
+    }
+
+    IpcHandler {
+        target: "shell"
+
+        function toggleNotifications(): string { notificationServiceObj.centerVisible = !notificationServiceObj.centerVisible; return "ok"; }
+        function showNotifications(): string { notificationServiceObj.centerVisible = true; return "ok"; }
+        function hideNotifications(): string { notificationServiceObj.centerVisible = false; return "ok"; }
+        function toggleQuickSettings(): string { shellStateObj.quickSettingsVisible = !shellStateObj.quickSettingsVisible; return "ok"; }
+        function toggleDnd(): string { notificationServiceObj.toggleDnd(); return "ok"; }
+        function closeNotifications(): string { notificationServiceObj.closeAll(); return "ok"; }
+        function clearNotifications(): string { notificationServiceObj.clearHistory(); return "ok"; }
+        function status(): string {
+            return JSON.stringify({
+                mode: shellStateObj.mode,
+                notificationOwner: shellStateObj.notificationOwner,
+                barCutover: shellStateObj.barCutover,
+                tickerCutover: shellStateObj.tickerCutover,
+                notificationsVisible: notificationServiceObj.centerVisible,
+                quickSettingsVisible: shellStateObj.quickSettingsVisible,
+                dnd: notificationServiceObj.dnd,
+                notificationCount: notificationServiceObj.notificationCount,
+                criticalCount: notificationServiceObj.criticalCount
+            });
+        }
     }
 
     property var primaryScreen: Quickshell.screens.find(s => s.name === shellStateObj.primaryMonitor) || Quickshell.screens[0]

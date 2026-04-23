@@ -12,7 +12,7 @@
 | `Super+Shift+`` | Keybind reference |
 | `Super+X` | Dropdown terminal |
 | `Super+P` | Power menu |
-| `Super+Ctrl+F` | Restart menubar |
+| `Super+Ctrl+F` | Restart shell bar |
 
 ##  Layout
 
@@ -114,7 +114,7 @@
 | `Super+Shift+G` | Theme next |
 | `Super+Alt+G` | Shader toggle |
 | `Super+Shift+P` | Theme prev |
-| `Super+Ctrl+R` | Safe rice reload (hyprland+ironbar+hyprshell hot-reload+dock+kitty+gtk+shaders) |
+| `Super+Ctrl+R` | Safe rice reload (hyprland+quickshell/ironbar+hyprshell+dock+kitty+gtk+shaders) |
 | `Super+Ctrl+G` | Reload kitty |
 | `Super+Alt+F` | Font next |
 | `Super+Shift+Alt+F` | Font prev |
@@ -172,4 +172,3 @@
 |-----|--------|
 | `Super+LMB` | Move window (drag) |
 | `Super+RMB` | Resize window (drag) |
-

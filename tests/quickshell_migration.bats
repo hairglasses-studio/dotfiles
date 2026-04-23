@@ -70,6 +70,48 @@ print("visible=%d critical=%d" % (payload["visible"], payload["critical"]))
     [[ ! -s "$history" ]]
 }
 
+@test "notification bridge persists dnd state without swaync" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    export SWAYNC_CLIENT_BIN="${BATS_TEST_TMPDIR}/missing-swaync-client"
+
+    run python3 "${SCRIPTS_DIR}/notification-bridge.py" --dnd true
+    assert_success
+    assert_output --partial '"action":"dnd"'
+    assert_output --partial '"dnd":true'
+    assert_output --partial '"swaync_ok":false'
+
+    run python3 "${SCRIPTS_DIR}/notification-bridge.py" --limit 1
+    assert_success
+    assert_output --partial '"dnd":true'
+}
+
+@test "notification control falls back to swaync when quickshell ipc is unavailable" {
+    export QUICKSHELL_BIN="${BATS_TEST_TMPDIR}/quickshell"
+    export SWAYNC_CLIENT_BIN="${BATS_TEST_TMPDIR}/swaync-client"
+    cat > "$QUICKSHELL_BIN" <<'MOCK'
+#!/usr/bin/env bash
+exit 1
+MOCK
+    cat > "$SWAYNC_CLIENT_BIN" <<'MOCK'
+#!/usr/bin/env bash
+printf 'swaync-client %s\n' "$*" >> "${BATS_TEST_TMPDIR}/notification-control.log"
+MOCK
+    chmod +x "$QUICKSHELL_BIN" "$SWAYNC_CLIENT_BIN"
+
+    run bash "${SCRIPTS_DIR}/notification-control.sh" toggle-center
+    assert_success
+    run cat "${BATS_TEST_TMPDIR}/notification-control.log"
+    assert_success
+    assert_output "swaync-client -t -sw"
+}
+
+@test "notification keybinds route through notification control wrapper" {
+    run grep -E 'notification-control\.sh (toggle-center|dismiss-all|toggle-dnd)' \
+        "${DOTFILES_DIR}/hyprland/hyprland.conf"
+    assert_success
+    refute_output --partial "swaync-client"
+}
+
 @test "notification daemon launcher falls back to swaync by default" {
     export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
     export SWAYNC_BIN="${BATS_TEST_TMPDIR}/swaync"

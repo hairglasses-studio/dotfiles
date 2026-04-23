@@ -19,6 +19,7 @@ The desktop control-plane for Manjaro/Wayland uses `Hyprland` as the primary com
 3. **Notifications**: `swaync` (SwayNotificationCenter) and `mako` (fallback), with Quickshell history bridge.
    - Tightly integrated with the desktop to show alerts for long-running MCP tasks or system health checks.
    - D-Bus activation for `org.freedesktop.Notifications` routes through `notification-daemon-launch.sh`, which starts Quickshell when the persisted shell-stack mode makes it the notification owner and otherwise falls back to swaync.
+   - Notification keybinds route through `notification-control.sh`; it prefers Quickshell IPC targets for center/DND/clear actions and falls back to swaync or the local bridge.
    - `notification-history-listener.py` remains the D-Bus observer; `notification-bridge.py` exposes the local history log to Quickshell without claiming `org.freedesktop.Notifications`.
    - The Quickshell shell renders notification history, DND, clear/close actions, and optional Quickshell-owned popups. `notification-cutover` stops swaync and enables Quickshell's `NotificationServer`; rollback restores swaync.
 
@@ -43,6 +44,7 @@ The control plane is uniquely orchestrated by an MCP server (`dotfiles-mcp`), al
 Many desktop behaviors rely on Unix sockets or IPC:
 - Hyprland's IPC socket is watched to trigger automatic workspace renames and desktop state refreshes when windows move.
 - D-Bus is used for media control.
+- Quickshell exposes the `shell` IPC target for notification center, quick settings, DND, and status calls used by desktop keybind wrappers.
 
 ## Quickshell Layout
 
