@@ -506,6 +506,84 @@ JSON
     fi
 }
 
+@test "retroarch-thumbnail-audit reports missing count correctly" {
+    local playlists="${BATS_TEST_TMPDIR}/playlists"
+    local thumbs="${BATS_TEST_TMPDIR}/thumbnails"
+    mkdir -p "${playlists}" "${thumbs}"
+    cat > "${playlists}/Nintendo - Game Boy.lpl" <<'JSON'
+{"version": "1.5", "items": [
+  {"path": "/roms/gb/tetris.gb", "label": "Tetris (World)",
+   "core_path": "DETECT", "core_name": "DETECT"},
+  {"path": "/roms/gb/zelda.gb", "label": "Legend of Zelda, The",
+   "core_path": "DETECT", "core_name": "DETECT"}
+]}
+JSON
+    # Pre-populate one of the 6 expected PNGs so we can verify partial
+    # fill reporting works.
+    mkdir -p "${thumbs}/Nintendo - Game Boy/Named_Boxarts"
+    touch "${thumbs}/Nintendo - Game Boy/Named_Boxarts/Tetris (World).png"
+
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-thumbnail-audit.py" \
+        --playlists-dir "${playlists}" \
+        --thumbnails-dir "${thumbs}" \
+        --report "${BATS_TEST_TMPDIR}/report.json"
+    assert_failure  # 5 of 6 missing → exit 1
+    assert_output --partial "playlists=1"
+    assert_output --partial "entries=2"
+    assert_output --partial "expected=6"
+    assert_output --partial "present=1"
+    assert_output --partial "missing=5"
+}
+
+@test "retroarch-thumbnail-audit reports zero missing when all thumbnails present" {
+    local playlists="${BATS_TEST_TMPDIR}/playlists"
+    local thumbs="${BATS_TEST_TMPDIR}/thumbnails"
+    mkdir -p "${playlists}"
+    cat > "${playlists}/Nintendo - Game Boy.lpl" <<'JSON'
+{"version": "1.5", "items": [
+  {"path": "/roms/gb/tetris.gb", "label": "Tetris",
+   "core_path": "DETECT", "core_name": "DETECT"}
+]}
+JSON
+    for cat in Named_Boxarts Named_Snaps Named_Titles; do
+        mkdir -p "${thumbs}/Nintendo - Game Boy/${cat}"
+        touch "${thumbs}/Nintendo - Game Boy/${cat}/Tetris.png"
+    done
+
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-thumbnail-audit.py" \
+        --playlists-dir "${playlists}" \
+        --thumbnails-dir "${thumbs}" \
+        --report "${BATS_TEST_TMPDIR}/report.json"
+    assert_success
+    assert_output --partial "missing=0"
+}
+
+@test "retroarch-thumbnail-fill --dry-run lists expected URLs without fetching" {
+    local playlists="${BATS_TEST_TMPDIR}/playlists"
+    local thumbs="${BATS_TEST_TMPDIR}/thumbnails"
+    mkdir -p "${playlists}"
+    cat > "${playlists}/Nintendo - Game Boy.lpl" <<'JSON'
+{"version": "1.5", "items": [
+  {"path": "/roms/gb/tetris.gb", "label": "Tetris",
+   "core_path": "DETECT", "core_name": "DETECT"}
+]}
+JSON
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-thumbnail-fill.py" \
+        --playlists-dir "${playlists}" \
+        --thumbnails-dir "${thumbs}" \
+        --report "${BATS_TEST_TMPDIR}/fill-report.json" \
+        --dry-run --limit 3
+    assert_success
+    assert_output --partial "dry_run=yes"
+    assert_output --partial "requested=3"
+    assert_output --partial "attempted=3"
+    assert_output --partial "Named_Boxarts"
+    assert_output --partial "libretro-thumbnails/Nintendo%20-%20Game%20Boy"
+    # Nothing should be fetched — thumbnails dir should not be populated.
+    [[ ! -d "${thumbs}/Nintendo - Game Boy/Named_Boxarts" ]] || \
+        fail "dry-run wrote to thumbnails dir"
+}
+
 @test "retroarch-saves-backup systemd unit syntax + references" {
     # systemd-analyze verifies the unit parses; content grep confirms
     # the expected rclone config path reference and the two sync
