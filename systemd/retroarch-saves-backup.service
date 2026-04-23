@@ -9,13 +9,14 @@ Environment=RCLONE_CONFIG=%h/.config/rclone/rclone.conf
 ExecStart=/usr/bin/bash -lc '\
   set -e; \
   iso=$(date -u +%%Y%%m%%dT%%H%%M%%SZ); \
+  backup_dir="gdrive:Gaming & Emulation/RetroArch/.backup/$iso"; \
   /usr/bin/rclone sync --config %h/.config/rclone/rclone.conf \
     --exclude "*.tmp" --exclude ".DS_Store" \
-    --backup-dir "gdrive:Gaming & Emulation/RetroArch/archive/$iso/saves" \
+    --backup-dir "$backup_dir/saves" \
     %h/.config/retroarch/saves "gdrive:Gaming & Emulation/RetroArch/saves"; \
   /usr/bin/rclone sync --config %h/.config/rclone/rclone.conf \
     --exclude "*.tmp" --exclude ".DS_Store" \
-    --backup-dir "gdrive:Gaming & Emulation/RetroArch/archive/$iso/states" \
+    --backup-dir "$backup_dir/states" \
     %h/.config/retroarch/states "gdrive:Gaming & Emulation/RetroArch/states"'
 TimeoutStartSec=20min
 MemoryMax=256M

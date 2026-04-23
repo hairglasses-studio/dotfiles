@@ -105,7 +105,7 @@ with `Persistent=true`. Pushes `~/.config/retroarch/{saves,states}` to
 `gdrive:Gaming & Emulation/RetroArch/{saves,states}` via `rclone sync`.
 
 Replaced or removed files get archived to
-`gdrive:Gaming & Emulation/RetroArch/archive/<iso-utc>/{saves,states}`
+`gdrive:Gaming & Emulation/RetroArch/.backup/<iso-utc>/{saves,states}`
 via `--backup-dir`, so an accidental local `rm` doesn't erase the remote
 copy — recovery is a single `rclone copy` back into
 `~/.config/retroarch/saves`.
