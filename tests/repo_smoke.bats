@@ -410,6 +410,21 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "DRIFT"
 }
 
+@test "MCP contract files stay internally consistent" {
+    # Two drift surfaces:
+    #  - mcp/dotfiles-mcp/.well-known/mcp.json — declared tool_count
+    #    must match len(tools), tool names unique, each tool has
+    #    name + description.
+    #  - mcp/mirror-parity.json — each mirror's canonical_path
+    #    exists as a directory.
+    # Catches renames/removals that leave the public MCP surface
+    # claim out of sync with the actual tool set.
+    run bash "${SCRIPTS_DIR}/validate-mcp-contracts.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
 @test "hyprland pypr toggle binds resolve to declared scratchpads" {
     # `pypr toggle <name>` in hyprland binds depends on a
     # [scratchpads.<name>] block in pypr/config.toml, or on a pypr
