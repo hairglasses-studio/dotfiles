@@ -146,8 +146,13 @@ if $DO_RELOAD && ! $DRY_RUN; then
     if shell_stack_quickshell_wanted || systemctl --user is-active dotfiles-quickshell.service >/dev/null 2>&1; then
         systemctl --user restart dotfiles-quickshell.service 2>/dev/null || true
     fi
-    # hyprshell CSS reload: kick the service
-    systemctl --user restart dotfiles-hyprshell.service 2>/dev/null || true
+    # hyprshell CSS reload: kick the rollback service unless Quickshell owns menus.
+    if ! shell_stack_menu_cutover; then
+        systemctl --user restart dotfiles-hyprshell.service 2>/dev/null || true
+    fi
+    if ! shell_stack_dock_cutover; then
+        systemctl --user restart dotfiles-hypr-dock.service 2>/dev/null || true
+    fi
     # Keybind ticker restart to pick up new palette (ticker reads colors at init).
     if ! shell_stack_ticker_cutover; then
         systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null || true

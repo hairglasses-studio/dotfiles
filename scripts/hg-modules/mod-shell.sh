@@ -12,11 +12,12 @@ pilot	Start Quickshell while keeping ironbar, ticker, hyprshell, swaync, and com
 bar-cutover	Start Quickshell and stop ironbar
 ticker-cutover	Start Quickshell and stop keybind ticker
 menu-cutover	Start Quickshell menus and stop hyprshell launcher/switcher
+dock-cutover	Start Quickshell dock and stop hypr-dock
 companion-cutover	Start Quickshell companion overlays and stop standalone companion services
 notification-cutover	Start Quickshell notification owner and stop swaync
-full-pilot	Start Quickshell and stop ironbar + keybind ticker + hyprshell + companion overlays
-full-cutover	Start Quickshell as bar + ticker + menu + notification + companion owner
-rollback	Stop Quickshell and restore ironbar + keybind ticker + hyprshell + swaync + companions
+full-pilot	Start Quickshell and stop ironbar + keybind ticker + hyprshell + dock + companion overlays
+full-cutover	Start Quickshell as bar + ticker + menu + dock + notification + companion owner
+rollback	Stop Quickshell and restore ironbar + keybind ticker + hyprshell + dock + swaync + companions
 CMDS
 }
 
@@ -33,7 +34,7 @@ shell_run() {
   shift || true
 
   case "$cmd" in
-    status|pilot|bar-cutover|ticker-cutover|menu-cutover|companion-cutover|notification-cutover|full-pilot|full-cutover|rollback)
+    status|pilot|bar-cutover|ticker-cutover|menu-cutover|dock-cutover|companion-cutover|notification-cutover|full-pilot|full-cutover|rollback)
       _shell_stack_mode "$cmd" "$@"
       ;;
     *) hg_die "Unknown shell command: $cmd. Run 'hg shell --help'." ;;

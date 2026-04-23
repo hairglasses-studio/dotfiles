@@ -29,7 +29,7 @@ The bottom `keybind-ticker` scrolls 39 live streams across a pixel-smooth 30 Hz 
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
-- **Shell Framework**: Shared libraries for CLI utilities, notifications, config management, and staged `Quickshell` migration controls via `hg shell`; the QML pilot now covers the bar, rotating ticker streams, and notification-history panel
+- **Shell Framework**: Shared libraries for CLI utilities, notifications, config management, and staged `Quickshell` migration controls via `hg shell`; the QML pilot now covers the bar, dock, rotating ticker streams, modal menus, and notification-history panel
 - **Terminal Launch Policy**: Hyprshell defaults to `kitty-shell-launch` for plain shell windows, fresh instances, and no startup-session restore; `kitty-visual-launch` enforces unique top-level Kitty windows for raw launch surfaces; `kitty-dev-launch` remains the explicit tmux-backed dev-session entrypoint
 
 The managed workstation alias `studio_desktop` now projects the desktop-focused `dotfiles-mcp` profile into Codex, Claude, and Gemini through the existing home-sync path.
@@ -89,9 +89,9 @@ hyprpm-bootstrap
 |--------|-------------|
 | `hyprland/` | Tiling WM — 113 keybinds, custom animations, plugin-based layout, wallpaper mode orchestration |
 | `ironbar/` | Primary top menubar with fleet cache widgets, workspaces, media, and system status |
-| `quickshell/` | Staged QML shell for bar, ticker, modal menus, and notification-history migration |
+| `quickshell/` | Staged QML shell for bar, dock, ticker, modal menus, and notification-history migration |
 | `hyprshell/` | Rollback launcher/overview service; Quickshell owns `Super+D` / `Alt+Tab` in menu cutover |
-| `hypr-dock/` | Bottom dock with pinned apps, indicators, and window previews |
+| `hypr-dock/` | Rollback bottom dock; Quickshell owns the dock in dock/full cutover |
 | `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |
 | `hyprland-autoname-workspaces/` | Workspace naming and icon rules for cleaner shell surfaces |
 | `swaync/` | Notification center + control surface themed from the shared token pipeline |

@@ -8,6 +8,7 @@ QtObject {
     readonly property bool barCutover: String(Quickshell.env("QS_BAR_CUTOVER") || "0") === "1"
     readonly property bool tickerCutover: String(Quickshell.env("QS_TICKER_CUTOVER") || "0") === "1"
     readonly property bool menuCutover: String(Quickshell.env("QS_MENU_CUTOVER") || "0") === "1"
+    readonly property bool dockCutover: String(Quickshell.env("QS_DOCK_CUTOVER") || "0") === "1"
     readonly property bool companionCutover: String(Quickshell.env("QS_COMPANION_CUTOVER") || "0") === "1"
     readonly property bool notificationOwner: String(Quickshell.env("QUICKSHELL_NOTIFICATION_OWNER") || "0") === "1"
     readonly property string primaryMonitor: String(Quickshell.env("QS_MONITOR") || Quickshell.env("QS_PRIMARY_MONITOR") || "DP-2")

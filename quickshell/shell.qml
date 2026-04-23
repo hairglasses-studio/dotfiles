@@ -19,6 +19,7 @@ ShellRoot {
     Services.BarData { id: barDataObj }
     Services.TickerService { id: tickerServiceObj }
     Services.MenuService { id: menuServiceObj }
+    Services.DockService { id: dockServiceObj }
     Services.WindowFocusService { id: windowFocusObj }
     Services.FleetTelemetryService { id: fleetTelemetryObj }
     Services.LyricsService { id: lyricsServiceObj }
@@ -45,6 +46,7 @@ ShellRoot {
                 barCutover: shellStateObj.barCutover,
                 tickerCutover: shellStateObj.tickerCutover,
                 menuCutover: shellStateObj.menuCutover,
+                dockCutover: shellStateObj.dockCutover,
                 companionCutover: shellStateObj.companionCutover,
                 notificationsVisible: notificationServiceObj.centerVisible,
                 quickSettingsVisible: shellStateObj.quickSettingsVisible,
@@ -84,6 +86,16 @@ ShellRoot {
         function snoozeUrgent(): string { tickerServiceObj.snoozeUrgent(); return "ok"; }
     }
 
+    IpcHandler {
+        target: "dock"
+
+        function status(): string { return dockServiceObj.status(); }
+        function refresh(): string { dockServiceObj.refresh(); return "ok"; }
+        function activate(id: string): string { dockServiceObj.activate(id); return "ok"; }
+        function launch(id: string): string { dockServiceObj.launch(id); return "ok"; }
+        function toggleHidden(): string { dockServiceObj.toggleHidden(); return "ok"; }
+    }
+
     property var primaryScreen: Quickshell.screens.find(s => s.name === shellStateObj.primaryMonitor) || Quickshell.screens[0]
 
     Variants {
@@ -118,6 +130,13 @@ ShellRoot {
         screenModel: root.primaryScreen
         colors: palette
         menus: menuServiceObj
+    }
+
+    Modules.Dock {
+        screenModel: root.primaryScreen
+        colors: palette
+        shellState: shellStateObj
+        dock: dockServiceObj
     }
 
     Modules.WindowLabel {

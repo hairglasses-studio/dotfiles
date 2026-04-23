@@ -112,8 +112,6 @@ fi
 
 # Hyprland companion services
 for component in \
-  hyprshell \
-  hypr-dock \
   hyprdynamicmonitors \
   autoname
 do
@@ -123,6 +121,26 @@ do
     failed="${failed} ${component}"
   fi
 done
+
+if shell_stack_menu_cutover; then
+  skipped="${skipped} hyprshell"
+else
+  if config_reload_service hyprshell --quiet 2>/dev/null; then
+    reloaded="${reloaded} hyprshell"
+  else
+    failed="${failed} hyprshell"
+  fi
+fi
+
+if shell_stack_dock_cutover; then
+  skipped="${skipped} hypr-dock"
+else
+  if config_reload_service hypr-dock --quiet 2>/dev/null; then
+    reloaded="${reloaded} hypr-dock"
+  else
+    failed="${failed} hypr-dock"
+  fi
+fi
 
 # Claude Code — clear stale state, reset ironvars
 _claude_state="${XDG_STATE_HOME:-$HOME/.local/state}/claude"
