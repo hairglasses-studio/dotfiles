@@ -410,6 +410,19 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "DRIFT"
 }
 
+@test "tracked markdown internal links all resolve" {
+    # README.md, AGENTS.md, CLAUDE.md, GEMINI.md, ROADMAP.md,
+    # docs/**/*.md, and .agents/skills/**/*.md — every relative
+    # [text](path.md) target must be a real file. External URLs
+    # (http/https/mailto) and pure #anchor-only refs are skipped.
+    # Catches rename/move drift that leaves docs pointing at the
+    # old filename — GitHub renders the link and follows 404.
+    run bash "${SCRIPTS_DIR}/validate-md-links.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
 @test "skill aliases in .claude/skills/ point at real canonical dirs" {
     # Every .claude/skills/<dir-with-hyphen>/ is a compatibility alias
     # for a snake_case canonical at both .claude/skills/<snake>/ and
