@@ -31,14 +31,14 @@ rules:
     error_code: hypr_reload_induced_drm
     severity: high
 
-  - name: Samsung DSC mode loss
-    source: monitors
-    match:
-      monitor: DP-2
-      width_below: 5120
-    error_code: hypr_reload_induced_drm
-    severity: high
-    notify: true
+  # Removed "Samsung DSC mode loss" monitor-poll rule (2026-04-22):
+  # was a width-inferred failure signal from the old 5120x1440 ultrawide
+  # layout. The workstation is now intentionally on a 3x 2560x1440 setup,
+  # so a width-below threshold fires a false positive on every poll.
+  # Real DSC failures still surface through the kernel-journal rules
+  # above (nvidia-modeset planePitch, atomic DRM failure) — those are
+  # the actual driver-level signal, not an inference from post-failure
+  # state.
 
   - name: GPU thermal throttling
     source: nvidia_throttle
