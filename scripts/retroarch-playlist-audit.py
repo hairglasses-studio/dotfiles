@@ -38,12 +38,22 @@ def _expand(value: str | None, default: Path) -> Path:
     return Path(os.path.expandvars(os.path.expanduser(value)))
 
 
+def _rom_file_part(path: str) -> str:
+    # Playlist path can point inside an archive via `archive.zip#inner.ext`.
+    # We only check the archive file, not the inner path.
+    return path.split("#", 1)[0]
+
+
 def audit(playlists_dir: Path) -> dict[str, Any]:
     report: dict[str, Any] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "playlists_dir": str(playlists_dir),
-        "summary": {"playlists": 0, "entries": 0, "unassigned": 0, "broken": 0},
-        "broken": [],
+        "summary": {
+            "playlists": 0, "entries": 0, "unassigned": 0,
+            "broken_core": 0, "broken_rom": 0,
+        },
+        "broken_core": [],
+        "broken_rom": [],
     }
     if not playlists_dir.is_dir():
         report["error"] = f"{playlists_dir} is not a directory"
@@ -61,18 +71,28 @@ def audit(playlists_dir: Path) -> dict[str, Any]:
             cp = cp_raw.strip() if isinstance(cp_raw, str) else ""
             if cp in DETECT_SENTINELS:
                 report["summary"]["unassigned"] += 1
-                continue
-            if Path(cp).exists():
-                continue
-            report["summary"]["broken"] += 1
-            report["broken"].append(
-                {
-                    "playlist": lpl.name,
-                    "label": item.get("label"),
-                    "core_path": cp,
-                    "rom_path": item.get("path"),
-                }
-            )
+            elif not Path(cp).exists():
+                report["summary"]["broken_core"] += 1
+                report["broken_core"].append(
+                    {
+                        "playlist": lpl.name,
+                        "label": item.get("label"),
+                        "core_path": cp,
+                        "rom_path": item.get("path"),
+                    }
+                )
+            rom_raw = item.get("path", "")
+            rom = rom_raw.strip() if isinstance(rom_raw, str) else ""
+            if rom and not Path(_rom_file_part(rom)).exists():
+                report["summary"]["broken_rom"] += 1
+                report["broken_rom"].append(
+                    {
+                        "playlist": lpl.name,
+                        "label": item.get("label"),
+                        "rom_path": rom,
+                        "core_path": cp,
+                    }
+                )
     return report
 
 
@@ -107,14 +127,20 @@ def main(argv: list[str]) -> int:
         s = report["summary"]
         print(
             f"playlists={s['playlists']} entries={s['entries']} "
-            f"unassigned={s['unassigned']} broken={s['broken']}"
+            f"unassigned={s['unassigned']} "
+            f"broken_core={s['broken_core']} broken_rom={s['broken_rom']}"
         )
-        for b in report["broken"][:10]:
-            print(f"  BROKEN: {b['playlist']}: {b.get('label') or '?'} -> {b['core_path']}")
-        if s["broken"] > 10:
-            print(f"  (+ {s['broken'] - 10} more — see {args.report})")
+        for b in report["broken_core"][:10]:
+            print(f"  BROKEN_CORE: {b['playlist']}: {b.get('label') or '?'} -> {b['core_path']}")
+        if s["broken_core"] > 10:
+            print(f"  (+ {s['broken_core'] - 10} more core breaks — see {args.report})")
+        for b in report["broken_rom"][:10]:
+            print(f"  BROKEN_ROM: {b['playlist']}: {b.get('label') or '?'} -> {b['rom_path']}")
+        if s["broken_rom"] > 10:
+            print(f"  (+ {s['broken_rom'] - 10} more rom breaks — see {args.report})")
 
-    return 1 if report["summary"]["broken"] else 0
+    total_broken = report["summary"]["broken_core"] + report["summary"]["broken_rom"]
+    return 1 if total_broken else 0
 
 
 if __name__ == "__main__":

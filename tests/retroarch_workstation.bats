@@ -407,18 +407,22 @@ PY
     assert_output --partial "\"port\": 55355"
 }
 
-@test "retroarch-playlist-audit flags entries with missing core_path" {
+@test "retroarch-playlist-audit flags missing cores and roms separately" {
     local playlists="${BATS_TEST_TMPDIR}/playlists"
+    local rom_file="${BATS_TEST_TMPDIR}/existing.zip"
+    touch "${rom_file}"
     mkdir -p "${playlists}"
-    cat > "${playlists}/Test.lpl" <<'JSON'
+    cat > "${playlists}/Test.lpl" <<JSON
 {
   "version": "1.5",
   "items": [
-    {"path": "/roms/good.zip", "label": "Good",
+    {"path": "${rom_file}", "label": "Good",
      "core_path": "/usr/bin/sh", "core_name": "stub"},
-    {"path": "/roms/broken.zip", "label": "Broken",
+    {"path": "${rom_file}", "label": "BrokenCore",
      "core_path": "/usr/lib/libretro/doesnotexist.so", "core_name": "ghost"},
-    {"path": "/roms/detect.zip", "label": "Detect",
+    {"path": "${BATS_TEST_TMPDIR}/missing-rom.zip", "label": "BrokenRom",
+     "core_path": "/usr/bin/sh", "core_name": "stub"},
+    {"path": "${rom_file}", "label": "Detect",
      "core_path": "DETECT", "core_name": "DETECT"}
   ]
 }
@@ -428,11 +432,14 @@ JSON
         --report "${BATS_TEST_TMPDIR}/report.json"
     assert_failure
     assert_output --partial "playlists=1"
-    assert_output --partial "entries=3"
+    assert_output --partial "entries=4"
     assert_output --partial "unassigned=1"
-    assert_output --partial "broken=1"
-    assert_output --partial "BROKEN: Test.lpl"
+    assert_output --partial "broken_core=1"
+    assert_output --partial "broken_rom=1"
+    assert_output --partial "BROKEN_CORE: Test.lpl"
     assert_output --partial "doesnotexist.so"
+    assert_output --partial "BROKEN_ROM: Test.lpl"
+    assert_output --partial "missing-rom.zip"
 }
 
 @test "retroarch-playlist-audit reports zero broken on clean playlists" {
@@ -445,7 +452,8 @@ JSON
         --playlists-dir "${playlists}" \
         --report "${BATS_TEST_TMPDIR}/report.json"
     assert_success
-    assert_output --partial "broken=0"
+    assert_output --partial "broken_core=0"
+    assert_output --partial "broken_rom=0"
 }
 
 @test "retroarch-complete --dry-run prints the plan without mutating state" {
