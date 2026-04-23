@@ -1,0 +1,24 @@
+# dotfiles-mcpkit-drift.service — weekly mcpkit version drift check.
+#
+# Closes the gap the CodeMcpkitVersionDrift remediation code was written
+# to handle: the remediation tool existed, but nothing proactively ran
+# it. This service runs scripts/mcpkit-drift-check.sh once a week and
+# emits an `mcpkit_version_drift` event when dotfiles-mcp's pinned
+# mcpkit version trails the latest tag. /heal will then suggest
+# dotfiles_mcpkit_version_sync as the fix.
+#
+# Detection only — never applies the fix. `go get mcpkit@latest` wants
+# to land alongside a PR and downstream mod tidy, which is human-loop
+# territory.
+
+[Unit]
+Description=Weekly dotfiles-mcp → mcpkit version drift detector
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/mcpkit-drift-check.sh
+MemoryMax=64M
+CPUQuota=10%
+# `go list -m -versions` needs network + Go module cache; pass the env
+# so the proxy lookup reaches the right place.
+PassEnvironment=HOME PATH GOPATH GOMODCACHE

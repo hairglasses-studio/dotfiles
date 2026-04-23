@@ -33,7 +33,7 @@ Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json`:
 
 ### Full description (long-form pages)
 
-> `dotfiles-mcp` is the canonical MCP surface for a Linux workstation running Hyprland (Wayland). It ships 419 tools across 30+ modules — all discovery-first, so the initial context load is ~85 % smaller than the upstream equivalents. Categories include:
+> `dotfiles-mcp` is the canonical MCP surface for a Linux workstation running Hyprland (Wayland). It ships 434 tools + 25 resources across 30+ modules — all discovery-first, so the initial context load is ~85 % smaller than the upstream equivalents. Categories include:
 >
 > - **Hyprland IPC**: 19 tools for screenshots, windowrules, monitor config, layers, keybinds, hotreload.
 > - **Desktop automation**: atomic config writes with auto-backup, compositor abstraction, session orchestration.

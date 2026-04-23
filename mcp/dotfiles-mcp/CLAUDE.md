@@ -10,9 +10,9 @@ GOWORK=off go test ./... -count=1
 GOWORK=off go install .
 ```
 
-## Tools (~420)
+## Tools (~434)
 
-This server has grown to 30+ modules with ~420 tools (see `.well-known/mcp.json` for the exact count). Use the discovery tools (`dotfiles_tool_search`, `dotfiles_tool_catalog`, `dotfiles_tool_schema`) to browse the full live catalog. The sections below cover the core tools.
+This server has grown to 30+ modules with ~434 tools + 25 resources (see `.well-known/mcp.json` for the exact count). Use the discovery tools (`dotfiles_tool_search`, `dotfiles_tool_catalog`, `dotfiles_tool_schema`) to browse the full live catalog. The sections below cover the core tools; the observability chassis (remediation registry, event-bus `events_tail`, hypr-config snapshot + rollback, systemd reset-failed, network DNS write, keybind add/remove, bt audio profile, hypr VRR write) is documented inline under the matching categories.
 
 ### Config Management (4)
 - `dotfiles_list_configs` — List dotfiles config directories with symlink health and format

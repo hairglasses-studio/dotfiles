@@ -1,0 +1,20 @@
+# dotfiles-mcpkit-drift.timer — fire the drift check once a week.
+#
+# Weekly is the right cadence: mcpkit doesn't tag often, drift hasn't
+# produced an incident yet, and the detector is strictly informational
+# (it emits a low-severity event, nothing else). More frequent would
+# just add noise. Persistent=true so a missed boot window still fires.
+#
+# Enable: systemctl --user enable --now dotfiles-mcpkit-drift.timer
+
+[Unit]
+Description=Weekly mcpkit version drift detection
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+RandomizedDelaySec=1h
+AccuracySec=10min
+
+[Install]
+WantedBy=timers.target

@@ -818,6 +818,7 @@ create_symlinks() {
             bar-weather-alerts.timer
             bar-cve.timer
             dotfiles-health-watchdog.timer
+            dotfiles-mcpkit-drift.timer
         )
         local desktop_units=("${desktop_service_units[@]}" "${desktop_passive_units[@]}")
         if systemctl --user enable "${desktop_units[@]}" >/dev/null 2>&1; then
