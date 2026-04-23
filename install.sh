@@ -273,6 +273,7 @@ $DOTFILES_DIR/scripts/retroarch-bios-apply.py|$HOME/.local/bin/retroarch-bios-ap
 $DOTFILES_DIR/scripts/retroarch-apply-network-cmd.py|$HOME/.local/bin/retroarch-apply-network-cmd
 $DOTFILES_DIR/scripts/retroarch-build-libretro-cores.sh|$HOME/.local/bin/retroarch-build-libretro-cores
 $DOTFILES_DIR/scripts/retroarch-command.py|$HOME/.local/bin/retroarch-command
+$DOTFILES_DIR/scripts/retroarch-complete.sh|$HOME/.local/bin/retroarch-complete
 $DOTFILES_DIR/scripts/retroarch-install-widescreen-cores.sh|$HOME/.local/bin/retroarch-install-widescreen-cores
 $DOTFILES_DIR/scripts/retroarch-dolphin-sync-sys.sh|$HOME/.local/bin/retroarch-dolphin-sync-sys
 $DOTFILES_DIR/scripts/retroarch-next-widescreen-setup.sh|$HOME/.local/bin/retroarch-next-widescreen-setup
@@ -784,6 +785,7 @@ create_symlinks() {
             dotfiles-window-label.service
             dotfiles-fleet-sparkline.service
             dotfiles-cliphist.service
+            dotfiles-event-bus.service
         )
         local desktop_passive_units=(
             rg-status-bar.timer
@@ -801,6 +803,7 @@ create_symlinks() {
             bar-prs.timer
             bar-weather-alerts.timer
             bar-cve.timer
+            dotfiles-health-watchdog.timer
         )
         local desktop_units=("${desktop_service_units[@]}" "${desktop_passive_units[@]}")
         if systemctl --user enable "${desktop_units[@]}" >/dev/null 2>&1; then

@@ -10,7 +10,21 @@ the authoritative `retroarch_playlist_map` and `retroarch_requirements` rows.
 `scripts/lib/retroarch_profile.py` falls back to built-in defaults when the
 shared profile is unreachable.
 
-## One-shot sync
+## One-shot full setup
+
+```bash
+retroarch-complete --dry-run   # preview the plan
+retroarch-complete             # chain every idempotent step
+```
+
+`retroarch-complete` runs `audit → bios-apply → install-workstation-cores
+→ (conditional) apply-network-cmd → post-audit`, skipping anything
+already in place. No `sudo` anywhere. If the workstation still needs
+source-built cores (`race` + `beetle-wswan`), the orchestrator prints
+the exact follow-up command and exits with a clear `note` — that's
+the one external step sandboxed agents can't run on your behalf.
+
+## Archive.org homebrew sync
 
 ```bash
 retroarch-archive-homebrew-sync --dry-run
@@ -27,6 +41,7 @@ Summary JSON: `$XDG_STATE_HOME/retroarch-archive/sync-summary.json`.
 
 | Command | Purpose |
 |---|---|
+| `retroarch-complete` | End-to-end orchestrator that chains every other step idempotently. `--dry-run` prints the plan; `--skip-build` suppresses the source-build nag. No `sudo`, no external clone. |
 | `retroarch-workstation-audit` | Audit cores, BIOS/asset dirs, display, runtime. Writes JSON to `$XDG_STATE_HOME/retroarch/workstation-audit.json`. |
 | `retroarch-bios-apply` | Populate missing required BIOS/helper dirs (Dreamcast `dc/`, PSP `PPSSPP/`). Supports `--dry-run` and `--source-dir` for local BIOS drops. |
 | `retroarch-install-workstation-cores` | Install pacman-packaged libretro cores; optional AUR pass for `libretro-beetle-vb-git` when `yay`/`paru` is on `PATH`. `--skip-aur` disables the AUR pass. |

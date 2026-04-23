@@ -407,6 +407,21 @@ PY
     assert_output --partial "\"port\": 55355"
 }
 
+@test "retroarch-complete --dry-run prints the plan without mutating state" {
+    # Orchestrator script that chains audit → bios-apply →
+    # install-workstation-cores → (conditional) apply-network-cmd →
+    # post-audit. The --dry-run path only emits plan lines to stderr
+    # and never invokes the sub-scripts, so it's safe to run under
+    # bats without any RetroArch state setup.
+    run bash "${DOTFILES_DIR}/scripts/retroarch-complete.sh" --dry-run
+    assert_success
+    assert_output --partial "[plan ] workstation-audit"
+    assert_output --partial "[plan ] bios-apply"
+    assert_output --partial "[plan ] install-workstation-cores"
+    assert_output --partial "apply-network-cmd"
+    refute_output --partial "[run  ]"
+}
+
 @test "retroarch-command --wait-for-ready times out cleanly and reports attempts" {
     # Failure-path coverage — success path needs a live RetroArch
     # UDP echo server which the CI/sandbox can't reliably provide.
