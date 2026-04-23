@@ -96,6 +96,49 @@ Not available — drive these from the menu or a fresh `retroarch` invocation:
 
 Full canonical list: <https://docs.libretro.com/development/retroarch/network-control-interface/>.
 
+## Dreamcast BIOS
+
+`retroarch-bios-apply` guarantees the Flycast system subdirectory exists —
+the audit requirement row `dreamcast|dir|required|dc|` clears once the
+empty directory is created. The boot/flash ROMs themselves are
+proprietary Sega firmware and are not shipped with this repo.
+
+Expected location, filename, and md5:
+
+```
+~/.config/retroarch/system/dc/dc_boot.bin    md5 e10c53c2f8b90bab96ead2d368858623
+~/.config/retroarch/system/dc/dc_flash.bin   md5 (region-specific; check Flycast docs)
+```
+
+Both are marked `optional` in the shared requirement catalog
+(`scripts/lib/retroarch_profile.py`): Flycast boots HLE when the files
+are absent but defaults to LLE when `dc_boot.bin` is present. Audit
+will not flag them as missing unless the catalog is edited — they are
+intentionally optional rows.
+
+Supply your own BIOS copies (typically from a Dreamcast you own) and
+use `--source-dir` to install them:
+
+```bash
+retroarch-bios-apply --system dreamcast --source-dir /path/to/your/bios
+```
+
+The script copies any matching `dc_boot.bin` / `dc_flash.bin` out of
+`--source-dir` into `~/.config/retroarch/system/dc/`, skips files that
+are already present with the correct hash, and writes an entry to
+`$XDG_STATE_HOME/retroarch/bios-apply.json`. No network access; safe
+to run under `--dry-run` first to confirm which files it would touch.
+
+After dropping the BIOS, confirm via the audit:
+
+```bash
+retroarch-workstation-audit
+python3 -c 'import json; d=json.load(open("'"$HOME"'/.local/state/retroarch/workstation-audit.json")); [print(r) for r in d["requirements"] if r["system"]=="dreamcast"]'
+```
+
+The optional rows for `dc_boot.bin` / `dc_flash.bin` will flip to
+`status: present` with a populated `md5` field.
+
 ## Deferred
 
 - **Playlist hot-reload.** Verified 2026-04-22 against RetroArch 1.22.2:
