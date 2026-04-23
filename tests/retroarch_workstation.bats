@@ -578,7 +578,9 @@ JSON
     assert_output --partial "requested=3"
     assert_output --partial "attempted=3"
     assert_output --partial "Named_Boxarts"
-    assert_output --partial "libretro-thumbnails/Nintendo%20-%20Game%20Boy"
+    # Upstream repos replace spaces with underscores in the repo name
+    # (but keep original label spaces as %20 inside the path).
+    assert_output --partial "libretro-thumbnails/Nintendo_-_Game_Boy"
     # Nothing should be fetched — thumbnails dir should not be populated.
     [[ ! -d "${thumbs}/Nintendo - Game Boy/Named_Boxarts" ]] || \
         fail "dry-run wrote to thumbnails dir"

@@ -123,6 +123,12 @@ type = "label"
 class = "bar-gpu"
 label = "{{10000:cat /tmp/bar-gpu.txt 2>/dev/null || echo ''}}"
 
+# RetroArch now-playing (cache-fed via bar-retroarch.timer — reads content_history.lpl + mounts-audit summary)
+[[monitors."DP-3".end]]
+type = "label"
+class = "bar-retroarch"
+label = "{{30000:cat /tmp/bar-retroarch.txt 2>/dev/null || echo ''}}"
+
 # Bluetooth
 [[monitors."DP-3".end]]
 type = "label"
