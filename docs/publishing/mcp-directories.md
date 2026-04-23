@@ -95,7 +95,7 @@ Current submission note, verified 2026-04-23: Glama indexes open-source MCP serv
 https://github.com/hairglasses-studio/dotfiles-mcp
 ```
 
-Suggested `glama.json` content if the standalone mirror wants explicit metadata:
+Committed `glama.json` content in the standalone mirror:
 
 ```json
 {
