@@ -28,6 +28,7 @@ The desktop control-plane for Manjaro/Wayland uses `Hyprland` as the primary com
 
 4. **Ticker**: Quickshell-owned QML ticker with legacy rollback.
    - `TickerService.qml` owns playlist rotation, pause/pin/shuffle/preset state, urgent mode, banner text, health snapshots, and cache/live stream commands.
+   - In ticker cutover modes, Quickshell also owns lock-screen and recording watchers; the legacy `dotfiles-ticker-lockwatch.service` and `dotfiles-ticker-recordwatch.service` are stopped with the Python ticker.
    - `ticker-control.sh` is the stable control wrapper used by `hg ticker`, keybinds, lock/record watchers, and plugin hooks; it prefers Quickshell IPC and falls back to legacy DBus/state.
    - `keybind-ticker.py` remains the rollback owner when Quickshell is unavailable or `dotfiles-keybind-ticker.service` is explicitly restored.
 

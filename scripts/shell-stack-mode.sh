@@ -16,6 +16,10 @@ COMPANION_UNITS=(
   dotfiles-fleet-sparkline.service
   dotfiles-lyrics-ticker.service
 )
+TICKER_WATCHER_UNITS=(
+  dotfiles-ticker-lockwatch.service
+  dotfiles-ticker-recordwatch.service
+)
 
 usage() {
   cat <<'EOF'
@@ -25,7 +29,7 @@ Modes:
   status          Show current shell service state.
   pilot           Start Quickshell; keep ironbar, ticker, hyprshell, swaync, and companions live.
   bar-cutover     Start Quickshell; stop ironbar; keep ticker, hyprshell, swaync, and companions live.
-  ticker-cutover  Start Quickshell; stop keybind ticker; keep ironbar, hyprshell, swaync, and companions live.
+  ticker-cutover  Start Quickshell; stop keybind ticker and ticker watcher services; keep ironbar, hyprshell, swaync, and companions live.
   menu-cutover    Start Quickshell menus; stop hyprshell launcher/switcher.
   dock-cutover    Start Quickshell dock; stop hypr-dock.
   companion-cutover
@@ -176,6 +180,7 @@ service_units() {
     dotfiles-quickshell.service \
     ironbar.service \
     dotfiles-keybind-ticker.service \
+    "${TICKER_WATCHER_UNITS[@]}" \
     dotfiles-hyprshell.service \
     dotfiles-hypr-dock.service \
     "${COMPANION_UNITS[@]}" \
@@ -252,6 +257,20 @@ stop_companion_units() {
   done
 }
 
+start_ticker_watchers() {
+  local unit
+  for unit in "${TICKER_WATCHER_UNITS[@]}"; do
+    start_unit "$unit"
+  done
+}
+
+stop_ticker_watchers() {
+  local unit
+  for unit in "${TICKER_WATCHER_UNITS[@]}"; do
+    stop_unit "$unit"
+  done
+}
+
 case "$MODE" in
   status)
     if $JSON_MODE; then
@@ -265,6 +284,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_ticker_watchers
     start_unit dotfiles-hyprshell.service
     start_unit dotfiles-hypr-dock.service
     start_companion_units
@@ -276,6 +296,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_ticker_watchers
     start_unit dotfiles-hyprshell.service
     start_unit dotfiles-hypr-dock.service
     start_companion_units
@@ -287,6 +308,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
+    stop_ticker_watchers
     start_unit dotfiles-hyprshell.service
     start_unit dotfiles-hypr-dock.service
     start_companion_units
@@ -298,6 +320,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_ticker_watchers
     stop_unit dotfiles-hyprshell.service
     start_unit dotfiles-hypr-dock.service
     start_companion_units
@@ -309,6 +332,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_ticker_watchers
     start_unit dotfiles-hyprshell.service
     stop_unit dotfiles-hypr-dock.service
     start_companion_units
@@ -320,6 +344,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_ticker_watchers
     start_unit dotfiles-hyprshell.service
     start_unit dotfiles-hypr-dock.service
     stop_companion_units
@@ -332,6 +357,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_ticker_watchers
     start_unit dotfiles-hyprshell.service
     start_unit dotfiles-hypr-dock.service
     start_companion_units
@@ -342,6 +368,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
+    stop_ticker_watchers
     stop_unit dotfiles-hyprshell.service
     stop_unit dotfiles-hypr-dock.service
     stop_companion_units
@@ -354,6 +381,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
+    stop_ticker_watchers
     stop_unit dotfiles-hyprshell.service
     stop_unit dotfiles-hypr-dock.service
     stop_companion_units
@@ -364,6 +392,7 @@ case "$MODE" in
     stop_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_ticker_watchers
     start_unit dotfiles-hyprshell.service
     start_unit dotfiles-hypr-dock.service
     start_companion_units

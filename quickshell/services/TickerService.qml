@@ -11,6 +11,8 @@ Item {
     property string stateDir: Quickshell.env("XDG_STATE_HOME")
         ? Quickshell.env("XDG_STATE_HOME") + "/keybind-ticker"
         : Quickshell.env("HOME") + "/.local/state/keybind-ticker"
+    property bool watcherCutover: String(Quickshell.env("QS_TICKER_CUTOVER") || "0") === "1"
+    property bool companionCutover: String(Quickshell.env("QS_COMPANION_CUTOVER") || "0") === "1"
     property var allStreams: [
         "keybinds", "system", "fleet", "weather", "github", "notifications",
         "music", "updates", "mx-battery", "disk", "load", "cpu", "gpu",
@@ -41,6 +43,10 @@ Item {
     property var streamHealth: ({})
     property int okTotal: 0
     property int errTotal: 0
+    property bool lockActive: false
+    property bool recordingActive: false
+    property string preLockPlaylist: ""
+    property string preRecordingPlaylist: ""
 
     signal sweepRequested()
 
@@ -209,6 +215,108 @@ Item {
         const target = stateDir + "/" + key;
         const command = "mkdir -p " + shQuote(stateDir) + "; " + (enabled ? ": > " + shQuote(target) : "rm -f " + shQuote(target));
         Quickshell.execDetached(["bash", "-lc", command]);
+    }
+
+    function writePath(path, value) {
+        const command = "mkdir -p " + shQuote(path.replace(/\/[^/]*$/, "")) + "; printf %s " + shQuote(value || "") + " > " + shQuote(path);
+        Quickshell.execDetached(["bash", "-lc", command]);
+    }
+
+    function clearPath(path) {
+        Quickshell.execDetached(["bash", "-lc", "rm -f " + shQuote(path)]);
+    }
+
+    function setStandaloneCompanions(enabled) {
+        if (companionCutover) return;
+        const verb = enabled ? "start" : "stop";
+        Quickshell.execDetached(["bash", "-lc",
+            "systemctl --user " + verb + " " +
+            "dotfiles-window-label.service dotfiles-fleet-sparkline.service dotfiles-lyrics-ticker.service >/dev/null 2>&1 || true"
+        ]);
+    }
+
+    function enterLockMode(restoreHint) {
+        if (lockActive) return;
+        const pre = playlist && playlist !== "lock" ? playlist : (restoreHint || "main");
+        preLockPlaylist = pre;
+        writeState("pre-lock-playlist", pre);
+        setPlaylist("lock");
+        setStandaloneCompanions(false);
+        lockActive = true;
+    }
+
+    function exitLockMode(restoreHint) {
+        if (!lockActive) return;
+        const restore = restoreHint || preLockPlaylist || "main";
+        preLockPlaylist = "";
+        writeState("pre-lock-playlist", "");
+        setPlaylist(restore);
+        if (!recordingActive) setStandaloneCompanions(true);
+        lockActive = false;
+    }
+
+    function writeRecordingCache(info) {
+        writePath("/tmp/bar-recording.txt", info);
+    }
+
+    function enterRecordingMode(info, restoreHint) {
+        if (!recordingActive) {
+            const pre = playlist && playlist !== "recording" ? playlist : (restoreHint || "main");
+            preRecordingPlaylist = pre;
+            writeState("pre-recording-playlist", pre);
+            setPlaylist("recording");
+            setStandaloneCompanions(false);
+            showBanner("Recording started - ticker playlist active", "#ff5c8a");
+        }
+        writeRecordingCache(info);
+        recordingActive = true;
+    }
+
+    function exitRecordingMode(restoreHint) {
+        if (!recordingActive) return;
+        const restore = restoreHint || preRecordingPlaylist || "main";
+        preRecordingPlaylist = "";
+        writeState("pre-recording-playlist", "");
+        writeRecordingCache("");
+        setPlaylist(restore);
+        setStandaloneCompanions(true);
+        showBanner("Recording stopped - restored " + restore, "#3dffb5");
+        recordingActive = false;
+    }
+
+    function handleWatchSnapshot(isLocked, recordingInfo, preLockHint, preRecordingHint) {
+        if (!watcherCutover) return;
+
+        if (isLocked) {
+            if (!lockActive) enterLockMode(preLockHint);
+            if (recordingInfo.length > 0) {
+                writeRecordingCache(recordingInfo);
+                recordingActive = true;
+            } else if (recordingActive) {
+                writeRecordingCache("");
+                recordingActive = false;
+            }
+            return;
+        }
+
+        if (lockActive) exitLockMode(preLockHint);
+
+        if (recordingInfo.length > 0) enterRecordingMode(recordingInfo, preRecordingHint);
+        else exitRecordingMode(preRecordingHint);
+    }
+
+    function pollWatchers() {
+        if (!watcherCutover || watchProc.running) return;
+        watchProc.exec(["bash", "-lc",
+            "d=" + shQuote(stateDir) + "; " +
+            "locked=0; pgrep -x hyprlock >/dev/null 2>&1 && locked=1; " +
+            "tool=; pid=; start=; " +
+            "for t in wf-recorder wl-screenrec; do p=$(pgrep -x \"$t\" | head -1); " +
+            "if [ -n \"$p\" ]; then tool=$t; pid=$p; start=$(stat -c %Y \"/proc/$p\" 2>/dev/null || date +%s); break; fi; done; " +
+            "printf '%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n' \"$locked\" \"$tool\" \"$pid\" \"$start\" " +
+            "\"$(cat \"$d/pre-lock-playlist\" 2>/dev/null || true)\" " +
+            "\"$(cat \"$d/pre-recording-playlist\" 2>/dev/null || true)\""
+        ]);
     }
 
     function fetchCurrent() {
@@ -389,6 +497,9 @@ Item {
             preset: preset,
             urgent: urgent,
             banner: bannerText,
+            watcher_cutover: watcherCutover,
+            locked: lockActive,
+            recording: recordingActive,
             text: text,
             streams: streams,
             ok_total: okTotal,
@@ -442,6 +553,21 @@ Item {
         }
     }
 
+    Process {
+        id: watchProc
+        stdout: SplitParser {
+            onRead: data => {
+                const parts = data.split("\t");
+                const locked = parts[0] === "1";
+                const tool = parts[1] || "";
+                const pid = parts[2] || "";
+                const start = parts[3] || "";
+                const info = tool.length > 0 ? [tool, pid, start].join("\t") : "";
+                root.handleWatchSnapshot(locked, info, parts[4] || "", parts[5] || "");
+            }
+        }
+    }
+
     Timer {
         interval: root.refreshMs
         running: !root.paused
@@ -458,6 +584,14 @@ Item {
     }
 
     Timer {
+        id: watcherTimer
+        interval: 2000
+        running: root.watcherCutover
+        repeat: true
+        onTriggered: root.pollWatchers()
+    }
+
+    Timer {
         id: bannerTimer
         interval: 4500
         repeat: false
@@ -471,5 +605,8 @@ Item {
         onTriggered: root.urgent = false
     }
 
-    Component.onCompleted: loadState()
+    Component.onCompleted: {
+        loadState();
+        pollWatchers();
+    }
 }

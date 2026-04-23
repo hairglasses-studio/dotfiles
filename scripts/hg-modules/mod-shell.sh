@@ -10,7 +10,7 @@ shell_commands() {
 status	Show current shell service state
 pilot	Start Quickshell while keeping ironbar, ticker, hyprshell, swaync, and companions live
 bar-cutover	Start Quickshell and stop ironbar
-ticker-cutover	Start Quickshell and stop keybind ticker
+ticker-cutover	Start Quickshell and stop keybind ticker + ticker watcher services
 menu-cutover	Start Quickshell menus and stop hyprshell launcher/switcher
 dock-cutover	Start Quickshell dock and stop hypr-dock
 companion-cutover	Start Quickshell companion overlays and stop standalone companion services
