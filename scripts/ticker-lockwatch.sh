@@ -15,12 +15,13 @@
 
 set -uo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATE_DIR="$HOME/.local/state/keybind-ticker"
 ACTIVE_FILE="$STATE_DIR/active-playlist"
 PRELOCK_FILE="$STATE_DIR/pre-lock-playlist"
 LOCK_PLAYLIST="lock"
 DEFAULT_PLAYLIST="main"
-SERVICE="dotfiles-keybind-ticker.service"
+CONTROL="$SCRIPT_DIR/ticker-control.sh"
 POLL_S="${TICKER_LOCKWATCH_POLL_S:-2}"
 
 mkdir -p "$STATE_DIR"
@@ -53,9 +54,8 @@ enter_lock() {
   pre="$(current_playlist)"
   [[ "$pre" == "$LOCK_PLAYLIST" ]] && return
   printf '%s' "$pre" > "$PRELOCK_FILE"
-  printf '%s' "$LOCK_PLAYLIST" > "$ACTIVE_FILE"
+  "$CONTROL" playlist "$LOCK_PLAYLIST" >/dev/null 2>&1 || printf '%s' "$LOCK_PLAYLIST" > "$ACTIVE_FILE"
   systemctl --user stop "${COMPANION_SURFACES[@]}" 2>/dev/null || true
-  systemctl --user restart "$SERVICE" 2>/dev/null || true
 }
 
 exit_lock() {
@@ -65,8 +65,7 @@ exit_lock() {
     rm -f "$PRELOCK_FILE"
   fi
   [[ -z "$restore" ]] && restore="$DEFAULT_PLAYLIST"
-  printf '%s' "$restore" > "$ACTIVE_FILE"
-  systemctl --user restart "$SERVICE" 2>/dev/null || true
+  "$CONTROL" playlist "$restore" >/dev/null 2>&1 || printf '%s' "$restore" > "$ACTIVE_FILE"
   systemctl --user start "${COMPANION_SURFACES[@]}" 2>/dev/null || true
 }
 

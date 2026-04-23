@@ -41,14 +41,9 @@ gdbus call --session \
   --method io.hairglasses.Toast.ShowToast \
   "$msg" "$color" >/dev/null 2>&1 || true
 
-# Critical urgencies also flip the keybind-ticker into urgent mode so
-# the scrolling bar itself flashes (amplified glitch + CA for 10 s).
-# The ticker DBus (Phase 1) exposes SetUrgent(b); the call is best-
-# effort — if the ticker isn't running we silently skip.
+# Critical urgencies also flip the ticker into urgent mode so the scrolling bar
+# itself flashes. The control wrapper prefers Quickshell and falls back to the
+# legacy DBus ticker when needed.
 if [[ "$urgency" == "Critical" ]]; then
-  gdbus call --session \
-    -d io.hairglasses.keybind_ticker \
-    -o /io/hairglasses/Ticker \
-    -m io.hairglasses.Ticker.SetUrgent \
-    true >/dev/null 2>&1 || true
+  "$HOME/hairglasses-studio/dotfiles/scripts/ticker-control.sh" urgent true >/dev/null 2>&1 || true
 fi

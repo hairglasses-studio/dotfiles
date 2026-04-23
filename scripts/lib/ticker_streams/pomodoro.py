@@ -2,8 +2,7 @@
 
 Phase 4 of the marathon adds a completion hook: on the first `remaining
 == 0` zero-crossing of a `running` session, the plugin fires a
-`ShowBanner` via the ticker's DBus interface (which relays to
-toast-ticker) and sets urgent-mode so the scroll flashes. The hook
+the ticker-control wrapper and sets urgent-mode so the scroll flashes. The hook
 guards against re-firing every frame by tracking the last-seen
 (started_at, session_kind) tuple in module scope; the same session
 only triggers once.
@@ -22,6 +21,7 @@ META = {"name": "pomodoro", "preset": "cyberpunk", "refresh": 1}
 
 _LABEL = "\U000f050d POMODORO"
 _STATE_PATH = os.path.expanduser("~/.local/state/keybind-ticker/pomodoro.json")
+_TICKER_CONTROL = os.path.expanduser("~/hairglasses-studio/dotfiles/scripts/ticker-control.sh")
 
 # Track the last session that already fired its completion hook so we
 # don't re-trigger ShowBanner every frame while the state file sits on
@@ -38,27 +38,17 @@ def _state():
 
 
 def _fire_completion_hook(kind: str, started: float):
-    """Notify ShowBanner via DBus + set urgent mode.
+    """Notify ticker-control banner + set urgent mode.
 
-    Uses `gdbus call` as a subprocess so the plugin stays dependency-free
-    (no gi.repository import in the plugin, which would otherwise drag
-    GTK into the headless smoke test). The banner text and the urgent
-    signal are independent calls — both are best-effort.
+    Uses subprocess calls so the plugin stays dependency-free. The banner text
+    and urgent signal are independent calls; both are best-effort.
     """
     label = "BREAK" if kind.upper() in ("BREAK", "REST", "PAUSE") else "WORK"
     color = "#3dffb5" if label == "WORK" else "#4aa8ff"
     text = f"Pomodoro: {label} done"
     for args in (
-        ["gdbus", "call", "--session",
-         "-d", "io.hairglasses.keybind_ticker",
-         "-o", "/io/hairglasses/Ticker",
-         "-m", "io.hairglasses.Ticker.ShowBanner",
-         text, color],
-        ["gdbus", "call", "--session",
-         "-d", "io.hairglasses.keybind_ticker",
-         "-o", "/io/hairglasses/Ticker",
-         "-m", "io.hairglasses.Ticker.SetUrgent",
-         "true"],
+        [_TICKER_CONTROL, "banner", text, color],
+        [_TICKER_CONTROL, "urgent", "true"],
     ):
         try:
             subprocess.Popen(

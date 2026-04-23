@@ -89,14 +89,14 @@ hyprpm-bootstrap
 |--------|-------------|
 | `hyprland/` | Tiling WM — 113 keybinds, custom animations, plugin-based layout, wallpaper mode orchestration |
 | `ironbar/` | Primary top menubar with fleet cache widgets, workspaces, media, and system status |
-| `quickshell/` | Staged QML shell pilot for bar, ticker, and notification-history migration |
-| `hyprshell/` | Primary launcher, overview, and app switcher for `Super+D` / `Alt+Tab`, with `default_terminal` pinned to the shell-first Kitty launcher |
+| `quickshell/` | Staged QML shell for bar, ticker, modal menus, and notification-history migration |
+| `hyprshell/` | Rollback launcher/overview service; Quickshell owns `Super+D` / `Alt+Tab` in menu cutover |
 | `hypr-dock/` | Bottom dock with pinned apps, indicators, and window previews |
 | `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |
 | `hyprland-autoname-workspaces/` | Workspace naming and icon rules for cleaner shell surfaces |
 | `swaync/` | Notification center + control surface themed from the shared token pipeline |
-| `wofi/` | Responsive fallback launcher/switcher styling and emoji picker |
-| `wlogout/` | Power menu overlay aligned with the shell token system |
+| `wofi/` | Fallback launcher/switcher/emoji styling when Quickshell menus are unavailable |
+| `wlogout/` | Rollback power menu overlay aligned with the shell token system |
 | `kitty/` | GPU terminal with DarkWindow shaders, theme playlists, shuffled visuals, and watcher-driven retheming |
 | `zsh/` | Oh My Zsh, Starship prompt, 650+ aliases |
 | `starship/` | Fill-based right alignment, git metrics, cloud context |

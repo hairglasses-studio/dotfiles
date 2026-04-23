@@ -15,13 +15,14 @@
 
 set -uo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATE_DIR="$HOME/.local/state/keybind-ticker"
 ACTIVE_FILE="$STATE_DIR/active-playlist"
 PRE_FILE="$STATE_DIR/pre-recording-playlist"
 CACHE_FILE="/tmp/bar-recording.txt"
 REC_PLAYLIST="recording"
 DEFAULT_PLAYLIST="main"
-SERVICE="dotfiles-keybind-ticker.service"
+CONTROL="$SCRIPT_DIR/ticker-control.sh"
 POLL_S="${TICKER_RECORDWATCH_POLL_S:-2}"
 
 mkdir -p "$STATE_DIR"
@@ -66,10 +67,9 @@ enter_recording() {
   pre="$(current_playlist)"
   if [[ "$pre" != "$REC_PLAYLIST" ]]; then
     printf '%s' "$pre" > "$PRE_FILE"
-    printf '%s' "$REC_PLAYLIST" > "$ACTIVE_FILE"
     printf '%s' "$info" > "$CACHE_FILE"
+    "$CONTROL" playlist "$REC_PLAYLIST" >/dev/null 2>&1 || printf '%s' "$REC_PLAYLIST" > "$ACTIVE_FILE"
     systemctl --user stop "${COMPANION_SURFACES[@]}" 2>/dev/null || true
-    systemctl --user restart "$SERVICE" 2>/dev/null || true
     notify-send -u low -t 2500 -i media-record "Recording started" \
       "Ticker swapped to recording playlist." 2>/dev/null || true
   else
@@ -86,8 +86,7 @@ exit_recording() {
   fi
   [[ -z "$restore" ]] && restore="$DEFAULT_PLAYLIST"
   : > "$CACHE_FILE"
-  printf '%s' "$restore" > "$ACTIVE_FILE"
-  systemctl --user restart "$SERVICE" 2>/dev/null || true
+  "$CONTROL" playlist "$restore" >/dev/null 2>&1 || printf '%s' "$restore" > "$ACTIVE_FILE"
   systemctl --user start "${COMPANION_SURFACES[@]}" 2>/dev/null || true
   notify-send -u low -t 2500 -i media-playback-stop "Recording stopped" \
     "Ticker restored to '$restore' playlist." 2>/dev/null || true

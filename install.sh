@@ -257,6 +257,8 @@ $DOTFILES_DIR/scripts/kitty-visual-launch.sh|$HOME/.local/bin/kitty-visual-launc
 $DOTFILES_DIR/scripts/jellyfin-stack-boot.sh|$HOME/.local/bin/jellyfin-stack-boot.sh
 $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
+$DOTFILES_DIR/scripts/menu-control.sh|$HOME/.local/bin/menu-control
+$DOTFILES_DIR/scripts/ticker-control.sh|$HOME/.local/bin/ticker-control
 $DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
 $DOTFILES_DIR/scripts/ticker-bridge.py|$HOME/.local/bin/ticker-bridge
 $DOTFILES_DIR/scripts/notification-bridge.py|$HOME/.local/bin/notification-bridge

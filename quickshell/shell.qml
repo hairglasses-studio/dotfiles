@@ -1,7 +1,8 @@
 // Quickshell shell migration root.
 //
 // This stays runnable as a parallel pilot while modules grow into the bar,
-// ticker, and notification owners controlled by scripts/shell-stack-mode.sh.
+// ticker, menu, notification, and companion owners controlled by
+// scripts/shell-stack-mode.sh.
 
 import Quickshell
 import Quickshell.Io
@@ -17,6 +18,7 @@ ShellRoot {
     Services.ShellState { id: shellStateObj }
     Services.BarData { id: barDataObj }
     Services.TickerService { id: tickerServiceObj }
+    Services.MenuService { id: menuServiceObj }
     Services.WindowFocusService { id: windowFocusObj }
     Services.FleetTelemetryService { id: fleetTelemetryObj }
     Services.LyricsService { id: lyricsServiceObj }
@@ -42,6 +44,7 @@ ShellRoot {
                 notificationOwner: shellStateObj.notificationOwner,
                 barCutover: shellStateObj.barCutover,
                 tickerCutover: shellStateObj.tickerCutover,
+                menuCutover: shellStateObj.menuCutover,
                 companionCutover: shellStateObj.companionCutover,
                 notificationsVisible: notificationServiceObj.centerVisible,
                 quickSettingsVisible: shellStateObj.quickSettingsVisible,
@@ -50,6 +53,35 @@ ShellRoot {
                 criticalCount: notificationServiceObj.criticalCount
             });
         }
+    }
+
+    IpcHandler {
+        target: "menus"
+
+        function open(mode: string): string { menuServiceObj.open(mode); return "ok"; }
+        function toggle(mode: string): string { menuServiceObj.toggle(mode); return "ok"; }
+        function close(): string { menuServiceObj.close(); return "ok"; }
+        function status(): string { return menuServiceObj.status(); }
+    }
+
+    IpcHandler {
+        target: "ticker"
+
+        function status(): string { return tickerServiceObj.statusJson(); }
+        function listStreams(): string { return tickerServiceObj.listStreams(); }
+        function next(): string { tickerServiceObj.next(); return "ok"; }
+        function prev(): string { tickerServiceObj.prev(); return "ok"; }
+        function pin(stream: string): string { tickerServiceObj.pin(stream); return "ok"; }
+        function unpin(): string { tickerServiceObj.unpin(); return "ok"; }
+        function pinToggle(): string { tickerServiceObj.pinToggle(); return "ok"; }
+        function pauseToggle(): string { tickerServiceObj.togglePause(); return "ok"; }
+        function shuffle(mode: string): string { tickerServiceObj.setShuffleMode(mode); return "ok"; }
+        function playlist(name: string): string { tickerServiceObj.setPlaylist(name); return "ok"; }
+        function preset(name: string): string { tickerServiceObj.setPreset(name); return "ok"; }
+        function reload(): string { tickerServiceObj.reload(); return "ok"; }
+        function banner(text: string, color: string): string { tickerServiceObj.showBanner(text, color); return "ok"; }
+        function urgent(enabled: bool): string { tickerServiceObj.setUrgent(enabled); return "ok"; }
+        function snoozeUrgent(): string { tickerServiceObj.snoozeUrgent(); return "ok"; }
     }
 
     property var primaryScreen: Quickshell.screens.find(s => s.name === shellStateObj.primaryMonitor) || Quickshell.screens[0]
@@ -73,6 +105,19 @@ ShellRoot {
         shellState: shellStateObj
         ticker: tickerServiceObj
         notifications: notificationServiceObj
+    }
+
+    Modules.TickerContextMenu {
+        screenModel: root.primaryScreen
+        colors: palette
+        shellState: shellStateObj
+        ticker: tickerServiceObj
+    }
+
+    Modules.MenuOverlay {
+        screenModel: root.primaryScreen
+        colors: palette
+        menus: menuServiceObj
     }
 
     Modules.WindowLabel {

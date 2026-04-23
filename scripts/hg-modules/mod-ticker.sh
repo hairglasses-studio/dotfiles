@@ -4,7 +4,7 @@
 
 _TICKER_STATE="$HOME/.local/state/keybind-ticker"
 _TICKER_SERVICE="dotfiles-keybind-ticker.service"
-_TICKER_HEADLESS="$HG_DOTFILES/scripts/ticker-headless.py"
+_TICKER_CONTROL="$HG_DOTFILES/scripts/ticker-control.sh"
 _TICKER_SHOT="$HG_DOTFILES/scripts/ticker-shot.sh"
 _TICKER_RECORD="$HG_DOTFILES/scripts/ticker-record.sh"
 _TICKER_SMOKE="$HG_DOTFILES/scripts/ticker-smoke-test.py"
@@ -16,6 +16,9 @@ _TICKER_GOLDEN="$HG_DOTFILES/scripts/ticker-golden.sh"
 # service's Environment= lines are re-applied; a raw kill+exec would miss
 # LD_PRELOAD for gtk4-layer-shell.
 _ticker_reload() {
+  if [[ -x "$_TICKER_CONTROL" ]] && "$_TICKER_CONTROL" reload >/dev/null 2>&1; then
+    return 0
+  fi
   local pids rc
   pids="$(pgrep -f 'keybind-ticker.py --layer' 2>/dev/null || true)"
   if [[ -n "$pids" ]]; then
@@ -50,14 +53,14 @@ shot	Capture a 28px-tall ticker-only PNG (safe for Claude ingestion)
 record	Record a ticker-only MP4 via wf-recorder (default 60s)
 smoke-test	Load every plugin + TOML stream and call build() — PASS/FAIL report
 recover-monitor	Restore DP-2 to native mode after DSC fallback (ticker clipping)
-next	Advance one stream (via DBus)
-prev	Rewind one stream (via DBus)
+next	Advance one stream
+prev	Rewind one stream
 pin-toggle	Pin current stream if unpinned, else unpin
-reload	Hot-reload plugin modules + TOML catalogue (via DBus)
-banner	Flash a toast banner via DBus — `hg ticker banner <text> [color]`
+reload	Hot-reload ticker state and stream catalogue
+banner	Flash a ticker banner — `hg ticker banner <text> [color]`
 snooze-urgent	Dismiss an active urgent-mode escalation early
 golden	Capture / diff per-stream reference PNGs (save | diff | list | clean)
-input-test	Assert the DBus control-surface round-trips (pin, shuffle, next, urgent)
+input-test	Assert the ticker control surface round-trips (pin, shuffle, next, urgent)
 CMDS
 }
 
@@ -85,80 +88,35 @@ ticker_run() {
   shift || true
   case "$cmd" in
     status)
-      printf 'service   : %s\n' "$(systemctl --user is-active "$_TICKER_SERVICE")"
-      printf 'playlist  : %s\n' "$(_ticker_read_state active-playlist main)"
-      printf 'current   : %s\n' "$(_ticker_read_state current-stream '(rotating)')"
-      printf 'pinned    : %s\n' "$(_ticker_read_state pinned-stream '(none)')"
-      if [[ -f "$_TICKER_STATE/paused" ]]; then
-        printf 'paused    : yes\n'
-      else
-        printf 'paused    : no\n'
-      fi
-      if [[ -f "$_TICKER_STATE/shuffle" ]]; then
-        printf 'shuffle   : on\n'
-      else
-        printf 'shuffle   : off\n'
-      fi
+      "$_TICKER_CONTROL" status
       ;;
     pin)
       local stream="${1:?usage: hg ticker pin <stream>}"
-      _ticker_write_state pinned-stream "$stream"
-      _ticker_reload
-      printf 'pinned to %s\n' "$stream"
+      "$_TICKER_CONTROL" pin "$stream"
       ;;
     unpin)
-      _ticker_write_state pinned-stream ""
-      _ticker_reload
-      printf 'unpinned\n'
+      "$_TICKER_CONTROL" unpin
       ;;
     playlist)
       local name="${1:?usage: hg ticker playlist <name>}"
-      _ticker_write_state active-playlist "$name"
-      _ticker_reload
-      printf 'playlist switched to %s\n' "$name"
+      "$_TICKER_CONTROL" playlist "$name"
       ;;
     pause)
-      if [[ -f "$_TICKER_STATE/paused" ]]; then
-        rm -f "$_TICKER_STATE/paused"
-        printf 'resumed\n'
-      else
-        mkdir -p "$_TICKER_STATE"
-        : > "$_TICKER_STATE/paused"
-        printf 'paused\n'
-      fi
-      _ticker_reload
+      "$_TICKER_CONTROL" pause
       ;;
     shuffle)
       # Usage: hg ticker shuffle [on|off|toggle]   (default: toggle)
-      local arg="${1:-toggle}"
-      local flag="$_TICKER_STATE/shuffle"
-      mkdir -p "$_TICKER_STATE"
-      case "$arg" in
-        on)      : > "$flag"; printf 'shuffle on\n' ;;
-        off)     rm -f "$flag"; printf 'shuffle off\n' ;;
-        toggle|"")
-          if [[ -f "$flag" ]]; then
-            rm -f "$flag"; printf 'shuffle off\n'
-          else
-            : > "$flag"; printf 'shuffle on\n'
-          fi
-          ;;
-        *) printf 'usage: hg ticker shuffle [on|off|toggle]\n' >&2; return 2 ;;
-      esac
-      _ticker_reload
+      "$_TICKER_CONTROL" shuffle "${1:-toggle}"
       ;;
     list-streams)
-      python3 "$_TICKER_HEADLESS" --list
+      "$_TICKER_CONTROL" list-streams
       ;;
     list-playlists)
-      for f in "$HG_DOTFILES/ticker/content-playlists"/*.txt; do
-        printf '%s\n' "$(basename "$f" .txt)"
-      done
+      "$_TICKER_CONTROL" list-playlists
       ;;
     show)
       local stream="${1:?usage: hg ticker show <stream>}"
-      python3 "$_TICKER_HEADLESS" --stream "$stream"
-      printf '\n'
+      "$_TICKER_CONTROL" show "$stream"
       ;;
     restart)
       systemctl --user restart "$_TICKER_SERVICE"
@@ -253,30 +211,13 @@ for name in sorted(data.get("streams", {}).keys()):
 PY
       ;;
     next|prev|pin-toggle|reload|snooze-urgent)
-      # DBus-driven verbs mapped to io.hairglasses.Ticker methods.
-      # Requires the primary ticker instance to be running.
-      local method
-      case "$cmd" in
-        next)           method="NextStream" ;;
-        prev)           method="PrevStream" ;;
-        pin-toggle)     method="PinToggle"  ;;
-        reload)         method="ReloadPlugins" ;;
-        snooze-urgent)  method="SnoozeUrgent"  ;;
-      esac
-      gdbus call --session \
-        -d io.hairglasses.keybind_ticker \
-        -o /io/hairglasses/Ticker \
-        -m "io.hairglasses.Ticker.$method" >/dev/null
+      "$_TICKER_CONTROL" "$cmd"
       ;;
     banner)
       # Usage: hg ticker banner <text> [color]
       local text="${1:?usage: hg ticker banner <text> [color]}"
       local color="${2:-#29f0ff}"
-      gdbus call --session \
-        -d io.hairglasses.keybind_ticker \
-        -o /io/hairglasses/Ticker \
-        -m io.hairglasses.Ticker.ShowBanner \
-        "$text" "$color" >/dev/null
+      "$_TICKER_CONTROL" banner "$text" "$color"
       ;;
     golden)
       "$_TICKER_GOLDEN" "$@"

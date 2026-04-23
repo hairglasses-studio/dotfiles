@@ -1,13 +1,14 @@
 """fleet — ralphglasses /tmp/rg-status.json summary (running / loops / cost / models).
 
-Also fires a ticker `ShowBanner` on cost-threshold crossings so the
+Also fires a ticker banner on cost-threshold crossings so the
 fleet cost growing past $10 / $50 / $100 / $500 / $1000 surfaces as
 a banner even when the fleet stream isn't currently on screen. Uses
-the Phase 1 DBus API so the banner propagates to toast-ticker.
+the ticker-control wrapper so Quickshell cutover and legacy DBus both work.
 """
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from html import escape
 
@@ -16,6 +17,7 @@ import ticker_render as tr
 META = {"name": "fleet", "preset": "cyberpunk", "refresh": 30}
 
 _LABEL = "\U000f0168 FLEET"
+_TICKER_CONTROL = os.path.expanduser("~/hairglasses-studio/dotfiles/scripts/ticker-control.sh")
 
 # Cost milestones — banners fire when total_spend_usd crosses any of
 # these for the first time since the plugin started. The last-seen
@@ -34,11 +36,7 @@ def _maybe_fire_cost_banner(cost_now: float):
                 color = "#ff5c8a" if threshold >= 100 else "#ffe45e"
                 msg = f"Fleet cost past ${threshold:.0f}  (now ${cost_now:.2f})"
                 subprocess.Popen(
-                    ["gdbus", "call", "--session",
-                     "-d", "io.hairglasses.keybind_ticker",
-                     "-o", "/io/hairglasses/Ticker",
-                     "-m", "io.hairglasses.Ticker.ShowBanner",
-                     msg, color],
+                    [_TICKER_CONTROL, "banner", msg, color],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                     start_new_session=True,
                 )

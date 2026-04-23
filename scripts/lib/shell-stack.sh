@@ -13,6 +13,7 @@ shell_stack_load() {
   SHELL_STACK_MODE="${SHELL_STACK_MODE:-pilot}"
   QS_BAR_CUTOVER="${QS_BAR_CUTOVER:-0}"
   QS_TICKER_CUTOVER="${QS_TICKER_CUTOVER:-0}"
+  QS_MENU_CUTOVER="${QS_MENU_CUTOVER:-0}"
   QS_COMPANION_CUTOVER="${QS_COMPANION_CUTOVER:-0}"
   QUICKSHELL_NOTIFICATION_OWNER="${QUICKSHELL_NOTIFICATION_OWNER:-0}"
 
@@ -30,6 +31,10 @@ shell_stack_bar_cutover() {
 
 shell_stack_ticker_cutover() {
   [[ "${QS_TICKER_CUTOVER:-0}" == "1" ]]
+}
+
+shell_stack_menu_cutover() {
+  [[ "${QS_MENU_CUTOVER:-0}" == "1" ]]
 }
 
 shell_stack_notification_cutover() {
