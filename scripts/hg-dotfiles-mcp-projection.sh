@@ -94,7 +94,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-hg_require diff git jq perl
+hg_require diff git jq perl gofmt
 if [[ "$MODE" == "apply" ]]; then
   hg_require gofmt
 fi
@@ -387,6 +387,7 @@ while IFS= read -r file; do
   [[ -n "$file" ]] || continue
   tmp_rewritten="$(temp_file)"
   perl -0pe 's/^package main$/package dotfiles/m' "$CANONICAL_PATH/$file" >"$tmp_rewritten"
+  gofmt -w "$tmp_rewritten"
   if cmp -s "$tmp_rewritten" "$TARGET_PACKAGE_DIR/$file"; then
     printf '%s\n' "$file" >>"$GO_IDENTICAL_LIST"
   else
