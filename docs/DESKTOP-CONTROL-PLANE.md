@@ -23,8 +23,9 @@ The desktop control-plane for Manjaro/Wayland uses `Hyprland` as the primary com
    - D-Bus activation for `org.freedesktop.Notifications` routes through `notification-daemon-launch.sh`, which starts Quickshell when the persisted shell-stack mode makes it the notification owner and otherwise falls back to swaync.
    - Notification keybinds route through `notification-control.sh`; it prefers Quickshell IPC targets for center/DND/clear actions and falls back to swaync or the local bridge.
    - MCP notification tools use the same wrapper before falling back to raw `swaync-client`, keeping agent actions aligned with the active shell owner.
-   - `notification-history-listener.py` remains the D-Bus observer; `notification-bridge.py` exposes the local history log to Quickshell without claiming `org.freedesktop.Notifications`.
-   - The Quickshell shell renders notification history, DND, clear/close actions, and optional Quickshell-owned popups. `notification-cutover` stops swaync and enables Quickshell's `NotificationServer`; rollback restores swaync.
+   - `notification-history-listener.py` remains the D-Bus observer for swaync-owned modes; notification cutover stops it because Quickshell's `NotificationServer` appends owned notifications directly.
+   - `notification-bridge.py` exposes the local history log to Quickshell without claiming `org.freedesktop.Notifications`.
+   - The Quickshell shell renders notification history, DND, clear/close actions, and optional Quickshell-owned popups. `notification-cutover` stops swaync, stops the dbus-monitor history listener, and enables Quickshell's `NotificationServer`; rollback restores swaync and the listener.
 
 4. **Ticker**: Quickshell-owned QML ticker with legacy rollback.
    - `TickerService.qml` owns playlist rotation, pause/pin/shuffle/preset state, urgent mode, banner text, health snapshots, and cache/live stream commands.

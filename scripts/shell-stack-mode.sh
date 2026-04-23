@@ -35,9 +35,9 @@ Modes:
   companion-cutover
                   Start Quickshell companion overlays; keep ironbar, ticker, hyprshell, and swaync live.
   notification-cutover
-                  Start Quickshell notification owner; stop swaync; keep companions live.
+                  Start Quickshell notification owner/history; stop swaync and the dbus-monitor history listener; keep companions live.
   full-pilot      Start Quickshell; stop ironbar, keybind ticker, hyprshell, dock, and companion overlays; keep swaync live.
-  full-cutover    Start Quickshell as bar, ticker, menu, dock, notification, and companion overlay owner.
+  full-cutover    Start Quickshell as bar, ticker, menu, dock, notification/history, and companion overlay owner.
   rollback        Stop Quickshell; start ironbar, keybind ticker, hyprshell, dock, swaync, and companion overlays.
 
 Without --apply, prints the commands it would run.
@@ -361,7 +361,7 @@ case "$MODE" in
     start_unit dotfiles-hyprshell.service
     start_unit dotfiles-hypr-dock.service
     start_companion_units
-    start_unit dotfiles-notification-history.service
+    stop_unit dotfiles-notification-history.service
     ;;
   full-pilot)
     persist_mode "$MODE"
@@ -385,7 +385,7 @@ case "$MODE" in
     stop_unit dotfiles-hyprshell.service
     stop_unit dotfiles-hypr-dock.service
     stop_companion_units
-    start_unit dotfiles-notification-history.service
+    stop_unit dotfiles-notification-history.service
     ;;
   rollback)
     persist_mode "$MODE"

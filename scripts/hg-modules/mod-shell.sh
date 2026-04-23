@@ -14,9 +14,9 @@ ticker-cutover	Start Quickshell and stop keybind ticker + ticker watcher service
 menu-cutover	Start Quickshell menus and stop hyprshell launcher/switcher
 dock-cutover	Start Quickshell dock and stop hypr-dock
 companion-cutover	Start Quickshell companion overlays and stop standalone companion services
-notification-cutover	Start Quickshell notification owner and stop swaync
+notification-cutover	Start Quickshell notification owner/history and stop swaync + history listener
 full-pilot	Start Quickshell and stop ironbar + keybind ticker + hyprshell + dock + companion overlays
-full-cutover	Start Quickshell as bar + ticker + menu + dock + notification + companion owner
+full-cutover	Start Quickshell as bar + ticker + menu + dock + notification/history + companion owner
 rollback	Stop Quickshell and restore ironbar + keybind ticker + hyprshell + dock + swaync + companions
 CMDS
 }
