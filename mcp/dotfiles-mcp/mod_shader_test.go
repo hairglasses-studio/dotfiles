@@ -48,7 +48,7 @@ func TestShadersDir(t *testing.T) {
 	// With DOTFILES_DIR set
 	t.Setenv("DOTFILES_DIR", "/tmp/test-dotfiles")
 	got := shadersDir()
-	want := "/tmp/test-dotfiles/kitty/shaders/crtty"
+	want := "/tmp/test-dotfiles/kitty/shaders/darkwindow"
 	if got != want {
 		t.Errorf("shadersDir() = %q, want %q", got, want)
 	}
@@ -269,7 +269,7 @@ func setupFakeKittyPlaylistEnv(t *testing.T) string {
 	t.Setenv("DOTFILES_DIR", dir)
 	t.Setenv("HOME", dir)
 
-	shadersDir := filepath.Join(dir, "kitty", "shaders", "crtty")
+	shadersDir := filepath.Join(dir, "kitty", "shaders", "darkwindow")
 	playlistsDir := filepath.Join(dir, "kitty", "shaders", "playlists")
 	themePlaylistsDir := filepath.Join(dir, "kitty", "themes", "playlists")
 	stateDir := filepath.Join(dir, ".local", "state", "kitty-shaders")
