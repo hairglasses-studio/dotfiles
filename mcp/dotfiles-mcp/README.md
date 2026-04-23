@@ -19,8 +19,8 @@ git clone https://github.com/hairglasses-studio/dotfiles.git
 cd dotfiles/mcp/dotfiles-mcp
 GOWORK=off go install .
 
-# After the standalone mirror is synced and tagged:
-# go install github.com/hairglasses-studio/dotfiles-mcp@latest
+# Standalone publish mirror:
+go install github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest
 ```
 
 When developing from the monorepo mirror under `dotfiles/mcp/dotfiles-mcp`, use `GOWORK=off` for direct module commands so the shared `mcp/go.work` does not inherit sibling repo-local replaces from other MCP modules.

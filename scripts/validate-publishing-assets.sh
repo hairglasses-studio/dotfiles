@@ -96,14 +96,14 @@ version = overview.get("version")
 if version and not re.search(rf"\|\s*Version\s*\|\s*{re.escape(str(version))}\s*\|", directories):
     failures.append(f"mcp-directories.md Version is not {version}")
 
-if "https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp" not in directories:
-    failures.append("mcp-directories.md missing canonical dotfiles-mcp subdirectory URL")
-if "hairglasses/dotfiles-mcp" not in directories:
-    failures.append("mcp-directories.md missing current archived standalone mirror blocker")
-if "v0.1.0 and v1.0.0" not in directories or "checked-in 2.2.0 contract" not in directories:
-    failures.append("mcp-directories.md missing stale standalone module release blocker")
-if "projection_needed" not in directories or "internal/remediation" not in directories:
-    failures.append("mcp-directories.md missing standalone projection drift blocker")
+if "https://github.com/hairglasses-studio/dotfiles-mcp" not in directories:
+    failures.append("mcp-directories.md missing standalone dotfiles-mcp repo URL")
+if "github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest" not in directories:
+    failures.append("mcp-directories.md missing standalone go install command")
+if "v1.1.0" not in directories or "server contract version" not in directories:
+    failures.append("mcp-directories.md missing verified standalone module release note")
+if "status=in_sync" not in directories:
+    failures.append("mcp-directories.md missing cleared standalone projection status")
 if "raw.githubusercontent.com/hairglasses-studio/dotfiles/main/mcp/dotfiles-mcp/.well-known/mcp.json" not in directories:
     failures.append("mcp-directories.md missing externally crawlable well-known raw URL")
 

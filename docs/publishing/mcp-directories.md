@@ -18,8 +18,8 @@ Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json` and
 | Module count | 41 |
 | Resources | 25 |
 | Prompts | 13 |
-| Homepage | https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp |
-| Repo | https://github.com/hairglasses-studio/dotfiles |
+| Homepage | https://github.com/hairglasses-studio/dotfiles-mcp |
+| Repo | https://github.com/hairglasses-studio/dotfiles-mcp |
 | License | MIT |
 | Language | Go |
 | Categories | desktop, desktop_interact, discovery, github, hyprland, input_simulate, systemd, workflow |
@@ -55,16 +55,16 @@ Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json` and
 
 Directory URL: https://www.pulsemcp.com/submit
 
-Current submission note, verified 2026-04-23: PulseMCP asks for a server/client URL and says it ingests the Official MCP Registry daily, processes entries weekly, and accepts a GitHub repo, subfolder URL, or standalone website URL. Use the canonical monorepo subfolder URL until the standalone mirror is repaired:
+Current submission note, verified 2026-04-23: PulseMCP asks for a server/client URL and says it ingests the Official MCP Registry daily, processes entries weekly, and accepts a GitHub repo, subfolder URL, or standalone website URL. Use the standalone publish mirror:
 
 ```text
-https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp
+https://github.com/hairglasses-studio/dotfiles-mcp
 ```
 
 Form fields:
 
 - **Server Name**: `dotfiles-mcp`
-- **Homepage**: https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp
+- **Homepage**: https://github.com/hairglasses-studio/dotfiles-mcp
 - **Author**: hairglasses-studio
 - **Language**: Go
 - **License**: MIT
@@ -73,9 +73,7 @@ Form fields:
 - **Long description**: (full description above)
 - **Install snippet**:
   ```sh
-  git clone https://github.com/hairglasses-studio/dotfiles.git
-  cd dotfiles/mcp/dotfiles-mcp
-  GOWORK=off go install .
+  go install github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest
   ```
 - **Transport**: stdio (default)
 - **Config example**:
@@ -91,10 +89,10 @@ Form fields:
 
 Directory URL: https://glama.ai/
 
-Current submission note, verified 2026-04-23: Glama indexes open-source MCP servers from GitHub repositories and recommends adding `glama.json` metadata to control display name, description, category, environment variables, and build details. Use the canonical repo URL and point metadata at the MCP subdirectory:
+Current submission note, verified 2026-04-23: Glama indexes open-source MCP servers from GitHub repositories and recommends adding `glama.json` metadata to control display name, description, category, environment variables, and build details. Use the standalone publish mirror:
 
 ```text
-https://github.com/hairglasses-studio/dotfiles
+https://github.com/hairglasses-studio/dotfiles-mcp
 ```
 
 Suggested `glama.json` content if the standalone mirror wants explicit metadata:
@@ -103,15 +101,14 @@ Suggested `glama.json` content if the standalone mirror wants explicit metadata:
 {
   "displayName": "dotfiles-mcp",
   "description": "Hyprland + GitHub org + fleet-management tools for Linux workstation automation.",
-  "homepage": "https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp",
-  "repository": "https://github.com/hairglasses-studio/dotfiles",
-  "sourceDirectory": "mcp/dotfiles-mcp",
+  "homepage": "https://github.com/hairglasses-studio/dotfiles-mcp",
+  "repository": "https://github.com/hairglasses-studio/dotfiles-mcp",
   "language": "Go",
   "license": "MIT",
   "tags": ["hyprland", "wayland", "linux", "desktop-automation", "github", "fleet", "systemd", "bluetooth"],
   "categories": ["desktop", "automation", "linux", "github"],
   "transport": "stdio",
-  "installCommand": "git clone https://github.com/hairglasses-studio/dotfiles.git && cd dotfiles/mcp/dotfiles-mcp && GOWORK=off go install .",
+  "installCommand": "go install github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest",
   "author": {
     "name": "hairglasses-studio",
     "url": "https://github.com/hairglasses-studio"
@@ -123,10 +120,10 @@ Suggested `glama.json` content if the standalone mirror wants explicit metadata:
 
 Directory URL: https://mcpmarket.com/submit
 
-Current submission note, verified 2026-04-23: MCP Market's submit page asks for the full GitHub repository URL for the MCP server and reviews it for inclusion. Submit the canonical repo, with `mcp/dotfiles-mcp` called out in the description:
+Current submission note, verified 2026-04-23: MCP Market's submit page asks for the full GitHub repository URL for the MCP server and reviews it for inclusion. Submit the standalone publish mirror:
 
 ```text
-https://github.com/hairglasses-studio/dotfiles
+https://github.com/hairglasses-studio/dotfiles-mcp
 ```
 
 If it asks for a category, use `Desktop & System`.
@@ -134,9 +131,10 @@ If it asks for a category, use `Desktop & System`.
 ## Checklist before submitting
 
 - [x] Verified `hairglasses-studio/dotfiles` is public and non-archived on 2026-04-23
-- [ ] Repair standalone module mirror before advertising `go install github.com/hairglasses-studio/dotfiles-mcp@latest`: GitHub currently resolves `hairglasses-studio/dotfiles-mcp` to archived personal repo `hairglasses/dotfiles-mcp`
-- [ ] Tag a fresh release (v2.2.0 or later) — `go list -m -versions github.com/hairglasses-studio/dotfiles-mcp` currently reports only v0.1.0 and v1.0.0, so `@latest` does not match the checked-in 2.2.0 contract
-- [ ] Clear standalone projection drift before submitting the mirror: `hg-dotfiles-mcp-projection.sh check` reports `projection_needed`, including 35 required Go-file drifts, 14 required canonical-only files, and missing required `internal/remediation`
+- [x] Verified `hairglasses-studio/dotfiles-mcp` is public, non-archived, transferred under `hairglasses-studio`, and installable on 2026-04-23
+- [x] Tagged valid Go module release `v1.1.0`; `v2.2.0` is the server contract version, but the Go module path is still v1
+- [x] Cleared standalone projection drift: clean `HEAD:mcp/dotfiles-mcp` export reports `status=in_sync`
+- [x] Verified `go install github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest` resolves `v1.1.0`
 - [x] `README.md` of `mcp/dotfiles-mcp` has a "What is MCP?" intro for discovery traffic
 - [x] Confirm `.well-known/mcp.json` is externally crawlable: `https://raw.githubusercontent.com/hairglasses-studio/dotfiles/main/mcp/dotfiles-mcp/.well-known/mcp.json` returns name `io.github.hairglasses-studio.dotfiles-mcp`, version `2.2.0`, tool count `434`
 - [x] Directory submit URLs verified on 2026-04-23

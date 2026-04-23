@@ -37,6 +37,15 @@ bash ./scripts/hg-dotfiles-mcp-projection.sh check
 bash ./scripts/hg-dotfiles-mcp-projection.sh check --diff-preview --diff-lines 12
 ```
 
+Current release status (verified 2026-04-23): the standalone
+`hairglasses-studio/dotfiles-mcp` repo is public, non-archived, projection-clean
+against a clean `HEAD:mcp/dotfiles-mcp` export, and tagged `v1.1.0` for the Go
+module path. The server contract version remains `2.2.0`; install with:
+
+```bash
+go install github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest
+```
+
 When an editable standalone checkout is available, the projection helper can now
 apply the carry-forward directly:
 
