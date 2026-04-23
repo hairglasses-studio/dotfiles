@@ -407,6 +407,47 @@ PY
     assert_output --partial "\"port\": 55355"
 }
 
+@test "retroarch-playlist-audit flags entries with missing core_path" {
+    local playlists="${BATS_TEST_TMPDIR}/playlists"
+    mkdir -p "${playlists}"
+    cat > "${playlists}/Test.lpl" <<'JSON'
+{
+  "version": "1.5",
+  "items": [
+    {"path": "/roms/good.zip", "label": "Good",
+     "core_path": "/usr/bin/sh", "core_name": "stub"},
+    {"path": "/roms/broken.zip", "label": "Broken",
+     "core_path": "/usr/lib/libretro/doesnotexist.so", "core_name": "ghost"},
+    {"path": "/roms/detect.zip", "label": "Detect",
+     "core_path": "DETECT", "core_name": "DETECT"}
+  ]
+}
+JSON
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-playlist-audit.py" \
+        --playlists-dir "${playlists}" \
+        --report "${BATS_TEST_TMPDIR}/report.json"
+    assert_failure
+    assert_output --partial "playlists=1"
+    assert_output --partial "entries=3"
+    assert_output --partial "unassigned=1"
+    assert_output --partial "broken=1"
+    assert_output --partial "BROKEN: Test.lpl"
+    assert_output --partial "doesnotexist.so"
+}
+
+@test "retroarch-playlist-audit reports zero broken on clean playlists" {
+    local playlists="${BATS_TEST_TMPDIR}/playlists"
+    mkdir -p "${playlists}"
+    cat > "${playlists}/Empty.lpl" <<'JSON'
+{"version": "1.5", "items": []}
+JSON
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-playlist-audit.py" \
+        --playlists-dir "${playlists}" \
+        --report "${BATS_TEST_TMPDIR}/report.json"
+    assert_success
+    assert_output --partial "broken=0"
+}
+
 @test "retroarch-complete --dry-run prints the plan without mutating state" {
     # Orchestrator script that chains audit → bios-apply →
     # install-workstation-cores → (conditional) apply-network-cmd →

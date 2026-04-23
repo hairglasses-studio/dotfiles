@@ -118,10 +118,17 @@ PY
     fi
 else
     run "apply-network-cmd (conditional)" python3 "${SCRIPT_DIR}/retroarch-apply-network-cmd.py"
+    run "playlist-audit" python3 "${SCRIPT_DIR}/retroarch-playlist-audit.py"
 fi
 
 # ── Step 6: post-audit ──────────────────────────────────────────────
 if [[ $dry_run -eq 0 ]]; then
+    # Playlist integrity — cheap, hits the live RetroArch playlist
+    # dir and flags entries whose core_path points at a missing .so.
+    # Non-fatal; orchestrator still reports the final summary.
+    if ! python3 "${SCRIPT_DIR}/retroarch-playlist-audit.py" >/dev/null 2>&1; then
+        note "some playlist entries point at missing cores — see: retroarch-playlist-audit"
+    fi
     run "post-audit" python3 "${SCRIPT_DIR}/retroarch-workstation-audit.py" >/dev/null
     summary=$(python3 - "$AUDIT_JSON" <<'PY'
 import json
