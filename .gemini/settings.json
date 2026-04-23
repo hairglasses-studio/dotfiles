@@ -6,6 +6,19 @@
       "GEMINI.md"
     ]
   },
+  "hooks": {
+    "AfterTool": [
+      {
+        "hooks": [
+          {
+            "command": "./scripts/claude-marathon-sync.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ]
+  },
   "mcp": {
     "allowed": [
       "dotfiles"

@@ -1,8 +1,8 @@
 # dotfiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Shaders](https://img.shields.io/badge/GLSL_Shaders-139-purple)](kitty/shaders/)
-[![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
+[![Shaders](https://img.shields.io/badge/GLSL_Shaders-326-purple)](kitty/shaders/)
+[![MCP Tools](https://img.shields.io/badge/MCP_Tools-434-blue)](mcp/dotfiles-mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 [![CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml)
 [![Go CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-go-mcp.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-go-mcp.yml)
@@ -11,9 +11,9 @@
 
 Full-stack development environment for Manjaro Linux.
 
-> **Engineering context:** The MCP integration (1,400+ tools across 7 Go servers) uses the same [mcpkit](https://github.com/hairglasses-studio/mcpkit) patterns as production server deployments — deferred tool loading, middleware chains, and composed operations.
+> **Engineering context:** The MCP integration is centered on `dotfiles-mcp`, a 434-tool workstation control plane using the same [mcpkit](https://github.com/hairglasses-studio/mcpkit) patterns as production server deployments — deferred tool loading, middleware chains, and composed operations.
 
-Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
+Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual rotation, declarative package management, and **400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
 ![Desktop — Hyprland + Ironbar menubar + tiled terminals (Hairglasses Neon)](.github/assets/desktop.png)
 
@@ -23,9 +23,9 @@ The bottom `keybind-ticker` scrolls 39 live streams across a pixel-smooth 30 Hz 
 
 ### Technical Highlights
 
-- **GPU Shaders**: 139 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation. The companion `kitty-playlist-validate` resolves every playlist entry against the bundled catalog with fuzzy-match suggestions so typos fail CI instead of silently skipping themes
+- **GPU Shaders**: 326 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation. The companion `kitty-playlist-validate` resolves every playlist entry against the bundled catalog with fuzzy-match suggestions so typos fail CI instead of silently skipping themes
 - **Theme System**: Hairglasses Neon token pipeline for `ironbar`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`. `palette-playlist list|next|random|set <name>` rotates the active palette across 9 curated envs (hairglasses-neon, amber, deep-purple, forest, ice, matrix, rose-pine, sunset, synthwave) — every palette fills the same 23 `THEME_*` tokens so templates render identically regardless of active palette
-- **MCP Servers**: 2 Go modules under `mcp/` (dotfiles-mcp with ~400 tools, mapitall); desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **MCP Modules**: 3 Go modules under `mcp/` (`dotfiles-mcp`, `mapitall`, `mapping`); desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
@@ -52,7 +52,7 @@ The installer is idempotent — safe to run multiple times. Existing files are b
 2. Installs Oh My Zsh + 5 community plugins
 3. Bootstraps lazy.nvim for Neovim
 4. Installs TPM (Tmux Plugin Manager)
-5. Symlinks all 60+ configs to their expected locations
+5. Symlinks managed configs to their expected locations
 6. Links managed `~/.local/bin` wrappers for Kitty visuals, the shell-first `kitty-shell-launch`, the explicit tmux `kitty-dev-launch`, launcher fallback, app switcher, and the canonical Codex/Claude/Gemini launchers on Linux
 7. Enables repo-managed systemd user services and packaged system services where applicable, while leaving the optional Kitty save-session timer disabled unless you explicitly opt in later
 8. Syncs the shared shell theme into writable config targets and bootstraps Hyprland plugins via `hyprpm`
@@ -125,7 +125,7 @@ dotfiles/
 ├── hyprdynamicmonitors/ → ~/.config/hyprdynamicmonitors (dynamic monitor profiles)
 ├── hyprland-autoname-workspaces/ → ~/.config/hyprland-autoname-workspaces
 ├── ironbar/        → ~/.config/ironbar (GTK4 menubar)
-├── kitty/          → ~/.config/kitty (terminal + 139 shaders)
+├── kitty/          → ~/.config/kitty (terminal + 326 shaders)
 ├── swaync/         → ~/.config/swaync (notifications)
 ├── wofi/           → ~/.config/wofi (fallback launcher)
 ├── wlogout/        → ~/.config/wlogout (power menu)
@@ -147,32 +147,34 @@ dotfiles/
 ├── git/            → ~/.gitconfig + ~/.config/delta + ~/.config/git/ignore
 ├── tmux/           → ~/.tmux.conf
 ├── starship/       → ~/.config/starship.toml
-├── scripts/        → 40+ utility scripts (selected launchers are linked into ~/.local/bin)
+├── scripts/        → utility scripts (selected launchers are linked into ~/.local/bin)
 ├── Pacfile         → fallback package list
 ├── install.sh      → symlink installer
-└── Pacfile         → fallback package list for bootstrap installs
+└── metapac/        → declarative package groups
 ```
 
-## MCP Servers
+## MCP Modules
 
-All MCP tools are consolidated under `mcp/` (7 Go modules via `go.work`; hg-mcp embeds an internal JS web UI but there are no standalone JS MCP servers). As of 2026-04-14, `dotfiles-mcp` alone exposes ~400 live tools + deferred tools; per-server totals vary and are authoritative via the runtime tool registry.
+MCP code is consolidated under `mcp/` and tracked by `mcp/go.work`. The active mirrored modules are `dotfiles-mcp`, `mapitall`, and the shared `mapping` package; retired `systemd-mcp`, `tmux-mcp`, and `process-mcp` handlers now live inside `dotfiles-mcp`.
 
-| Server | Tools | Description |
-|--------|-------|-------------|
-| `dotfiles-mcp` | ~400 | Desktop config management, Hyprland control, GitHub Stars taxonomy, Kitty visual pipeline, input devices |
-| `hg-mcp` | 200+ | SDLC ops, fleet management, repo analysis, prompt pipeline |
-| `systemd-mcp` | 10 | Systemd unit management |
-| `tmux-mcp` | 11 | Tmux session management |
-| `process-mcp` | 8 | Process debugging and port investigation |
-| `mapitall` | 30+ | Controller/MIDI mapping engine and managed profile catalog |
+| Module | Role | Description |
+|--------|------|-------------|
+| `dotfiles-mcp` | MCP server | Desktop config management, Hyprland control, GitHub Stars taxonomy, Kitty visual pipeline, input devices, systemd, tmux, and process tools |
+| `mapitall` | MCP server | Controller/MIDI mapping engine and managed profile catalog |
+| `mapping` | Go package | Shared mapping type system, profile parsing, and rule-resolution engine consumed by `mapitall` |
 
-All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
-Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
+Active MCP servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
+Mirrored MCP modules, retired-module records, and the parity contract are tracked in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
 
 ### Install MCP Server Only
 
 ```bash
-go install github.com/hairglasses-studio/dotfiles-mcp@latest
+git clone https://github.com/hairglasses-studio/dotfiles.git
+cd dotfiles/mcp/dotfiles-mcp
+GOWORK=off go install .
+
+# After the standalone mirror is synced and tagged:
+# go install github.com/hairglasses-studio/dotfiles-mcp@latest
 ```
 
 Add to `.mcp.json`:

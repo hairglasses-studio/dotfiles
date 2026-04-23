@@ -10,7 +10,11 @@ setup() {
 
     # The real script lives at the symlink target in ralphglasses
     local real_script
-    real_script="$(readlink -f "${SCRIPTS_DIR}/rg-status-bar.sh")"
+    real_script="$(readlink -f "${SCRIPTS_DIR}/rg-status-bar.sh" 2>/dev/null || true)"
+    if [[ -z "$real_script" ]]; then
+        real_script="${HG_STUDIO_ROOT:-$HOME/hairglasses-studio}/ralphglasses/distro/scripts/rg-status-bar.sh"
+    fi
+    [[ -f "$real_script" ]] || skip "rg-status-bar source script unavailable"
 
     # Create a patched copy that uses our test paths and mocked commands
     export PATCHED_SCRIPT="${BATS_TEST_TMPDIR}/rg-status-bar.sh"

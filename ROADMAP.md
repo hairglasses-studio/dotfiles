@@ -6,9 +6,9 @@
 
 ## Current State
 
-Manjaro Linux dotfiles with 90+ managed configs (chezmoi + install.sh), 139 DarkWindow GLSL shaders with shuffled playlists, Hairglasses Neon palette applied to 20+ tools, Hyprland-first compositor automation, an Ironbar menubar on the theme pipeline, and a full boot stack (rEFInd + Plymouth). Idempotent installer with chezmoi declarative management (134 managed entries, 6 lifecycle scripts).
+Manjaro Linux dotfiles with 90+ managed configs (chezmoi + install.sh), 326 DarkWindow GLSL shaders with shuffled playlists, Hairglasses Neon palette applied to 20+ tools, Hyprland-first compositor automation, an Ironbar menubar on the theme pipeline, and a full boot stack (rEFInd + Plymouth). Idempotent installer with chezmoi declarative management (134 managed entries, 6 lifecycle scripts).
 
-Single consolidated MCP server (dotfiles-mcp) with ~400 tools across 30+ modules. Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
+Single consolidated MCP server (dotfiles-mcp) with 434 tools across 41 modules in the checked-in contract snapshot. Shader collection is one of the largest curated GLSL terminal shader sets publicly available. All configs MIT licensed.
 
 ## Recently Completed
 
@@ -141,9 +141,9 @@ Standalone GTK4 PangoCairo 240Hz scrolling ticker replacing ironbar script-based
 - [x] [P2][S] Submit PR to awesome-hyprland (IPC section) — hyprland-community/awesome-hyprland#178
 - [x] [P2][S] Submit PR to awesome-mcp-servers — punkpeye/awesome-mcp-servers#4958
 - [x] [P2][S] Update .well-known/mcp.json with categories and tags
-- [ ] [P2][M] Record 30-sec demo GIF for README
-- [ ] [P3][M] Blog post: "Controlling Hyprland with an AI Agent via MCP"
-- [ ] [P3][S] Submit to PulseMCP, Glama, MCP Market directories
+- [x] [P2][M] Record 30-sec demo GIF for README — captured the ticker demo and added the optimized `docs/assets/ticker-demo.gif` referenced by README.
+- [x] [P3][M] Blog post: "Controlling Hyprland with an AI Agent via MCP" — draft saved at `docs/publishing/hyprland-mcp-agent-blog.md` with current contract counts and content leak grep clean.
+- [ ] [P3][S] Submit to PulseMCP, Glama, MCP Market directories — blocked until standalone mirror/release state is repaired: GitHub resolves `hairglasses-studio/dotfiles-mcp` to archived personal repo `hairglasses/dotfiles-mcp`, `go install ...@latest` currently resolves only through v1.0.0 rather than the checked-in 2.2.0 contract, and `hg-dotfiles-mcp-projection.sh check` reports required projection drift plus missing `internal/remediation`.
 
 ### Test Infra
 - [x] [P2][S] `tests/repo_smoke.bats` / `hg mcp mirror parity check` — trimmed the parity manifest to the three still-mirrored modules; the consolidated record lives in the new `mcp/mirror-parity.json` `consolidated` array (commit `dbcddab`).
@@ -161,6 +161,16 @@ Standalone GTK4 PangoCairo 240Hz scrolling ticker replacing ironbar script-based
 - [x] [P2][S] `tests/migrate_repo_crontab_paths.bats` — added the missing `scripts/migrate-repo-crontab-paths.sh` so the three orphaned bats cases go green (`e2a3a2a`). `--check` / `--apply` modes rewrite `chromecast4k/scripts/` → `hg-android/scripts/` in the user crontab.
 - [x] [P2][M] `TestDesktopSessionListWindows_UnsupportedWithoutDBus` — root cause was a bug in `desktopSessionEnv`: it early-returned on empty record fields, so the OS-level `DBUS_SESSION_BUS_ADDRESS` from the live shell leaked into test environments that explicitly cleared it. The test's "no bus" scenario ended up running pyatspi anyway and hitting the Python 3.14 `__getattr__` regression. Fixed by filtering the key out when value is empty (`d43c021`). Full dotfiles-mcp test package is green.
 - [x] [P2][S] `TestDotfilesWorkstationDiagnosticsDegradedWhenDesktopReadinessFails` — updated assertion from the stale `desktop.hyprland` component to `rice.hyprland`, matching the diagnostic namespace split that moved Hyprland-readiness into the `rice.*` bucket (`47f5649`).
+- [x] [P2][S] `scripts/validate-publishing-assets.sh` + `tests/repo_smoke.bats` — guards the public launch packet: README demo GIF exists and stays bounded, blog draft keeps `published: false`, MCP directory counts match the checked-in contract overview, standalone repo URL is present, and publishing drafts are scanned for obvious private paths/tokens.
+- [x] [P2][S] README MCP module drift gate — refreshed the public MCP section to show only active mirrored modules (`dotfiles-mcp`, `mapitall`, `mapping`) and extended `scripts/validate-mcp-contracts.sh` so retired consolidated modules (`systemd-mcp`, `tmux-mcp`, `process-mcp`) cannot reappear as active README table rows.
+- [x] [P2][S] `docs/SPRINT-NEXT.md` handoff refresh — replaced stale pre-consolidation MCP repo/tool references with the current `dotfiles-mcp`/`mapitall`/`mapping` layout, AGENTS-first orientation, and ROADMAP-driven next-task selection.
+- [x] [P2][S] README MCP count refresh — replaced stale `1,400+ tools across 7 Go servers` public copy with the current 434-tool `dotfiles-mcp` snapshot, removed stale directory-layout counts, and expanded `scripts/validate-tool-count-claims.sh` to scan the README badge plus exact `N-tool workstation control plane` wording.
+- [x] [P2][S] Removed MCP path guard — refreshed `docs/SHADER-PIPELINE.md` from retired `mcp/shader-mcp` references to current `dotfiles-mcp` shader tools and extended `scripts/validate-mcp-contracts.sh` to reject removed bundled MCP paths in tracked markdown.
+- [x] [P2][S] Shader count drift gate — refreshed README, ROADMAP, sprint handoff, and status-bar research docs from 139 to the current 326 DarkWindow shaders, then added `scripts/validate-shader-count-claims.sh` to local `repo_smoke` so badge/doc count drift fails before CI.
+- [x] [P2][S] `dotfiles-mcp` README snapshot count gate — refreshed module README counts from 407/37/24/12 to the current 434/41/25/13 contract overview and extended `scripts/validate-mcp-contracts.sh` to enforce those exact public snapshot bullets.
+- [x] [P2][S] `dotfiles-mcp` ROADMAP snapshot count gate — refreshed the module roadmap current-state counts to 434/41/25/13 and extended `scripts/validate-mcp-contracts.sh` to enforce the same overview-backed count sentence.
+- [x] [P2][S] Directory submission mirror preflight — verified the standalone `dotfiles-mcp` GitHub/module state, found the archived personal mirror and stale v1.0.0 latest release, updated install docs to build from the current monorepo source, and made `validate-publishing-assets.sh` require the blocker text before launch.
+- [x] [P2][S] `dotfiles-mcp` discovery intro — added a "What is MCP?" section to the module README for directory discovery traffic and made `validate-publishing-assets.sh` require it before the launch packet is considered ready.
 
 ### Blocked (needs external infrastructure)
 - [ ] [BLOCKED: needs headless Hyprland] Shader: preview gallery with static renders
@@ -188,11 +198,11 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 - [x] [P2][M] YAML ledger handoff hook — `scripts/claude-session-ledger.sh {write|read}` pairs Stop+SessionStart hooks. Write mode captures branch, HEAD, dirty files, recent commits, and activity (source/test writes, test runs) to ~/.cache/claude-session-ledger/project-$PROJECT/latest.yaml. Read mode injects it as additionalContext so the next session starts with the prior session's state. Keyed by basename($PWD) so repos don't collide. Ref: Continuous-Claude-v3
 - [x] [P2][S] TDD enforcement hook — `scripts/claude-tdd-reminder.sh` is a PreToolUse advisory hook: on Go source writes, injects a systemMessage reminder unless a test file was written in-session or committed in the last hour. Generated-code and test-file writes stay silent. Opt-in via settings.json. Ref: nizos/tdd-guard, obra/superpowers
 - [x] [P2][S] Verify-before-complete gate — `scripts/claude-verify-gate.sh` (Stop hook) + `scripts/claude-verify-track.sh` (PreToolUse tracker). Emits a systemMessage at stop time if the session wrote source without running tests. Tracks 6 test-runner patterns (go/cargo/pytest/npm/yarn/make). Idempotent — reminds once per session. Ref: obra/superpowers
-- [ ] [P2][M] PostToolUse hook wiring — marathon completion events sync to docs-mcp roadmap state. Ref: autonomy gap analysis
+- [x] [P2][M] PostToolUse hook wiring — `scripts/claude-marathon-sync.sh` is registered in `.claude/settings.json` for Bash `PostToolUse`, translated into Gemini `AfterTool`, and covered by `tests/claude_hooks.bats` settings + idempotent ROADMAP append cases. Ref: autonomy gap analysis
 
 ### Tier 3 — Low Priority / Exploratory
 
-- [ ] [P3][M] Skill auto-activation hook — PreToolUse detects project context (Go files, MCP config, shader GLSL) and injects relevant skill automatically without manual slash command. Ref: diet103 showcase, obra/superpowers
+- [x] [P3][M] Skill auto-activation hook — `scripts/claude-skill-activate.sh` inspects project and target-file context once per session and injects advisory skill suggestions for dotfiles UI, risky Hyprland edits, MCP work, Go checks, ops scripts, and shader work. Covered by `tests/claude_hooks.bats`. Ref: diet103 showcase, obra/superpowers
 
 ## Gap Research: New Skills (2026-04-16)
 
@@ -203,6 +213,6 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 
 ### Tier 2 — Medium Priority Skills
 
-- [ ] [P2][M] Phase-gated pipeline — hard enforcement of plan -> human review -> implement -> verify phases in dev-loop; agents cannot skip steps. Ref: avifenesh/agentsys
+- [x] [P2][M] Phase-gated pipeline — `scripts/claude-phase-gate.sh` provides an opt-in PreToolUse state machine for plan/review/implement/verify/done, blocks writes or mutating shell commands outside implementation, requires `--reviewed-by` before implementation, and is covered in `tests/claude_hooks.bats`. Ref: avifenesh/agentsys
 - [x] [P2][S] Hidden assumption surfacer — `.agents/skills/common_ground/SKILL.md` deployed. Surfaces Claude's implicit priors about a repo (language, build system, test framework, CI, etc.), verifies each in parallel via fast file checks, reports confirmed/rebutted/unknown deltas, and prompts the user for redirect before code changes start. Read-only, 2-3 minute budget. Ref: jeffallan/claude-skills
 - [x] [P2][S] Decision journal skill — `.agents/skills/decision_journal/SKILL.md` deployed. Appends ADR-lite entries (context, decision, rationale, alternatives, consequences) to `docs/decisions.md`, dedup by title + date, supports `--export` for stakeholder markdown tables. Ref: pcatattacks/solopreneur-plugin + Michael Nygard ADR template.

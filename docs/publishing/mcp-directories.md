@@ -7,13 +7,17 @@ copy-paste-ready for the respective directory's form or PR.
 
 ## Server metadata (authoritative)
 
-Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json`:
+Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json` and
+`mcp/dotfiles-mcp/snapshots/contract/overview.json`:
 
 | Field | Value |
 |---|---|
 | Name | `io.github.hairglasses-studio.dotfiles-mcp` |
 | Version | 2.2.0 |
-| Tool count | 419 |
+| Tool count | 434 |
+| Module count | 41 |
+| Resources | 25 |
+| Prompts | 13 |
 | Homepage | https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp |
 | Repo | https://github.com/hairglasses-studio/dotfiles |
 | License | MIT |
@@ -29,11 +33,11 @@ Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json`:
 
 ### 200-char pitch (card body)
 
-> Canonical Linux workstation MCP server: 419 discovery-first tools across Hyprland IPC (19), desktop automation, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing, systemd control. MIT.
+> Canonical Linux workstation MCP server: 434 discovery-first tools across Hyprland IPC, desktop automation, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing, systemd control. MIT.
 
 ### Full description (long-form pages)
 
-> `dotfiles-mcp` is the canonical MCP surface for a Linux workstation running Hyprland (Wayland). It ships 419 tools across 30+ modules — all discovery-first, so the initial context load is ~85 % smaller than the upstream equivalents. Categories include:
+> `dotfiles-mcp` is the canonical MCP surface for a Linux workstation running Hyprland (Wayland). It ships 434 tools across 41 registered modules — all discovery-first, so the initial context load is ~85 % smaller than eagerly loading the full catalog. Categories include:
 >
 > - **Hyprland IPC**: 19 tools for screenshots, windowrules, monitor config, layers, keybinds, hotreload.
 > - **Desktop automation**: atomic config writes with auto-backup, compositor abstraction, session orchestration.
@@ -49,12 +53,18 @@ Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json`:
 
 ### PulseMCP
 
-Directory URL: https://www.pulsemcp.com/servers/submit
+Directory URL: https://www.pulsemcp.com/submit
+
+Current submission note, verified 2026-04-23: PulseMCP asks for a server/client URL and says it ingests the Official MCP Registry daily, processes entries weekly, and accepts a GitHub repo, subfolder URL, or standalone website URL. Use the canonical monorepo subfolder URL until the standalone mirror is repaired:
+
+```text
+https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp
+```
 
 Form fields:
 
 - **Server Name**: `dotfiles-mcp`
-- **Homepage**: https://github.com/hairglasses-studio/dotfiles-mcp
+- **Homepage**: https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp
 - **Author**: hairglasses-studio
 - **Language**: Go
 - **License**: MIT
@@ -63,8 +73,9 @@ Form fields:
 - **Long description**: (full description above)
 - **Install snippet**:
   ```sh
-  go install github.com/hairglasses-studio/dotfiles-mcp@latest
-  # or clone the dotfiles repo + run make install-mcp
+  git clone https://github.com/hairglasses-studio/dotfiles.git
+  cd dotfiles/mcp/dotfiles-mcp
+  GOWORK=off go install .
   ```
 - **Transport**: stdio (default)
 - **Config example**:
@@ -78,27 +89,29 @@ Form fields:
 
 ### Glama
 
-Directory URL: https://glama.ai/mcp/servers (PR against https://github.com/glama-ai/mcp-servers-registry)
+Directory URL: https://glama.ai/
 
-JSON manifest entry (append to the registry):
+Current submission note, verified 2026-04-23: Glama indexes open-source MCP servers from GitHub repositories and recommends adding `glama.json` metadata to control display name, description, category, environment variables, and build details. Use the canonical repo URL and point metadata at the MCP subdirectory:
+
+```text
+https://github.com/hairglasses-studio/dotfiles
+```
+
+Suggested `glama.json` content if the standalone mirror wants explicit metadata:
 
 ```json
 {
-  "name": "dotfiles-mcp",
   "displayName": "dotfiles-mcp",
   "description": "Hyprland + GitHub org + fleet-management tools for Linux workstation automation.",
   "homepage": "https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp",
   "repository": "https://github.com/hairglasses-studio/dotfiles",
+  "sourceDirectory": "mcp/dotfiles-mcp",
   "language": "Go",
   "license": "MIT",
   "tags": ["hyprland", "wayland", "linux", "desktop-automation", "github", "fleet", "systemd", "bluetooth"],
   "categories": ["desktop", "automation", "linux", "github"],
   "transport": "stdio",
-  "installation": {
-    "npm": null,
-    "go": "go install github.com/hairglasses-studio/dotfiles-mcp@latest",
-    "docker": null
-  },
+  "installCommand": "git clone https://github.com/hairglasses-studio/dotfiles.git && cd dotfiles/mcp/dotfiles-mcp && GOWORK=off go install .",
   "author": {
     "name": "hairglasses-studio",
     "url": "https://github.com/hairglasses-studio"
@@ -108,16 +121,24 @@ JSON manifest entry (append to the registry):
 
 ### MCP Market
 
-Directory URL: https://mcp.market (submission via web form)
+Directory URL: https://mcpmarket.com/submit
 
-Form fields mirror PulseMCP; paste the same description + tags. The
-one MCP Market-specific field is "Category" — use `Desktop & System`.
+Current submission note, verified 2026-04-23: MCP Market's submit page asks for the full GitHub repository URL for the MCP server and reviews it for inclusion. Submit the canonical repo, with `mcp/dotfiles-mcp` called out in the description:
+
+```text
+https://github.com/hairglasses-studio/dotfiles
+```
+
+If it asks for a category, use `Desktop & System`.
 
 ## Checklist before submitting
 
-- [ ] Verify `dotfiles-mcp` repo at `hairglasses-studio/dotfiles-mcp` is public + pinned
-- [ ] Tag a fresh release (v2.2.0 or later) — directory crawlers follow latest release
-- [ ] `README.md` of `dotfiles-mcp` has a "What is MCP?" intro for discovery traffic
-- [ ] Confirm `.well-known/mcp.json` is served at the well-known URL via GitHub Pages or similar (some directories crawl it)
-- [ ] Screenshots or demo GIF ready (README already has `docs/assets/ticker-demo.gif`)
+- [x] Verified `hairglasses-studio/dotfiles` is public and non-archived on 2026-04-23
+- [ ] Repair standalone module mirror before advertising `go install github.com/hairglasses-studio/dotfiles-mcp@latest`: GitHub currently resolves `hairglasses-studio/dotfiles-mcp` to archived personal repo `hairglasses/dotfiles-mcp`
+- [ ] Tag a fresh release (v2.2.0 or later) — `go list -m -versions github.com/hairglasses-studio/dotfiles-mcp` currently reports only v0.1.0 and v1.0.0, so `@latest` does not match the checked-in 2.2.0 contract
+- [ ] Clear standalone projection drift before submitting the mirror: `hg-dotfiles-mcp-projection.sh check` reports `projection_needed`, including 35 required Go-file drifts, 14 required canonical-only files, and missing required `internal/remediation`
+- [x] `README.md` of `mcp/dotfiles-mcp` has a "What is MCP?" intro for discovery traffic
+- [x] Confirm `.well-known/mcp.json` is externally crawlable: `https://raw.githubusercontent.com/hairglasses-studio/dotfiles/main/mcp/dotfiles-mcp/.well-known/mcp.json` returns name `io.github.hairglasses-studio.dotfiles-mcp`, version `2.2.0`, tool count `434`
+- [x] Directory submit URLs verified on 2026-04-23
+- [x] Screenshots or demo GIF ready (README has `docs/assets/ticker-demo.gif`)
 - [ ] Roadmap item in ROADMAP.md marked done once listings appear

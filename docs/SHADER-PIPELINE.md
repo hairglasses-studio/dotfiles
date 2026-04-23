@@ -18,10 +18,10 @@ The shader pipeline in `hairglasses-studio` provides live, animated GLSL backgro
    - **Desktop**: Using `shaderbg` (or `swaybg` for static fallbacks) to render GLSL shaders directly on the Wayland root surface.
 
 4. **Integration with Desktop Control**
-   - `hyprland` binds hotkeys to cycle shaders (`shader_cycle` MCP tool).
+   - `hyprland` binds hotkeys to cycle shaders through `kitty-shader-playlist.sh` and the `dotfiles-mcp` `shader_cycle` tool.
    - Matugen integration can optionally extract color palettes from the active shader/wallpaper to theme the broader UI.
 
 ## Performance Budgets
 
 - Shaders are benchmarked to prevent excessive GPU usage. High-cost shaders are excluded from "battery" or "focus" playlists.
-- The `mcp/shader-mcp` tools provide endpoints (`shader_build`, `shader_test`) to validate shader compilation before applying them.
+- `dotfiles-mcp` provides shader endpoints including `shader_build`, `shader_test`, `shader_benchmark`, and `shader_tier` to validate compilation and classify cost before applying shaders.

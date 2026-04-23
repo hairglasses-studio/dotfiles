@@ -25,11 +25,11 @@
 - Silent boot (`quiet splash loglevel=3`)
 - NVIDIA kernel params (modeset + PreserveVideoMemoryAllocations)
 
-**MCP Servers (27 tools):**
-- `hyprland-mcp` (Go, 9 tools) — screenshot, windows, workspaces, input, config reload
-- `dotfiles-mcp` (Go, 4 tools) — list configs, validate TOML/JSON, reload service, check symlinks
-- `shader-mcp` (Go, 5 tools) — list/set/random/test/get_state for 132 shaders
-- `sway-mcp` (Node.js, 9 tools) — screenshot, windows, input, clipboard
+**MCP Surface (current):**
+- `dotfiles-mcp` — canonical Hyprland/workstation MCP server with 434 tools across 41 modules in the checked-in contract snapshot
+- `mapitall` — controller/MIDI mapping MCP runtime
+- `mapping` — shared Go package for mapping/profile resolution
+- Retired standalone handlers (`systemd-mcp`, `tmux-mcp`, `process-mcp`) are consolidated into `dotfiles-mcp`
 
 **Claude Code Integration:**
 - 3 skills: `/rice-check`, `/screenshot-review`, `/shader-browse`
@@ -57,37 +57,39 @@ Paste this into a new Claude Code session:
 ---
 
 ```
-You are continuing development on my cross-platform cyberpunk dotfiles rice at ~/hairglasses-studio/dotfiles. This is a 90-commit, 35-component Manjaro Linux + macOS setup with Hyprland (primary) on Wayland, 139+ DarkWindow GLSL shaders, the Hairglasses Neon palette, and Go MCP servers (~400 tools total).
+You are continuing development on my cross-platform cyberpunk dotfiles rice at ~/hairglasses-studio/dotfiles. This is a Manjaro Linux + macOS setup with Hyprland (primary) on Wayland, 326 DarkWindow GLSL shaders, the Hairglasses Neon palette, and a consolidated Go MCP control plane. The checked-in dotfiles-mcp contract currently exposes 434 tools across 41 modules.
 
-Read CLAUDE.md for architecture. Read docs/RESOURCES.md for community reference links. Read docs/SPRINT-NEXT.md for full session history and context.
+Read AGENTS.md first; it is the canonical instruction file. Then read docs/ARCHITECTURE-PROVENANCE.md for ownership boundaries and docs/RESOURCES.md for community reference links.
 
 The dotfiles use a feature-flag system (dotfiles.toml) with 42 toggleable components and 4 profiles (minimal/dev/full/cyberpunk). The install script (manjaro/install.sh) has is_enabled() guards on every symlink.
 
 Key files:
 - hyprland/hyprland.conf — Hyprland compositor (0.54 block windowrule syntax)
-- scripts/lib/compositor.sh — Shared compositor detection library
-- .mcp.json — MCP servers (hyprland, dotfiles, shader, input)
-- .claude/skills/ — 3 skills (rice-check, screenshot-review, shader-browse)
-- .claude/agents/ — 2 agents (rice-developer, config-validator)
-- .claude/rules/ — 3 rules (hyprland, shaders, snazzy-palette)
+- hyprland/monitors.conf — static monitor layout layered with dynamic monitor state
+- scripts/ and scripts/lib/ — shared operator scripts, validation gates, and automation libraries
+- .mcp.json — MCP server launcher config
+- .agents/skills/ — canonical workflow skill surface
+- .claude/skills/ — generated compatibility mirror of workflow skills
+- mcp/dotfiles-mcp/ — canonical desktop/workstation MCP server source
 - dotfiles.toml — Feature flags for all 42 components
 - docs/RESOURCES.md — 40+ awesome-list community indexes
 
-MCP servers are Go binaries in sibling repos:
-- ~/hairglasses-studio/hyprland-mcp/ (12 tools: screenshot, windows, workspaces, input, config)
-- ~/hairglasses-studio/dotfiles-mcp/ (~400 tools: list, validate, reload, symlinks, and more)
-- ~/hairglasses-studio/shader-mcp/ (11 tools: list, set, random, test, state)
+MCP modules are developed in this repo under mcp/:
+- mcp/dotfiles-mcp/ — desktop config, Hyprland, systemd, tmux, process, input, GitHub, Kitty, and fleet tooling
+- mcp/mapitall/ — controller/MIDI mapping MCP runtime
+- mcp/mapping/ — shared Go package for mapitall mapping semantics
+
+The standalone dotfiles-mcp/mapitall/mapping repos are publish mirrors. Mirror policy lives in docs/MCP-MIRROR-PARITY.md and mcp/mirror-parity.json.
 
 Hardware: AMD Ryzen 9 7950X, RTX 3090, 96GB RAM, dual monitors (Samsung 5120x1440 ultrawide + XEC 2560x1440), 7.3TB NVMe.
 
-Remaining work tracked in memory (mcp_tool_ideas.md):
-- MCP server enhancements: add resources (dotfiles://palette, shader://current), prompts (validate-rice, check-palette), new tools (shader_cycle, shader_benchmark, hypr_screenshot_region)
+Remaining work is tracked in ROADMAP.md:
+- Public launch follow-through: submit dotfiles-mcp to PulseMCP, Glama, and MCP Market once the standalone repo/release state is confirmed
 - Hyprland plugins to install: borders-plus-plus (config ready), hyprexpo (workspace overview), hyprls (LSP for config validation)
 - Game-changing community projects to evaluate: pywal, telescope.nvim, zinit, zellij
-- Install script unification (macOS install.sh still separate from manjaro/install.sh)
-- Git pre-commit hooks for config validation
+- Blocked until headless Hyprland exists: shader preview gallery and automated rice screenshot CI comparison
 
-Start by: pulling latest changes, taking a screenshot to assess the current visual state, then entering plan mode to determine priorities.
+Start by: checking git status, reading ROADMAP.md, running the narrow validator for your intended surface, then implementing the highest-value non-blocked item.
 ```
 
 ---

@@ -42,18 +42,21 @@ live = int(data.get("tool_count", len(data.get("tools", []))))
 low = int(live * (1 - TOLERANCE))
 high = int(live * (1 + TOLERANCE))
 
-# Match "~NNN tools" (three digits so we don't grab arbitrary small
-# counts). Capture group 1 is the approximate count.
-pat = re.compile(r"~([0-9]{3,4}) tools")
-
 claims = []
+patterns = [
+    re.compile(r"~([0-9]{3,4}) tools"),
+    re.compile(r"MCP_Tools-([0-9]{3,4})"),
+    re.compile(r"\b([0-9]{3,4})-tool workstation control plane\b"),
+]
 for doc in DOCS:
     p = Path(doc)
     if not p.exists():
         continue
-    for m in pat.finditer(p.read_text(errors="ignore")):
-        claimed = int(m.group(1))
-        claims.append((doc, claimed, low <= claimed <= high))
+    text = p.read_text(errors="ignore")
+    for pat in patterns:
+        for m in pat.finditer(text):
+            claimed = int(m.group(1))
+            claims.append((doc, claimed, low <= claimed <= high))
 
 stale = [c for c in claims if not c[2]]
 if stale:

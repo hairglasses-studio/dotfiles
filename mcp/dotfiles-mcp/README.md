@@ -8,10 +8,19 @@ MCP server for desktop environment management, semantic desktop control, semanti
 
 Canonical development lives in [`hairglasses-studio/dotfiles`](https://github.com/hairglasses-studio/dotfiles/tree/main/mcp/dotfiles-mcp) under `dotfiles/mcp/dotfiles-mcp`. The standalone [`dotfiles-mcp`](https://github.com/hairglasses-studio/dotfiles-mcp) repo is a publish mirror kept in parity for installation and discovery.
 
+## What is MCP?
+
+MCP (Model Context Protocol) is a standard way for AI tools to call external tools, read resources, and use prompt workflows through a structured server interface. `dotfiles-mcp` exposes a Linux workstation as that interface: agents can inspect desktop state, query Hyprland, manage services, validate config, and run bounded operator workflows without loading the entire tool catalog up front.
+
 ## Install
 
 ```bash
-go install github.com/hairglasses-studio/dotfiles-mcp@latest
+git clone https://github.com/hairglasses-studio/dotfiles.git
+cd dotfiles/mcp/dotfiles-mcp
+GOWORK=off go install .
+
+# After the standalone mirror is synced and tagged:
+# go install github.com/hairglasses-studio/dotfiles-mcp@latest
 ```
 
 When developing from the monorepo mirror under `dotfiles/mcp/dotfiles-mcp`, use `GOWORK=off` for direct module commands so the shared `mcp/go.work` does not inherit sibling repo-local replaces from other MCP modules.
@@ -51,10 +60,10 @@ The server also exposes read-first workflow resources and prompt entrypoints for
 
 The canonical module now commits public contract snapshots under [`snapshots/contract`](./snapshots/contract) and regenerates the public server card at [`.well-known/mcp.json`](./.well-known/mcp.json). Current canonical snapshot counts:
 
-- `407` tools
-- `37` registered modules
-- `24` resources
-- `12` prompts
+- `434` tools
+- `41` registered modules
+- `25` resources
+- `13` prompts
 
 ## Quick Start
 

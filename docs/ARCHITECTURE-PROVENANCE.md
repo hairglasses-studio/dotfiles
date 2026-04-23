@@ -32,7 +32,7 @@ These paths are the reusable operator and tooling layer that other repos consume
 - `scripts/` and `scripts/lib/`: canonical shell automation for repo setup, parity sync, workflow sync, docs generation, health checks, and workstation utilities.
 - `.agents/skills/`: canonical workflow skill surface for this repo.
 - `.codex/agents/`: Codex delegation-role surface.
-- `mcp/`: bundled Go and JS MCP modules managed as a workspace, with this repo acting as an integration surface rather than only a rice repo.
+- `mcp/`: bundled Go MCP modules managed as a workspace, with this repo acting as an integration surface rather than only a rice repo.
 
 ## Provenance Rules
 

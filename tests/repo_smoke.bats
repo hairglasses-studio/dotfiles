@@ -335,6 +335,15 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "MISSING"
 }
 
+@test "README and docs shader count claims match the filesystem" {
+    # CI already checks the README badge, but local smoke should catch
+    # the same drift before push and cover the related public docs.
+    run bash "${SCRIPTS_DIR}/validate-shader-count-claims.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
 @test "shader preset blocks all resolve to darkwindow .glsl files" {
     # Every [shaders.<name>.presets.*] in presets.toml must correspond
     # to <name>.glsl. The shader_preset_apply MCP tool opens the shader
@@ -492,6 +501,17 @@ print(f'skills={len(declared)} drift=0')
     run bash "${SCRIPTS_DIR}/validate-skill-aliases.sh"
     assert_success
     assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
+@test "public publishing assets stay launch-ready" {
+    # README media, blog drafts, and MCP directory copy are easy to
+    # leave stale after contract regeneration or asset cleanup. This
+    # gate keeps the public launch packet aligned with the checked-in
+    # MCP contract snapshot and blocks obvious private-path/token leaks.
+    run bash "${SCRIPTS_DIR}/validate-publishing-assets.sh"
+    assert_success
+    assert_output --partial "publishing_assets=ok"
     refute_output --partial "DRIFT"
 }
 

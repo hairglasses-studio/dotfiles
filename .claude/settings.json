@@ -3,5 +3,18 @@
     "dotfiles": {
       "command": "./scripts/run-dotfiles-mcp.sh"
     }
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "./scripts/claude-marathon-sync.sh",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ]
   }
 }

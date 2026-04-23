@@ -4,6 +4,8 @@
 #   - scripts/claude-verify-gate.sh      (Stop advisory)
 #   - scripts/claude-verify-track.sh     (PreToolUse instrumentation)
 #   - scripts/claude-session-ledger.sh   (Stop write + SessionStart read)
+#   - scripts/claude-marathon-sync.sh    (PostToolUse roadmap sync)
+#   - scripts/claude-skill-activate.sh   (context skill suggestions)
 #
 # Each hook reads JSON from stdin and writes JSON to stdout. Tests feed
 # synthetic tool-call envelopes and assert the output shape.
@@ -19,6 +21,11 @@ setup() {
     export VERIFY_GATE="$DOTFILES_DIR/scripts/claude-verify-gate.sh"
     export VERIFY_TRACK="$DOTFILES_DIR/scripts/claude-verify-track.sh"
     export LEDGER="$DOTFILES_DIR/scripts/claude-session-ledger.sh"
+    export MARATHON_SYNC="$DOTFILES_DIR/scripts/claude-marathon-sync.sh"
+    export PHASE_GATE="$DOTFILES_DIR/scripts/claude-phase-gate.sh"
+    export CLAUDE_PHASE_GATE_DIR="$BATS_TEST_TMPDIR/phase-gate"
+    export SKILL_ACTIVATE="$DOTFILES_DIR/scripts/claude-skill-activate.sh"
+    export CLAUDE_SKILL_ACTIVATE_DIR="$BATS_TEST_TMPDIR/skill-activate"
 }
 
 teardown() {
@@ -166,4 +173,137 @@ teardown() {
 @test "session-ledger: invalid mode → exit 1" {
     run bash -c "echo '{\"session_id\":\"l4\"}' | $LEDGER invalid"
     [ "$status" -eq 1 ]
+}
+
+# --- claude-marathon-sync.sh ---
+
+@test "settings: marathon sync is wired as a PostToolUse Bash hook" {
+    run jq -e \
+        '.hooks.PostToolUse[]?
+         | select(.matcher == "Bash")
+         | .hooks[]?
+         | select(.type == "command" and .command == "./scripts/claude-marathon-sync.sh")' \
+        "$DOTFILES_DIR/.claude/settings.json"
+    [ "$status" -eq 0 ]
+}
+
+@test "marathon-sync: phase commit appends one roadmap completion" {
+    cd "$BATS_TEST_TMPDIR"
+    mkdir -p marathonrepo && cd marathonrepo
+    git init -q 2>/dev/null
+    git config user.email "test@test.test" 2>/dev/null
+    git config user.name "test" 2>/dev/null
+    printf '# Roadmap\n\n## Completed Marathon Phases\n\n## Planned\n' > ROADMAP.md
+    git add ROADMAP.md && git commit -qm "init" 2>/dev/null
+
+    printf 'change\n' > feature.txt
+    git add feature.txt && git commit -qm "feat(ticker): Phase 8 polish ticker" 2>/dev/null
+
+    jq -n --arg cwd "$PWD" '{
+        "tool_name": "Bash",
+        "tool_input": {"command": "git commit -m \"feat(ticker): Phase 8 polish ticker\""},
+        "cwd": $cwd
+    }' > hook-input.json
+
+    run bash -c "$MARATHON_SYNC < hook-input.json"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"marathon-sync: appended ticker:Phase 8"* ]]
+    grep -q '`ticker`: Phase 8' ROADMAP.md
+
+    run bash -c "$MARATHON_SYNC < hook-input.json"
+    [ "$status" -eq 0 ]
+    [ "$(grep -c '`ticker`: Phase 8' ROADMAP.md)" -eq 1 ]
+}
+
+# --- claude-phase-gate.sh ---
+
+@test "phase-gate: default plan phase blocks file writes" {
+    run bash -c "echo '{\"session_id\":\"pg1\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"}}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"decision": "block"'* || "$output" == *'"decision":"block"'* ]]
+    [[ "$output" == *"plan phase blocks implementation tools"* ]]
+}
+
+@test "phase-gate: implementation requires an explicit review label" {
+    run "$PHASE_GATE" mark review --session pg2
+    [ "$status" -eq 0 ]
+
+    run "$PHASE_GATE" mark implement --session pg2
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"requires --reviewed-by"* ]]
+
+    run "$PHASE_GATE" mark implement --session pg2 --reviewed-by human-review
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"phase": "implement"'* || "$output" == *'"phase":"implement"'* ]]
+
+    run bash -c "echo '{\"session_id\":\"pg2\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"}}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "phase-gate: verify phase blocks edits but allows test commands" {
+    run "$PHASE_GATE" mark review --session pg3
+    [ "$status" -eq 0 ]
+    run "$PHASE_GATE" mark implement --session pg3 --reviewed-by human-review
+    [ "$status" -eq 0 ]
+    run "$PHASE_GATE" mark verify --session pg3
+    [ "$status" -eq 0 ]
+
+    run bash -c "echo '{\"session_id\":\"pg3\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"}}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *'"decision": "block"'* || "$output" == *'"decision":"block"'* ]]
+    [[ "$output" == *"verify phase blocks further edits"* ]]
+
+    run bash -c "echo '{\"session_id\":\"pg3\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"go test ./...\"}}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "phase-gate: marker commands are allowed before implementation" {
+    run bash -c "echo '{\"session_id\":\"pg4\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"./scripts/claude-phase-gate.sh mark review --session pg4\"}}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+# --- claude-skill-activate.sh ---
+
+@test "skill-activate: dotfiles context suggests desktop and ops skills once" {
+    cd "$BATS_TEST_TMPDIR"
+    mkdir -p skillrepo/hyprland skillrepo/scripts skillrepo/mcp/dotfiles-mcp
+    touch skillrepo/AGENTS.md skillrepo/install.sh skillrepo/go.mod
+
+    jq -n --arg cwd "$PWD/skillrepo" '{
+        "session_id": "sa1",
+        "tool_name": "Read",
+        "cwd": $cwd
+    }' > skill-input.json
+
+    run bash -c "$SKILL_ACTIVATE < skill-input.json"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Skill auto-activation"* ]]
+    [[ "$output" == *"dotfiles_ui"* ]]
+    [[ "$output" == *"dotfiles_ops"* ]]
+    [[ "$output" == *"hg_mcp"* ]]
+    [[ "$output" == *"go-check"* ]]
+
+    run bash -c "$SKILL_ACTIVATE < skill-input.json"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "skill-activate: shader file target suggests shader_forge" {
+    cd "$BATS_TEST_TMPDIR"
+    mkdir -p shaderrepo
+    touch shaderrepo/AGENTS.md
+
+    jq -n --arg cwd "$PWD/shaderrepo" '{
+        "session_id": "sa2",
+        "tool_name": "Edit",
+        "cwd": $cwd,
+        "tool_input": {"file_path": "/tmp/hg-test.glsl"}
+    }' > shader-input.json
+
+    run bash -c "$SKILL_ACTIVATE < shader-input.json"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"shader_forge"* ]]
 }

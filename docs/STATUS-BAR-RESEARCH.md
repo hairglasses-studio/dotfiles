@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-16  
 **Context:** Evaluating status bar alternatives to ironbar for a Hyprland setup with a cyberpunk aesthetic,
-139+ GLSL shaders, Hairglasses Neon palette, and theme-sync.sh pipeline. Current setup: ironbar
+326 GLSL shaders, Hairglasses Neon palette, and theme-sync.sh pipeline. Current setup: ironbar
 (GTK4, TOML config, CSS styling, v0.18.0, 1.3k stars).
 
 ---
@@ -270,7 +270,7 @@ doing under the hood.
 
 **GPU / shader capability:** Full — this is the only option with unrestricted GPU access.
 A bar built directly on wgpu or EGL can run arbitrary Vulkan compute shaders or GLSL fragment
-shaders at the bar surface level (not just widget-level). The existing 139-shader GLSL library
+shaders at the bar surface level (not just widget-level). The existing 326-shader GLSL library
 could render directly into bar background regions. Relevant Rust crates: `wayland-client`,
 `wayland-protocols`, `wayland-egl`, `smithay-client-toolkit`, `wgpu`. Layer-shika (Rust + Slint
 UI) is emerging as a library for this use case (targeting first stable release late 2026).

@@ -73,6 +73,8 @@ id_ed25519*
 # Large binaries (prevent accidental commits)
 *.bin
 *.gif
+!docs/assets/
+!docs/assets/ticker-demo.gif
 *.mp4
 
 # High-churn generated files
