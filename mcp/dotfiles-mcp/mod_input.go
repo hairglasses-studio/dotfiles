@@ -1298,7 +1298,66 @@ func (m *BluetoothModule) Tools() []registry.ToolDefinition {
 				return BTPowerOutput{Status: "power_" + state, Output: out}, nil
 			},
 		),
+
+		// ── bt_audio_profile ─────────────────────────────
+		handler.TypedHandler[BTAudioProfileInput, BTAudioProfileOutput](
+			"bt_audio_profile",
+			"Switch a Bluetooth audio card's PipeWire/PulseAudio profile between A2DP (music, high-quality playback) and HSP/HFP (headset, bidirectional with microphone). Auto-resolves card= from the BT MAC if possible; falls back to the exact pactl card name.",
+			func(_ context.Context, input BTAudioProfileInput) (BTAudioProfileOutput, error) {
+				if input.Card == "" {
+					return BTAudioProfileOutput{}, fmt.Errorf("[%s] card is required (MAC or pactl card name like bluez_card.AA_BB_CC_DD_EE_FF)", handler.ErrInvalidParam)
+				}
+				target := strings.ToLower(strings.TrimSpace(input.Profile))
+				var pactlProfile string
+				switch target {
+				case "a2dp", "music", "high-quality":
+					pactlProfile = "a2dp-sink"
+				case "hsp", "hfp", "headset", "mic":
+					pactlProfile = "headset-head-unit"
+				case "off":
+					pactlProfile = "off"
+				case "":
+					return BTAudioProfileOutput{}, fmt.Errorf("[%s] profile is required: a2dp | hsp | off", handler.ErrInvalidParam)
+				default:
+					// Pass-through for exact PipeWire profile names.
+					pactlProfile = target
+				}
+
+				// Normalize a MAC (AA:BB:...) into bluez_card.AA_BB_... if needed.
+				card := input.Card
+				if strings.Count(card, ":") == 5 {
+					card = "bluez_card." + strings.ReplaceAll(card, ":", "_")
+				}
+
+				out, stderr, err := inputRunCmd("pactl", "set-card-profile", card, pactlProfile)
+				if err != nil {
+					return BTAudioProfileOutput{
+						Card:    card,
+						Profile: pactlProfile,
+					}, fmt.Errorf("pactl set-card-profile %s %s failed: %s %s", card, pactlProfile, out, stderr)
+				}
+				return BTAudioProfileOutput{
+					Card:    card,
+					Profile: pactlProfile,
+					Applied: true,
+					Output:  strings.TrimSpace(out),
+				}, nil
+			},
+		),
 	}
+}
+
+// BTAudioProfileInput switches the active PipeWire profile on a BT card.
+type BTAudioProfileInput struct {
+	Card    string `json:"card" jsonschema:"required,description=Card ID — either a pactl card name (bluez_card.AA_BB_...) or a MAC address (AA:BB:CC:DD:EE:FF)"`
+	Profile string `json:"profile" jsonschema:"required,description=Profile alias (a2dp | hsp | off) or exact PipeWire profile name"`
+}
+
+type BTAudioProfileOutput struct {
+	Card    string `json:"card"`
+	Profile string `json:"profile"`
+	Applied bool   `json:"applied"`
+	Output  string `json:"output,omitempty"`
 }
 
 // ── ControllerModule ───────────────────────────────────────────────────────

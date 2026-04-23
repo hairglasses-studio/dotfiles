@@ -1,0 +1,64 @@
+# event-bus-rules.yaml — declarative rule table for scripts/event-bus.py.
+#
+# Each rule has:
+#   source:       which ingested stream the rule applies to (journal|monitors|
+#                 nvidia_throttle|pulse|hypr_events)
+#   match:        regex or conditional — see per-source schema below
+#   error_code:   remediation.ErrorCode to tag the event with (consumers use
+#                 remediation_lookup to get the fix)
+#   severity:     low | medium | high — controls swaync notification trigger
+#   notify:       optional override — force notify=true even on low severity,
+#                 or force notify=false to suppress
+#
+# Per-source match schemas:
+#   journal       : plain regex against the log line
+#   monitors      : keys width / height / vrr comparing to expected, e.g.
+#                   {monitor: DP-2, width_below: 5120}
+#   nvidia_throttle: keys hw_slowdown (bool), sm_clock_below (int MHz)
+#   pulse         : pactl subscribe event match like "Event 'remove' on sink"
+#   hypr_events   : Hyprland IPC event name match
+
+rules:
+  - name: planePitch kernel error
+    source: journal
+    match: "nvidia-modeset: ERROR.*planePitch"
+    error_code: hypr_reload_induced_drm
+    severity: high
+
+  - name: DRM atomic commit failure
+    source: journal
+    match: "atomic drm.*failed|Cannot commit when a page-flip is awaiting"
+    error_code: hypr_reload_induced_drm
+    severity: high
+
+  - name: Samsung DSC mode loss
+    source: monitors
+    match:
+      monitor: DP-2
+      width_below: 5120
+    error_code: hypr_reload_induced_drm
+    severity: high
+    notify: true
+
+  - name: GPU thermal throttling
+    source: nvidia_throttle
+    match:
+      hw_slowdown: true
+    error_code: hypr_reload_induced_drm
+    severity: medium
+
+  - name: audio sink removed
+    source: pulse
+    match: "Event 'remove' on sink"
+    error_code: audio_sink_lost
+    severity: low
+
+  - name: Hyprland reload + recent kernel DRM (correlation)
+    source: hypr_events
+    match: "configreloaded"
+    error_code: hypr_reload_induced_drm
+    severity: high
+    # The correlation logic in event-bus.py only emits this composite event
+    # when a kernel DRM error has fired within the last 5 seconds. Otherwise
+    # the configreloaded itself is a no-op and not recorded.
+    correlation_window_s: 5

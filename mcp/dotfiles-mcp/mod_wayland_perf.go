@@ -107,6 +107,26 @@ type HyprVRRStatusOutput struct {
 	Count    int              `json:"count"`
 }
 
+// hypr_vrr_set
+
+// HyprVRRSetInput toggles per-monitor VRR. Mode values match Hyprland's
+// `vrr` keyword: 0=off, 1=always-on, 2=fullscreen-only (the safest option
+// per nvidia-wayland.md rules — reduces DSC handshake risk on DP-2).
+type HyprVRRSetInput struct {
+	Monitor string `json:"monitor" jsonschema:"required,description=Monitor name as shown by hypr_get_monitors (e.g. DP-2)"`
+	Mode    int    `json:"mode" jsonschema:"required,enum=0,enum=1,enum=2,description=VRR mode: 0=off, 1=always-on, 2=fullscreen-only"`
+}
+
+type HyprVRRSetOutput struct {
+	Monitor string `json:"monitor"`
+	Mode    int    `json:"mode"`
+	Applied bool   `json:"applied"`
+	// MonitorArg is the full `hyprctl keyword monitor ...` argument that
+	// was issued — useful for audit / capture.
+	MonitorArg string `json:"monitor_arg"`
+	Output     string `json:"output,omitempty"`
+}
+
 // hypr_frame_overlay
 
 type HyprFrameOverlayInput struct {
@@ -256,6 +276,62 @@ func (m *WaylandPerfModule) Tools() []registry.ToolDefinition {
 					monitors = append(monitors, mm)
 				}
 				return HyprVRRStatusOutput{Monitors: monitors, Count: len(monitors)}, nil
+			},
+		),
+
+		// ── hypr_vrr_set ───────────────────────────────
+		handler.TypedHandler[HyprVRRSetInput, HyprVRRSetOutput](
+			"hypr_vrr_set",
+			"Set per-monitor VRR mode via `hyprctl keyword monitor`. Read the current monitor spec first so mode/position/scale stay intact, then issue the full line with the new `vrr,<mode>` tail. On NVIDIA 590.48.01 this is safe at runtime (A/B tested) but not at compositor startup — see .claude/rules/nvidia-wayland.md. Watch `journalctl -k --since '10 sec ago'` for planePitch errors after each flip.",
+			func(_ context.Context, input HyprVRRSetInput) (HyprVRRSetOutput, error) {
+				out := HyprVRRSetOutput{Monitor: input.Monitor, Mode: input.Mode}
+				if input.Monitor == "" {
+					return out, fmt.Errorf("[%s] monitor is required", handler.ErrInvalidParam)
+				}
+				if input.Mode < 0 || input.Mode > 2 {
+					return out, fmt.Errorf("[%s] mode must be 0, 1, or 2", handler.ErrInvalidParam)
+				}
+
+				rawJSON, err := hyprctlOut("monitors", "-j")
+				if err != nil {
+					return out, err
+				}
+				var monitors []map[string]any
+				if err := json.Unmarshal([]byte(rawJSON), &monitors); err != nil {
+					return out, fmt.Errorf("parse hyprctl monitors: %w", err)
+				}
+				var found bool
+				var mode, pos, scale string
+				for _, m := range monitors {
+					name, _ := m["name"].(string)
+					if name != input.Monitor {
+						continue
+					}
+					found = true
+					w, _ := m["width"].(float64)
+					h, _ := m["height"].(float64)
+					rate, _ := m["refreshRate"].(float64)
+					x, _ := m["x"].(float64)
+					y, _ := m["y"].(float64)
+					sc, _ := m["scale"].(float64)
+					mode = fmt.Sprintf("%dx%d@%.0f", int(w), int(h), rate)
+					pos = fmt.Sprintf("%dx%d", int(x), int(y))
+					scale = fmt.Sprintf("%.2f", sc)
+					break
+				}
+				if !found {
+					return out, fmt.Errorf("[%s] monitor %q not connected", handler.ErrInvalidParam, input.Monitor)
+				}
+
+				arg := fmt.Sprintf("%s,%s,%s,%s,vrr,%d", input.Monitor, mode, pos, scale, input.Mode)
+				out.MonitorArg = arg
+				stdout, err := hyprctlOut("keyword", "monitor", arg)
+				out.Output = strings.TrimSpace(stdout)
+				if err != nil {
+					return out, err
+				}
+				out.Applied = true
+				return out, nil
 			},
 		),
 

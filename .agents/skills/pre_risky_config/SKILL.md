@@ -1,0 +1,71 @@
+---
+name: pre_risky_config
+description: Wrap a risky Hyprland or NVIDIA config edit in a snapshot → reload → verify → rollback-or-confirm cycle. Use before changing hyprland.conf VRR/monitor lines, before bumping NVIDIA env vars, before testing a new windowrule that touches decoration, or any time the user says "I want to try this config change safely", "before I edit the compositor config", "test this hyprland change". Built around hypr_config_snapshot / hypr_config_rollback so a bad edit doesn't require git archaeology to undo.
+allowed-tools:
+  - Read
+  - Edit
+  - Write
+  - Bash
+  - mcp__dotfiles__hypr_config_snapshot
+  - mcp__dotfiles__hypr_config_list
+  - mcp__dotfiles__hypr_config_rollback
+  - mcp__dotfiles__hypr_reload_config
+  - mcp__dotfiles__hypr_get_config_errors
+  - mcp__dotfiles__hypr_layout_save
+  - mcp__dotfiles__hypr_monitor_preset_save
+  - mcp__dotfiles__hypr_vrr_set
+  - mcp__dotfiles__hypr_vrr_status
+  - mcp__dotfiles__hypr_get_monitors
+---
+
+# /pre-risky
+
+Safely stage a Hyprland/NVIDIA config change. The compositor can drop into an unrecoverable DSC-failure state on certain NVIDIA 590.x driver edits (see `.claude/rules/nvidia-wayland.md`); this skill makes every risky edit reversible.
+
+## The flow
+
+### 1. Pre-flight snapshot
+Call **`hypr_config_snapshot {name: "pre_<short-description>"}`** before touching any hypr config. Capture the snapshot Name from the output — you'll need it for rollback. Also call `hypr_layout_save` and `hypr_monitor_preset_save` with the same label so the surrounding state is recoverable too.
+
+### 2. Describe the intended change
+In conversation with the user, narrow down exactly what lines change. Quote the before/after so they can eyeball it. For VRR flips, state the NVIDIA re-introduction order explicitly (DP-3 before DP-2).
+
+### 3. Apply the edit
+Edit the file. If the change is a VRR flip, prefer **`hypr_vrr_set`** over direct file editing — it's already safe-revertable at runtime without the snapshot needed. Use the file-editing path only for persistent changes.
+
+### 4. Reload + verify
+Call **`hypr_reload_config`**, then immediately **`hypr_get_config_errors`**. If the response has `healthy=false` or includes a non-nil `remediation`, treat it as a failure.
+
+For NVIDIA-class edits also run:
+```bash
+journalctl -k --since '5 sec ago' | grep -c 'nvidia-modeset: ERROR\|planePitch'
+```
+Non-zero → rollback. The DSC failure mode may not show up as a hypr config error.
+
+### 5. Outcome branching
+
+**Clean reload, no kernel errors → keep**
+- Summarize what changed and the snapshot name for reference.
+- Nothing to do.
+
+**Config parse error or kernel DRM error → rollback**
+- Call **`hypr_config_rollback {name: <snapshot name>}`** with the name from step 1.
+- Re-verify with `hypr_get_config_errors` — expect clean.
+- Tell the user what the error was, and surface the offending config section so they can reconsider.
+
+**Samsung DP-2 drops to 0x0 (DSC hardware failure)** — software cannot recover from this. Exit the skill with a critical notification and direct the user to the manual recovery procedure in `.claude/rules/nvidia-wayland.md`: compositor exit → monitor power-cycle → replug.
+
+## Arguments
+
+- `/pre-risky` — interactive; you drive the edit
+- `/pre-risky <file>` — pre-flight only for a specific file, then hand control back
+
+## Why this exists
+
+The 2026-04-16 planePitch regression (commit `5c119fb`) required knowing which commit introduced the bad config. The rule doc captures that incident; this skill makes sure it doesn't happen the *next* time someone experiments with `render:explicit_sync_kms = 2` or `misc:vrr = 2` at startup.
+
+## Related
+
+- `/heal` is the pair — post-event rollback when a change slips past the gate.
+- `hypr_config_list` shows all snapshots for manual rollback.
+- Auto-snapshots on hypr file edits fire from a PreToolUse hook if installed (see `scripts/hypr-config-snapshot.sh`).

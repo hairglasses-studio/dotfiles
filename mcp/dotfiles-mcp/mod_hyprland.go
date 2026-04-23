@@ -1062,6 +1062,7 @@ func (m *HyprlandModule) Tools() []registry.ToolDefinition {
 	}
 	tools = append(tools, hyprExtendedToolDefinitions()...)
 	tools = append(tools, hyprPersistenceToolDefinitions()...)
+	tools = append(tools, hyprConfigPersistenceTools()...)
 	return tools
 }
 

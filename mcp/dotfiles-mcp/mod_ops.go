@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hairglasses-studio/dotfiles-mcp/internal/remediation"
 	"github.com/hairglasses-studio/mcpkit/handler"
 	"github.com/hairglasses-studio/mcpkit/registry"
 )
@@ -173,12 +174,14 @@ type TestFailure struct {
 }
 
 type AnalyzedIssue struct {
-	Category   string `json:"category"`
-	File       string `json:"file"`
-	Line       int    `json:"line,omitempty"`
-	Message    string `json:"message"`
-	Suggestion string `json:"suggestion"`
-	Severity   string `json:"severity"`
+	Category    string                   `json:"category"`
+	File        string                   `json:"file"`
+	Line        int                      `json:"line,omitempty"`
+	Message     string                   `json:"message"`
+	Suggestion  string                   `json:"suggestion"`
+	Severity    string                   `json:"severity"`
+	ErrorCode   string                   `json:"error_code,omitempty"`
+	Remediation *remediation.Remediation `json:"remediation,omitempty"`
 }
 
 type ChangedFile struct {
@@ -502,6 +505,37 @@ func opsCategorizeError(msg string) string {
 	default:
 		return "compile_error"
 	}
+}
+
+// opsCategoryToCode maps an opsCategorizeError category to a registered
+// remediation.ErrorCode. Returns empty string when no structured remediation
+// is available for the category — callers should leave ErrorCode blank in
+// that case rather than attaching an incorrect fix.
+func opsCategoryToCode(category string) remediation.ErrorCode {
+	switch category {
+	case "missing_dep":
+		return remediation.CodeGoMissingDep
+	case "syntax_error":
+		return remediation.CodeGoMissingImport
+	default:
+		return ""
+	}
+}
+
+// attachRemediation fills in Remediation + ErrorCode on an issue when the
+// issue's Category maps to a known remediation. It is a no-op when the
+// category has no registered remediation, so callers can chain it blindly.
+func attachRemediation(issue *AnalyzedIssue) {
+	code := opsCategoryToCode(issue.Category)
+	if code == "" {
+		return
+	}
+	rem, ok := remediation.Lookup(code)
+	if !ok {
+		return
+	}
+	issue.ErrorCode = string(code)
+	issue.Remediation = &rem
 }
 
 func opsChangedGoPackages(repoPath, base string) ([]string, []string, error) {
@@ -1453,14 +1487,16 @@ func opsAnalyze(_ context.Context, input OpsAnalyzeInput) (OpsAnalyzeOutput, err
 		cat := opsCategorizeError(ce.Message)
 		categories[cat]++
 		fileSet[ce.File] = true
-		issues = append(issues, AnalyzedIssue{
+		issue := AnalyzedIssue{
 			Category:   cat,
 			File:       ce.File,
 			Line:       ce.Line,
 			Message:    ce.Message,
 			Suggestion: suggestFix(cat, ce.Message),
 			Severity:   "blocker",
-		})
+		}
+		attachRemediation(&issue)
+		issues = append(issues, issue)
 	}
 
 	for _, tf := range input.TestFailures {
@@ -1472,13 +1508,15 @@ func opsAnalyze(_ context.Context, input OpsAnalyzeInput) (OpsAnalyzeOutput, err
 			pkgDir = pkgDir[strings.Index(pkgDir[idx+1:], "/")+idx+2:]
 		}
 		fileSet[pkgDir] = true
-		issues = append(issues, AnalyzedIssue{
+		issue := AnalyzedIssue{
 			Category:   cat,
 			File:       pkgDir,
 			Message:    fmt.Sprintf("Test %s failed", tf.Test),
 			Suggestion: suggestFix(cat, tf.Output),
 			Severity:   "blocker",
-		})
+		}
+		attachRemediation(&issue)
+		issues = append(issues, issue)
 	}
 
 	var affected []string

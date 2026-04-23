@@ -1,0 +1,34 @@
+# dotfiles-event-bus.service — Unified event rules engine.
+#
+# Ingests kernel journal, hyprctl monitors, nvidia-smi throttle state,
+# pactl subscribe, and Hyprland IPC events into one structured stream at
+# ~/.local/state/dotfiles/events.jsonl. Matches are driven by the rule
+# table in scripts/event-bus-rules.yaml.
+#
+# Enable: systemctl --user enable --now dotfiles-event-bus.service
+#
+# The service restarts on failure; sub-streams have their own exponential
+# backoff so a transient journalctl/pactl hiccup won't kill the daemon.
+
+[Unit]
+Description=Dotfiles event bus (kernel + hypr + pulse + nvidia correlation)
+After=graphical-session.target
+PartOf=graphical-session.target
+# Crash-loop guard belongs in [Unit] on modern systemd — placing it in
+# [Service] would silently ignore the directive and the daemon could
+# thrash indefinitely.
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/hairglasses-studio/dotfiles/scripts/event-bus.py
+Restart=on-failure
+RestartSec=5
+MemoryMax=128M
+CPUQuota=15%
+# Pass the Wayland + DBus env so pactl + hyprctl can reach their sockets.
+PassEnvironment=XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE HOME PATH
+
+[Install]
+WantedBy=graphical-session.target

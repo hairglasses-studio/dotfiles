@@ -126,6 +126,13 @@
     "deferred": true
   },
   {
+    "name": "bt_audio_profile",
+    "description": "Switch a Bluetooth audio card's PipeWire/PulseAudio profile between A2DP (music, high-quality playback) and HSP/HFP (headset, bidirectional with microphone). Auto-resolves card= from the BT MAC if possible; falls back to the exact pactl card name.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
     "name": "bt_connect",
     "description": "Connect to a Bluetooth device with BLE retry logic. Resolves names against all known devices (paired + scanned).",
     "category": "",
@@ -1083,6 +1090,13 @@
     "deferred": true
   },
   {
+    "name": "events_tail",
+    "description": "Tail structured events from ~/.local/state/dotfiles/events.jsonl. Filters by time window, type, and severity. Use this to drive /heal (pending fixes) and /canary (post-deploy liveness).",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
     "name": "gh_star_lists_delete",
     "description": "Delete GitHub star folders (user lists) by name. Dry-run by default.",
     "category": "github",
@@ -1318,6 +1332,27 @@
     "deferred": true
   },
   {
+    "name": "hypr_config_list",
+    "description": "List all Hyprland config snapshots with their metadata (git SHA, kernel, driver) in newest-first order.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
+    "name": "hypr_config_rollback",
+    "description": "Restore a previous Hyprland config snapshot atomically, reload the compositor, and check configerrors. If errors reappear, the prior live state is restored and applied=false is returned so the caller knows the snapshot itself was bad.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
+    "name": "hypr_config_snapshot",
+    "description": "Capture the current Hyprland config (hyprland.conf, monitors.conf, and sibling *.conf pieces) to a timestamped directory with meta.json. Use before a risky edit so hypr_config_rollback has something to restore.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
     "name": "hypr_dismiss_notify",
     "description": "Dismiss the most recent Hyprland notification via hyprctl dismissnotify.",
     "category": "",
@@ -1368,7 +1403,7 @@
   },
   {
     "name": "hypr_get_config_errors",
-    "description": "Return Hyprland config parse errors and whether the active config is healthy.",
+    "description": "Return Hyprland config parse errors and whether the active config is healthy. When errors are present, attaches a structured Remediation record callers can dispatch directly.",
     "category": "",
     "is_write": false,
     "deferred": true
@@ -1675,6 +1710,13 @@
     "deferred": true
   },
   {
+    "name": "hypr_vrr_set",
+    "description": "Set per-monitor VRR mode via `hyprctl keyword monitor`. Read the current monitor spec first so mode/position/scale stay intact, then issue the full line with the new `vrr,\u003cmode\u003e` tail. On NVIDIA 590.48.01 this is safe at runtime (A/B tested) but not at compositor startup — see .claude/rules/nvidia-wayland.md. Watch `journalctl -k --since '10 sec ago'` for planePitch errors after each flip.",
+    "category": "",
+    "is_write": true,
+    "deferred": true
+  },
+  {
     "name": "hypr_vrr_status",
     "description": "Report per-monitor VRR state via `hyprctl monitors -j`. Returns name, description, resolution, refresh rate, scale, and VRR enablement for each connected monitor.",
     "category": "",
@@ -1908,6 +1950,20 @@
       "why is my service failing"
     ],
     "is_write": false,
+    "deferred": true
+  },
+  {
+    "name": "keybind_add",
+    "description": "Register a runtime Hyprland keybind via `hyprctl keyword bind`. Takes effect immediately without editing the config file — useful for ad-hoc demos or for a layer that is only valid while a specific app is running. The bind does NOT persist across a compositor reload; add it to hyprland/binds/*.conf for permanence.",
+    "category": "",
+    "is_write": true,
+    "deferred": true
+  },
+  {
+    "name": "keybind_remove",
+    "description": "Unbind a runtime Hyprland keybind via `hyprctl keyword unbind`. Does not affect binds declared in the config file — a subsequent `hyprctl reload` (or PostToolUse reload hook) will bring those back.",
+    "category": "",
+    "is_write": true,
     "deferred": true
   },
   {
@@ -2282,6 +2338,13 @@
     "deferred": true
   },
   {
+    "name": "network_dns_set",
+    "description": "Set DNS servers on a NetworkManager profile via `nmcli connection modify \u003cprofile\u003e ipv4.dns`. Requires the connection to be brought back up to take effect — pass reapply=true (default) to do both steps. Passing an empty servers list clears the override so the profile falls back to the DHCP-provided DNS.",
+    "category": "",
+    "is_write": true,
+    "deferred": true
+  },
+  {
     "name": "network_status",
     "description": "Show overall network status: connectivity state, WiFi enabled, and active connections. Uses nmcli.",
     "category": "",
@@ -2645,6 +2708,20 @@
   {
     "name": "ps_tree",
     "description": "Show process tree for a given PID using pstree. Falls back to ps --forest if pstree is unavailable.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
+    "name": "remediation_list",
+    "description": "List every registered error code and its structured remediation. Useful for auditing coverage and for UIs that surface known auto-fix paths.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
+    "name": "remediation_lookup",
+    "description": "Look up the structured remediation for an error code. Returns Found=false when the code is not registered. Consumers should dispatch the referenced Tool with Args to apply the fix.",
     "category": "",
     "is_write": false,
     "deferred": true
@@ -3424,6 +3501,19 @@
       "unit logs"
     ],
     "is_write": false,
+    "deferred": true
+  },
+  {
+    "name": "systemd_reset_failed",
+    "description": "Clear the 'failed' state of a unit via `systemctl reset-failed`. Required before a unit that hit its StartLimitBurst can be restarted — otherwise systemctl restart will report 'start request repeated too quickly' and refuse.",
+    "category": "systemd",
+    "search_terms": [
+      "reset failed",
+      "clear failed",
+      "start-limit",
+      "burst"
+    ],
+    "is_write": true,
     "deferred": true
   },
   {

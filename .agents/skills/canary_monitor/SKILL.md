@@ -15,6 +15,7 @@ allowed-tools:
   - mcp__dotfiles__shader_status
   - mcp__dotfiles__hypr_get_config_errors
   - mcp__dotfiles__ops_ci_status
+  - mcp__dotfiles__events_tail
 ---
 
 # Canary Monitor
@@ -59,6 +60,16 @@ If build fails, the push broke compilation. Report immediately.
 ### Tier 5: CI Status (~30s, optional)
 - `ops_ci_status` — GitHub Actions check status for latest push
 - Only run if the push was recent (within last 10 minutes)
+
+### Tier 6: Event-bus liveness + pending remediations (~3s)
+- Check `~/.claude/recovery-events.jsonl` with `tail -n 5`. If it contains
+  a line with `"type":"mcp_dead"` from within the last 5 minutes, the
+  MCP watchdog is reporting the server crashed — surface this immediately.
+- Check `stat -c %Y ~/.local/state/dotfiles/events.jsonl`. If the mtime
+  is older than 2 minutes, the dotfiles-event-bus is stale or stopped.
+- Call `events_tail {since_minutes: 10, severity: "high"}`. Any result
+  is a pending, high-severity remediation — report count + suggest running
+  `/heal` before declaring the canary green.
 
 ## Reporting
 

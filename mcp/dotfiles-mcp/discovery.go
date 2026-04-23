@@ -799,6 +799,8 @@ func dotfilesModules() []registry.ToolModule {
 		&HyprshadeModule{},
 		&KeybindsModule{},
 		&WaylandPerfModule{},
+		&RemediationModule{},
+		&EventsModule{},
 	}
 }
 

@@ -169,6 +169,16 @@
       "name": "shader_forge",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "heal",
+      "claude_include_canonical": true,
+      "export_plugin": false
+    },
+    {
+      "name": "pre_risky_config",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }

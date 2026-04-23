@@ -16,8 +16,8 @@ func TestKeybindsModuleInfo(t *testing.T) {
 		t.Fatal("expected non-empty description")
 	}
 	tools := m.Tools()
-	if len(tools) != 5 {
-		t.Fatalf("expected 5 tools, got %d", len(tools))
+	if len(tools) != 7 {
+		t.Fatalf("expected 7 tools, got %d", len(tools))
 	}
 
 	reg := registry.NewToolRegistry()
@@ -30,6 +30,8 @@ func TestKeybindsModuleInfo(t *testing.T) {
 		"keybinds_free_slots",
 		"keybinds_conflicts",
 		"keybinds_refresh_ticker",
+		"keybind_add",
+		"keybind_remove",
 	} {
 		if !srv.HasTool(want) {
 			t.Errorf("missing tool: %s", want)

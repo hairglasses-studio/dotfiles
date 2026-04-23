@@ -18,8 +18,8 @@ import (
 func TestBluetoothModuleRegistration(t *testing.T) {
 	m := &BluetoothModule{}
 	tools := m.Tools()
-	if len(tools) != 9 {
-		t.Fatalf("expected 9 BT tools, got %d", len(tools))
+	if len(tools) != 10 {
+		t.Fatalf("expected 10 BT tools, got %d", len(tools))
 	}
 
 	reg := registry.NewToolRegistry()
@@ -29,6 +29,7 @@ func TestBluetoothModuleRegistration(t *testing.T) {
 	for _, want := range []string{
 		"bt_list_devices", "bt_device_info", "bt_connect", "bt_disconnect",
 		"bt_pair", "bt_remove", "bt_trust", "bt_scan", "bt_power",
+		"bt_audio_profile",
 	} {
 		if !srv.HasTool(want) {
 			t.Errorf("missing tool: %s", want)

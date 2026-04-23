@@ -1,0 +1,20 @@
+# dotfiles-health-watchdog.service — Run periodic liveness checks.
+#
+# Paired with dotfiles-health-watchdog.timer (30s cadence). Each run:
+#   1. Probes dotfiles-mcp via --contract-print (3s timeout).
+#   2. Checks /tmp/bar-*.txt staleness vs. the producer timer's
+#      OnUnitActiveSec; restarts producers whose cache has gone stale.
+#
+# Structured events append to ~/.claude/recovery-events.jsonl; the
+# SessionStart hook surfaces them to Claude on the next conversation.
+
+[Unit]
+Description=Dotfiles health watchdog (MCP + ticker-cache liveness)
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/health-watchdog.sh
+MemoryMax=64M
+CPUQuota=10%
+# Run with the user's full env so systemctl --user can reach the session bus.
+PassEnvironment=XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS HOME PATH

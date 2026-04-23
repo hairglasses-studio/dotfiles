@@ -1,0 +1,18 @@
+# dotfiles-health-watchdog.timer — Fire the health watchdog every 30s.
+#
+# 30s is the cache-warm / low-log-volume sweet spot: below 5 minutes so
+# prompt-cache stays warm, frequent enough to catch a ticker stall within
+# one producer cycle for every cadence in the fleet.
+#
+# Enable: systemctl --user enable --now dotfiles-health-watchdog.timer
+
+[Unit]
+Description=Poll dotfiles-mcp + ticker cache liveness every 30s
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=30
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

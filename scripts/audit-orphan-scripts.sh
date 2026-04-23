@@ -34,6 +34,7 @@ allowlist=(
     claude-post-compact
     claude-rate-limit-hook
     claude-stop-guard
+    hypr-config-snapshot
 
     # Meta utilities invoked manually at the shell (or by fleet scripts).
     # No in-repo consumer by design — they exist as helpers users run

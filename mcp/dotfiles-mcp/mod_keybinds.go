@@ -373,5 +373,78 @@ func (m *KeybindsModule) Tools() []registry.ToolDefinition {
 				}, nil
 			},
 		},
+
+		// ── keybind_add ──────────────────────────────
+		handler.TypedHandler[KeybindAddInput, KeybindWriteOutput](
+			"keybind_add",
+			"Register a runtime Hyprland keybind via `hyprctl keyword bind`. Takes effect immediately without editing the config file — useful for ad-hoc demos or for a layer that is only valid while a specific app is running. The bind does NOT persist across a compositor reload; add it to hyprland/binds/*.conf for permanence.",
+			func(_ context.Context, input KeybindAddInput) (KeybindWriteOutput, error) {
+				return applyKeybindWrite(true, input.Combo, input.Dispatcher, input.Arg)
+			},
+		),
+
+		// ── keybind_remove ───────────────────────────
+		handler.TypedHandler[KeybindRemoveInput, KeybindWriteOutput](
+			"keybind_remove",
+			"Unbind a runtime Hyprland keybind via `hyprctl keyword unbind`. Does not affect binds declared in the config file — a subsequent `hyprctl reload` (or PostToolUse reload hook) will bring those back.",
+			func(_ context.Context, input KeybindRemoveInput) (KeybindWriteOutput, error) {
+				return applyKeybindWrite(false, input.Combo, "", "")
+			},
+		),
 	}
+}
+
+// KeybindAddInput defines a runtime bind registration.
+type KeybindAddInput struct {
+	Combo      string `json:"combo" jsonschema:"required,description=Key combo in hyprctl form — e.g. 'SUPER, F12' or 'SUPER CTRL, slash'"`
+	Dispatcher string `json:"dispatcher" jsonschema:"required,description=Hyprland dispatcher to run — e.g. 'exec', 'killactive', 'togglefloating'"`
+	Arg        string `json:"arg,omitempty" jsonschema:"description=Argument for the dispatcher (e.g. the command for exec). Omit for dispatchers that take no arg."`
+}
+
+// KeybindRemoveInput targets a previously-added runtime bind.
+type KeybindRemoveInput struct {
+	Combo string `json:"combo" jsonschema:"required,description=Key combo in hyprctl form — same shape as keybind_add"`
+}
+
+type KeybindWriteOutput struct {
+	Combo   string `json:"combo"`
+	Action  string `json:"action"`
+	Applied bool   `json:"applied"`
+	Output  string `json:"output,omitempty"`
+}
+
+// applyKeybindWrite routes both add and remove paths through a single
+// `hyprctl keyword bind|unbind` shell-out. The two paths differ only in
+// the keyword and the argument shape, so we keep them DRY here.
+func applyKeybindWrite(add bool, combo, dispatcher, arg string) (KeybindWriteOutput, error) {
+	combo = strings.TrimSpace(combo)
+	if combo == "" {
+		return KeybindWriteOutput{}, fmt.Errorf("[%s] combo is required", handler.ErrInvalidParam)
+	}
+
+	out := KeybindWriteOutput{Combo: combo}
+	var cmd *exec.Cmd
+	if add {
+		out.Action = "add"
+		if dispatcher == "" {
+			return out, fmt.Errorf("[%s] dispatcher is required for keybind_add", handler.ErrInvalidParam)
+		}
+		// hyprctl keyword bind <combo>,<dispatcher>,<arg>
+		spec := fmt.Sprintf("%s,%s", combo, dispatcher)
+		if strings.TrimSpace(arg) != "" {
+			spec = fmt.Sprintf("%s,%s", spec, arg)
+		}
+		cmd = exec.Command("hyprctl", "keyword", "bind", spec)
+	} else {
+		out.Action = "remove"
+		// hyprctl keyword unbind <combo>
+		cmd = exec.Command("hyprctl", "keyword", "unbind", combo)
+	}
+	stdout, err := cmd.CombinedOutput()
+	out.Output = strings.TrimSpace(string(stdout))
+	if err != nil {
+		return out, fmt.Errorf("hyprctl keyword failed: %w: %s", err, out.Output)
+	}
+	out.Applied = true
+	return out, nil
 }

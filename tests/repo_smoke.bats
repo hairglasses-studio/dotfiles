@@ -165,6 +165,16 @@ teardown() {
     refute_output --partial "ORPHAN"
 }
 
+@test "health-watchdog.sh is executable and parses cleanly" {
+    # The watchdog is called every 30s by dotfiles-health-watchdog.timer
+    # (Tier 1.3). It must parse, be executable, and exit 0 even when the
+    # MCP binary and /tmp/bar-* caches look healthy — we don't want the
+    # watchdog itself generating noise in the journal.
+    assert [ -x "${SCRIPTS_DIR}/health-watchdog.sh" ]
+    run bash -n "${SCRIPTS_DIR}/health-watchdog.sh"
+    assert_success
+}
+
 @test "scripts/lib Python modules all import cleanly" {
     # py_compile (ok 19) catches syntax errors. Import attempts catch
     # the next layer: module-scope NameError, ModuleNotFoundError at
@@ -380,6 +390,21 @@ print(f'skills={len(declared)} drift=0')
     # that isn't in the map produces no playlist row — silent skip.
     # Likewise a source_identifier that doesn't match any SourceItem.
     run bash "${SCRIPTS_DIR}/validate-archive-homebrew-manifest.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
+@test "CLAUDE.md GEMINI.md copilot-instructions.md stay thin AGENTS.md mirrors" {
+    # The per-repo convention is that AGENTS.md is the canonical
+    # instruction file and CLAUDE.md / GEMINI.md / .github/copilot-
+    # instructions.md are thin compatibility mirrors pointing at it.
+    # Catches two drift modes: (a) a mirror loses its AGENTS.md link
+    # so tools silently read only the mirror, (b) a mirror grows
+    # into a parallel instruction source (the per-repo convention
+    # says Claude-specific notes may only live in CLAUDE.md when
+    # they cannot live in AGENTS.md — so 50 lines is plenty).
+    run bash "${SCRIPTS_DIR}/validate-agents-mirror-contract.sh"
     assert_success
     assert_output --partial "errors=0"
     refute_output --partial "DRIFT"
