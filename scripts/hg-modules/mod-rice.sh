@@ -5,6 +5,7 @@
 source "$HG_DOTFILES/scripts/lib/compositor.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/config.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/kitty-config.sh" 2>/dev/null
+source "$HG_DOTFILES/scripts/lib/shell-stack.sh" 2>/dev/null
 source "$HG_DOTFILES/scripts/lib/tmux-persistence.sh" 2>/dev/null
 
 rice_description() {
@@ -173,9 +174,8 @@ _rice_persistence() {
 }
 
 _rice_reload_all() {
-  hg_info "Reloading all services in parallel..."
-  config_reload_parallel hyprland hyprshell hypr-dock hyprdynamicmonitors autoname swaync ironbar quickshell
-  hg_ok "All services reloaded"
+  hg_info "Reloading visual stack with shell cutover awareness..."
+  "$HG_DOTFILES/scripts/rice-reload.sh"
 }
 
 _rice_restart_ui() {
@@ -194,8 +194,28 @@ _rice_restart_ui() {
     hg_die "Blocked UI restart: tmux persistence health has failures. Run 'hg rice persistence' or retry with --force."
   fi
 
+  if declare -F shell_stack_load >/dev/null 2>&1; then
+    shell_stack_load
+  fi
+
+  local components=(hyprdynamicmonitors autoname)
+  local menu_cutover=false dock_cutover=false
+  if declare -F shell_stack_menu_cutover >/dev/null 2>&1 && shell_stack_menu_cutover; then
+    menu_cutover=true
+  fi
+  if declare -F shell_stack_dock_cutover >/dev/null 2>&1 && shell_stack_dock_cutover; then
+    dock_cutover=true
+  fi
+
+  if ! $menu_cutover; then
+    components+=(hyprshell)
+  fi
+  if ! $dock_cutover; then
+    components+=(hypr-dock)
+  fi
+
   hg_info "Restarting UI companion services in parallel..."
-  config_restart_parallel hyprshell hypr-dock hyprdynamicmonitors autoname
+  config_restart_parallel "${components[@]}"
   hg_ok "UI companion services restarted"
 }
 
