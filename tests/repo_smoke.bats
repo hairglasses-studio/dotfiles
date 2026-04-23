@@ -409,3 +409,29 @@ print(f'skills={len(declared)} drift=0')
     assert_output --partial "errors=0"
     refute_output --partial "DRIFT"
 }
+
+@test "every install.sh scripts/* row resolves to an executable source" {
+    # Generalizes ok 28 (retroarch-*) to the whole catalog. A
+    # rename or delete that misses install.sh leaves a broken
+    # symlink that either errors on `hyprctl dispatch exec, <name>`
+    # or silently points at a dangling path. Same class of drift
+    # — ok 28 caught it for retroarch, this catches it everywhere.
+    run bash "${DOTFILES_DIR}/install.sh" --print-link-specs
+    assert_success
+
+    local missing=()
+    local non_executable=()
+    while IFS='|' read -r src dest; do
+        # Only sources under scripts/ with .sh or .py extensions.
+        [[ "${src}" == *scripts/*.sh || "${src}" == *scripts/*.py ]] || continue
+        local resolved="${src/\$DOTFILES_DIR/${DOTFILES_DIR}}"
+        if [[ ! -f "${resolved}" ]]; then
+            missing+=("${resolved}")
+        elif [[ ! -x "${resolved}" ]]; then
+            non_executable+=("${resolved}")
+        fi
+    done <<< "${output}"
+
+    [[ ${#missing[@]} -eq 0 ]] || fail "missing script sources: ${missing[*]}"
+    [[ ${#non_executable[@]} -eq 0 ]] || fail "script sources missing +x bit: ${non_executable[*]}"
+}
