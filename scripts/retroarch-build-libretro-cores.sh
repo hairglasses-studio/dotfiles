@@ -56,9 +56,15 @@ declare -A CORE_REPO=(
     [beetle-vb]="https://github.com/libretro/beetle-vb-libretro.git"
 )
 declare -A CORE_MAKEFILE=(
-    [race]="Makefile.libretro"
+    [race]="Makefile"
     [beetle-wswan]="Makefile"
     [beetle-vb]="Makefile"
+)
+# Fallback names tried in order if the primary doesn't exist.
+declare -A CORE_MAKEFILE_FALLBACKS=(
+    [race]="Makefile.libretro Makefile.libretro.mak"
+    [beetle-wswan]="Makefile.libretro"
+    [beetle-vb]="Makefile.libretro"
 )
 declare -A CORE_ARTIFACT=(
     [race]="race_libretro.so"
@@ -101,16 +107,39 @@ for core in "${targets[@]}"; do
     printf '[%s] cloning %s\n' "$core" "$repo"
     git clone --depth=1 "$repo" "$core_dir" >/dev/null
 
-    printf '[%s] building via %s\n' "$core" "$makefile"
-    make -C "$core_dir" -f "$makefile" -j"$(nproc)"
+    # Resolve makefile: try primary, then each fallback.
+    resolved_makefile=""
+    for candidate in "$makefile" ${CORE_MAKEFILE_FALLBACKS[$core]:-}; do
+        if [[ -f "${core_dir}/${candidate}" ]]; then
+            resolved_makefile="$candidate"
+            break
+        fi
+    done
+    if [[ -z "$resolved_makefile" ]]; then
+        printf '[%s] no recognized Makefile found in %s\n' "$core" "$core_dir" >&2
+        ls "${core_dir}" | head -20 >&2
+        exit 5
+    fi
+
+    printf '[%s] building via %s\n' "$core" "$resolved_makefile"
+    make -C "$core_dir" -f "$resolved_makefile" -j"$(nproc)"
 
     if [[ ! -f "${core_dir}/${artifact}" ]]; then
         printf '[%s] expected artifact not produced: %s\n' "$core" "${core_dir}/${artifact}" >&2
         exit 4
     fi
 
+    # Install unprivileged when --install-dir is user-writable; sudo
+    # only when falling back to /usr/lib/libretro. Check permission
+    # to write into the parent dir.
+    install_parent="$(dirname "$target_path")"
+    mkdir -p "$install_parent" 2>/dev/null || true
     printf '[%s] installing to %s\n' "$core" "$target_path"
-    sudo install -D -m 0644 "${core_dir}/${artifact}" "$target_path"
+    if [[ -w "$install_parent" ]]; then
+        install -D -m 0644 "${core_dir}/${artifact}" "$target_path"
+    else
+        sudo install -D -m 0644 "${core_dir}/${artifact}" "$target_path"
+    fi
 done
 
 printf 'done\n'
