@@ -232,6 +232,24 @@ shell_stack_quickshell_wanted
     assert_success
 }
 
+@test "shell stack boot applies selected mode in dry-run" {
+    run bash "${SCRIPTS_DIR}/shell-stack-boot.sh" --dry-run --mode full-cutover
+    assert_success
+    assert_output --partial "[dry] systemctl --user stop swaync.service"
+    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
+    assert_output --partial "[dry] systemctl --user stop ironbar.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
+}
+
+@test "hyprland startup routes shell owners through shell stack boot" {
+    run grep -F 'shell-stack-boot.sh' "${DOTFILES_DIR}/hyprland/hyprland.conf"
+    assert_success
+
+    run grep -E 'exec-once = (swaync|systemctl --user start --no-block (ironbar\.service|dotfiles-quickshell\.service|dotfiles-keybind-ticker\.service))$' \
+        "${DOTFILES_DIR}/hyprland/hyprland.conf"
+    assert_failure
+}
+
 @test "shell stack apply persists full cutover environment" {
     export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
     export PATH="${BATS_TEST_TMPDIR}:${PATH}"

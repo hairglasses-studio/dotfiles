@@ -12,7 +12,7 @@ Append-only ADR-lite record of architectural calls that shaped this repo. Manage
 
 **Consequences**: `run-quickshell.sh` consumes persisted cutover flags; `ticker-bridge.py` supports watch mode; `notification-bridge.py` gains DND/clear/append actions; and tests now cover the new shell modes.
 
-**Follow-up**: Cutover modes restart Quickshell after writing mode state, so a running pilot cannot keep stale ownership flags. The pilot bar also moved media and tray surfaces onto native Quickshell MPRIS/StatusNotifier services. D-Bus activation now goes through `notification-daemon-launch.sh`, so a fresh notification activation follows the persisted cutover mode instead of unconditionally respawning swaync. Notification keybinds and MCP notification tools now use `notification-control.sh` and Quickshell's `shell` IPC target before falling back to swaync. Reload and palette hooks read `scripts/lib/shell-stack.sh` so cutover reloads skip replaced owners.
+**Follow-up**: Cutover modes restart Quickshell after writing mode state, so a running pilot cannot keep stale ownership flags. The pilot bar also moved media and tray surfaces onto native Quickshell MPRIS/StatusNotifier services. D-Bus activation now goes through `notification-daemon-launch.sh`, so a fresh notification activation follows the persisted cutover mode instead of unconditionally respawning swaync. Notification keybinds and MCP notification tools now use `notification-control.sh` and Quickshell's `shell` IPC target before falling back to swaync. Reload, palette, and Hyprland startup hooks read `scripts/lib/shell-stack.sh` so cutover sessions skip replaced owners.
 
 ## 2026-04-23 — Stage shell migration through Quickshell pilot
 
