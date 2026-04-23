@@ -410,6 +410,18 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "DRIFT"
 }
 
+@test "hyprland pypr toggle binds resolve to declared scratchpads" {
+    # `pypr toggle <name>` in hyprland binds depends on a
+    # [scratchpads.<name>] block in pypr/config.toml, or on a pypr
+    # built-in command. A rename or removal of the scratchpad
+    # leaves the keybind dispatching to pypr which politely does
+    # nothing — no dialog, no log, no compositor-level feedback.
+    run bash "${SCRIPTS_DIR}/validate-pypr-binds.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
 @test "orphan-script audit allowlist entries all exist on disk" {
     # scripts/audit-orphan-scripts.sh allowlists certain scripts as
     # "intentionally unreferenced" — user-global Claude hooks, manual
