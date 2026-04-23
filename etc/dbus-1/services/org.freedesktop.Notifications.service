@@ -1,4 +1,3 @@
 [D-BUS Service]
 Name=org.freedesktop.Notifications
-Exec=/usr/bin/swaync
-SystemdService=swaync.service
+Exec=/home/hg/hairglasses-studio/dotfiles/scripts/notification-daemon-launch.sh

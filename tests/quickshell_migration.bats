@@ -70,6 +70,63 @@ print("visible=%d critical=%d" % (payload["visible"], payload["critical"]))
     [[ ! -s "$history" ]]
 }
 
+@test "notification daemon launcher falls back to swaync by default" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    export SWAYNC_BIN="${BATS_TEST_TMPDIR}/swaync"
+    cat > "$SWAYNC_BIN" <<'MOCK'
+#!/usr/bin/env bash
+printf 'swaync fallback\n'
+MOCK
+    chmod +x "$SWAYNC_BIN"
+
+    run bash "${SCRIPTS_DIR}/notification-daemon-launch.sh"
+    assert_success
+    assert_output "swaync fallback"
+}
+
+@test "notification daemon launcher starts quickshell owner when cutover is persisted" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    export SYSTEMCTL_BIN="${BATS_TEST_TMPDIR}/systemctl"
+    export BUSCTL_BIN="${BATS_TEST_TMPDIR}/busctl"
+    export GDBUS_BIN="${BATS_TEST_TMPDIR}/missing-gdbus"
+    export SWAYNC_BIN="${BATS_TEST_TMPDIR}/swaync"
+    mkdir -p "${XDG_STATE_HOME}/dotfiles/shell-stack"
+    printf 'QUICKSHELL_NOTIFICATION_OWNER=1\n' > "${XDG_STATE_HOME}/dotfiles/shell-stack/env"
+    cat > "$SYSTEMCTL_BIN" <<'MOCK'
+#!/usr/bin/env bash
+printf 'systemctl %s\n' "$*" >> "${BATS_TEST_TMPDIR}/notification-launch.log"
+MOCK
+    cat > "$BUSCTL_BIN" <<'MOCK'
+#!/usr/bin/env bash
+cat <<'EOF'
+NAME                              PID PROCESS USER CONNECTION UNIT SESSION DESCRIPTION
+org.freedesktop.Notifications   1000 quickshell hg :1.42      -    -       -
+EOF
+MOCK
+    cat > "$SWAYNC_BIN" <<'MOCK'
+#!/usr/bin/env bash
+printf 'swaync should not start\n' >> "${BATS_TEST_TMPDIR}/notification-launch.log"
+MOCK
+    chmod +x "$SYSTEMCTL_BIN" "$BUSCTL_BIN" "$SWAYNC_BIN"
+
+    run bash "${SCRIPTS_DIR}/notification-daemon-launch.sh"
+    assert_success
+    [[ -f "${BATS_TEST_TMPDIR}/notification-launch.log" ]]
+    run cat "${BATS_TEST_TMPDIR}/notification-launch.log"
+    assert_success
+    assert_output "systemctl --user start dotfiles-quickshell.service"
+}
+
+@test "notification dbus activation routes through migration launcher" {
+    run grep -E '^Exec=/home/hg/hairglasses-studio/dotfiles/scripts/notification-daemon-launch\.sh$' \
+        "${DOTFILES_DIR}/etc/dbus-1/services/org.freedesktop.Notifications.service"
+    assert_success
+
+    run grep -E '^SystemdService=swaync\.service$' \
+        "${DOTFILES_DIR}/etc/dbus-1/services/org.freedesktop.Notifications.service"
+    assert_failure
+}
+
 @test "shell stack mode defaults to dry-run for cutover commands" {
     run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" full-pilot
     assert_success
