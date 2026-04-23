@@ -407,6 +407,40 @@ PY
     assert_output --partial "\"port\": 55355"
 }
 
+@test "retroarch-map-roms --dry-run reassigns DETECT core_paths and scans missing roms" {
+    local playlists="${BATS_TEST_TMPDIR}/playlists"
+    local roms="${BATS_TEST_TMPDIR}/roms"
+    mkdir -p "${playlists}" "${roms}/gb"
+    # Pre-existing playlist with one DETECT entry
+    cat > "${playlists}/Nintendo - Game Boy.lpl" <<'JSON'
+{"version": "1.5", "items": [
+  {"path": "/roms/gb/tetris.gb", "label": "Tetris",
+   "core_path": "DETECT", "core_name": "DETECT"}
+]}
+JSON
+    # One new ROM file not in the playlist
+    touch "${roms}/gb/Zelda.gb"
+    # Stub a core that exists: tool looks in /usr/lib/libretro,
+    # $HOME/.config/retroarch/cores, /usr/local/lib/libretro for
+    # sameboy_libretro.so. If sameboy isn't installed on the test
+    # runner this test is skipped.
+    if [[ ! -f /usr/lib/libretro/sameboy_libretro.so \
+       && ! -f "${HOME}/.config/retroarch/cores/sameboy_libretro.so" ]]; then
+        skip "sameboy_libretro.so not installed on this runner"
+    fi
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-map-roms.py" \
+        --playlists-dir "${playlists}" \
+        --roms-root "${roms}" \
+        --report "${BATS_TEST_TMPDIR}/report.json" \
+        --dry-run
+    assert_success
+    assert_output --partial "entries_reassigned=1"
+    assert_output --partial "entries_added=1"
+    assert_output --partial "dry_run=yes"
+    assert_output --partial "REASSIGNED: Nintendo - Game Boy.lpl"
+    assert_output --partial "SCANNED:    Nintendo - Game Boy.lpl"
+}
+
 @test "retroarch-playlist-audit flags missing cores and roms separately" {
     local playlists="${BATS_TEST_TMPDIR}/playlists"
     local rom_file="${BATS_TEST_TMPDIR}/existing.zip"

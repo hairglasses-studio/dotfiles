@@ -275,6 +275,7 @@ $DOTFILES_DIR/scripts/retroarch-build-libretro-cores.sh|$HOME/.local/bin/retroar
 $DOTFILES_DIR/scripts/retroarch-command.py|$HOME/.local/bin/retroarch-command
 $DOTFILES_DIR/scripts/retroarch-complete.sh|$HOME/.local/bin/retroarch-complete
 $DOTFILES_DIR/scripts/retroarch-playlist-audit.py|$HOME/.local/bin/retroarch-playlist-audit
+$DOTFILES_DIR/scripts/retroarch-map-roms.py|$HOME/.local/bin/retroarch-map-roms
 $DOTFILES_DIR/scripts/retroarch-install-widescreen-cores.sh|$HOME/.local/bin/retroarch-install-widescreen-cores
 $DOTFILES_DIR/scripts/retroarch-dolphin-sync-sys.sh|$HOME/.local/bin/retroarch-dolphin-sync-sys
 $DOTFILES_DIR/scripts/retroarch-next-widescreen-setup.sh|$HOME/.local/bin/retroarch-next-widescreen-setup

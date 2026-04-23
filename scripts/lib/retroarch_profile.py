@@ -31,6 +31,8 @@ DEFAULT_PLAYLIST_MAP_ROWS = [
     "nds|Nintendo - Nintendo DS.lpl|desmume_libretro.so|Nintendo - DS (DeSmuME)|.bin,.nds|libretro-desmume",
     "psp|Sony - PlayStation Portable.lpl|ppsspp_libretro.so|Sony - PlayStation Portable (PPSSPP)|.chd,.cso,.elf,.iso,.pbp,.prx|libretro-ppsspp",
     "vb|Nintendo - Virtual Boy.lpl|mednafen_vb_libretro.so|Nintendo - Virtual Boy (Beetle VB)|.bin,.vb,.vboy|",
+    "amiga|Commodore - Amiga.lpl|puae_libretro.so|Commodore - Amiga (PUAE)|.adf,.adz,.dms,.fdi,.hdf,.hdz,.ipf,.lha,.m3u,.slave,.uae,.zip|libretro-puae",
+    "amiga-archive|Commodore - Amiga.lpl|puae_libretro.so|Commodore - Amiga (PUAE)|.adf,.adz,.dms,.fdi,.hdf,.hdz,.ipf,.lha,.m3u,.slave,.uae,.zip|libretro-puae",
 ]
 
 DEFAULT_REQUIREMENT_ROWS = [

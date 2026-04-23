@@ -38,10 +38,23 @@ def _expand(value: str | None, default: Path) -> Path:
     return Path(os.path.expandvars(os.path.expanduser(value)))
 
 
+_ARCHIVE_EXTS = {".zip", ".7z", ".rar", ".chd", ".tar", ".gz", ".bz2", ".pbp"}
+
+
 def _rom_file_part(path: str) -> str:
     # Playlist path can point inside an archive via `archive.zip#inner.ext`.
-    # We only check the archive file, not the inner path.
-    return path.split("#", 1)[0]
+    # We only check the archive file, not the inner path. But directory
+    # segments with a literal `#` (e.g. `#Unreleased/game.lha`) must not
+    # be treated as the separator — only split when the part before `#`
+    # ends in a known archive extension.
+    idx = path.rfind("#")
+    if idx <= 0:
+        return path
+    before = path[:idx]
+    for ext in _ARCHIVE_EXTS:
+        if before.lower().endswith(ext):
+            return before
+    return path
 
 
 def audit(playlists_dir: Path) -> dict[str, Any]:
