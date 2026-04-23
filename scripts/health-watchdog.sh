@@ -46,8 +46,9 @@ check_mcp() {
   # Use `timeout` from coreutils; treat exit 124 (timed out) and any non-zero
   # as dead. --contract-print is lightweight (no stdio MCP handshake) and
   # fails fast if the binary panics or the registry is corrupt.
+  # 10s allows for a cold rebuild (measured ~2s); warm runs return in ~30ms.
   local out rc
-  out="$(timeout --preserve-status 3s "$RUN_MCP" --contract-print 2>&1)"
+  out="$(timeout --preserve-status 10s "$RUN_MCP" --contract-print 2>&1)"
   rc=$?
   if [[ $rc -ne 0 ]]; then
     local fingerprint

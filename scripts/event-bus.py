@@ -60,6 +60,13 @@ EVENTS_PATH = STATE_DIR / "events.jsonl"
 CORRELATION_WINDOW_S = 5
 _recent_events: deque[tuple[str, float]] = deque(maxlen=200)
 
+# Per-(rule, fingerprint) dedup window. A persistent condition like a DSC
+# mode loss would otherwise fire every 10s poll and spam swaync into
+# uselessness. DEDUP_WINDOW_S throttles same-fingerprint emits; the first
+# one lands promptly and the rest are swallowed until the window expires.
+DEDUP_WINDOW_S = 300
+_dedup_seen: dict[tuple[str, str], float] = {}
+
 
 @dataclass
 class Rule:
@@ -109,12 +116,30 @@ def now_rfc() -> str:
 
 
 def emit(event: Event) -> None:
-    """Append an event to events.jsonl and fire a notification if warranted."""
+    """Append an event to events.jsonl and fire a notification if warranted.
+
+    Skips same-(rule, fingerprint) events within DEDUP_WINDOW_S so a
+    persistent condition (a DSC mode loss, a stuck throttle) produces one
+    event at onset rather than a flood from the poll loop.
+    """
+    now = time.time()
+    fp_short = event.fingerprint[:240]
+    dedup_key = (event.rule, fp_short)
+    last_seen = _dedup_seen.get(dedup_key, 0.0)
+    if now - last_seen < DEDUP_WINDOW_S:
+        return
+    _dedup_seen[dedup_key] = now
+    # Cheap GC so the map doesn't grow unbounded under varied fingerprints.
+    if len(_dedup_seen) > 1024:
+        cutoff = now - DEDUP_WINDOW_S
+        for k in [k for k, t in _dedup_seen.items() if t < cutoff]:
+            del _dedup_seen[k]
+
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     payload = {
         "type": event.type,
         "at": event.at,
-        "fingerprint": event.fingerprint[:240],
+        "fingerprint": fp_short,
         "error_code": event.error_code,
         "severity": event.severity,
         "rule": event.rule,
@@ -129,7 +154,7 @@ def emit(event: Event) -> None:
         f.flush()
         os.fsync(f.fileno())
 
-    _recent_events.append((event.error_code, time.time()))
+    _recent_events.append((event.error_code, now))
 
     # Notification policy.
     should_notify = event.severity in ("medium", "high")
