@@ -801,6 +801,7 @@ func dotfilesModules() []registry.ToolModule {
 		&WaylandPerfModule{},
 		&RemediationModule{},
 		&EventsModule{},
+		&RetroArchModule{},
 	}
 }
 

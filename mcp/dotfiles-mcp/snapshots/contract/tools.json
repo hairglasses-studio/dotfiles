@@ -2727,6 +2727,27 @@
     "deferred": true
   },
   {
+    "name": "retroarch_audit",
+    "description": "Composite RetroArch workstation audit: cores, BIOS, playlists, rclone mounts. Shells out to scripts/retroarch-{workstation-audit,playlist-audit,mounts-audit}.py and merges their JSON reports into a single document. Safe to call on any workstation; reads the most recently cached reports when invocation flags don't force regeneration.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
+    "name": "retroarch_command",
+    "description": "Send a UDP network command to a running RetroArch instance. Wraps scripts/retroarch-command.py --json. Requires network_cmd_enable=true in retroarch.cfg and an active RetroArch process. See retroarch-command --list for the command taxonomy.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
+    "name": "retroarch_now_playing",
+    "description": "Summarize the most recent RetroArch session: reads the ticker cache at /tmp/bar-retroarch.txt (written every 30s by bar-retroarch.timer) and the first entry of content_history.lpl. Returns JSON with title, core, path, mount_health, and the raw ticker label. Safe when nothing has been played yet — the fields are just empty.",
+    "category": "",
+    "is_write": false,
+    "deferred": true
+  },
+  {
     "name": "sandbox_create",
     "description": "Create a new Docker sandbox container for dotfile testing. Uses the host's RTX 3080 via nvidia-container-toolkit for GPU-accelerated Hyprland headless rendering. Dotfiles are bind-mounted read-only from the host working tree.",
     "category": "",
