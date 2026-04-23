@@ -406,3 +406,18 @@ PY
     assert_output --partial "\"ok\": true"
     assert_output --partial "\"port\": 55355"
 }
+
+@test "retroarch-command --wait-for-ready times out cleanly and reports attempts" {
+    # Failure-path coverage — success path needs a live RetroArch
+    # UDP echo server which the CI/sandbox can't reliably provide.
+    # We point at an unused port so the poll always times out, and
+    # assert the exit code + JSON shape + attempt count.
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-command.py" \
+        --wait-for-ready --wait-timeout 0.6 --wait-interval 0.1 \
+        --timeout 0.1 --port 55354 --json
+    assert_failure
+    assert_output --partial "\"ok\": false"
+    assert_output --partial "\"command\": \"VERSION\""
+    assert_output --partial "\"attempts\":"
+    assert_output --partial "\"response\": null"
+}

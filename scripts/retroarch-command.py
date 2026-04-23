@@ -16,6 +16,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 
@@ -90,9 +91,10 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
             "  retroarch-command VERSION\n"
             "  retroarch-command --osd 'sync complete'\n"
             "  retroarch-command SET_SHADER /path/to/preset.glslp\n"
+            "  retroarch-command --wait-for-ready --wait-timeout 10\n"
         ),
     )
-    p.add_argument("command", nargs="?", help="Command name (see --list). Omit with --osd.")
+    p.add_argument("command", nargs="?", help="Command name (see --list). Omit with --osd or --wait-for-ready.")
     p.add_argument("args", nargs="*", help="Arguments appended to the command, space-joined.")
     p.add_argument("--list", action="store_true", help="Print the known command taxonomy and exit.")
     p.add_argument("--osd", metavar="TEXT", help="Shortcut for SHOW_MSG with auto-quoting.")
@@ -102,7 +104,40 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--expect-response", action="store_true",
                    help="Force reading a response even for commands that don't normally return one.")
     p.add_argument("--json", action="store_true", help="Emit the result dict as JSON instead of plain text.")
+    p.add_argument("--wait-for-ready", action="store_true",
+                   help="Poll VERSION until the socket answers (bound + responsive). "
+                        "Useful after RetroArch restart to confirm UDP 55355 is live.")
+    p.add_argument("--wait-timeout", type=float, default=10.0,
+                   help="Max seconds to wait when --wait-for-ready is set (default: 10.0).")
+    p.add_argument("--wait-interval", type=float, default=0.5,
+                   help="Seconds between VERSION polls (default: 0.5).")
     return p.parse_args(argv)
+
+
+def _wait_for_ready(host: str, port: int, timeout: float, interval: float,
+                    poll_timeout: float) -> dict[str, object]:
+    """Poll VERSION until the socket answers or timeout expires."""
+    deadline = time.monotonic() + timeout
+    attempts = 0
+    last_result: dict[str, object] = {
+        "ok": False, "command": "VERSION", "host": host, "port": port,
+        "error": "not-attempted", "response": None,
+    }
+    while time.monotonic() < deadline:
+        attempts += 1
+        last_result = retroarch_runtime.send_udp_command(
+            "VERSION", host=host, port=port,
+            expect_response=True, timeout_seconds=poll_timeout,
+        )
+        if last_result["ok"] and last_result["response"]:
+            last_result["attempts"] = attempts
+            return last_result
+        time.sleep(interval)
+    last_result["attempts"] = attempts
+    last_result["ok"] = False
+    if last_result.get("error") is None:
+        last_result["error"] = f"timed out after {timeout:g}s"
+    return last_result
 
 
 def main(argv: list[str]) -> int:
@@ -111,6 +146,22 @@ def main(argv: list[str]) -> int:
     if args.list:
         _print_table()
         return 0
+
+    if args.wait_for_ready:
+        result = _wait_for_ready(
+            host=args.host, port=args.port,
+            timeout=args.wait_timeout, interval=args.wait_interval,
+            poll_timeout=args.timeout,
+        )
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            if result["ok"]:
+                print(result["response"])
+            else:
+                print(f"error: {result['error']} (after {result.get('attempts', 0)} attempts)",
+                      file=sys.stderr)
+        return 0 if result["ok"] else 1
 
     if args.osd is not None:
         command_line = f'SHOW_MSG "{args.osd}"'

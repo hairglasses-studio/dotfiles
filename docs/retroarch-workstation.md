@@ -32,7 +32,7 @@ Summary JSON: `$XDG_STATE_HOME/retroarch-archive/sync-summary.json`.
 | `retroarch-install-workstation-cores` | Install pacman-packaged libretro cores; optional AUR pass for `libretro-beetle-vb-git` when `yay`/`paru` is on `PATH`. `--skip-aur` disables the AUR pass. |
 | `retroarch-build-libretro-cores` | Source-build `race` (NGP) and `beetle-wswan` (WonderSwan) cores. Defaults to `/usr/lib/libretro/` (requires `sudo`); pass `--install-dir ~/.config/retroarch/cores` to drop into the user-local cores dir without `sudo`. `--dry-run` prints the steps; `--only race\|beetle-wswan\|beetle-vb` restricts the build set. |
 | `retroarch-apply-network-cmd` | Flip `network_cmd_enable` + `network_cmd_port` in `retroarch.cfg` atomically with a timestamped `retroarch.cfg.bak.*` backup. `--dry-run` and `--revert` supported. |
-| `retroarch-command` | Send a UDP network command to a running RetroArch. `--list` prints the known taxonomy, `--osd <text>` is a `SHOW_MSG` shortcut, `--json` emits the structured result. Requires `network_cmd_enable = "true"` and a running RetroArch. |
+| `retroarch-command` | Send a UDP network command to a running RetroArch. `--list` prints the known taxonomy, `--osd <text>` is a `SHOW_MSG` shortcut, `--json` emits the structured result, `--wait-for-ready` polls `VERSION` until the socket answers (useful post-restart). Requires `network_cmd_enable = "true"` and a running RetroArch. |
 
 ## Suggested workflow (first-run)
 
@@ -58,8 +58,16 @@ retroarch-workstation-audit                     # confirm clean
 ## Runtime OSD prerequisite
 
 `retroarch-apply-network-cmd` writes the cfg but RetroArch only binds UDP 55355
-at startup. Restart RetroArch after applying so the socket is live. The audit
-report's `runtime.version_probe` confirms the socket is answering.
+at startup. Restart RetroArch after applying so the socket is live. Confirm
+readiness with:
+
+```bash
+retroarch-command --wait-for-ready --wait-timeout 30
+# prints the RetroArch version string on success, exits 1 on timeout
+```
+
+The audit report's `runtime.version_probe` covers the same signal on every
+audit run.
 
 ## Tests
 
