@@ -102,8 +102,16 @@ if "github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest" not in d
     failures.append("mcp-directories.md missing standalone go install command")
 if "v1.1.0" not in directories or "server contract version" not in directories:
     failures.append("mcp-directories.md missing verified standalone module release note")
+if "https://github.com/hairglasses-studio/dotfiles-mcp/releases/tag/v1.1.0" not in directories:
+    failures.append("mcp-directories.md missing standalone GitHub Release URL")
 if "status=in_sync" not in directories:
     failures.append("mcp-directories.md missing cleared standalone projection status")
+if "glama.json" not in directories:
+    failures.append("mcp-directories.md missing committed Glama metadata note")
+if "Official MCP Registry" not in directories or "supported package channel" not in directories:
+    failures.append("mcp-directories.md missing official registry package-channel blocker")
+if "browser submission" not in directories:
+    failures.append("mcp-directories.md missing browser submission status")
 if "raw.githubusercontent.com/hairglasses-studio/dotfiles/main/mcp/dotfiles-mcp/.well-known/mcp.json" not in directories:
     failures.append("mcp-directories.md missing externally crawlable well-known raw URL")
 

@@ -40,7 +40,10 @@ bash ./scripts/hg-dotfiles-mcp-projection.sh check --diff-preview --diff-lines 1
 Current release status (verified 2026-04-23): the standalone
 `hairglasses-studio/dotfiles-mcp` repo is public, non-archived, projection-clean
 against a clean `HEAD:mcp/dotfiles-mcp` export, and tagged `v1.1.0` for the Go
-module path. The server contract version remains `2.2.0`; install with:
+module path. The matching GitHub Release is published at
+`https://github.com/hairglasses-studio/dotfiles-mcp/releases/tag/v1.1.0`, and
+the standalone repo carries `glama.json` metadata for directory indexing. The
+server contract version remains `2.2.0`; install with:
 
 ```bash
 go install github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest
