@@ -1,0 +1,135 @@
+---
+name: retroarch
+description: RetroArch + gdrive workstation operations — audit, map, link, launch. Use for ROM scanning, BIOS management, core installation, rclone mount health, playlist integrity, and runtime UDP commands.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - mcp__dotfiles__retroarch_audit
+  - mcp__dotfiles__retroarch_command
+  - mcp__dotfiles__retroarch_now_playing
+  - mcp__dotfiles__systemd_status
+  - mcp__dotfiles__systemd_restart
+---
+
+# RetroArch
+
+RetroArch + gdrive workstation context. The install-time infrastructure is
+fully landed: cores, BIOS, rclone mounts, playlists, drift gates. Use this
+skill for routine ops, diagnosis, and extension.
+
+## One-command path
+
+When something feels off, start here:
+
+```bash
+retroarch-complete --dry-run   # preview the plan
+retroarch-complete             # run audit → bios-apply → bios-link →
+                               # install-cores → apply-network-cmd →
+                               # mounts-audit → playlist-audit → post-audit
+```
+
+Non-fatal: notes print but the orchestrator keeps going. End state summary
+shows `core_missing=N required_assets_missing=N runtime_network=on/off`.
+
+## Tool surface (all under `scripts/retroarch-*`)
+
+| tool | purpose |
+|---|---|
+| `retroarch-workstation-audit` | cores + BIOS + display + runtime. Writes JSON at `$XDG_STATE_HOME/retroarch/workstation-audit.json`. |
+| `retroarch-playlist-audit` | every `*.lpl` entry has a resolvable `core_path` + on-disk ROM. Zero-counts are expected. |
+| `retroarch-mounts-audit` | five rclone mounts + stale-cache detection. Exit 2 when systemd unavailable. |
+| `retroarch-map-roms` | reassigns DETECT core_paths to installed cores + appends new ROMs; cross-playlist dedup prevents duplicates (Amiga ↔ CD32 ↔ CDTV). |
+| `retroarch-bios-apply` | creates required BIOS/asset dirs (dc/, PPSSPP/, pcsx2/); sparse-clone PSP assets. |
+| `retroarch-bios-link` | auto-symlinks BIOS from gdrive mounts into the system dir, md5-verified. |
+| `retroarch-build-libretro-cores` | source-builds `race` (ngp) + `beetle-wswan` (wonderswan). Makefile fallbacks; unprivileged install when `--install-dir` is user-writable. |
+| `retroarch-install-workstation-cores` | pacman + AUR core installation. `--skip-aur` for CI. |
+| `retroarch-command` | UDP dispatch (`VERSION`, `SHOW_MSG`, `SET_SHADER`, `LOAD_CORE`, `QUIT`...). `--list` prints taxonomy. `--wait-for-ready` polls until socket answers. |
+| `retroarch-apply-network-cmd` | flips `network_cmd_enable` atomically with timestamped backup. `--revert` + `--dry-run`. |
+| `retroarch-thumbnail-audit` | per-system fill rate for Named_Boxarts/Snaps/Titles. |
+| `retroarch-thumbnail-fill` | fetches missing thumbnails from libretro-thumbnails GitHub repos. **User-shell only**: most agent sandboxes block the external GitHub fetch. |
+
+## MCP tools (available to agent sessions)
+
+| tool | purpose |
+|---|---|
+| `retroarch_audit` | composite of the three *-audit scripts in one call. |
+| `retroarch_command` | wraps `retroarch-command.py --json`. Requires `network_cmd_enable=true` + running RetroArch. |
+| `retroarch_now_playing` | reads `/tmp/bar-retroarch.txt` (ticker cache, updated every 30s) + first entry of `content_history.lpl` + mount health. |
+
+## rclone mount layout
+
+All five mounts are `systemd --user` services under the `retroarch-rclone.target`:
+
+| mount | gdrive source | purpose |
+|---|---|---|
+| `~/Games/RetroArch/mounts/roms/amiga-archive/` | `Backups/X2-arcade-stick/game/roms/amiga` | Amiga .lha (1000+ files) |
+| `~/Games/RetroArch/mounts/roms/ps2-archive/` | `Gaming & Emulation/ROMs/My Sony PlayStation 2 (USA) Collection` | PS2 .7z |
+| `~/Games/RetroArch/mounts/roms/psx-archive/` | `Gaming & Emulation/PS2 Everything/psx-roms/psx-roms` | PSX archives |
+| `~/Games/RetroArch/mounts/bios/ps2/` | `Gaming & Emulation/ROMs/bios/ps2` | PS2 BIOS |
+| `~/Games/RetroArch/mounts/bios/psx-source/` | `Backups/X2-arcade-stick/game/roms/bios` | 400+ BIOS files across systems |
+
+Health check: `retroarch-mounts-audit`. Refresh a stale mount:
+`systemctl --user restart retroarch-rclone-<name>.service` then wait ~5 s
+for rclone to re-index via FUSE.
+
+**Backup**: `retroarch-saves-backup.timer` pushes `~/.config/retroarch/saves`
++ `states` to `gdrive:Gaming & Emulation/RetroArch/{saves,states}` daily.
+Soft-delete protection via `--backup-dir` into `~/.cache/retroarch-saves-backup/<iso>/`.
+
+## Shared profile
+
+The cross-repo profile at `~/hairglasses-studio/romhub/configs/device-profiles/retroarch.yaml`
+drives `retroarch_playlist_map` (system → playlist → core → extensions)
+and `retroarch_requirements` (file/dir BIOS assets with md5 hashes). Both
+have in-script fallbacks at `scripts/lib/retroarch_profile.py` so scripts
+work even when romhub isn't checked out.
+
+When to touch the profile:
+- Adding a new system that RetroArch's own scanner doesn't map automatically
+- Adding a new BIOS requirement for audit coverage
+- Changing the canonical core filename for a system (e.g. `beetle_vb` → `mednafen_vb`)
+
+## Ticker widget
+
+`bar-retroarch.timer` runs `scripts/bar-retroarch-cache.sh` every 30s;
+it writes the composite label `󰊗 <title> [<core>] ⎈<mounts-ok>/<total>`
+to `/tmp/bar-retroarch.txt`. Ironbar picks it up via `cat` on render.
+Empty string when no history + no mounts → widget hides.
+
+## When to call which tool
+
+- **After a fresh clone / first install** → `retroarch-complete`
+- **After adding ROMs** → `retroarch-map-roms` (adds + reassigns cores)
+- **After the rclone cache expires (24h)** → `systemctl --user restart retroarch-rclone-<mount>` + `retroarch-map-roms`
+- **After dropping BIOS files on gdrive** → `retroarch-bios-link`
+- **After `retroarch-apply-network-cmd`** → restart RetroArch, then `retroarch-command --wait-for-ready`
+- **To dispatch an OSD message** → `retroarch-command --osd "..."` (or `retroarch_command` MCP tool)
+- **To see what's playing** → read `/tmp/bar-retroarch.txt` or call `retroarch_now_playing` MCP tool
+- **To fill playlist thumbnails** → `retroarch-thumbnail-audit` then `retroarch-thumbnail-fill` (user shell, not agent sandbox)
+
+## Pitfalls
+
+- `scripts/lib/retroarch_archive_homebrew_verified.json` is the curated
+  Archive.org homebrew manifest. Never overwrite blindly — it tracks
+  licensing decisions that require manual review.
+- The `DETECT` string in a playlist `core_path` is a RetroArch sentinel
+  meaning "ask at launch time" — not a bug. Distinguish from empty (also
+  sentinel) vs. a real path that no longer resolves (true drift).
+- Archive-inner paths like `file.zip#inner.rom` must split on the LAST
+  `#` only when the part before it ends in a known archive extension.
+  `#Unreleased/game.lha` is a directory segment, not an archive-inner ref.
+- The sandbox blocks external GitHub clone + raw-content fetch. Tools
+  that rely on it (`retroarch-build-libretro-cores`, `retroarch-thumbnail-fill`)
+  document this and fail loudly with a "run from user shell" note.
+
+## References
+
+- `docs/retroarch-workstation.md` — operator-facing reference with the
+  command table, state-file locations, and the Dreamcast BIOS drop procedure.
+- `tests/retroarch_workstation.bats` — 24 cases covering the full tool
+  surface.
+- `tests/retroarch_widescreen.bats` — 4 cases for Dolphin + Flycast
+  widescreen audit/apply.

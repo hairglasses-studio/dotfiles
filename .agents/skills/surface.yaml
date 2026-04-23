@@ -179,6 +179,11 @@
       "name": "pre_risky_config",
       "claude_include_canonical": true,
       "export_plugin": false
+    },
+    {
+      "name": "retroarch",
+      "claude_include_canonical": true,
+      "export_plugin": false
     }
   ]
 }
