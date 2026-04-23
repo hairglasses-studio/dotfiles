@@ -410,6 +410,20 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "DRIFT"
 }
 
+@test "orphan-script audit allowlist entries all exist on disk" {
+    # scripts/audit-orphan-scripts.sh allowlists certain scripts as
+    # "intentionally unreferenced" — user-global Claude hooks, manual
+    # helpers, hardware-specific utilities. A rename or removal that
+    # misses the allowlist leaves a ghost entry: nothing trips, and
+    # the list slowly stops meaning what its comments say. This gate
+    # walks the allowlist block and asserts each stem has a matching
+    # scripts/<stem>.* file (ignoring .bak variants).
+    run bash "${SCRIPTS_DIR}/validate-orphan-allowlist.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
 @test "tracked markdown internal links all resolve" {
     # README.md, AGENTS.md, CLAUDE.md, GEMINI.md, ROADMAP.md,
     # docs/**/*.md, and .agents/skills/**/*.md — every relative
