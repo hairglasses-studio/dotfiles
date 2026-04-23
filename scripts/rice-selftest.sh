@@ -193,6 +193,8 @@ test_services() {
   else
     QS_BAR_CUTOVER="${QS_BAR_CUTOVER:-0}"
     QS_TICKER_CUTOVER="${QS_TICKER_CUTOVER:-0}"
+    QS_MENU_CUTOVER="${QS_MENU_CUTOVER:-0}"
+    QS_DOCK_CUTOVER="${QS_DOCK_CUTOVER:-0}"
     QS_COMPANION_CUTOVER="${QS_COMPANION_CUTOVER:-0}"
     QUICKSHELL_NOTIFICATION_OWNER="${QUICKSHELL_NOTIFICATION_OWNER:-0}"
     SHELL_STACK_MODE="${SHELL_STACK_MODE:-pilot}"
@@ -257,6 +259,44 @@ test_services() {
     fi
   done
 
+  for svc in dotfiles-ticker-lockwatch dotfiles-ticker-recordwatch; do
+    if [[ "${QS_TICKER_CUTOVER:-0}" == "1" ]]; then
+      if systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
+        add_result services "$svc" warn "active despite Quickshell ticker watcher cutover"
+      else
+        add_result services "$svc" pass "replaced by Quickshell ticker watcher"
+      fi
+    elif systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
+      add_result services "$svc" pass "active (systemd user)"
+    else
+      add_result services "$svc" warn "not active (systemd user)"
+    fi
+  done
+
+  if [[ "${QS_MENU_CUTOVER:-0}" == "1" ]]; then
+    if systemctl --user is-active --quiet dotfiles-hyprshell.service 2>/dev/null; then
+      add_result services "dotfiles-hyprshell" warn "active despite Quickshell menu cutover"
+    else
+      add_result services "dotfiles-hyprshell" pass "replaced by Quickshell menus"
+    fi
+  elif systemctl --user is-active --quiet dotfiles-hyprshell.service 2>/dev/null; then
+    add_result services "dotfiles-hyprshell" pass "active (systemd user)"
+  else
+    add_result services "dotfiles-hyprshell" warn "not active (systemd user)"
+  fi
+
+  if [[ "${QS_DOCK_CUTOVER:-0}" == "1" ]]; then
+    if systemctl --user is-active --quiet dotfiles-hypr-dock.service 2>/dev/null; then
+      add_result services "dotfiles-hypr-dock" warn "active despite Quickshell dock cutover"
+    else
+      add_result services "dotfiles-hypr-dock" pass "replaced by Quickshell dock"
+    fi
+  elif systemctl --user is-active --quiet dotfiles-hypr-dock.service 2>/dev/null; then
+    add_result services "dotfiles-hypr-dock" pass "active (systemd user)"
+  else
+    add_result services "dotfiles-hypr-dock" warn "not active (systemd user)"
+  fi
+
   for svc in dotfiles-window-label dotfiles-fleet-sparkline dotfiles-lyrics-ticker; do
     if [[ "${QS_COMPANION_CUTOVER:-0}" == "1" ]]; then
       if systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
@@ -270,6 +310,18 @@ test_services() {
       add_result services "$svc" warn "not active (systemd user)"
     fi
   done
+
+  if [[ "${QUICKSHELL_NOTIFICATION_OWNER:-0}" == "1" ]]; then
+    if systemctl --user is-active --quiet dotfiles-notification-history.service 2>/dev/null; then
+      add_result services "dotfiles-notification-history" warn "active despite Quickshell notification-history cutover"
+    else
+      add_result services "dotfiles-notification-history" pass "replaced by Quickshell notification history"
+    fi
+  elif systemctl --user is-active --quiet dotfiles-notification-history.service 2>/dev/null; then
+    add_result services "dotfiles-notification-history" pass "active (systemd user)"
+  else
+    add_result services "dotfiles-notification-history" warn "not active (systemd user)"
+  fi
 
   # Compositor check (Hyprland is the session, not a pgrep-able service name)
   if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
