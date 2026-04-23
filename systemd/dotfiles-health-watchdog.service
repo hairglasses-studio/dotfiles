@@ -9,7 +9,11 @@
 # SessionStart hook surfaces them to Claude on the next conversation.
 
 [Unit]
-Description=Dotfiles health watchdog (MCP + ticker-cache liveness)
+Description=Dotfiles health watchdog (MCP + event-bus + ticker-cache liveness)
+# If the watchdog itself crashes, fire a notification so the user knows
+# the liveness signal is offline. Circular self-watching is avoided —
+# systemd handles this via OnFailure= rather than watchdog-watches-watchdog.
+OnFailure=notify-failure@%n.service
 
 [Service]
 Type=oneshot

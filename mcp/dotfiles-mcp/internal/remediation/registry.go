@@ -60,6 +60,7 @@ const (
 	CodeGoMissingImport         ErrorCode = "go_missing_import"
 	CodeGoUnusedVar             ErrorCode = "go_unused_var"
 	CodeGoLintViolation         ErrorCode = "go_lint_violation"
+	CodeGoTimeout               ErrorCode = "go_timeout"
 	CodeIronbarStale            ErrorCode = "ironbar_stale"
 	CodeTickerStale             ErrorCode = "ticker_stale"
 	CodeSwayncDrift             ErrorCode = "swaync_drift"
@@ -137,6 +138,12 @@ func seeds() map[ErrorCode]Remediation {
 			Idempotent: true,
 			Risk:       RiskSafe,
 			Why:        "ops_lint_fix runs golangci-lint with --fix to auto-correct mechanical lint violations.",
+		},
+		CodeGoTimeout: {
+			Tool:       "ops_test_smart",
+			Idempotent: true,
+			Risk:       RiskSafe,
+			Why:        "ops_test_smart narrows the test set to changed packages, avoiding the full-suite timeout.",
 		},
 		CodeIronbarStale: {
 			Tool:       "systemd_restart",

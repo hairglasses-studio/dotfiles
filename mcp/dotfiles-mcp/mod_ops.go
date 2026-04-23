@@ -511,12 +511,18 @@ func opsCategorizeError(msg string) string {
 // remediation.ErrorCode. Returns empty string when no structured remediation
 // is available for the category — callers should leave ErrorCode blank in
 // that case rather than attaching an incorrect fix.
+//
+// Categories deliberately left unmapped (require human judgment):
+//   - type_error / import_cycle / fatal_error / test_assertion: no safe auto-fix
+//   - syntax_error: goimports doesn't fix syntax; surfacing raw is the right move
 func opsCategoryToCode(category string) remediation.ErrorCode {
 	switch category {
 	case "missing_dep":
 		return remediation.CodeGoMissingDep
-	case "syntax_error":
-		return remediation.CodeGoMissingImport
+	case "compile_error":
+		return remediation.CodeGoLintViolation
+	case "timeout":
+		return remediation.CodeGoTimeout
 	default:
 		return ""
 	}

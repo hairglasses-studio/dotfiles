@@ -53,6 +53,24 @@ rules:
     error_code: audio_sink_lost
     severity: low
 
+  - name: kernel OOM killer
+    source: journal
+    match: "Out of memory: Kill(ed)? process"
+    error_code: systemd_unit_failed
+    severity: high
+
+  - name: ironbar crashed
+    source: journal
+    match: "ironbar.*segfault|ironbar\\.service:.*Failed"
+    error_code: ironbar_stale
+    severity: high
+
+  - name: systemd start-limit exhausted
+    source: journal
+    match: "start request repeated too quickly"
+    error_code: systemd_unit_failed
+    severity: medium
+
   - name: Hyprland reload + recent kernel DRM (correlation)
     source: hypr_events
     match: "configreloaded"

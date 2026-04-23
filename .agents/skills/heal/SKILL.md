@@ -47,7 +47,11 @@ Triage pending remediations from the event bus and apply the approved ones.
 
 6. **Apply approved fixes** — call the referenced tool with the default `args` merged with any user overrides. Record each outcome back to the event log by appending `{"type": "heal_applied", "at": ..., "code": ..., "result": ...}` to `~/.local/state/dotfiles/events.jsonl`.
 
-7. **Summarize** — what was applied, what the user skipped, and anything that still has no remediation mapping (candidates to add to the registry next time).
+6b. **Verify the fix worked** — for each code you just remediated, wait 30s (or one dedup window, whichever is shorter), then call `events_tail {type: <code>, since_minutes: 2}`. If the same error_code re-fires within that window, the remediation didn't take — append `{"type":"heal_failed", "at":..., "code":<code>, "prior_attempts":N}` to the events log and flag this group prominently in step 7.
+
+   **Cap auto-retry at 1.** A second failure is a signal that a human needs to look, not a cue to loop. Chronic `heal_failed` entries are the exact failure mode the registry exists to prevent; re-running the same remediation harder is the wrong answer.
+
+7. **Summarize** — what was applied, what verified clean, which fixes failed and need human attention (`heal_failed` entries), what the user skipped, and anything that still has no remediation mapping (candidates to add to the registry next time).
 
 ## Arguments
 

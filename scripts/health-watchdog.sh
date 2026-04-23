@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
-# health-watchdog.sh — periodic liveness checks for dotfiles-mcp and ticker
-# cache producers. Invoked by dotfiles-health-watchdog.timer at 30s cadence.
+# health-watchdog.sh — periodic liveness checks for dotfiles-mcp, the event
+# bus, and ticker cache producers. Invoked by dotfiles-health-watchdog.timer
+# at 30s cadence.
 #
 # Passes:
-#   1. MCP server: run `run-dotfiles-mcp.sh --contract-print` with a 3s timeout.
-#      On failure, append a {type:"mcp_dead"} record to ~/.claude/
-#      recovery-events.jsonl and notify-send -u critical.
-#   2. Ticker cache files under /tmp/bar-*.txt: if age > 2x the producer
+#   1. MCP server: run `run-dotfiles-mcp.sh --contract-print` with a 10s
+#      timeout. On failure, append a {type:"mcp_dead"} record to
+#      ~/.claude/recovery-events.jsonl and notify-send -u critical.
+#   2. Event bus: check dotfiles-event-bus.service is active, AND that
+#      ~/.local/state/dotfiles/events.jsonl has been written within
+#      BUS_STALE_THRESHOLD_S. Restart the service and record
+#      {type:"event_bus_dead"} on failure. This is the trust anchor for
+#      /heal and canary Tier 6 — if the bus dies, those skills would
+#      otherwise report "all clear" when the workstation is silently
+#      drifting.
+#   3. Ticker cache files under /tmp/bar-*.txt: if age > 2x the producer
 #      timer's OnUnitActiveSec, record {type:"ticker_stale"} and
 #      systemctl --user restart <producer>.
 #
@@ -19,6 +27,12 @@ set -o pipefail
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}"
 EVENTS_LOG="${HOME}/.claude/recovery-events.jsonl"
 RUN_MCP="$DOTFILES_DIR/scripts/run-dotfiles-mcp.sh"
+BUS_HEARTBEAT="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/bus.heartbeat"
+# The bus touches bus.heartbeat every 60s from a dedicated async task, so
+# the mtime is tick-driven (not event-driven). 5 minutes is enough slack
+# to ride out a single slow poll cycle while still catching a wedged
+# daemon within a couple of watchdog runs.
+BUS_STALE_THRESHOLD_S=300
 
 # Ensure event log dir exists (~/.claude/ should exist already; mkdir -p is safe).
 mkdir -p "$(dirname "$EVENTS_LOG")"
@@ -63,7 +77,40 @@ check_mcp() {
 }
 
 # ---------------------------------------------------------------------------
-# Pass 2: ticker cache producers
+# Pass 2: event-bus liveness
+# ---------------------------------------------------------------------------
+
+check_event_bus() {
+  local active
+  active="$(systemctl --user is-active dotfiles-event-bus.service 2>/dev/null)"
+  if [[ "$active" != "active" ]]; then
+    local payload
+    payload=$(printf '{"type":"event_bus_dead","at":"%s","state":"%s"}' \
+                 "$(now_rfc)" "$active")
+    log_event "$payload"
+    notify_critical "dotfiles-event-bus is $active" \
+      "Restarting — see ~/.claude/recovery-events.jsonl for details"
+    systemctl --user restart dotfiles-event-bus.service >/dev/null 2>&1 || true
+    return
+  fi
+  # Service is active — check the heartbeat file the bus touches once a
+  # minute. Absent heartbeat = bus may still be warming up on first boot;
+  # the file lands within ~60s so skip without flagging until then.
+  [[ -f "$BUS_HEARTBEAT" ]] || return
+  local age
+  age="$(file_age_seconds "$BUS_HEARTBEAT")"
+  [[ -n "$age" ]] || return
+  if (( age > BUS_STALE_THRESHOLD_S )); then
+    local payload
+    payload=$(printf '{"type":"event_bus_stale","at":"%s","age_s":%d,"threshold_s":%d}' \
+                 "$(now_rfc)" "$age" "$BUS_STALE_THRESHOLD_S")
+    log_event "$payload"
+    systemctl --user restart dotfiles-event-bus.service >/dev/null 2>&1 || true
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Pass 3: ticker cache producers
 # ---------------------------------------------------------------------------
 
 # Map /tmp/bar-<stream>.txt back to a producer timer.
@@ -72,6 +119,17 @@ check_mcp() {
 
 ticker_producer_timer() {
   local stream="$1"
+  # Non-convention files that should NOT be staleness-checked. Each entry
+  # is a cache-file stream basename whose refresh cadence is driven by
+  # external state (geolocation, user interaction, etc.) rather than a
+  # systemd timer. Returning empty tells the caller to skip this file.
+  case "$stream" in
+    # weather-coords is a geolocation cache — it only rewrites when the
+    # user's location changes. A stationary workstation legitimately
+    # goes weeks without an update; a staleness restart of bar-weather
+    # would fire uselessly.
+    weather-coords) return ;;
+  esac
   # Heuristic: the producer service has the same basename as the cache file.
   # bar-gpu-full.txt is written by bar-gpu.service (same producer, richer
   # output) — strip the "-full" suffix in that one case.
@@ -138,6 +196,7 @@ check_ticker_cache() {
 # ---------------------------------------------------------------------------
 
 check_mcp
+check_event_bus
 check_ticker_cache
 
 # Always exit 0 so systemd does not record repeated "failure" events — the

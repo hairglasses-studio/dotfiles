@@ -44,8 +44,11 @@ func TestBuildDotfilesResourceRegistry(t *testing.T) {
 	reg := registry.NewToolRegistry()
 	promptReg := buildDotfilesPromptRegistry()
 	resReg := buildDotfilesResourceRegistry(reg, promptReg)
-	if resReg.ResourceCount() != 19 {
-		t.Fatalf("expected 19 resources, got %d", resReg.ResourceCount())
+	if resReg.ResourceCount() != 20 {
+		t.Fatalf("expected 20 resources, got %d", resReg.ResourceCount())
+	}
+	if _, ok := resReg.GetResource("dotfiles://events/pending-high"); !ok {
+		t.Fatal("expected dotfiles://events/pending-high resource to be registered")
 	}
 	if _, ok := resReg.GetResource("dotfiles://server/overview"); !ok {
 		t.Fatal("expected dotfiles overview resource to be registered")

@@ -54,6 +54,7 @@ func TestListReturnsAllCodes(t *testing.T) {
 	want := map[ErrorCode]bool{
 		CodeHyprConfigParse:      true,
 		CodeGoMissingDep:         true,
+		CodeGoTimeout:            true,
 		CodeTickerStale:          true,
 		CodeMcpkitVersionDrift:   true,
 		CodeHyprReloadInducedDrm: true,

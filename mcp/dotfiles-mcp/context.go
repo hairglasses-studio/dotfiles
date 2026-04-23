@@ -611,6 +611,7 @@ func buildDotfilesResourceRegistry(reg *registry.ToolRegistry, promptReg *prompt
 	resReg.RegisterModule(&archResourceModule{})
 	resReg.RegisterModule(&ShaderModule{})
 	resReg.RegisterModule(&ThemeModule{})
+	resReg.RegisterModule(&EventsModule{})
 	return resReg
 }
 

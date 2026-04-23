@@ -72,6 +72,19 @@
     ]
   },
   {
+    "uri": "dotfiles://events/pending-high",
+    "name": "Pending High-Severity Events",
+    "description": "Count + latest timestamp + top error codes of high-severity events within the last 24h. Drives /heal and /canary Tier 6 checks.",
+    "mime_type": "application/json",
+    "category": "events",
+    "tags": [
+      "events",
+      "heal",
+      "canary",
+      "observability"
+    ]
+  },
+  {
     "uri": "dotfiles://palette",
     "name": "Hairglasses Neon Palette",
     "description": "Hairglasses Neon color palette tokens parsed from theme/palette.env",
