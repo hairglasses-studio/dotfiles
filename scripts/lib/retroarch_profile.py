@@ -33,6 +33,9 @@ DEFAULT_PLAYLIST_MAP_ROWS = [
     "vb|Nintendo - Virtual Boy.lpl|mednafen_vb_libretro.so|Nintendo - Virtual Boy (Beetle VB)|.bin,.vb,.vboy|",
     "amiga|Commodore - Amiga.lpl|puae_libretro.so|Commodore - Amiga (PUAE)|.adf,.adz,.dms,.fdi,.hdf,.hdz,.ipf,.lha,.m3u,.slave,.uae,.zip|libretro-puae",
     "amiga-archive|Commodore - Amiga.lpl|puae_libretro.so|Commodore - Amiga (PUAE)|.adf,.adz,.dms,.fdi,.hdf,.hdz,.ipf,.lha,.m3u,.slave,.uae,.zip|libretro-puae",
+    "saturn|Sega - Saturn.lpl|kronos_libretro.so|Sega - Saturn (Kronos)|.ccd,.chd,.cue,.iso,.m3u,.mds|libretro-kronos",
+    "ss|Sega - Saturn.lpl|kronos_libretro.so|Sega - Saturn (Kronos)|.ccd,.chd,.cue,.iso,.m3u,.mds|libretro-kronos",
+    "n64|Nintendo - Nintendo 64.lpl|mupen64plus_next_libretro.so|Nintendo - N64 (Mupen64Plus-Next)|.n64,.ndd,.v64,.z64|libretro-mupen64plus-next",
 ]
 
 DEFAULT_REQUIREMENT_ROWS = [
