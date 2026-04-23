@@ -108,8 +108,10 @@ if "status=in_sync" not in directories:
     failures.append("mcp-directories.md missing cleared standalone projection status")
 if "glama.json" not in directories:
     failures.append("mcp-directories.md missing committed Glama metadata note")
-if "Official MCP Registry" not in directories or "supported package channel" not in directories:
-    failures.append("mcp-directories.md missing official registry package-channel blocker")
+if "mcpb-2.2.0" not in directories or "mcp-publisher validate" not in directories:
+    failures.append("mcp-directories.md missing official registry MCPB validation status")
+if "mcp-publisher login github" not in directories or "mcp-publisher publish" not in directories:
+    failures.append("mcp-directories.md missing authenticated registry publish follow-up")
 if "browser submission" not in directories:
     failures.append("mcp-directories.md missing browser submission status")
 if "raw.githubusercontent.com/hairglasses-studio/dotfiles/main/mcp/dotfiles-mcp/.well-known/mcp.json" not in directories:

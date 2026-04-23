@@ -30,9 +30,9 @@ Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json` and
 
 | Surface | Status | Next action |
 |---|---|---|
-| Standalone mirror | Ready: public, non-archived, projection-clean (`status=in_sync`), valid Go module tag `v1.1.0`, and GitHub Release published | Use https://github.com/hairglasses-studio/dotfiles-mcp as the public submit URL |
-| Official MCP Registry | Blocked on package channel: the registry accepts npm, PyPI, NuGet, OCI, MCPB, or remote server metadata, not a raw Go module repo | Add a supported package channel, then publish with `mcp-publisher` |
-| PulseMCP | Server submission path points to the Official MCP Registry; no stable direct server POST endpoint is exposed | Publish to the Official MCP Registry first, or use PulseMCP contact for manual adjustments after a listing exists |
+| Standalone mirror | Ready: public, non-archived, projection-clean (`status=in_sync`), valid Go module tag `v1.1.0`, GitHub Release published, and MCPB registry artifact released | Use https://github.com/hairglasses-studio/dotfiles-mcp as the public submit URL |
+| Official MCP Registry | Ready for authenticated publish: standalone `server.json` validates with `mcp-publisher validate` and points at the public MCPB release artifact | Run `mcp-publisher login github`, then `mcp-publisher publish` |
+| PulseMCP | Server submission path points to the Official MCP Registry; no stable direct server POST endpoint is exposed | Publish to the Official MCP Registry first, then wait for PulseMCP ingestion or use PulseMCP contact for manual adjustments |
 | Glama | Repo-side metadata complete: `glama.json` is committed in the standalone mirror | Wait for GitHub indexing or submit the repo URL through Glama's browser flow |
 | MCP Market | Ready for browser submission; CLI requests hit a Vercel security checkpoint | Submit https://github.com/hairglasses-studio/dotfiles-mcp through the browser form |
 
@@ -67,25 +67,32 @@ Pulled from `mcp/dotfiles-mcp/.well-known/mcp.json` and
 Registry docs: https://modelcontextprotocol.io/registry/quickstart
 
 Current publication note, verified 2026-04-23: the official registry is the
-upstream path PulseMCP prefers for server submissions. It hosts metadata only
-and requires the server to be backed by a supported package or remote endpoint.
-The current standalone `dotfiles-mcp` mirror is a Go module with no
-`package.json`, `server.json`, Dockerfile/OCI image, MCPB artifact, or remote
-deployment, so publishing a registry entry now would be invalid.
+upstream path PulseMCP prefers for server submissions. The standalone mirror now
+contains `server.json` and a public Linux/amd64 MCPB package release:
 
-Supported future paths:
+```text
+https://github.com/hairglasses-studio/dotfiles-mcp/releases/download/mcpb-2.2.0/dotfiles-mcp_2.2.0_linux_amd64.mcpb
+```
 
-- Publish an OCI image, for example to GHCR, with the
-  `io.modelcontextprotocol.server.name` label matching
-  `io.github.hairglasses-studio.dotfiles-mcp`.
-- Publish an MCPB artifact from a GitHub release and include `fileSha256` in
-  `server.json`.
-- Wrap the Go binary in an npm/PyPI/NuGet package only if that package becomes
-  the real install artifact.
-- Add a remote server endpoint if `dotfiles-mcp` gains a hosted transport.
+`server.json` uses the official registry name
+`io.github.hairglasses-studio/dotfiles-mcp` because the registry schema and
+GitHub auth namespace require exactly one slash. The checked-in
+`.well-known/mcp.json` still carries the canonical contract name
+`io.github.hairglasses-studio.dotfiles-mcp`.
 
-Do not retag the Go module or create a placeholder `server.json` until one of
-those package channels exists.
+Validation already passed:
+
+```text
+mcp-publisher validate
+✅ server.json is valid
+```
+
+Remaining manual command:
+
+```bash
+mcp-publisher login github
+mcp-publisher publish
+```
 
 ### PulseMCP
 
@@ -180,6 +187,8 @@ If it asks for a category, use `Desktop & System`.
 - [x] Verified `hairglasses-studio/dotfiles-mcp` is public, non-archived, transferred under `hairglasses-studio`, and installable on 2026-04-23
 - [x] Tagged valid Go module release `v1.1.0`; `v2.2.0` is the server contract version, but the Go module path is still v1
 - [x] Published GitHub Release `v1.1.0`: https://github.com/hairglasses-studio/dotfiles-mcp/releases/tag/v1.1.0
+- [x] Published public MCPB registry artifact: https://github.com/hairglasses-studio/dotfiles-mcp/releases/tag/mcpb-2.2.0
+- [x] Validated standalone `server.json` with `mcp-publisher validate`
 - [x] Updated standalone repo description, homepage, and GitHub topics for directory discovery
 - [x] Cleared standalone projection drift: clean `HEAD:mcp/dotfiles-mcp` export reports `status=in_sync`
 - [x] Verified `go install github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest` resolves `v1.1.0`
@@ -189,5 +198,5 @@ If it asks for a category, use `Desktop & System`.
 - [x] Directory submit URLs verified on 2026-04-23
 - [x] Screenshots or demo GIF ready (README has `docs/assets/ticker-demo.gif`)
 - [ ] Browser-submit MCP Market and optional Glama listing if crawler pickup is slow
-- [ ] Add an Official MCP Registry package channel before PulseMCP registry ingestion
+- [ ] Run authenticated Official MCP Registry publish with `mcp-publisher login github` and `mcp-publisher publish`
 - [ ] Roadmap item in ROADMAP.md marked done once listings appear

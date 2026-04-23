@@ -84,7 +84,7 @@ The standalone dotfiles-mcp/mapitall/mapping repos are publish mirrors. Mirror p
 Hardware: AMD Ryzen 9 7950X, RTX 3090, 96GB RAM, dual monitors (Samsung 5120x1440 ultrawide + XEC 2560x1440), 7.3TB NVMe.
 
 Remaining work is tracked in ROADMAP.md:
-- Public launch follow-through: browser-submit MCP Market and optional Glama listing using the verified standalone mirror; PulseMCP waits on an Official MCP Registry package channel
+- Public launch follow-through: run authenticated Official MCP Registry publish from the verified standalone mirror, then browser-submit MCP Market and optional Glama listing
 - Hyprland plugins to install: borders-plus-plus (config ready), hyprexpo (workspace overview), hyprls (LSP for config validation)
 - Game-changing community projects to evaluate: pywal, telescope.nvim, zinit, zellij
 - Blocked until headless Hyprland exists: shader preview gallery and automated rice screenshot CI comparison

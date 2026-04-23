@@ -43,7 +43,10 @@ against a clean `HEAD:mcp/dotfiles-mcp` export, and tagged `v1.1.0` for the Go
 module path. The matching GitHub Release is published at
 `https://github.com/hairglasses-studio/dotfiles-mcp/releases/tag/v1.1.0`, and
 the standalone repo carries `glama.json` metadata for directory indexing. The
-server contract version remains `2.2.0`; install with:
+standalone repo also carries an Official MCP Registry `server.json` that
+validates with `mcp-publisher validate` and points at the public MCPB release
+`https://github.com/hairglasses-studio/dotfiles-mcp/releases/tag/mcpb-2.2.0`.
+The server contract version remains `2.2.0`; install with:
 
 ```bash
 go install github.com/hairglasses-studio/dotfiles-mcp/cmd/dotfiles-mcp@latest
