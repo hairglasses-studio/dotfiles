@@ -23,7 +23,7 @@ import subprocess
 import sys
 import time
 
-DP3_DIRECTIVE = "DP-3, preferred, auto, 1, transform, 3"
+DP3_DIRECTIVE = "DP-3, 2560x1440@59.95, 6596x248, 2"
 SETTLE_S = 0.3
 
 
