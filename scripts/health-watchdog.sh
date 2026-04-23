@@ -4,9 +4,10 @@
 # at 30s cadence.
 #
 # Passes:
-#   1. MCP server: run `run-dotfiles-mcp.sh --contract-print` with a 10s
-#      timeout. On failure, append a {type:"mcp_dead"} record to
-#      ~/.claude/recovery-events.jsonl and notify-send -u critical.
+#   1. MCP server: run `run-dotfiles-mcp.sh --contract-print` with a bounded
+#      timeout. On sustained failure, append a {type:"mcp_dead"} record to
+#      ~/.claude/recovery-events.jsonl and emit a single watchdog notification
+#      for the outage.
 #   2. Event bus: check dotfiles-event-bus.service is active, AND that
 #      ~/.local/state/dotfiles/events.jsonl has been written within
 #      BUS_STALE_THRESHOLD_S. Restart the service and record
@@ -27,7 +28,11 @@ set -o pipefail
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/hairglasses-studio/dotfiles}"
 EVENTS_LOG="${HOME}/.claude/recovery-events.jsonl"
 RUN_MCP="$DOTFILES_DIR/scripts/run-dotfiles-mcp.sh"
+WATCHDOG_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/health-watchdog"
 BUS_HEARTBEAT="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/bus.heartbeat"
+WATCHDOG_NOTIFY_AFTER_FAILS="${WATCHDOG_NOTIFY_AFTER_FAILS:-3}"
+HEALTH_WATCHDOG_MCP_TIMEOUT_S="${HEALTH_WATCHDOG_MCP_TIMEOUT_S:-20}"
+WATCHDOG_NOTIFY_DURING_DND="${WATCHDOG_NOTIFY_DURING_DND:-false}"
 # The bus touches bus.heartbeat every 60s from a dedicated async task, so
 # the mtime is tick-driven (not event-driven). 5 minutes is enough slack
 # to ride out a single slow poll cycle while still catching a wedged
@@ -35,7 +40,7 @@ BUS_HEARTBEAT="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/bus.heartbeat"
 BUS_STALE_THRESHOLD_S=300
 
 # Ensure event log dir exists (~/.claude/ should exist already; mkdir -p is safe).
-mkdir -p "$(dirname "$EVENTS_LOG")"
+mkdir -p "$(dirname "$EVENTS_LOG")" "$WATCHDOG_STATE_DIR"
 
 now_epoch() { date +%s; }
 now_rfc() { date -u +'%Y-%m-%dT%H:%M:%SZ'; }
@@ -45,10 +50,65 @@ log_event() {
   printf '%s\n' "$json" >> "$EVENTS_LOG" 2>/dev/null || true
 }
 
-notify_critical() {
-  local title="$1" body="$2"
+dnd_enabled() {
+  command -v swaync-client >/dev/null 2>&1 || return 1
+  [[ "$(swaync-client -D 2>/dev/null | tr '[:upper:]' '[:lower:]')" == "true" ]]
+}
+
+notify_watchdog() {
+  local title="$1" body="$2" urgency="${3:-normal}"
   command -v notify-send >/dev/null 2>&1 || return 0
-  notify-send -u critical -a health-watchdog "$title" "$body" >/dev/null 2>&1 || true
+  if [[ "$WATCHDOG_NOTIFY_DURING_DND" != "true" ]] && dnd_enabled; then
+    return 0
+  fi
+  notify-send -u "$urgency" -a health-watchdog "$title" "$body" >/dev/null 2>&1 || true
+}
+
+watchdog_count_file() { printf '%s/%s.count\n' "$WATCHDOG_STATE_DIR" "$1"; }
+watchdog_outage_file() { printf '%s/%s.outage\n' "$WATCHDOG_STATE_DIR" "$1"; }
+
+watchdog_note_failure() {
+  local key="$1" event_type="$2" title="$3" body="$4" fingerprint_json="$5" extra_json="${6:-}" urgency="${7:-normal}"
+  local count_file outage_file count payload
+  count_file="$(watchdog_count_file "$key")"
+  outage_file="$(watchdog_outage_file "$key")"
+  count=0
+  [[ -f "$count_file" ]] && count="$(cat "$count_file" 2>/dev/null || printf '0')"
+  [[ "$count" =~ ^[0-9]+$ ]] || count=0
+  count=$(( count + 1 ))
+  printf '%s\n' "$count" > "$count_file"
+
+  if (( count < WATCHDOG_NOTIFY_AFTER_FAILS )) || [[ -f "$outage_file" ]]; then
+    return 0
+  fi
+
+  if [[ -n "$extra_json" ]]; then
+    payload=$(printf '{"type":"%s","at":"%s","consecutive_failures":%d,"fingerprint":%s,%s}' \
+      "$event_type" "$(now_rfc)" "$count" "$fingerprint_json" "$extra_json")
+  else
+    payload=$(printf '{"type":"%s","at":"%s","consecutive_failures":%d,"fingerprint":%s}' \
+      "$event_type" "$(now_rfc)" "$count" "$fingerprint_json")
+  fi
+  log_event "$payload"
+  printf '%s\n' "$count" > "$outage_file"
+  notify_watchdog "$title" "$body" "$urgency"
+}
+
+watchdog_note_recovery() {
+  local key="$1" event_type="$2"
+  local count_file outage_file count payload
+  count_file="$(watchdog_count_file "$key")"
+  outage_file="$(watchdog_outage_file "$key")"
+
+  if [[ -f "$outage_file" ]]; then
+    count="$(cat "$outage_file" 2>/dev/null || printf '0')"
+    [[ "$count" =~ ^[0-9]+$ ]] || count=0
+    payload=$(printf '{"type":"%s","at":"%s","outage_failures":%d}' \
+      "$event_type" "$(now_rfc)" "$count")
+    log_event "$payload"
+  fi
+
+  rm -f "$count_file" "$outage_file"
 }
 
 # json_string escapes an arbitrary byte stream as a JSON string (including
@@ -59,9 +119,9 @@ notify_critical() {
 # pathological inputs could forge downstream events — loud but rare.
 json_string() {
   if command -v jq >/dev/null 2>&1; then
-    jq -Rs . <<< "$1"
+    printf '%s' "$1" | jq -Rs .
   elif command -v python3 >/dev/null 2>&1; then
-    python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' <<< "$1"
+    printf '%s' "$1" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'
   else
     printf '"%s"' "$(printf '%s' "$1" | tr -d '\n\r' | sed 's/\\/\\\\/g; s/"/\\"/g')"
   fi
@@ -76,9 +136,9 @@ check_mcp() {
   # Use `timeout` from coreutils; treat exit 124 (timed out) and any non-zero
   # as dead. --contract-print is lightweight (no stdio MCP handshake) and
   # fails fast if the binary panics or the registry is corrupt.
-  # 10s allows for a cold rebuild (measured ~2s); warm runs return in ~30ms.
+  # Warm runs return in ~30ms; 20s leaves headroom for transient rebuild or I/O spikes.
   local out rc
-  out="$(timeout --preserve-status 10s "$RUN_MCP" --contract-print 2>&1)"
+  out="$(timeout --preserve-status "${HEALTH_WATCHDOG_MCP_TIMEOUT_S}s" "$RUN_MCP" --contract-print 2>&1)"
   rc=$?
   if [[ $rc -ne 0 ]]; then
     # Truncate first, then JSON-encode the whole slice — this way control
@@ -90,13 +150,17 @@ check_mcp() {
     local fingerprint fingerprint_json
     fingerprint="$(printf '%s' "$out" | head -c 200)"
     fingerprint_json="$(json_string "$fingerprint")"
-    local payload
-    payload=$(printf '{"type":"mcp_dead","at":"%s","rc":%d,"fingerprint":%s}' \
-                 "$(now_rfc)" "$rc" "$fingerprint_json")
-    log_event "$payload"
-    notify_critical "dotfiles-mcp probe failed (rc=$rc)" \
-      "See ~/.claude/recovery-events.jsonl — restart Claude Code or run $RUN_MCP --contract-print"
+    watchdog_note_failure \
+      "mcp" \
+      "mcp_dead" \
+      "dotfiles-mcp probe failed (rc=$rc)" \
+      "See ~/.claude/recovery-events.jsonl — restart Claude Code or run $RUN_MCP --contract-print" \
+      "$fingerprint_json" \
+      "\"rc\":$rc"
+    return
   fi
+
+  watchdog_note_recovery "mcp" "mcp_recovered"
 }
 
 # ---------------------------------------------------------------------------
@@ -107,13 +171,15 @@ check_event_bus() {
   local active
   active="$(systemctl --user is-active dotfiles-event-bus.service 2>/dev/null)"
   if [[ "$active" != "active" ]]; then
-    local payload state_json
+    local state_json
     state_json="$(json_string "$active")"
-    payload=$(printf '{"type":"event_bus_dead","at":"%s","state":%s}' \
-                 "$(now_rfc)" "$state_json")
-    log_event "$payload"
-    notify_critical "dotfiles-event-bus is $active" \
-      "Restarting — see ~/.claude/recovery-events.jsonl for details"
+    watchdog_note_failure \
+      "event_bus" \
+      "event_bus_dead" \
+      "dotfiles-event-bus is $active" \
+      "Restarting — see ~/.claude/recovery-events.jsonl for details" \
+      "$state_json" \
+      "\"state\":$state_json"
     systemctl --user restart dotfiles-event-bus.service >/dev/null 2>&1 || true
     return
   fi
@@ -125,12 +191,18 @@ check_event_bus() {
   age="$(file_age_seconds "$BUS_HEARTBEAT")"
   [[ -n "$age" ]] || return
   if (( age > BUS_STALE_THRESHOLD_S )); then
-    local payload
-    payload=$(printf '{"type":"event_bus_stale","at":"%s","age_s":%d,"threshold_s":%d}' \
-                 "$(now_rfc)" "$age" "$BUS_STALE_THRESHOLD_S")
-    log_event "$payload"
+    watchdog_note_failure \
+      "event_bus" \
+      "event_bus_stale" \
+      "dotfiles-event-bus heartbeat stale" \
+      "Restarting — see ~/.claude/recovery-events.jsonl for details" \
+      "$(json_string "heartbeat stale")" \
+      "\"age_s\":$age,\"threshold_s\":$BUS_STALE_THRESHOLD_S"
     systemctl --user restart dotfiles-event-bus.service >/dev/null 2>&1 || true
+    return
   fi
+
+  watchdog_note_recovery "event_bus" "event_bus_recovered"
 }
 
 # ---------------------------------------------------------------------------

@@ -91,6 +91,7 @@ exit 3
 
 	writeExitZeroCommands(t, binDir,
 		"ironbar",
+		"quickshell",
 		"hyprshell",
 		"hypr-dock",
 		"hyprdynamicmonitors",
@@ -192,8 +193,10 @@ func writeDesktopStatusFixtureTree(t *testing.T, homeDir, dotfilesRoot, stateDir
 
 	for _, dir := range []string{
 		filepath.Join(homeDir, ".config", "ironbar"),
+		filepath.Join(homeDir, ".config", "quickshell"),
 		filepath.Join(dotfilesRoot, "scripts"),
 		filepath.Join(dotfilesRoot, "ironbar"),
+		filepath.Join(dotfilesRoot, "quickshell"),
 		filepath.Join(dotfilesRoot, "kitty", "shaders", "crtty"),
 		filepath.Join(dotfilesRoot, "ghostty"),
 		filepath.Join(runtimeDir, "hypr"),
@@ -206,8 +209,11 @@ func writeDesktopStatusFixtureTree(t *testing.T, homeDir, dotfilesRoot, stateDir
 
 	for path, content := range map[string]string{
 		filepath.Join(dotfilesRoot, "scripts", "notification-history-listener.py"): "#!/usr/bin/env python3\n",
+		filepath.Join(dotfilesRoot, "scripts", "ticker-bridge.py"):                 "#!/usr/bin/env python3\n",
+		filepath.Join(dotfilesRoot, "scripts", "notification-bridge.py"):           "#!/usr/bin/env python3\n",
 		filepath.Join(dotfilesRoot, "scripts", "kitty-shader-playlist.sh"):         "#!/bin/sh\nexit 0\n",
 		filepath.Join(dotfilesRoot, "ironbar", "config.toml"):                      "position = \"top\"\n",
+		filepath.Join(dotfilesRoot, "quickshell", "shell.qml"):                     "ShellRoot {}\n",
 		filepath.Join(dotfilesRoot, "kitty", "kitty.conf"):                         "allow_remote_control yes\n",
 		filepath.Join(dotfilesRoot, "ghostty", "config"):                           "theme = fixture\n",
 		filepath.Join(stateDir, "hypr", "monitors.dynamic.conf"):                   "monitor=DP-1,preferred,auto,1\n",
@@ -289,6 +295,7 @@ func TestDotfilesDesktopStatusReadyWithFixtures(t *testing.T) {
 		"accessibility":  out.Accessibility,
 		"desktopSession": out.DesktopSession,
 		"ironbar":        out.Ironbar,
+		"quickshell":     out.Quickshell,
 		"notifications":  out.Notifications,
 		"terminal":       out.Terminal,
 		"shader":         out.Shader,
@@ -300,6 +307,9 @@ func TestDotfilesDesktopStatusReadyWithFixtures(t *testing.T) {
 
 	if !detailContainsSubstring(out.Ironbar.Details, "process running (1 instances)") {
 		t.Fatalf("expected ironbar detail to report process count, got %v", out.Ironbar.Details)
+	}
+	if !detailContainsSubstring(out.Quickshell.Details, "ticker-bridge.py present") {
+		t.Fatalf("expected quickshell detail to report ticker bridge, got %v", out.Quickshell.Details)
 	}
 	if !detailContainsSubstring(out.Notifications.Details, "1 tracked notification entries") {
 		t.Fatalf("expected notification history detail, got %v", out.Notifications.Details)
@@ -417,6 +427,9 @@ func TestDotfilesDesktopStatusDegradedWithoutCommands(t *testing.T) {
 	}
 	if !containsString(out.Ironbar.Missing, "ironbar") {
 		t.Fatalf("expected ironbar missing to include ironbar, got %v", out.Ironbar.Missing)
+	}
+	if !containsString(out.Quickshell.Missing, "quickshell") {
+		t.Fatalf("expected quickshell missing to include quickshell, got %v", out.Quickshell.Missing)
 	}
 	if !containsString(out.Notifications.Missing, "swaync-client") {
 		t.Fatalf("expected notifications missing to include swaync-client, got %v", out.Notifications.Missing)

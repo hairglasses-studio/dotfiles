@@ -62,12 +62,13 @@ func detectFormat(path string) string {
 
 // reloadCommands maps service name -> reload command.
 var reloadCommands = map[string][]string{
-	"hyprland": {"hyprctl", "reload"},
-	"ironbar":  {"ironbar", "reload"},
-	"mako":     {"makoctl", "reload"},
-	"waybar":   {"pkill", "-SIGUSR2", "waybar"},
-	"sway":     {"swaymsg", "reload"},
-	"tmux":     {"tmux", "source-file", "~/.tmux.conf"},
+	"hyprland":   {"hyprctl", "reload"},
+	"ironbar":    {"ironbar", "reload"},
+	"quickshell": {"systemctl", "--user", "restart", "dotfiles-quickshell.service"},
+	"mako":       {"makoctl", "reload"},
+	"waybar":     {"pkill", "-SIGUSR2", "waybar"},
+	"sway":       {"swaymsg", "reload"},
+	"tmux":       {"tmux", "source-file", "~/.tmux.conf"},
 }
 
 // parseStringArray extracts a []string from an interface{} that may be []any.
@@ -126,7 +127,7 @@ type ValidateConfigOutput struct {
 // Tool 3: dotfiles_reload_service
 
 type ReloadServiceInput struct {
-	Service string `json:"service" jsonschema:"required,description=Service to reload,enum=hyprland,enum=ironbar,enum=mako,enum=waybar,enum=sway,enum=tmux"`
+	Service string `json:"service" jsonschema:"required,description=Service to reload,enum=hyprland,enum=ironbar,enum=quickshell,enum=mako,enum=waybar,enum=sway,enum=tmux"`
 }
 
 type ReloadServiceOutput struct {
@@ -2340,6 +2341,8 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 						}
 					case "ironbar":
 						healthy = processRunningExact("ironbar") || systemdUserUnitActive("ironbar.service")
+					case "quickshell":
+						healthy = processRunningExact("quickshell") || systemdUserUnitActive("dotfiles-quickshell.service")
 					default:
 						healthy = true // No health check available.
 					}
@@ -2406,7 +2409,7 @@ func (m *DotfilesModule) Tools() []registry.ToolDefinition {
 				}
 
 				// Service status.
-				checkServices := []string{"hyprland", "ironbar", "mako", "swww-daemon"}
+				checkServices := []string{"hyprland", "ironbar", "quickshell", "mako", "swww-daemon"}
 				for _, svc := range checkServices {
 					pgrepCmd := exec.Command("pgrep", "-x", svc)
 					action := "stopped"

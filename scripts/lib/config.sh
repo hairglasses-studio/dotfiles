@@ -9,7 +9,7 @@ config_action_lane() {
   local verb="${1:-}" component="${2:-}"
 
   case "${verb}:${component}" in
-    reload:hyprland|reload:hypr|reload:hyprshell|reload:swaync|reload:ironbar|reload:tmux)
+    reload:hyprland|reload:hypr|reload:hyprshell|reload:swaync|reload:ironbar|reload:quickshell|reload:tmux)
       printf 'safe_reload\n'
       ;;
     reload:hypr-dock|reload:hyprdock|reload:hyprdynamicmonitors|reload:monitors|reload:hyprland-autoname-workspaces|reload:autoname)
@@ -97,6 +97,7 @@ config_reload_service() {
         rc=$?
       fi
       ;;
+    quickshell)    systemctl --user restart dotfiles-quickshell.service; rc=$? ;;
     swaync)        swaync-client --reload-config; rc=$? ;;
     tmux)          tmux source-file ~/.tmux.conf 2>/dev/null; rc=$? ;;
     # tattoy auto-reload via file watching

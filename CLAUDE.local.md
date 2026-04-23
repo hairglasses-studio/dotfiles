@@ -95,3 +95,53 @@ shell scripts.
   playlists; RetroArch OSD only.
 - Dreamcast BIOS drop is manual — we don't ship dc_boot.bin/dc_flash.bin
   and can't (proprietary). Document-only; do not automate.
+
+## Workstation state 2026-04-22
+
+Audit snapshot (`~/.local/state/retroarch/workstation-audit.json`):
+
+```
+core_total=17 core_missing=2 required_assets_missing=0 runtime_network=on
+```
+
+Progress since 2026-04-21:
+
+- VB core landed (`libretro-beetle-vb-git` AUR build, Apr 21). Audit
+  confirms `mednafen_vb_libretro.so` at `/usr/lib/libretro/`.
+- BIOS/helper dirs for `dc/` and `PPSSPP/` populated
+  (`required_assets_missing=0`).
+- `network_cmd_enable=true` in `retroarch.cfg`; UDP 55355 primed.
+
+Two cores still source-built only (no AUR fallback for either):
+
+- `race_libretro.so` (system: `ngp`)
+- `mednafen_wswan_libretro.so` (system: `wonderswan`)
+
+Agent sandbox blocks cloning + building from GitHub. To land both,
+run one of:
+
+```bash
+# preferred — no sudo, lands in ~/.config/retroarch/cores/
+retroarch-build-libretro-cores --install-dir "$HOME/.config/retroarch/cores"
+
+# system-wide (original)
+sudo retroarch-build-libretro-cores
+```
+
+After either path, rerun the audit:
+
+```bash
+retroarch-workstation-audit
+# expect: core_missing=0
+```
+
+Runtime OSD verification still pending a live RetroArch session. To
+confirm end-to-end: start RetroArch, then
+
+```bash
+retroarch-archive-homebrew-sync --notify-runtime
+# expect: SHOW_MSG "Archive homebrew sync complete" appears in RetroArch
+```
+
+`runtime.version_probe` in the audit JSON will be non-null once a
+probe hits the live socket.

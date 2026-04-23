@@ -13,5 +13,7 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-updates-cache.sh
-MemoryMax=32M
+# checkupdates can briefly map pacman DB metadata; 32M is too tight and causes
+# OOM kills before the cache can refresh.
+MemoryMax=128M
 CPUQuota=10%

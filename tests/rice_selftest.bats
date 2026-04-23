@@ -58,9 +58,30 @@ errors=0
 warnings=0
 results=()
 
+strip_control_for_json() {
+  sed -E $'s/\x1B\\[[0-?]*[ -/]*[@-~]//g' \
+    | LC_ALL=C tr -d '\000-\010\013\014\016-\037\177'
+}
+
+json_escape() {
+  local value
+  value="$(printf '%s' "$1" | strip_control_for_json)"
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  value=${value//$'\n'/\\n}
+  value=${value//$'\r'/\\r}
+  value=${value//$'\t'/\\t}
+  printf '%s' "$value"
+}
+
 add_result() {
   local section="$1" check="$2" status="$3" detail="${4:-}"
-  results+=("{\"section\":\"$section\",\"check\":\"$check\",\"status\":\"$status\",\"detail\":\"$detail\"}")
+  local section_json check_json status_json detail_json
+  section_json="$(json_escape "$section")"
+  check_json="$(json_escape "$check")"
+  status_json="$(json_escape "$status")"
+  detail_json="$(json_escape "$detail")"
+  results+=("{\"section\":\"$section_json\",\"check\":\"$check_json\",\"status\":\"$status_json\",\"detail\":\"$detail_json\"}")
   if [[ "$status" == "fail" ]]; then
     errors=$((errors + 1))
     echo "  [FAIL] $check: $detail" >&2
@@ -79,8 +100,15 @@ test_one() {
   add_result "test" "check_c" "warn" "not ideal"
 }
 
+test_control_chars() {
+  local detail
+  detail=$'\033[38;2;255;92;87m[ERR]\033[0m Missing: /tmp/foo\nsecond line\tquoted "value" \\ path'
+  add_result "test" "colored_detail" "fail" "$detail"
+}
+
 case "$SECTION" in
   test) test_one ;;
+  control) test_control_chars ;;
   all)  test_one ;;
 esac
 
@@ -194,9 +222,28 @@ done
 errors=0
 warnings=0
 results=()
+strip_control_for_json() {
+  sed -E $'s/\x1B\\[[0-?]*[ -/]*[@-~]//g' \
+    | LC_ALL=C tr -d '\000-\010\013\014\016-\037\177'
+}
+json_escape() {
+  local value
+  value="$(printf '%s' "$1" | strip_control_for_json)"
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  value=${value//$'\n'/\\n}
+  value=${value//$'\r'/\\r}
+  value=${value//$'\t'/\\t}
+  printf '%s' "$value"
+}
 add_result() {
   local section="$1" check="$2" status="$3" detail="${4:-}"
-  results+=("{\"section\":\"$section\",\"check\":\"$check\",\"status\":\"$status\",\"detail\":\"$detail\"}")
+  local section_json check_json status_json detail_json
+  section_json="$(json_escape "$section")"
+  check_json="$(json_escape "$check")"
+  status_json="$(json_escape "$status")"
+  detail_json="$(json_escape "$detail")"
+  results+=("{\"section\":\"$section_json\",\"check\":\"$check_json\",\"status\":\"$status_json\",\"detail\":\"$detail_json\"}")
   if [[ "$status" == "fail" ]]; then errors=$((errors + 1)); fi
   if [[ "$status" == "warn" ]]; then warnings=$((warnings + 1)); fi
 }
@@ -219,6 +266,17 @@ BASH
 @test "rice-selftest: JSON output is valid JSON" {
     output=$(bash "$MINIMAL_SCRIPT" --json test 2>/dev/null || true)
     echo "$output" | jq . > /dev/null 2>&1
+}
+
+@test "rice-selftest: JSON detail strips ANSI and escapes multiline output" {
+    output=$(bash "$MINIMAL_SCRIPT" --json control 2>/dev/null || true)
+    echo "$output" | jq -e '
+      .results[0].detail
+      | contains("[ERR] Missing: /tmp/foo")
+      and contains("second line")
+      and contains("quoted \"value\" \\ path")
+      and (contains("\u001b") | not)
+    ' > /dev/null
 }
 
 @test "rice-selftest: JSON results array has 3 entries" {

@@ -61,7 +61,13 @@ _rice_status() {
 
   # Bar
   if pgrep -x ironbar &>/dev/null; then
-    printf " %s%-14s%s %sironbar%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+    if pgrep -x quickshell &>/dev/null; then
+      printf " %s%-14s%s %sironbar + quickshell pilot%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+    else
+      printf " %s%-14s%s %sironbar%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
+    fi
+  elif pgrep -x quickshell &>/dev/null; then
+    printf " %s%-14s%s %squickshell pilot%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
   else
     printf " %s%-14s%s %snone%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_RED" "$HG_RESET"
   fi
@@ -77,6 +83,7 @@ _rice_services() {
   local -a services=(
     "Hyprland:Hyprland"
     "ironbar:ironbar"
+    "quickshell:quickshell"
     "hyprshell:hyprshell"
     "hypr-dock:hypr-dock"
     "hyprdynamicmonitors:hyprdynamicmonitors"
@@ -103,6 +110,7 @@ _rice_palette() {
   local scan_dirs=(
     "$HG_DOTFILES/hyprland"
     "$HG_DOTFILES/ironbar"
+    "$HG_DOTFILES/quickshell"
     "$HG_DOTFILES/hyprshell"
     "$HG_DOTFILES/swaync"
     "$HG_DOTFILES/wofi"
@@ -166,7 +174,7 @@ _rice_persistence() {
 
 _rice_reload_all() {
   hg_info "Reloading all services in parallel..."
-  config_reload_parallel hyprland hyprshell hypr-dock hyprdynamicmonitors autoname swaync ironbar
+  config_reload_parallel hyprland hyprshell hypr-dock hyprdynamicmonitors autoname swaync ironbar quickshell
   hg_ok "All services reloaded"
 }
 

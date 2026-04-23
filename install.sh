@@ -221,6 +221,7 @@ print_linux_link_specs() {
     cat <<EOF
 $DOTFILES_DIR/swaync/config.json|$HOME/.config/swaync/config.json
 $DOTFILES_DIR/swaync/style.css|$HOME/.config/swaync/style.css
+$DOTFILES_DIR/quickshell|$HOME/.config/quickshell
 $DOTFILES_DIR/ironbar|$HOME/.config/ironbar
 $DOTFILES_DIR/hyprshell/config.toml|$HOME/.config/hyprshell/config.toml
 $DOTFILES_DIR/hyprshell/styles.css|$HOME/.config/hyprshell/styles.css
@@ -257,6 +258,9 @@ $DOTFILES_DIR/scripts/jellyfin-stack-boot.sh|$HOME/.local/bin/jellyfin-stack-boo
 $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
+$DOTFILES_DIR/scripts/ticker-bridge.py|$HOME/.local/bin/ticker-bridge
+$DOTFILES_DIR/scripts/notification-bridge.py|$HOME/.local/bin/notification-bridge
+$DOTFILES_DIR/scripts/shell-stack-mode.sh|$HOME/.local/bin/shell-stack-mode
 $DOTFILES_DIR/scripts/dev-console.sh|$HOME/.local/bin/dev-console
 $DOTFILES_DIR/scripts/pin-dev-console-session.sh|$HOME/.local/bin/pin-dev-console-session
 $DOTFILES_DIR/scripts/palette-playlist.sh|$HOME/.local/bin/palette-playlist
@@ -778,6 +782,7 @@ create_symlinks() {
 
         local desktop_service_units=(
             ironbar.service
+            dotfiles-quickshell.service
             dotfiles-hyprshell.service
             dotfiles-hypr-dock.service
             dotfiles-hyprdynamicmonitors.service

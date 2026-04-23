@@ -197,7 +197,7 @@ func TestValidateConfig_EmptyJSON(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestReloadCommands_AllPresent(t *testing.T) {
-	expected := []string{"hyprland", "ironbar", "mako", "waybar", "sway", "tmux"}
+	expected := []string{"hyprland", "ironbar", "quickshell", "mako", "waybar", "sway", "tmux"}
 	for _, svc := range expected {
 		if _, ok := reloadCommands[svc]; !ok {
 			t.Errorf("missing reload command for %s", svc)

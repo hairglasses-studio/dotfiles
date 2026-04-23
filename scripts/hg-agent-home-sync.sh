@@ -3,6 +3,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+DOTFILES_DIR="${DOTFILES_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+# This script intentionally manages both the workstation user's provider homes
+# and /root. When re-entered through `sudo -H`, HOME becomes /root; pin the
+# non-root provider home before sourcing hg-agent-launch.sh so its defaults do
+# not collapse both sides of the sync onto /root.
+HG_AGENT_USER_HOME="${HG_AGENT_USER_HOME:-/home/hg}"
+export DOTFILES_DIR HG_AGENT_USER_HOME
 source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/hg-agent-launch.sh"
 

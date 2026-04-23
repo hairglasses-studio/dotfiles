@@ -30,6 +30,7 @@ swaync/theme.generated.css
 wofi/theme.generated.css
 wlogout/theme.generated.css
 ironbar/theme.generated.css
+quickshell/styles/Colors.qml
 
 # Local env files
 .env

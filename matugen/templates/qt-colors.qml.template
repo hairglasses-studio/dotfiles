@@ -1,0 +1,19 @@
+import QtQuick
+
+QtObject {
+    readonly property color bg: "#${THEME_BG}"
+    readonly property color surface: "#${THEME_SURFACE}"
+    readonly property color surfaceAlt: "#${THEME_SURFACE_ALT}"
+    readonly property color panel: "#${THEME_PANEL}"
+    readonly property color panelStrong: "#${THEME_PANEL_STRONG}"
+    readonly property color border: "#${THEME_BORDER}"
+    readonly property color borderStrong: "#${THEME_BORDER_STRONG}"
+    readonly property color fg: "#${THEME_FG}"
+    readonly property color muted: "#${THEME_MUTED}"
+    readonly property color primary: "#${THEME_PRIMARY}"
+    readonly property color secondary: "#${THEME_SECONDARY}"
+    readonly property color tertiary: "#${THEME_TERTIARY}"
+    readonly property color warning: "#${THEME_WARNING}"
+    readonly property color danger: "#${THEME_DANGER}"
+    readonly property color blue: "#${THEME_BLUE}"
+}
