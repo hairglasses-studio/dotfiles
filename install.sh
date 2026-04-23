@@ -272,6 +272,7 @@ $DOTFILES_DIR/scripts/retroarch-install-workstation-cores.sh|$HOME/.local/bin/re
 $DOTFILES_DIR/scripts/retroarch-bios-apply.py|$HOME/.local/bin/retroarch-bios-apply
 $DOTFILES_DIR/scripts/retroarch-apply-network-cmd.py|$HOME/.local/bin/retroarch-apply-network-cmd
 $DOTFILES_DIR/scripts/retroarch-build-libretro-cores.sh|$HOME/.local/bin/retroarch-build-libretro-cores
+$DOTFILES_DIR/scripts/retroarch-command.py|$HOME/.local/bin/retroarch-command
 $DOTFILES_DIR/scripts/retroarch-install-widescreen-cores.sh|$HOME/.local/bin/retroarch-install-widescreen-cores
 $DOTFILES_DIR/scripts/retroarch-dolphin-sync-sys.sh|$HOME/.local/bin/retroarch-dolphin-sync-sys
 $DOTFILES_DIR/scripts/retroarch-next-widescreen-setup.sh|$HOME/.local/bin/retroarch-next-widescreen-setup

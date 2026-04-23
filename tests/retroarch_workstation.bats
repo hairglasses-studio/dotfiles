@@ -379,3 +379,30 @@ PY
     assert_output --partial "mednafen_wswan_libretro.so"
     refute_output --partial "make -C"
 }
+
+@test "retroarch-command --list prints the UDP taxonomy" {
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-command.py" --list
+    assert_success
+    assert_output --partial "VERSION"
+    assert_output --partial "SHOW_MSG"
+    assert_output --partial "SET_SHADER"
+    assert_output --partial "LOAD_CORE"
+    assert_output --partial "QUIT"
+}
+
+@test "retroarch-command missing command exits with usage error" {
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-command.py"
+    assert_failure
+    assert_output --partial "command name required"
+}
+
+@test "retroarch-command --osd emits JSON result shape" {
+    # RetroArch is not running in CI — SHOW_MSG is fire-and-forget so
+    # the UDP send itself succeeds even without a listener. We just
+    # assert the result dict has the expected shape.
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-command.py" --osd "hi" --json --timeout 0.1
+    assert_success
+    assert_output --partial "\"command\": \"SHOW_MSG \\\"hi\\\"\""
+    assert_output --partial "\"ok\": true"
+    assert_output --partial "\"port\": 55355"
+}
