@@ -8,10 +8,17 @@
   },
   "mcp": {
     "allowed": [
+      "docker",
       "dotfiles"
     ]
   },
   "mcpServers": {
+    "docker": {
+      "args": [
+        "mcp-server-docker"
+      ],
+      "command": "uvx"
+    },
     "dotfiles": {
       "command": "./scripts/run-dotfiles-mcp.sh"
     }

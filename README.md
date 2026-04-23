@@ -24,17 +24,17 @@ The bottom `keybind-ticker` scrolls 39 live streams across a pixel-smooth 30 Hz 
 ### Technical Highlights
 
 - **GPU Shaders**: 139 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation. The companion `kitty-playlist-validate` resolves every playlist entry against the bundled catalog with fuzzy-match suggestions so typos fail CI instead of silently skipping themes
-- **Theme System**: Hairglasses Neon token pipeline for `ironbar`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`. `palette-playlist list|next|random|set <name>` rotates the active palette across 9 curated envs (hairglasses-neon, amber, deep-purple, forest, ice, matrix, rose-pine, sunset, synthwave) — every palette fills the same 23 `THEME_*` tokens so templates render identically regardless of active palette
+- **Theme System**: Hairglasses Neon token pipeline for `ironbar`, `quickshell`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`. `palette-playlist list|next|random|set <name>` rotates the active palette across 9 curated envs (hairglasses-neon, amber, deep-purple, forest, ice, matrix, rose-pine, sunset, synthwave) — every palette fills the same 23 `THEME_*` tokens so templates render identically regardless of active palette
 - **MCP Servers**: 2 Go modules under `mcp/` (dotfiles-mcp with ~430 tools + 25 resources, mapitall); desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
-- **Shell Framework**: Shared libraries for CLI utilities, notifications, config management
+- **Shell Framework**: Shared libraries for CLI utilities, notifications, config management, and staged `Quickshell` migration controls via `hg shell`; the QML pilot now covers the bar, rotating ticker streams, and notification-history panel
 - **Terminal Launch Policy**: Hyprshell defaults to `kitty-shell-launch` for plain shell windows, fresh instances, and no startup-session restore; `kitty-visual-launch` enforces unique top-level Kitty windows for raw launch surfaces; `kitty-dev-launch` remains the explicit tmux-backed dev-session entrypoint
 
 The managed workstation alias `studio_desktop` now projects the desktop-focused `dotfiles-mcp` profile into Codex, Claude, and Gemini through the existing home-sync path.
 
-Hyprland + ironbar + hyprshell + hypr-dock + swaync + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
+Hyprland + ironbar + Quickshell pilot + hyprshell + hypr-dock + swaync + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
 
 ## Install
 
@@ -89,6 +89,7 @@ hyprpm-bootstrap
 |--------|-------------|
 | `hyprland/` | Tiling WM — 113 keybinds, custom animations, plugin-based layout, wallpaper mode orchestration |
 | `ironbar/` | Primary top menubar with fleet cache widgets, workspaces, media, and system status |
+| `quickshell/` | Staged QML shell pilot for bar, ticker, and notification-history migration |
 | `hyprshell/` | Primary launcher, overview, and app switcher for `Super+D` / `Alt+Tab`, with `default_terminal` pinned to the shell-first Kitty launcher |
 | `hypr-dock/` | Bottom dock with pinned apps, indicators, and window previews |
 | `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |

@@ -92,7 +92,7 @@ func TestDotfilesWorkstationDiagnosticsReadyWithFixtures(t *testing.T) {
 	if out.PromptName != "dotfiles_diagnose_workstation" {
 		t.Fatalf("prompt name = %q", out.PromptName)
 	}
-	if out.Capabilities.Ready != out.Capabilities.Total || out.Capabilities.Total != 11 {
+	if out.Capabilities.Ready != out.Capabilities.Total || out.Capabilities.Total != 12 {
 		t.Fatalf("unexpected capability summary: %+v", out.Capabilities)
 	}
 	if out.IssueCount != 0 || len(out.Issues) != 0 {

@@ -29,9 +29,30 @@ errors=0
 warnings=0
 results=()
 
+strip_control_for_json() {
+  sed -E $'s/\x1B\\[[0-?]*[ -/]*[@-~]//g' \
+    | LC_ALL=C tr -d '\000-\010\013\014\016-\037\177'
+}
+
+json_escape() {
+  local value
+  value="$(printf '%s' "$1" | strip_control_for_json)"
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  value=${value//$'\n'/\\n}
+  value=${value//$'\r'/\\r}
+  value=${value//$'\t'/\\t}
+  printf '%s' "$value"
+}
+
 add_result() {
   local section="$1" check="$2" status="$3" detail="${4:-}"
-  results+=("{\"section\":\"$section\",\"check\":\"$check\",\"status\":\"$status\",\"detail\":\"$detail\"}")
+  local section_json check_json status_json detail_json
+  section_json="$(json_escape "$section")"
+  check_json="$(json_escape "$check")"
+  status_json="$(json_escape "$status")"
+  detail_json="$(json_escape "$detail")"
+  results+=("{\"section\":\"$section_json\",\"check\":\"$check_json\",\"status\":\"$status_json\",\"detail\":\"$detail_json\"}")
   if [[ "$status" == "fail" ]]; then
     errors=$((errors + 1))
     echo "  [FAIL] $check: $detail" >&2
@@ -166,7 +187,7 @@ test_plugins() {
 test_services() {
   echo "── Running Services ──" >&2
   refresh_desktop_runtime_env 2>/dev/null || true
-  for svc in ironbar swaync swww-daemon pypr swayosd-server dotfiles-keybind-ticker; do
+  for svc in ironbar quickshell swaync swww-daemon pypr swayosd-server dotfiles-keybind-ticker; do
     if [[ "$svc" == "pypr" ]]; then
       if command -v pypr >/dev/null 2>&1 && pypr version >/dev/null 2>&1; then
         add_result services "pypr" pass "daemon responding"
@@ -180,6 +201,14 @@ test_services() {
         add_result services "dotfiles-keybind-ticker" pass "active (systemd user)"
       else
         add_result services "dotfiles-keybind-ticker" warn "not active (systemd user)"
+      fi
+      continue
+    fi
+    if [[ "$svc" == "quickshell" ]]; then
+      if systemctl --user is-active --quiet dotfiles-quickshell.service 2>/dev/null; then
+        add_result services "quickshell" pass "active (pilot service)"
+      else
+        add_result services "quickshell" warn "not active (pilot service)"
       fi
       continue
     fi

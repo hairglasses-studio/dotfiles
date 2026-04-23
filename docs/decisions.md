@@ -2,6 +2,21 @@
 
 Append-only ADR-lite record of architectural calls that shaped this repo. Managed by the `decision_journal` skill. Newest entries at the top.
 
+## 2026-04-23 — Stage shell migration through Quickshell pilot
+
+**Context**: The Hyprland shell stack still split responsibilities across ironbar, swaync, and the Python ticker. A notification flood showed DND and critical-urgency handling needed hardening, but a same-session D-Bus notification-owner cutover would risk breaking MCP notification tooling.
+
+**Decision**: Adopt Quickshell as the staged replacement path for bar, ticker, and future notifications while keeping ironbar, swaync, and the existing ticker live until each surface has a verified pilot.
+
+**Rationale**: Quickshell is already packaged locally, matches the repo's earlier status-bar research recommendation, and gives a GPU/QML path for shader-heavy bar and ticker work without rewriting notification ownership first. The immediate incident is handled by making the watchdog DND-aware and throttled rather than swapping daemons under load.
+
+**Alternatives considered**:
+- AGS/Astal bundle — rejected for now because Astal packages are not installed and the migration would add more stack churn before proving the shell surface.
+- Keep and harden only — rejected as the long-term path because it leaves the ticker and bar split across Python/GTK/Cairo and ironbar.
+- Immediate swaync replacement — rejected until the Quickshell notification server and MCP history/read tooling can own `org.freedesktop.Notifications` without conflict.
+
+**Consequences**: Quickshell runs as a parallel pilot service first; ticker streams expose a bridge API before visual cutover; swaync remains the notification owner until a dedicated cutover phase rewrites the notification/history integrations.
+
 ## 2026-04-21 — Profile-driven RetroArch playlist and BIOS mapping
 
 **Context**: The RetroArch archive-homebrew playlist generator hardcoded a per-system dict (cores, extensions, filenames) inside `scripts/retroarch-archive-homebrew-playlists.py`. The workstation audit needed the same system ↔ core ↔ BIOS data but from a different entrypoint, risking drift between the two.

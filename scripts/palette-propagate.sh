@@ -115,6 +115,10 @@ for dir in ironbar swaync wofi wlogout hyprshell; do
     _handle gtk-colors.css "$HOME/.config/$dir/theme.generated.css" ""
 done
 
+# Quickshell consumes generated QML tokens instead of GTK CSS. Render into the
+# repo tree so both direct `--path` runs and installed ~/.config symlinks see it.
+_handle qt-colors.qml.template "$DOTFILES_DIR/quickshell/styles/Colors.qml" ""
+
 # Terminals + visual apps
 _handle kitty-colors.conf    "$HOME/.config/kitty/cyberpunk-neon.conf"                   'pkill -SIGUSR1 kitty || true'
 _handle hyprland-colors.conf "$HOME/.config/hypr/colors.conf"                             ''
@@ -133,6 +137,7 @@ if $DO_RELOAD && ! $DRY_RUN; then
     # doesn't pick up CSS file changes reliably.
     systemctl --user restart ironbar.service 2>/dev/null || true
     swaync-client -rs 2>/dev/null || true
+    systemctl --user restart dotfiles-quickshell.service 2>/dev/null || true
     # hyprshell CSS reload: kick the service
     systemctl --user restart dotfiles-hyprshell.service 2>/dev/null || true
     # Keybind ticker restart to pick up new palette (ticker reads colors at init).

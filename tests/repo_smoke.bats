@@ -413,6 +413,25 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "DRIFT"
 }
 
+@test "retroarch saves backup keeps rclone backup-dir on the destination remote" {
+    # rclone requires --backup-dir to be on the same remote as the sync
+    # destination. A local %h/.cache path is rejected at runtime and leaves
+    # the daily save backup service failed.
+    local unit="${DOTFILES_DIR}/systemd/retroarch-saves-backup.service"
+    run bash -c "grep -F 'backup_dir=\"gdrive:Gaming & Emulation/RetroArch/.backup/' '${unit}' && ! grep -F 'backup_dir=\"%h/.cache' '${unit}'"
+    assert_success
+}
+
+@test "bar updates cache service has enough memory for checkupdates" {
+    # checkupdates can briefly map pacman DB metadata. The old 32M limit caused
+    # OOM kills before /tmp/bar-updates.txt could refresh.
+    local unit="${DOTFILES_DIR}/systemd/bar-updates.service"
+    local memory
+    memory="$(awk -F= '$1 == "MemoryMax" {print $2}' "${unit}")"
+    [[ "${memory}" =~ ^[0-9]+M$ ]] || fail "unexpected MemoryMax: ${memory}"
+    [[ "${memory%M}" -ge 128 ]] || fail "MemoryMax too low: ${memory}"
+}
+
 @test "CLAUDE.md GEMINI.md copilot-instructions.md stay thin AGENTS.md mirrors" {
     # The per-repo convention is that AGENTS.md is the canonical
     # instruction file and CLAUDE.md / GEMINI.md / .github/copilot-

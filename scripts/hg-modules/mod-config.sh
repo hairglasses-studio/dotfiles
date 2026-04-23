@@ -23,10 +23,10 @@ CMDS
 
 _config_cmd_reload() {
   local component="${1:-}"
-  [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|ironbar|tmux)"
+  [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|ironbar|quickshell|tmux)"
   case "$component" in
-    hyprland|hypr|hyprshell|hypr-dock|hyprdock|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname|swaync|ironbar|tmux) ;;
-    *) hg_die "Unknown component: $component (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|ironbar|tmux)" ;;
+    hyprland|hypr|hyprshell|hypr-dock|hyprdock|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname|swaync|ironbar|quickshell|tmux) ;;
+    *) hg_die "Unknown component: $component (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|ironbar|quickshell|tmux)" ;;
   esac
   config_reload_service "$component"
   hg_ok "Reloaded $component"
@@ -108,6 +108,7 @@ _config_cmd_check() {
     "$HOME/.config/hyprdynamicmonitors:$HG_DOTFILES/hyprdynamicmonitors:hyprdynamicmonitors"
     "$HOME/.config/hyprland-autoname-workspaces:$HG_DOTFILES/hyprland-autoname-workspaces:autoname"
     "$HOME/.config/ironbar:$HG_DOTFILES/ironbar:ironbar"
+    "$HOME/.config/quickshell:$HG_DOTFILES/quickshell:quickshell"
     "$HOME/.config/swaync:$HG_DOTFILES/swaync:swaync"
   )
   for _entry in "${_checks[@]}"; do
@@ -190,6 +191,7 @@ _config_cmd_list() {
     "hyprdynamic:$HG_DOTFILES/hyprdynamicmonitors:systemctl --user restart dotfiles-hyprdynamicmonitors.service"
     "autoname:$HG_DOTFILES/hyprland-autoname-workspaces:systemctl --user restart dotfiles-hyprland-autoname-workspaces.service"
     "ironbar:$HG_DOTFILES/ironbar:ironbar reload"
+    "quickshell:$HG_DOTFILES/quickshell:systemctl --user restart dotfiles-quickshell.service"
     "swaync:$HG_DOTFILES/swaync:swaync-client --reload-config"
     "tmux:$HG_DOTFILES/tmux:tmux source-file"
     "zsh:$HG_DOTFILES/zsh:source ~/.zshrc"

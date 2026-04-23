@@ -69,6 +69,7 @@ npm
 # Desktop rice (Hyprland + ironbar)
 hyprland
 ironbar-bin
+quickshell
 swaync
 wofi
 wlogout

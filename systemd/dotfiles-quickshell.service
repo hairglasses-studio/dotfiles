@@ -1,0 +1,18 @@
+[Unit]
+Description=dotfiles Quickshell pilot bar
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecCondition=/usr/bin/sh -c 'test -n "$WAYLAND_DISPLAY" && test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"'
+Environment=PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin:/bin
+Environment=QUICKSHELL_MONITOR=DP-2
+ExecStartPre=/usr/bin/env bash -lc 'test -x %h/hairglasses-studio/dotfiles/scripts/run-quickshell.sh && %h/hairglasses-studio/dotfiles/scripts/run-quickshell.sh --check'
+ExecStart=/usr/bin/env bash -lc 'exec %h/hairglasses-studio/dotfiles/scripts/run-quickshell.sh'
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

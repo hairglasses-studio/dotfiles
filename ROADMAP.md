@@ -168,7 +168,7 @@ Standalone GTK4 PangoCairo 240Hz scrolling ticker replacing ironbar script-based
 
 ## Future Considerations
 
-- **Status bar evolution**: Quickshell (C++/QML, native GLSL ShaderEffect) is the best GPU-capable alternative to ironbar — see `docs/STATUS-BAR-RESEARCH.md` for full evaluation of 7 alternatives. Ironbar stays short-term; prototype Quickshell on secondary monitor.
+- **Shell evolution**: Quickshell (C++/QML, native GLSL ShaderEffect) is now staged as the bar/ticker/notification-history pilot. `dotfiles-quickshell.service` runs in parallel, `ticker-bridge.py` exposes existing ticker streams to QML with rotation/manual advance, `notification-bridge.py` exposes local notification history without taking D-Bus ownership, and `hg shell` controls pilot/cutover/rollback modes with JSON status for agents. Ironbar, swaync, and the Python ticker stay live until each replacement surface is verified.
 - **Cross-repo semantic search**: evaluate CodeMCP for SCIP-based indexing across all 20 active repos
 
 ---

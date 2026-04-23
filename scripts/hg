@@ -84,6 +84,7 @@ hg_doctor() {
     "$HOME/.config/hyprdynamicmonitors:hyprdynamicmonitors"
     "$HOME/.config/hyprland-autoname-workspaces:autoname"
     "$HOME/.config/ironbar:ironbar"
+    "$HOME/.config/quickshell:quickshell"
     "$HOME/.config/swaync:swaync"
   )
   for _entry in "${_links[@]}"; do

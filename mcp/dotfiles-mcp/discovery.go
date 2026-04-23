@@ -139,6 +139,7 @@ type dotfilesDesktopStatusOutput struct {
 	Accessibility   dotfilesDesktopCapability `json:"accessibility"`
 	DesktopSession  dotfilesDesktopCapability `json:"desktop_session"`
 	Ironbar         dotfilesDesktopCapability `json:"ironbar"`
+	Quickshell      dotfilesDesktopCapability `json:"quickshell"`
 	Notifications   dotfilesDesktopCapability `json:"notifications"`
 	Terminal        dotfilesDesktopCapability `json:"terminal"`
 	Shader          dotfilesDesktopCapability `json:"shader"`
@@ -559,6 +560,37 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 			}
 			ironbarDetails = append(ironbarDetails, fmt.Sprintf("%d visible layer surfaces", len(ironbarStatus.Layers)))
 
+			quickshellMissing := make([]string, 0)
+			quickshellDetails := make([]string, 0)
+			if hasCmd("quickshell") {
+				quickshellDetails = append(quickshellDetails, "quickshell available")
+			} else {
+				quickshellMissing = append(quickshellMissing, "quickshell")
+				missingCommands = append(missingCommands, "quickshell")
+			}
+			quickshellConfig := filepath.Join(dotfilesDir(), "quickshell", "shell.qml")
+			if pathExists(quickshellConfig) {
+				quickshellDetails = append(quickshellDetails, "config rooted at "+quickshellConfig)
+			} else {
+				quickshellMissing = append(quickshellMissing, "quickshell config")
+			}
+			for _, bridge := range []string{"ticker-bridge.py", "notification-bridge.py"} {
+				bridgePath := filepath.Join(dotfilesDir(), "scripts", bridge)
+				if pathExists(bridgePath) {
+					quickshellDetails = append(quickshellDetails, bridge+" present")
+				} else {
+					quickshellMissing = append(quickshellMissing, bridge)
+				}
+			}
+			if systemdUserUnitActive("dotfiles-quickshell.service") {
+				quickshellDetails = append(quickshellDetails, "user service active")
+			}
+			if processRunningExact("quickshell") {
+				quickshellDetails = append(quickshellDetails, "process running")
+			} else {
+				quickshellDetails = append(quickshellDetails, "process not running (pilot can be inactive)")
+			}
+
 			notificationMissing := make([]string, 0)
 			notificationDetails := make([]string, 0)
 			if hasCmd("swaync-client") {
@@ -676,6 +708,11 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 					Details: ironbarDetails,
 					Missing: uniqueSortedStrings(ironbarMissing),
 				},
+				Quickshell: dotfilesDesktopCapability{
+					Ready:   len(quickshellMissing) == 0,
+					Details: quickshellDetails,
+					Missing: uniqueSortedStrings(quickshellMissing),
+				},
 				Notifications: dotfilesDesktopCapability{
 					Ready:   len(notificationMissing) == 0,
 					Details: notificationDetails,
@@ -693,7 +730,7 @@ func (m *DotfilesDiscoveryModule) Tools() []registry.ToolDefinition {
 				},
 				MissingCommands: uniqueSortedStrings(missingCommands),
 			}
-			if !(output.Hyprland.Ready && output.Shell.Ready && output.Screenshot.Ready && output.OCR.Ready && output.Input.Ready && output.Accessibility.Ready && output.DesktopSession.Ready && output.Ironbar.Ready && output.Notifications.Ready && output.Terminal.Ready && output.Shader.Ready) {
+			if !(output.Hyprland.Ready && output.Shell.Ready && output.Screenshot.Ready && output.OCR.Ready && output.Input.Ready && output.Accessibility.Ready && output.DesktopSession.Ready && output.Ironbar.Ready && output.Quickshell.Ready && output.Notifications.Ready && output.Terminal.Ready && output.Shader.Ready) {
 				output.Status = "degraded"
 			}
 			return output, nil

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# quickshell-try.sh — launch the Quickshell prototype bar on DP-3.
+# quickshell-try.sh — launch the Quickshell pilot bar.
 #
 # Not a systemd service — this is an opt-in prototype. When the
-# prototype is ready for promotion, add `dotfiles-quickshell.service`
-# and wire into install.sh::desktop_service_units.
+# The managed service now uses the same runner; this helper stays useful
+# for foreground/background manual iteration while the pilot surface runs
+# in parallel with the current stack.
 #
 # Usage:
 #   quickshell-try.sh            start the prototype in the foreground
@@ -13,12 +14,12 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
-CONFIG="$SCRIPT_DIR/../quickshell/shell.qml"
 PID_FILE="/tmp/quickshell-try.pid"
 MODE="${1:-fg}"
+RUNNER="$SCRIPT_DIR/run-quickshell.sh"
 
-command -v quickshell >/dev/null 2>&1 || {
-  printf 'quickshell not installed — try: sudo pacman -S quickshell\n' >&2
+[[ -x "$RUNNER" ]] || {
+  printf 'run-quickshell.sh missing or not executable: %s\n' "$RUNNER" >&2
   exit 1
 }
 
@@ -32,13 +33,13 @@ case "$MODE" in
       rm -f "$PID_FILE"
     fi
     # Belt-and-braces: kill any stray quickshell instance we spawned
-    pkill -f "quickshell.*$CONFIG" 2>/dev/null || true
+    pkill -f "quickshell.*quickshell/shell.qml" 2>/dev/null || true
     exit 0
     ;;
 
   --bg)
     # Detached mode — save PID, redirect stdout/err to a log under /tmp
-    quickshell --config "$CONFIG" \
+    "$RUNNER" \
       >/tmp/quickshell-try.log 2>&1 &
     echo $! > "$PID_FILE"
     printf 'started pid=%s → tail /tmp/quickshell-try.log\n' "$!"
@@ -49,6 +50,6 @@ case "$MODE" in
     ;;
 
   *)
-    exec quickshell --config "$CONFIG"
+    exec "$RUNNER"
     ;;
 esac
