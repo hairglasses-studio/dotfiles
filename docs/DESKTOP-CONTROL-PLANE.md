@@ -14,6 +14,7 @@ The desktop control-plane for Manjaro/Wayland uses `Hyprland` as the primary com
    - Reads cache-backed status surfaces such as `/tmp/rg-status.json` instead of calling slow fleet tooling inline.
    - `dotfiles-quickshell.service` runs the QML shell and is controlled through `hg shell <status|pilot|bar-cutover|ticker-cutover|notification-cutover|full-pilot|full-cutover|rollback>`; `shell-stack-mode.sh --json status` exposes the same state for agents.
    - Stack mode is persisted under `$XDG_STATE_HOME/dotfiles/shell-stack/` and consumed by `run-quickshell.sh` as `QS_BAR_CUTOVER`, `QS_TICKER_CUTOVER`, and `QUICKSHELL_NOTIFICATION_OWNER`; cutover modes restart Quickshell so the env is re-read.
+   - Reload and palette propagation scripts read the same state through `scripts/lib/shell-stack.sh`, so cutover modes do not revive ironbar, swaync, or the Python ticker.
    - Quickshell now owns native MPRIS and StatusNotifier tray widgets in the pilot bar; Ironbar remains the rollback owner until `bar-cutover`/`full-cutover`.
 
 3. **Notifications**: `swaync` (SwayNotificationCenter) and `mako` (fallback), with Quickshell history bridge.

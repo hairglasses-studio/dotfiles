@@ -14,6 +14,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$SCRIPT_DIR/lib/shell-stack.sh"
 
 DRY_RUN=false
 DO_RELOAD=true
@@ -36,6 +37,7 @@ done
 
 # shellcheck source=../theme/palette.env
 source "$DOTFILES_DIR/theme/palette.env"
+shell_stack_load
 export THEME_NAME THEME_MODE THEME_UI_FONT THEME_CODE_FONT THEME_ICON_FONT
 export THEME_BG THEME_SURFACE THEME_SURFACE_ALT THEME_PANEL THEME_PANEL_STRONG
 export THEME_BORDER THEME_BORDER_STRONG THEME_FG THEME_MUTED
@@ -135,13 +137,21 @@ _handle cava-colors.conf     "$HOME/.config/cava/config"                        
 if $DO_RELOAD && ! $DRY_RUN; then
     # ironbar hot-reload: restart is cheap (<100ms), a gsettings roundtrip alone
     # doesn't pick up CSS file changes reliably.
-    systemctl --user restart ironbar.service 2>/dev/null || true
-    swaync-client -rs 2>/dev/null || true
-    systemctl --user restart dotfiles-quickshell.service 2>/dev/null || true
+    if ! shell_stack_bar_cutover; then
+        systemctl --user restart ironbar.service 2>/dev/null || true
+    fi
+    if ! shell_stack_notification_cutover; then
+        swaync-client -rs 2>/dev/null || true
+    fi
+    if shell_stack_quickshell_wanted || systemctl --user is-active dotfiles-quickshell.service >/dev/null 2>&1; then
+        systemctl --user restart dotfiles-quickshell.service 2>/dev/null || true
+    fi
     # hyprshell CSS reload: kick the service
     systemctl --user restart dotfiles-hyprshell.service 2>/dev/null || true
     # Keybind ticker restart to pick up new palette (ticker reads colors at init).
-    systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null || true
+    if ! shell_stack_ticker_cutover; then
+        systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null || true
+    fi
 fi
 
 $DRY_RUN && _c_info "Dry-run complete — no files written" || _c_ok "Palette propagation complete"

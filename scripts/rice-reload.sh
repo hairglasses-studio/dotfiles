@@ -9,9 +9,12 @@ source "$SCRIPT_DIR/lib/hg-core.sh"
 source "$SCRIPT_DIR/lib/compositor.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/notify.sh"
+source "$SCRIPT_DIR/lib/shell-stack.sh"
 
+shell_stack_load
 reloaded=""
 failed=""
+skipped=""
 
 if [[ -x "$SCRIPT_DIR/theme-sync.sh" ]]; then
   if "$SCRIPT_DIR/theme-sync.sh" --quiet 2>/dev/null; then
@@ -29,14 +32,18 @@ else
 fi
 
 # Ironbar menubar
-if command -v ironbar >/dev/null 2>&1; then
-  if config_reload_service ironbar --quiet 2>/dev/null; then
-    reloaded="${reloaded} ironbar"
+if shell_stack_bar_cutover; then
+  skipped="${skipped} ironbar"
+else
+  if command -v ironbar >/dev/null 2>&1; then
+    if config_reload_service ironbar --quiet 2>/dev/null; then
+      reloaded="${reloaded} ironbar"
+    else
+      failed="${failed} ironbar"
+    fi
   else
     failed="${failed} ironbar"
   fi
-else
-  failed="${failed} ironbar"
 fi
 
 # Kitty (SIGUSR1)
@@ -56,14 +63,18 @@ if command -v gsettings &>/dev/null; then
 fi
 
 # Swaync notifications
-if swaync-client -rs 2>/dev/null; then
-  reloaded="${reloaded} swaync"
+if shell_stack_notification_cutover; then
+  skipped="${skipped} swaync"
 else
-  failed="${failed} swaync"
+  if swaync-client -rs 2>/dev/null; then
+    reloaded="${reloaded} swaync"
+  else
+    failed="${failed} swaync"
+  fi
 fi
 
-# Quickshell pilot bar
-if systemctl --user is-active dotfiles-quickshell.service >/dev/null 2>&1; then
+# Quickshell pilot/cutover bar
+if shell_stack_quickshell_wanted || systemctl --user is-active dotfiles-quickshell.service >/dev/null 2>&1; then
   if systemctl --user restart dotfiles-quickshell.service 2>/dev/null; then
     reloaded="${reloaded} quickshell"
   else
@@ -72,11 +83,15 @@ if systemctl --user is-active dotfiles-quickshell.service >/dev/null 2>&1; then
 fi
 
 # Keybind ticker — restart to pick up palette changes
-if systemctl --user is-active dotfiles-keybind-ticker.service >/dev/null 2>&1; then
-  if systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null; then
-    reloaded="${reloaded} ticker"
-  else
-    failed="${failed} ticker"
+if shell_stack_ticker_cutover; then
+  skipped="${skipped} ticker"
+else
+  if systemctl --user is-active dotfiles-keybind-ticker.service >/dev/null 2>&1; then
+    if systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null; then
+      reloaded="${reloaded} ticker"
+    else
+      failed="${failed} ticker"
+    fi
   fi
 fi
 
@@ -111,11 +126,22 @@ fi
 # Report
 reloaded="${reloaded# }"
 failed="${failed# }"
+skipped="${skipped# }"
 
 if [[ -n "$failed" ]]; then
-  hg_warn "Reloaded: ${reloaded}  |  Failed: ${failed}"
-  hg_notify_low "Rice Reload" "OK: ${reloaded}\nFail: ${failed}"
+  if [[ -n "$skipped" ]]; then
+    hg_warn "Reloaded: ${reloaded}  |  Failed: ${failed}  |  Skipped: ${skipped}"
+    hg_notify_low "Rice Reload" "OK: ${reloaded}\nFail: ${failed}\nSkip: ${skipped}"
+  else
+    hg_warn "Reloaded: ${reloaded}  |  Failed: ${failed}"
+    hg_notify_low "Rice Reload" "OK: ${reloaded}\nFail: ${failed}"
+  fi
 else
-  hg_ok "Reloaded: ${reloaded}"
-  hg_notify_low "Rice Reload" "${reloaded}"
+  if [[ -n "$skipped" ]]; then
+    hg_ok "Reloaded: ${reloaded}  |  Skipped: ${skipped}"
+    hg_notify_low "Rice Reload" "${reloaded}\nSkip: ${skipped}"
+  else
+    hg_ok "Reloaded: ${reloaded}"
+    hg_notify_low "Rice Reload" "${reloaded}"
+  fi
 fi

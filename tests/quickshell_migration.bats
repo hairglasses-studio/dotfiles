@@ -188,6 +188,27 @@ MOCK
     assert_success
 }
 
+@test "shell stack helpers read persisted cutover env" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    mkdir -p "${XDG_STATE_HOME}/dotfiles/shell-stack"
+    cat > "${XDG_STATE_HOME}/dotfiles/shell-stack/env" <<'ENV'
+SHELL_STACK_MODE=full-cutover
+QS_BAR_CUTOVER=1
+QS_TICKER_CUTOVER=1
+QUICKSHELL_NOTIFICATION_OWNER=1
+ENV
+
+    run bash -lc '
+source "$1"
+shell_stack_load
+shell_stack_bar_cutover
+shell_stack_ticker_cutover
+shell_stack_notification_cutover
+shell_stack_quickshell_wanted
+' _ "${SCRIPTS_DIR}/lib/shell-stack.sh"
+    assert_success
+}
+
 @test "shell stack apply persists full cutover environment" {
     export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
     export PATH="${BATS_TEST_TMPDIR}:${PATH}"
