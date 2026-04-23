@@ -410,6 +410,19 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "DRIFT"
 }
 
+@test "skill aliases in .claude/skills/ point at real canonical dirs" {
+    # Every .claude/skills/<dir-with-hyphen>/ is a compatibility alias
+    # for a snake_case canonical at both .claude/skills/<snake>/ and
+    # .agents/skills/<snake>/. Catches the class where a rename on
+    # the canonical leaves the hyphen alias stranded — invocation
+    # routing silently drops on the floor because the runtime can't
+    # resolve the alias target.
+    run bash "${SCRIPTS_DIR}/validate-skill-aliases.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
 @test "every install.sh scripts/* row resolves to an executable source" {
     # Generalizes ok 28 (retroarch-*) to the whole catalog. A
     # rename or delete that misses install.sh leaves a broken
