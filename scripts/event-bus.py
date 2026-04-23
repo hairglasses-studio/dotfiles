@@ -396,6 +396,40 @@ async def stream_pulse(rules: list[Rule]) -> None:
         backoff = min(backoff * 2, 60)
 
 
+async def _enrich_hypr_fingerprint(event_name: str, arg: str) -> str:
+    """Turn "urgent>>0x5593..." into "urgent>>firefox:Some Page Title" by
+    looking up the window address in `hyprctl clients -j`. Fails silently
+    back to the raw fingerprint — enrichment is strictly additive. Same
+    logic covers activewindow and activewindowv2 if those rules land
+    later, since they use the same address format.
+
+    For monitoradded / monitoraddedv2 / monitorremoved, arg is already
+    a monitor name (e.g. DP-4) — readable as-is, so no lookup needed.
+    """
+    raw = f"{event_name}>>{arg}"
+    if not arg.startswith("0x") and not arg.startswith("55"):
+        return raw
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "hyprctl", "clients", "-j",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        stdout, _ = await proc.communicate()
+        clients = json.loads(stdout.decode() or "[]")
+    except Exception:
+        return raw
+    needle = arg if arg.startswith("0x") else f"0x{arg}"
+    for c in clients:
+        if c.get("address") == needle:
+            cls = c.get("class") or c.get("initialClass") or "?"
+            title = (c.get("title") or "")[:80]
+            if title:
+                return f"{event_name}>>{cls}:{title}"
+            return f"{event_name}>>{cls}"
+    return raw
+
+
 async def stream_hypr_events(rules: list[Rule]) -> None:
     """Tail the Hyprland IPC socket2 via `hyprctl -r event -`."""
     hypr_rules = [r for r in rules if r.source == "hypr_events"]
@@ -421,6 +455,7 @@ async def stream_hypr_events(rules: list[Rule]) -> None:
                 line = raw.decode(errors="replace").rstrip()
                 parts = line.split(">>", 1)
                 event_name = parts[0] if parts else ""
+                arg = parts[1] if len(parts) > 1 else ""
                 for rule in hypr_rules:
                     if isinstance(rule.match, str) and re.search(rule.match, event_name):
                         # For correlation rules, only fire when a related
@@ -428,10 +463,14 @@ async def stream_hypr_events(rules: list[Rule]) -> None:
                         if rule.correlation_window_s > 0:
                             if not recent_has(rule.error_code, rule.correlation_window_s):
                                 continue
+                        # Enrich window-address args with the app class +
+                        # title — makes /heal actionable ("firefox is
+                        # urgent") instead of opaque ("0x5593... is urgent").
+                        fingerprint = await _enrich_hypr_fingerprint(event_name, arg)
                         ev = Event(
                             type=rule.error_code,
                             at=now_rfc(),
-                            fingerprint=line,
+                            fingerprint=fingerprint,
                             error_code=rule.error_code,
                             severity=rule.severity,
                             rule=rule.name,
