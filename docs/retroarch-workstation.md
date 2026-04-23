@@ -30,7 +30,7 @@ Summary JSON: `$XDG_STATE_HOME/retroarch-archive/sync-summary.json`.
 | `retroarch-workstation-audit` | Audit cores, BIOS/asset dirs, display, runtime. Writes JSON to `$XDG_STATE_HOME/retroarch/workstation-audit.json`. |
 | `retroarch-bios-apply` | Populate missing required BIOS/helper dirs (Dreamcast `dc/`, PSP `PPSSPP/`). Supports `--dry-run` and `--source-dir` for local BIOS drops. |
 | `retroarch-install-workstation-cores` | Install pacman-packaged libretro cores; optional AUR pass for `libretro-beetle-vb-git` when `yay`/`paru` is on `PATH`. `--skip-aur` disables the AUR pass. |
-| `retroarch-build-libretro-cores` | Source-build `race` (NGP) and `beetle-wswan` (WonderSwan) cores into `/usr/lib/libretro/`. `--dry-run` prints the steps. |
+| `retroarch-build-libretro-cores` | Source-build `race` (NGP) and `beetle-wswan` (WonderSwan) cores. Defaults to `/usr/lib/libretro/` (requires `sudo`); pass `--install-dir ~/.config/retroarch/cores` to drop into the user-local cores dir without `sudo`. `--dry-run` prints the steps; `--only race\|beetle-wswan\|beetle-vb` restricts the build set. |
 | `retroarch-apply-network-cmd` | Flip `network_cmd_enable` + `network_cmd_port` in `retroarch.cfg` atomically with a timestamped `retroarch.cfg.bak.*` backup. `--dry-run` and `--revert` supported. |
 
 ## Suggested workflow (first-run)
@@ -39,7 +39,8 @@ Summary JSON: `$XDG_STATE_HOME/retroarch-archive/sync-summary.json`.
 retroarch-workstation-audit                     # surface gaps
 retroarch-bios-apply                            # fill dreamcast + psp dirs
 retroarch-install-workstation-cores             # pacman + optional AUR
-sudo retroarch-build-libretro-cores             # source build race + beetle-wswan
+retroarch-build-libretro-cores \
+  --install-dir "$HOME/.config/retroarch/cores" # source build race + beetle-wswan, no sudo
 retroarch-apply-network-cmd                     # flip cfg + probe
 # restart RetroArch so it binds UDP 55355
 retroarch-archive-homebrew-sync --notify-runtime
@@ -70,9 +71,44 @@ zip-backed ROM counts and conditional BIOS, orchestrator end-to-end wiring,
 the atomic-with-backup cfg writer, bios-apply dry-run planning, and
 build-libretro-cores dry-run planning.
 
+## Runtime network commands
+
+`retroarch-apply-network-cmd` flips `network_cmd_enable` in `retroarch.cfg`;
+once RetroArch binds UDP 55355, commands can be sent via
+`retroarch --command '<CMD>'` or `scripts/lib/retroarch_runtime.send_udp_command()`.
+
+Commands we rely on today:
+
+- `SHOW_MSG <text>` — OSD notification (used by `--notify-runtime`).
+- `VERSION` — socket health probe, surfaced as `runtime.version_probe` in the audit JSON.
+
+Commands available but currently unused:
+
+- `SET_SHADER <path>` — swap shader preset.
+- `LOAD_CORE <path>` — load a core by filesystem path.
+- `LOAD_STATE_SLOT`, `SAVE_FILES`, `SCREENSHOT`, `PAUSE_TOGGLE`, `RESET`, `QUIT`.
+
+Not available — drive these from the menu or a fresh `retroarch` invocation:
+
+- Playlist reload / rescan. No UDP verb exists; see `Deferred` below.
+- Content library rebuild; use `retroarch --scan=PATH` in a separate process.
+- Config reload without restart.
+
+Full canonical list: <https://docs.libretro.com/development/retroarch/network-control-interface/>.
+
 ## Deferred
 
-- Playlist hot-reload — RetroArch's network command API has no verb for
-  reloading all playlists. `SHOW_MSG` remains the only runtime signal.
-- Audit perf (~19 s on the current ROM tree) — acceptable for batch runs;
-  revisit only if the sync orchestrator starts calling it in a tight loop.
+- **Playlist hot-reload.** Verified 2026-04-22 against RetroArch 1.22.2:
+  the UDP command interface has no verb for reloading playlists or
+  rebuilding the content library. Options considered and rejected:
+  (a) no network verb exists; (b) `retroarch --scan=PATH` always forks a
+  new process and does not talk to a running instance; (c) RetroArch's
+  own playlist refresh is user-driven via menu → Playlists → right-thumb.
+  A filesystem watcher could fire inotify on `~/.config/retroarch/playlists/`
+  but RetroArch itself does not poll for changes, so the user still has
+  to trigger the menu refresh. `SHOW_MSG` remains the only runtime
+  signal from `retroarch-archive-homebrew-sync --notify-runtime`.
+- Audit perf (2–3 s warm-cache on the 71 GB / 91-file ROM tree as of
+  2026-04-22; originally noted as ~19 s but that was a cold-cache or
+  pre-prune number). No optimization planned — batch-run cost is
+  already in the noise.
