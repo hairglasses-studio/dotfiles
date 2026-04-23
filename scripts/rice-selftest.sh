@@ -9,6 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/lib/kitty-config.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/lib/runtime-desktop-env.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/lib/shell-stack.sh" 2>/dev/null || true
 
 JSON_MODE=false
 SECTION="all"
@@ -187,7 +188,31 @@ test_plugins() {
 test_services() {
   echo "── Running Services ──" >&2
   refresh_desktop_runtime_env 2>/dev/null || true
+  if declare -F shell_stack_load >/dev/null 2>&1; then
+    shell_stack_load
+  else
+    QS_BAR_CUTOVER="${QS_BAR_CUTOVER:-0}"
+    QS_TICKER_CUTOVER="${QS_TICKER_CUTOVER:-0}"
+    QUICKSHELL_NOTIFICATION_OWNER="${QUICKSHELL_NOTIFICATION_OWNER:-0}"
+    SHELL_STACK_MODE="${SHELL_STACK_MODE:-pilot}"
+  fi
   for svc in ironbar quickshell swaync swww-daemon pypr swayosd-server dotfiles-keybind-ticker; do
+    if [[ "$svc" == "ironbar" && "${QS_BAR_CUTOVER:-0}" == "1" ]]; then
+      if pgrep -x ironbar &>/dev/null; then
+        add_result services "ironbar" warn "running despite Quickshell bar cutover"
+      else
+        add_result services "ironbar" pass "replaced by Quickshell bar"
+      fi
+      continue
+    fi
+    if [[ "$svc" == "swaync" && "${QUICKSHELL_NOTIFICATION_OWNER:-0}" == "1" ]]; then
+      if pgrep -x swaync &>/dev/null; then
+        add_result services "swaync" warn "running despite Quickshell notification cutover"
+      else
+        add_result services "swaync" pass "replaced by Quickshell notifications"
+      fi
+      continue
+    fi
     if [[ "$svc" == "pypr" ]]; then
       if command -v pypr >/dev/null 2>&1 && pypr version >/dev/null 2>&1; then
         add_result services "pypr" pass "daemon responding"
@@ -197,6 +222,14 @@ test_services() {
       continue
     fi
     if [[ "$svc" == "dotfiles-keybind-ticker" ]]; then
+      if [[ "${QS_TICKER_CUTOVER:-0}" == "1" ]]; then
+        if systemctl --user is-active --quiet dotfiles-keybind-ticker.service 2>/dev/null; then
+          add_result services "dotfiles-keybind-ticker" warn "active despite Quickshell ticker cutover"
+        else
+          add_result services "dotfiles-keybind-ticker" pass "replaced by Quickshell ticker"
+        fi
+        continue
+      fi
       if systemctl --user is-active --quiet dotfiles-keybind-ticker.service 2>/dev/null; then
         add_result services "dotfiles-keybind-ticker" pass "active (systemd user)"
       else
@@ -206,9 +239,13 @@ test_services() {
     fi
     if [[ "$svc" == "quickshell" ]]; then
       if systemctl --user is-active --quiet dotfiles-quickshell.service 2>/dev/null; then
-        add_result services "quickshell" pass "active (pilot service)"
+        add_result services "quickshell" pass "active (${SHELL_STACK_MODE:-pilot})"
       else
-        add_result services "quickshell" warn "not active (pilot service)"
+        if [[ "${SHELL_STACK_MODE:-pilot}" == "rollback" ]]; then
+          add_result services "quickshell" pass "inactive by rollback mode"
+        else
+          add_result services "quickshell" warn "not active (${SHELL_STACK_MODE:-pilot})"
+        fi
       fi
       continue
     fi
