@@ -58,6 +58,8 @@ func TestListReturnsAllCodes(t *testing.T) {
 		CodeTickerStale:          true,
 		CodeMcpkitVersionDrift:   true,
 		CodeHyprReloadInducedDrm: true,
+		CodeMonitorHotplug:       true,
+		CodeAppUrgent:            true,
 	}
 	seen := map[ErrorCode]bool{}
 	for _, e := range catalog {

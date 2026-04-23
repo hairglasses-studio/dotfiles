@@ -188,3 +188,26 @@ func TestHyprConfigRollbackEmptyName(t *testing.T) {
 		t.Fatal("expected error with empty name")
 	}
 }
+
+// TestHyprConfigRollbackTraversalRejected verifies that names containing
+// `..` segments that would escape the snapshot root are rejected with an
+// invalid-param error rather than resolving to an arbitrary directory.
+func TestHyprConfigRollbackTraversalRejected(t *testing.T) {
+	setupFakeHyprHome(t, map[string]string{
+		"hyprland.conf": "# k\n",
+	})
+	for _, badName := range []string{
+		"../../etc",
+		"../../../../home",
+		"legit/../../..",
+	} {
+		_, err := hyprConfigSnapshotRollback(badName, false)
+		if err == nil {
+			t.Errorf("expected rejection for traversal name %q, got nil", badName)
+			continue
+		}
+		if !strings.Contains(err.Error(), "escapes") {
+			t.Errorf("expected 'escapes' in error for %q, got %q", badName, err)
+		}
+	}
+}

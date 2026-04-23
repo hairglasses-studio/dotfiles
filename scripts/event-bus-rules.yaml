@@ -80,3 +80,17 @@ rules:
     # when a kernel DRM error has fired within the last 5 seconds. Otherwise
     # the configreloaded itself is a no-op and not recorded.
     correlation_window_s: 5
+
+  - name: Monitor hot-plug
+    source: hypr_events
+    # Matches monitoradded, monitoraddedv2, monitorremoved — anything with
+    # "monitor" at the start plus add/remove vocabulary.
+    match: "^monitor(added|added[vV]2|removed)"
+    error_code: monitor_hotplug
+    severity: low
+
+  - name: Wayland app urgency hint
+    source: hypr_events
+    match: "^urgent"
+    error_code: app_urgent
+    severity: medium

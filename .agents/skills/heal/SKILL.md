@@ -12,13 +12,20 @@ allowed-tools:
   - mcp__dotfiles__hypr_reload_config
   - mcp__dotfiles__ops_auto_fix
   - mcp__dotfiles__ops_lint_fix
+  - mcp__dotfiles__ops_test_smart
   - mcp__dotfiles__keybinds_refresh_ticker
   - mcp__dotfiles__systemd_restart
+  - mcp__dotfiles__systemd_restart_verify
+  # systemd_reset_failed isn't a remediation registry target — kept as a
+  # human-approved escape hatch when the model wants to clear a failed
+  # unit before another restart attempt.
   - mcp__dotfiles__systemd_reset_failed
   - mcp__dotfiles__dotfiles_reload_service
   - mcp__dotfiles__dotfiles_mcpkit_version_sync
   - mcp__dotfiles__color_pipeline_apply
   - mcp__dotfiles__audio_device_switch
+  - mcp__dotfiles__shader_random
+  - mcp__dotfiles__notify_send
 ---
 
 # /heal

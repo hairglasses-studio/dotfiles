@@ -51,6 +51,22 @@ notify_critical() {
   notify-send -u critical -a health-watchdog "$title" "$body" >/dev/null 2>&1 || true
 }
 
+# json_string escapes an arbitrary byte stream as a JSON string (including
+# the outer quotes). Uses jq when available — handles the full escape
+# table (backslash, control chars, quotes, unicode) correctly. Falls back
+# to python3 if jq is missing; both are present on every target worker.
+# Fallback-of-the-fallback is a stripped-down sed that accepts that
+# pathological inputs could forge downstream events — loud but rare.
+json_string() {
+  if command -v jq >/dev/null 2>&1; then
+    jq -Rs . <<< "$1"
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' <<< "$1"
+  else
+    printf '"%s"' "$(printf '%s' "$1" | tr -d '\n\r' | sed 's/\\/\\\\/g; s/"/\\"/g')"
+  fi
+}
+
 # ---------------------------------------------------------------------------
 # Pass 1: MCP liveness
 # ---------------------------------------------------------------------------
@@ -65,11 +81,18 @@ check_mcp() {
   out="$(timeout --preserve-status 10s "$RUN_MCP" --contract-print 2>&1)"
   rc=$?
   if [[ $rc -ne 0 ]]; then
-    local fingerprint
-    fingerprint="$(printf '%s' "$out" | head -c 200 | tr -d '\n\r' | sed 's/"/\\"/g')"
+    # Truncate first, then JSON-encode the whole slice — this way control
+    # chars, backslashes, and quotes all pass through jq's escape table
+    # intact. Hand-rolled sed only handled " and newline, which let a
+    # crashing subprocess emit `\n{"type":"mcp_healthy"}` as a literal
+    # two-char backslash-n sequence that downstream parsers on a line
+    # boundary would interpret as a separate forged event.
+    local fingerprint fingerprint_json
+    fingerprint="$(printf '%s' "$out" | head -c 200)"
+    fingerprint_json="$(json_string "$fingerprint")"
     local payload
-    payload=$(printf '{"type":"mcp_dead","at":"%s","rc":%d,"fingerprint":"%s"}' \
-                 "$(now_rfc)" "$rc" "$fingerprint")
+    payload=$(printf '{"type":"mcp_dead","at":"%s","rc":%d,"fingerprint":%s}' \
+                 "$(now_rfc)" "$rc" "$fingerprint_json")
     log_event "$payload"
     notify_critical "dotfiles-mcp probe failed (rc=$rc)" \
       "See ~/.claude/recovery-events.jsonl — restart Claude Code or run $RUN_MCP --contract-print"
@@ -84,9 +107,10 @@ check_event_bus() {
   local active
   active="$(systemctl --user is-active dotfiles-event-bus.service 2>/dev/null)"
   if [[ "$active" != "active" ]]; then
-    local payload
-    payload=$(printf '{"type":"event_bus_dead","at":"%s","state":"%s"}' \
-                 "$(now_rfc)" "$active")
+    local payload state_json
+    state_json="$(json_string "$active")"
+    payload=$(printf '{"type":"event_bus_dead","at":"%s","state":%s}' \
+                 "$(now_rfc)" "$state_json")
     log_event "$payload"
     notify_critical "dotfiles-event-bus is $active" \
       "Restarting — see ~/.claude/recovery-events.jsonl for details"
@@ -181,9 +205,11 @@ check_ticker_cache() {
     [[ -n "$age" ]] || continue
     threshold=$(( interval * 2 ))
     if (( age > threshold )); then
-      local payload
-      payload=$(printf '{"type":"ticker_stale","at":"%s","stream":"%s","age_s":%d,"interval_s":%d,"producer_unit":"%s"}' \
-                   "$(now_rfc)" "$stream" "$age" "$interval" "$timer")
+      local payload stream_json timer_json
+      stream_json="$(json_string "$stream")"
+      timer_json="$(json_string "$timer")"
+      payload=$(printf '{"type":"ticker_stale","at":"%s","stream":%s,"age_s":%d,"interval_s":%d,"producer_unit":%s}' \
+                   "$(now_rfc)" "$stream_json" "$age" "$interval" "$timer_json")
       log_event "$payload"
       # Restart the producer — idempotent on a healthy timer.
       systemctl --user restart "$timer" >/dev/null 2>&1 || true

@@ -263,7 +263,18 @@ func hyprConfigSnapshotRollback(name string, dryRun bool) (hyprConfigRollbackOut
 	}
 	out.SnapshotName = name
 
+	// Join + path-containment check: filepath.Join cleans `..` components,
+	// so `name = "../../../.ssh"` would resolve outside `root`. Reject any
+	// resolved path that doesn't sit under the snapshot root — the
+	// allowlist of files (configSnapshotFiles) below would already prevent
+	// a write-escape, but the confused-deputy read + the weird
+	// "pre-rollback-../.." snapshot naming are both bad signals we don't
+	// want in the chain.
 	src := filepath.Join(root, name)
+	rootClean := filepath.Clean(root) + string(filepath.Separator)
+	if !strings.HasPrefix(filepath.Clean(src)+string(filepath.Separator), rootClean) {
+		return out, fmt.Errorf("[%s] snapshot name %q escapes the snapshot root", handler.ErrInvalidParam, name)
+	}
 	info, err := os.Stat(src)
 	if err != nil || !info.IsDir() {
 		return out, fmt.Errorf("[%s] snapshot %q not found under %s", handler.ErrInvalidParam, name, root)

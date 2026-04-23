@@ -75,12 +75,13 @@ If build fails, the push broke compilation. Report immediately.
 
 After all checks pass:
 ```
-Canary: ALL CLEAR (5/5 tiers passed)
-  Build: OK (410 tools compiled)
-  MCP: OK (410 tools, 24 resources, 13 prompts)
+Canary: ALL CLEAR (6/6 tiers passed)
+  Build: OK (434 tools compiled)
+  MCP: OK (434 tools, 25 resources, 13 prompts)
   Services: OK (7/7 active)
   Rice: OK (palette compliant, shader active)
   CI: OK (3/3 checks passed) or SKIPPED (no recent push)
+  Event-bus: OK (0 pending high-severity, heartbeat fresh)
 ```
 
 On failure:

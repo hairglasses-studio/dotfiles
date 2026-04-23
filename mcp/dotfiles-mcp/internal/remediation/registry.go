@@ -70,6 +70,8 @@ const (
 	CodeKittySocketLost         ErrorCode = "kitty_socket_lost"
 	CodeMcpServerDead           ErrorCode = "mcp_server_dead"
 	CodeAudioSinkLost           ErrorCode = "audio_sink_lost"
+	CodeMonitorHotplug          ErrorCode = "monitor_hotplug"
+	CodeAppUrgent               ErrorCode = "app_urgent"
 )
 
 var (
@@ -207,6 +209,28 @@ func seeds() map[ErrorCode]Remediation {
 			Idempotent: false,
 			Risk:       RiskSafe,
 			Why:        "Switch to the previously-active sink before it vanished; args should be filled with the prior sink name.",
+		},
+		CodeMonitorHotplug: {
+			Tool:       "notify_send",
+			Args: map[string]any{
+				"title":   "Monitor hot-plug detected",
+				"body":    "A display was added or removed. hypr-monitor-watch reapplied transforms; verify output is correct.",
+				"urgency": "low",
+			},
+			Idempotent: true,
+			Risk:       RiskSafe,
+			Why:        "Surfaces display-topology changes — not a failure, but a state change /heal should flag alongside DRM errors.",
+		},
+		CodeAppUrgent: {
+			Tool:       "notify_send",
+			Args: map[string]any{
+				"title":   "App raised urgency hint",
+				"body":    "A Wayland client is requesting focus via the urgent hint.",
+				"urgency": "normal",
+			},
+			Idempotent: true,
+			Risk:       RiskSafe,
+			Why:        "Surfaces Wayland urgency signals that swaync alone doesn't — gives /heal a record of attention-demanding apps over time.",
 		},
 	}
 }
