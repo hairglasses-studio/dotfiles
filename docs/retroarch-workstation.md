@@ -167,6 +167,25 @@ python3 -c 'import json; d=json.load(open("'"$HOME"'/.local/state/retroarch/work
 The optional rows for `dc_boot.bin` / `dc_flash.bin` will flip to
 `status: present` with a populated `md5` field.
 
+## Optional BIOS files the sandbox can't auto-grab
+
+Two entries in the requirement catalog stay optional_missing on this
+workstation because they don't exist on any gdrive mount, aren't
+packaged for Arch/AUR, and can't be downloaded from inside a
+sandboxed agent session:
+
+| File | System | Expected md5 | Source |
+|---|---|---|---|
+| `PSXONPSP660.bin` | psx | `c53ca5908936d412331790f4426c6c33` | Extracted from PSP firmware (`popstation` / `pops660.PBP`); region-free PSX BIOS override used mainly to bypass regional lockout on some PSX discs. |
+| `ps1_rom.bin` | psx | `81bbe60ba7a3d1cea1d48c14cbcc647b` | PS3 firmware's PS1 emulation BIOS; region-free. Obtained by extracting from a PS3's firmware update blob. |
+
+Both are purely optional — the canonical SCPH5500/5501/5502 regional
+BIOS set is already in place and handles the common case. Drop
+either file at its expected filename into one of the gdrive BIOS
+mounts (e.g. `gdrive:Gaming & Emulation/ROMs/bios/psx/`) and rerun
+`retroarch-bios-link`; the tool will detect the md5 match and
+symlink it into `~/.config/retroarch/system/` automatically.
+
 ## Deferred
 
 - **Playlist hot-reload.** Verified 2026-04-22 against RetroArch 1.22.2:
