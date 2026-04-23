@@ -388,6 +388,7 @@ Item {
             shuffle: shuffle,
             preset: preset,
             urgent: urgent,
+            banner: bannerText,
             text: text,
             streams: streams,
             ok_total: okTotal,
