@@ -105,6 +105,29 @@ MOCK
     assert_output "swaync-client -t -sw"
 }
 
+@test "notification control persists explicit dnd when quickshell ipc is unavailable" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    export QUICKSHELL_BIN="${BATS_TEST_TMPDIR}/quickshell"
+    export SWAYNC_CLIENT_BIN="${BATS_TEST_TMPDIR}/missing-swaync-client"
+    cat > "$QUICKSHELL_BIN" <<'MOCK'
+#!/usr/bin/env bash
+exit 1
+MOCK
+    chmod +x "$QUICKSHELL_BIN"
+
+    run bash "${SCRIPTS_DIR}/notification-control.sh" dnd-on
+    assert_success
+    run python3 "${SCRIPTS_DIR}/notification-bridge.py" --limit 1
+    assert_success
+    assert_output --partial '"dnd":true'
+
+    run bash "${SCRIPTS_DIR}/notification-control.sh" dnd-off
+    assert_success
+    run python3 "${SCRIPTS_DIR}/notification-bridge.py" --limit 1
+    assert_success
+    assert_output --partial '"dnd":false'
+}
+
 @test "notification keybinds route through notification control wrapper" {
     run grep -E 'notification-control\.sh (toggle-center|dismiss-all|toggle-dnd)' \
         "${DOTFILES_DIR}/hyprland/hyprland.conf"

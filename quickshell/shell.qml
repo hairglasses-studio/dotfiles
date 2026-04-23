@@ -29,6 +29,7 @@ ShellRoot {
         function showNotifications(): string { notificationServiceObj.centerVisible = true; return "ok"; }
         function hideNotifications(): string { notificationServiceObj.centerVisible = false; return "ok"; }
         function toggleQuickSettings(): string { shellStateObj.quickSettingsVisible = !shellStateObj.quickSettingsVisible; return "ok"; }
+        function setDnd(enabled: bool): string { notificationServiceObj.setDnd(enabled); return "ok"; }
         function toggleDnd(): string { notificationServiceObj.toggleDnd(); return "ok"; }
         function closeNotifications(): string { notificationServiceObj.closeAll(); return "ok"; }
         function clearNotifications(): string { notificationServiceObj.clearHistory(); return "ok"; }

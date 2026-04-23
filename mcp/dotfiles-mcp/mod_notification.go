@@ -1,10 +1,13 @@
-// mod_notification.go — SwayNotificationCenter control via swaync-client
+// mod_notification.go — Notification control via Quickshell/swaync wrappers
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -19,6 +22,95 @@ import (
 
 const swayncCmd = "swaync-client"
 const swayncTimeout = 5 * time.Second
+const notificationControlTimeout = 5 * time.Second
+
+func notificationControlPath() string {
+	if path := os.Getenv("DOTFILES_NOTIFICATION_CONTROL"); path != "" {
+		return path
+	}
+	return filepath.Join(dotfilesDir(), "scripts", "notification-control.sh")
+}
+
+func notificationControlAvailable() bool {
+	info, err := os.Stat(notificationControlPath())
+	return err == nil && !info.IsDir()
+}
+
+func notificationControlRun(args ...string) (string, error) {
+	path := notificationControlPath()
+	ctx, cancel := context.WithTimeout(context.Background(), notificationControlTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, path, args...)
+	cmd.Env = append(os.Environ(), "QUICKSHELL_IPC_TIMEOUT=0.8")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return strings.TrimSpace(string(out)), fmt.Errorf("%s %s failed: %w: %s", path, strings.Join(args, " "), err, strings.TrimSpace(string(out)))
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+func notificationControlStatus() (map[string]any, error) {
+	if !notificationControlAvailable() {
+		return nil, fmt.Errorf("notification-control.sh not available")
+	}
+	out, err := notificationControlRun("status")
+	if err != nil {
+		return nil, err
+	}
+	var status map[string]any
+	if err := json.Unmarshal([]byte(out), &status); err != nil {
+		return nil, fmt.Errorf("decode notification-control status: %w", err)
+	}
+	return status, nil
+}
+
+func notificationStatusBool(status map[string]any, key string) (bool, bool) {
+	value, ok := status[key]
+	if !ok || value == nil {
+		return false, false
+	}
+	switch typed := value.(type) {
+	case bool:
+		return typed, true
+	case string:
+		switch strings.ToLower(strings.TrimSpace(typed)) {
+		case "true", "1", "yes", "on":
+			return true, true
+		case "false", "0", "no", "off":
+			return false, true
+		}
+	}
+	return false, false
+}
+
+func notificationStatusInt(status map[string]any, keys ...string) (int, bool) {
+	for _, key := range keys {
+		value, ok := status[key]
+		if !ok || value == nil {
+			continue
+		}
+		switch typed := value.(type) {
+		case float64:
+			return int(typed), true
+		case int:
+			return typed, true
+		case string:
+			if parsed, err := strconv.Atoi(strings.TrimSpace(typed)); err == nil {
+				return parsed, true
+			}
+		}
+	}
+	return 0, false
+}
+
+func notificationControlAction(action string) error {
+	if !notificationControlAvailable() {
+		return fmt.Errorf("notification-control.sh not available")
+	}
+	_, err := notificationControlRun(action)
+	return err
+}
 
 // swayncCheckTool checks if swaync-client is available on PATH.
 func swayncCheckTool() error {
@@ -99,37 +191,21 @@ type NotifyResult struct {
 // Module
 // ---------------------------------------------------------------------------
 
-// NotificationModule provides SwayNotificationCenter management tools via
-// swaync-client. Separate from NotifyModule (which wraps notify-send).
+// NotificationModule provides notification management tools via the repo
+// notification-control wrapper, with swaync-client as rollback fallback.
 type NotificationModule struct{}
 
 func (m *NotificationModule) Name() string { return "notification" }
 func (m *NotificationModule) Description() string {
-	return "SwayNotificationCenter control via swaync-client"
+	return "Notification control via Quickshell/swaync wrappers"
 }
 
 func (m *NotificationModule) Tools() []registry.ToolDefinition {
 	// ── notify_history ─────────────────────────────────────
-	// Note: swaync-client does not expose notification history via CLI.
-	// -s (subscribe) returns a status snapshot {count, dnd, visible, inhibited}.
-	// We return this status snapshot as the best available summary.
 	notifyHistory := handler.TypedHandler[NotifyHistoryInput, any](
 		"notify_history",
-		"Get SwayNotificationCenter status snapshot: notification count, DND state, panel visibility, inhibitor state. (swaync does not expose individual notification history via CLI.)",
+		"Get notification status: count, DND state, local tracked history, and active wrapper backend.",
 		func(_ context.Context, _ NotifyHistoryInput) (any, error) {
-			if err := swayncCheckTool(); err != nil {
-				return nil, err
-			}
-
-			// Get count and DND state via dedicated flags (reliable, no timeout)
-			countRaw, _ := swayncRunCmd("-c")
-			dndRaw, _ := swayncRunCmd("-D")
-
-			count := 0
-			if countRaw != "" {
-				_, _ = fmt.Sscanf(countRaw, "%d", &count)
-			}
-
 			entries, _ := readNotificationHistoryEntries()
 			tracked := len(entries)
 			visible := 0
@@ -139,14 +215,36 @@ func (m *NotificationModule) Tools() []registry.ToolDefinition {
 				}
 			}
 
+			backend := "history"
+			count := visible
+			dnd := false
+			if status, err := notificationControlStatus(); err == nil {
+				backend = "notification-control"
+				if parsed, ok := notificationStatusInt(status, "notificationCount", "daemon_count", "visible"); ok {
+					count = parsed
+				}
+				if parsed, ok := notificationStatusBool(status, "dnd"); ok {
+					dnd = parsed
+				}
+			} else if swayncCheckTool() == nil {
+				backend = "swaync-client"
+				countRaw, _ := swayncRunCmd("-c")
+				dndRaw, _ := swayncRunCmd("-D")
+				if countRaw != "" {
+					_, _ = fmt.Sscanf(countRaw, "%d", &count)
+				}
+				dnd = strings.TrimSpace(dndRaw) == "true"
+			}
+
 			return map[string]any{
 				"count":                  count,
-				"dnd":                    strings.TrimSpace(dndRaw) == "true",
+				"dnd":                    dnd,
+				"backend":                backend,
 				"tracked_entries":        tracked,
 				"tracked_visible":        visible,
 				"history_log_path":       dotfilesNotificationHistoryLogPath(),
 				"history_listener_alive": notificationHistoryListenerRunning(),
-				"note":                   "swaync does not expose individual notification history via CLI; detailed history is provided by the local desktop-control log",
+				"note":                   "Detailed history is provided by the local desktop-control log; actions route through notification-control when available.",
 			}, nil
 		},
 	)
@@ -211,14 +309,20 @@ func (m *NotificationModule) Tools() []registry.ToolDefinition {
 	// ── notify_dnd ─────────────────────────────────────────
 	notifyDND := handler.TypedHandler[NotifyDNDInput, NotifyResult](
 		"notify_dnd",
-		"Manage Do Not Disturb mode in SwayNotificationCenter. Actions: get (query current state), toggle, on, off.",
+		"Manage Do Not Disturb mode through Quickshell/swaync wrappers. Actions: get, toggle, on, off.",
 		func(_ context.Context, input NotifyDNDInput) (NotifyResult, error) {
-			if err := swayncCheckTool(); err != nil {
-				return NotifyResult{}, err
-			}
-
 			switch input.Action {
 			case "get":
+				if status, err := notificationControlStatus(); err == nil {
+					enabled, _ := notificationStatusBool(status, "dnd")
+					if enabled {
+						return NotifyResult{Result: "DND is enabled"}, nil
+					}
+					return NotifyResult{Result: "DND is disabled"}, nil
+				}
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				out, err := swayncRunCmd("-D")
 				if err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to get DND state: %w", err)
@@ -230,6 +334,12 @@ func (m *NotificationModule) Tools() []registry.ToolDefinition {
 				return NotifyResult{Result: "DND is disabled"}, nil
 
 			case "toggle":
+				if err := notificationControlAction("toggle-dnd"); err == nil {
+					return NotifyResult{Result: "DND toggled"}, nil
+				}
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				out, err := swayncRunCmd("-d")
 				if err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to toggle DND: %w", err)
@@ -237,12 +347,24 @@ func (m *NotificationModule) Tools() []registry.ToolDefinition {
 				return NotifyResult{Result: fmt.Sprintf("DND toggled (new state: %s)", out)}, nil
 
 			case "on":
+				if err := notificationControlAction("dnd-on"); err == nil {
+					return NotifyResult{Result: "DND enabled"}, nil
+				}
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				if _, err := swayncRunCmd("-dn"); err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to enable DND: %w", err)
 				}
 				return NotifyResult{Result: "DND enabled"}, nil
 
 			case "off":
+				if err := notificationControlAction("dnd-off"); err == nil {
+					return NotifyResult{Result: "DND disabled"}, nil
+				}
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				if _, err := swayncRunCmd("-df"); err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to disable DND: %w", err)
 				}
@@ -258,14 +380,17 @@ func (m *NotificationModule) Tools() []registry.ToolDefinition {
 	// ── notify_dismiss ─────────────────────────────────────
 	notifyDismiss := handler.TypedHandler[NotifyDismissInput, NotifyResult](
 		"notify_dismiss",
-		"DESTRUCTIVE: Dismiss notifications in SwayNotificationCenter. Scope: all (dismiss everything) or latest (dismiss most recent only).",
+		"DESTRUCTIVE: Dismiss notifications through Quickshell/swaync wrappers. Scope: all or latest.",
 		func(_ context.Context, input NotifyDismissInput) (NotifyResult, error) {
-			if err := swayncCheckTool(); err != nil {
-				return NotifyResult{}, err
-			}
-
 			switch input.Scope {
 			case "all":
+				if err := notificationControlAction("dismiss-all"); err == nil {
+					_, _ = markNotificationHistoryDismissed(0)
+					return NotifyResult{Result: "All notifications dismissed"}, nil
+				}
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				if _, err := swayncRunCmd("-C"); err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to dismiss all notifications: %w", err)
 				}
@@ -273,6 +398,9 @@ func (m *NotificationModule) Tools() []registry.ToolDefinition {
 				return NotifyResult{Result: "All notifications dismissed"}, nil
 
 			case "latest":
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				if _, err := swayncRunCmd("--close-latest"); err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to dismiss latest notification: %w", err)
 				}
@@ -289,8 +417,13 @@ func (m *NotificationModule) Tools() []registry.ToolDefinition {
 	// ── notify_count ───────────────────────────────────────
 	notifyCount := handler.TypedHandler[struct{}, NotifyResult](
 		"notify_count",
-		"Get the current notification count from SwayNotificationCenter.",
+		"Get the current notification count from notification-control or swaync fallback.",
 		func(_ context.Context, _ struct{}) (NotifyResult, error) {
+			if status, err := notificationControlStatus(); err == nil {
+				if count, ok := notificationStatusInt(status, "notificationCount", "daemon_count", "visible"); ok {
+					return NotifyResult{Result: fmt.Sprintf("%d", count)}, nil
+				}
+			}
 			if err := swayncCheckTool(); err != nil {
 				return NotifyResult{}, err
 			}
@@ -313,26 +446,40 @@ func (m *NotificationModule) Tools() []registry.ToolDefinition {
 	// ── notify_panel ───────────────────────────────────────
 	notifyPanel := handler.TypedHandler[NotifyPanelInput, NotifyResult](
 		"notify_panel",
-		"DESTRUCTIVE: Control the SwayNotificationCenter panel visibility. Actions: toggle, open, close.",
+		"DESTRUCTIVE: Control the notification panel visibility through Quickshell/swaync wrappers. Actions: toggle, open, close.",
 		func(_ context.Context, input NotifyPanelInput) (NotifyResult, error) {
-			if err := swayncCheckTool(); err != nil {
-				return NotifyResult{}, err
-			}
-
 			switch input.Action {
 			case "toggle":
+				if err := notificationControlAction("toggle-center"); err == nil {
+					return NotifyResult{Result: "Notification panel toggled"}, nil
+				}
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				if _, err := swayncRunCmd("-t"); err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to toggle panel: %w", err)
 				}
 				return NotifyResult{Result: "Notification panel toggled"}, nil
 
 			case "open":
+				if err := notificationControlAction("show-center"); err == nil {
+					return NotifyResult{Result: "Notification panel opened"}, nil
+				}
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				if _, err := swayncRunCmd("-op"); err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to open panel: %w", err)
 				}
 				return NotifyResult{Result: "Notification panel opened"}, nil
 
 			case "close":
+				if err := notificationControlAction("hide-center"); err == nil {
+					return NotifyResult{Result: "Notification panel closed"}, nil
+				}
+				if err := swayncCheckTool(); err != nil {
+					return NotifyResult{}, err
+				}
 				if _, err := swayncRunCmd("-cp"); err != nil {
 					return NotifyResult{}, fmt.Errorf("failed to close panel: %w", err)
 				}

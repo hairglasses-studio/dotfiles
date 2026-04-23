@@ -13,7 +13,7 @@ ipc_timeout="${QUICKSHELL_IPC_TIMEOUT:-0.8}"
 
 usage() {
   cat <<'EOF'
-Usage: notification-control.sh <toggle-center|show-center|hide-center|toggle-dnd|dismiss-all|clear-history|toggle-quick-settings|status>
+Usage: notification-control.sh <toggle-center|show-center|hide-center|toggle-dnd|dnd-on|dnd-off|dismiss-all|clear-history|toggle-quick-settings|status>
 
 Prefers Quickshell IPC when a shell instance is running. Falls back to swaync
 or the local notification bridge for rollback modes.
@@ -52,6 +52,12 @@ case "$action" in
     ;;
   toggle-dnd)
     qs_call toggleDnd || bridge_call --dnd toggle
+    ;;
+  dnd-on)
+    qs_call setDnd true || bridge_call --dnd true
+    ;;
+  dnd-off)
+    qs_call setDnd false || bridge_call --dnd false
     ;;
   dismiss-all)
     qs_call closeNotifications || bridge_call --close-all

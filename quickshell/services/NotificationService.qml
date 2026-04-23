@@ -54,9 +54,13 @@ Item {
         if (!actionProc.running) actionProc.exec(["python3", root.bridgePath].concat(args));
     }
 
-    function toggleDnd() {
-        root.dnd = !root.dnd;
+    function setDnd(enabled) {
+        root.dnd = enabled;
         runAction(["--dnd", root.dnd ? "true" : "false"]);
+    }
+
+    function toggleDnd() {
+        setDnd(!root.dnd);
     }
 
     function closeAll() {
