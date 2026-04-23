@@ -506,6 +506,33 @@ JSON
     fi
 }
 
+@test "retroarch-saves-backup systemd unit syntax + references" {
+    # systemd-analyze verifies the unit parses; content grep confirms
+    # the expected rclone config path reference and the two sync
+    # invocations (saves + states).
+    command -v systemd-analyze >/dev/null 2>&1 || skip "systemd-analyze not installed"
+    run systemd-analyze verify \
+        "${DOTFILES_DIR}/systemd/retroarch-saves-backup.service" \
+        "${DOTFILES_DIR}/systemd/retroarch-saves-backup.timer"
+    assert_success
+
+    run cat "${DOTFILES_DIR}/systemd/retroarch-saves-backup.service"
+    assert_success
+    assert_output --partial "%h/.config/rclone/rclone.conf"
+    assert_output --partial "%h/.config/retroarch/saves"
+    assert_output --partial "%h/.config/retroarch/states"
+    assert_output --partial "--backup-dir"
+    assert_output --partial 'gdrive:Gaming & Emulation/RetroArch/saves'
+    assert_output --partial 'gdrive:Gaming & Emulation/RetroArch/states'
+    # Must NOT hardcode /home/hg/ — uses %h specifier throughout.
+    refute_output --partial "/home/hg/"
+
+    run cat "${DOTFILES_DIR}/systemd/retroarch-saves-backup.timer"
+    assert_success
+    assert_output --partial "OnCalendar=daily"
+    assert_output --partial "Persistent=true"
+}
+
 @test "retroarch-mounts-audit handles missing mounts root gracefully" {
     run python3 "${DOTFILES_DIR}/scripts/retroarch-mounts-audit.py" \
         --mounts-root "${BATS_TEST_TMPDIR}/no-such-dir" \

@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily RetroArch saves + states backup to gdrive
+
+[Timer]
+OnBootSec=15min
+OnCalendar=daily
+Persistent=true
+Unit=retroarch-saves-backup.service
+
+[Install]
+WantedBy=timers.target

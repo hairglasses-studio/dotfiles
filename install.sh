@@ -801,6 +801,7 @@ create_symlinks() {
             rg-status-bar.timer
             bar-gpu.timer
             bar-retroarch.timer
+            retroarch-saves-backup.timer
             bar-updates.timer
             bar-mx.timer
             bar-weather.timer

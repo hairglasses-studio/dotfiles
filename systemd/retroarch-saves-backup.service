@@ -1,0 +1,24 @@
+[Unit]
+Description=RetroArch saves + states backup to gdrive
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=RCLONE_CONFIG=%h/.config/rclone/rclone.conf
+ExecStart=/usr/bin/bash -lc '\
+  set -e; \
+  backup_dir="%h/.cache/retroarch-saves-backup/$(date -u +%%Y%%m%%dT%%H%%M%%SZ)"; \
+  /usr/bin/rclone sync --config %h/.config/rclone/rclone.conf \
+    --exclude "*.tmp" --exclude ".DS_Store" \
+    --backup-dir "$backup_dir/saves" \
+    %h/.config/retroarch/saves "gdrive:Gaming & Emulation/RetroArch/saves"; \
+  /usr/bin/rclone sync --config %h/.config/rclone/rclone.conf \
+    --exclude "*.tmp" --exclude ".DS_Store" \
+    --backup-dir "$backup_dir/states" \
+    %h/.config/retroarch/states "gdrive:Gaming & Emulation/RetroArch/states"'
+TimeoutStartSec=20min
+MemoryMax=256M
+
+[Install]
+WantedBy=default.target
