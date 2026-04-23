@@ -74,7 +74,7 @@ print("visible=%d critical=%d" % (payload["visible"], payload["critical"]))
     run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" full-pilot
     assert_success
     assert_output --partial "[dry] write"
-    assert_output --partial "[dry] systemctl --user start dotfiles-quickshell.service"
+    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
     assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
 }
@@ -105,10 +105,10 @@ MOCK
 
     run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" --apply full-cutover
     assert_success
-    assert_output --partial "+ systemctl --user start dotfiles-quickshell.service"
+    assert_output --partial "+ systemctl --user stop swaync.service"
+    assert_output --partial "+ systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "+ systemctl --user stop ironbar.service"
     assert_output --partial "+ systemctl --user stop dotfiles-keybind-ticker.service"
-    assert_output --partial "+ systemctl --user stop swaync.service"
 
     local env_file="${XDG_STATE_HOME}/dotfiles/shell-stack/env"
     [[ -f "$env_file" ]]
@@ -119,18 +119,19 @@ MOCK
 @test "hg shell module routes to shell stack dry-run controls" {
     run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell full-pilot
     assert_success
-    assert_output --partial "[dry] systemctl --user start dotfiles-quickshell.service"
+    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
 }
 
 @test "hg shell module exposes notification and full cutover modes" {
     run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell notification-cutover
     assert_success
-    assert_output --partial "[dry] systemctl --user start dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop swaync.service"
+    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
 
     run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell full-cutover
     assert_success
+    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
     assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
     assert_output --partial "[dry] systemctl --user stop swaync.service"

@@ -186,6 +186,7 @@ print_status_json() {
 }
 
 start_unit() { run_cmd systemctl --user start "$1"; }
+restart_unit() { run_cmd systemctl --user restart "$1"; }
 stop_unit() { run_cmd systemctl --user stop "$1"; }
 
 start_swaync() {
@@ -218,7 +219,7 @@ case "$MODE" in
     ;;
   pilot)
     persist_mode "$MODE"
-    start_unit dotfiles-quickshell.service
+    restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
     start_swaync
@@ -226,7 +227,7 @@ case "$MODE" in
     ;;
   bar-cutover)
     persist_mode "$MODE"
-    start_unit dotfiles-quickshell.service
+    restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
     start_swaync
@@ -234,7 +235,7 @@ case "$MODE" in
     ;;
   ticker-cutover)
     persist_mode "$MODE"
-    start_unit dotfiles-quickshell.service
+    restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
     start_swaync
@@ -242,15 +243,15 @@ case "$MODE" in
     ;;
   notification-cutover)
     persist_mode "$MODE"
-    start_unit dotfiles-quickshell.service
+    stop_swaync
+    restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
-    stop_swaync
     start_unit dotfiles-notification-history.service
     ;;
   full-pilot)
     persist_mode "$MODE"
-    start_unit dotfiles-quickshell.service
+    restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
     start_swaync
@@ -258,10 +259,10 @@ case "$MODE" in
     ;;
   full-cutover)
     persist_mode "$MODE"
-    start_unit dotfiles-quickshell.service
+    stop_swaync
+    restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
-    stop_swaync
     start_unit dotfiles-notification-history.service
     ;;
   rollback)

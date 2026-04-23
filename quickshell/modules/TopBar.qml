@@ -120,7 +120,7 @@ PanelWindow {
         Components.Badge { visible: primary && barData.fleetText.length > 0; colors: panel.colors; text: barData.fleetText; accent: colors.secondary }
         Components.Badge { visible: primary && barData.claudeText.length > 0; colors: panel.colors; text: barData.claudeText; accent: colors.tertiary }
         Components.Badge { visible: primary && barData.shaderText.length > 0; colors: panel.colors; text: "SH " + barData.shaderText; accent: colors.blue }
-        Components.Badge { visible: primary && barData.mediaText.length > 0; colors: panel.colors; text: barData.mediaText; accent: colors.secondary }
+        Components.MediaBadges { visible: primary; colors: panel.colors; fallbackText: barData.mediaText }
         Components.Badge { visible: primary && barData.systemText.length > 0; colors: panel.colors; text: barData.systemText; accent: colors.warning }
         Components.Badge { visible: barData.gpuText.length > 0; colors: panel.colors; text: barData.gpuText; accent: colors.warning }
         Components.Badge { visible: primary && barData.retroarchText.length > 0; colors: panel.colors; text: barData.retroarchText; accent: colors.tertiary }
@@ -137,5 +137,6 @@ PanelWindow {
         Components.Badge { visible: barData.volumeText.length > 0; colors: panel.colors; text: "VOL " + barData.volumeText; accent: colors.primary }
         Components.Badge { visible: primary && barData.weatherText.length > 0; colors: panel.colors; text: barData.weatherText; accent: colors.tertiary }
         Components.Badge { visible: barData.networkText.length > 0; colors: panel.colors; text: barData.networkText; accent: colors.blue }
+        Components.Tray { visible: primary; colors: panel.colors; hostWindow: panel }
     }
 }

@@ -12,6 +12,8 @@ Append-only ADR-lite record of architectural calls that shaped this repo. Manage
 
 **Consequences**: `run-quickshell.sh` consumes persisted cutover flags; `ticker-bridge.py` supports watch mode; `notification-bridge.py` gains DND/clear/append actions; and tests now cover the new shell modes.
 
+**Follow-up**: Cutover modes restart Quickshell after writing mode state, so a running pilot cannot keep stale ownership flags. The pilot bar also moved media and tray surfaces onto native Quickshell MPRIS/StatusNotifier services.
+
 ## 2026-04-23 — Stage shell migration through Quickshell pilot
 
 **Context**: The Hyprland shell stack still split responsibilities across ironbar, swaync, and the Python ticker. A notification flood showed DND and critical-urgency handling needed hardening, but a same-session D-Bus notification-owner cutover would risk breaking MCP notification tooling.
