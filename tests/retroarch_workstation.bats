@@ -407,6 +407,27 @@ PY
     assert_output --partial "\"port\": 55355"
 }
 
+@test "retroarch-mounts-audit handles missing mounts root gracefully" {
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-mounts-audit.py" \
+        --mounts-root "${BATS_TEST_TMPDIR}/no-such-dir" \
+        --report "${BATS_TEST_TMPDIR}/report.json"
+    # Exits 2 with an error message — doesn't traceback.
+    [[ "$status" -eq 2 ]]
+    assert_output --partial "mounts root missing"
+}
+
+@test "retroarch-mounts-audit --json emits a structured report for an empty root" {
+    mkdir -p "${BATS_TEST_TMPDIR}/mounts/roms" "${BATS_TEST_TMPDIR}/mounts/bios"
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-mounts-audit.py" \
+        --mounts-root "${BATS_TEST_TMPDIR}/mounts" \
+        --report "${BATS_TEST_TMPDIR}/report.json" \
+        --json
+    # systemctl --user may or may not be available in the runner; tool
+    # exits 2 with a clear error when it isn't. Both 0 and 2 are valid.
+    [[ "$status" -eq 0 || "$status" -eq 2 ]]
+    assert_output --partial "\"mounts_root\""
+}
+
 @test "retroarch-map-roms --dry-run reassigns DETECT core_paths and scans missing roms" {
     local playlists="${BATS_TEST_TMPDIR}/playlists"
     local roms="${BATS_TEST_TMPDIR}/roms"
