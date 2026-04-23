@@ -446,6 +446,66 @@ PY
     [[ ! -e "${system}/dc/dc_flash.bin" ]] || fail "dc_flash.bin created under dry-run"
 }
 
+@test "bar-retroarch-cache writes expected label when content_history has entries" {
+    local home_stub="${BATS_TEST_TMPDIR}/stub_home"
+    local history_dir="${home_stub}/.config/retroarch/playlists/builtin"
+    local state="${home_stub}/.local/state/retroarch"
+    local cache_file="${BATS_TEST_TMPDIR}/bar-retroarch.txt"
+    mkdir -p "${history_dir}" "${state}"
+    cat > "${history_dir}/content_history.lpl" <<'JSON'
+{
+  "items": [
+    {"path": "/roms/ps2/Shadow of the Colossus (USA).iso",
+     "label": "",
+     "core_path": "/usr/lib/libretro/pcsx2_libretro.so",
+     "core_name": "Sony - PlayStation 2 (LRPS2)"}
+  ]
+}
+JSON
+    # Shim the script: it uses $HOME for history + $XDG_STATE_HOME for mounts
+    # audit. Override both; the script writes to /tmp/bar-retroarch.txt.
+    # Save the current /tmp cache if it exists so we don't cross test state.
+    local saved=""
+    if [[ -f /tmp/bar-retroarch.txt ]]; then
+        saved="${BATS_TEST_TMPDIR}/saved-bar.txt"
+        cp /tmp/bar-retroarch.txt "${saved}"
+    fi
+    HOME="${home_stub}" XDG_STATE_HOME="${home_stub}/.local/state" \
+        run bash "${DOTFILES_DIR}/scripts/bar-retroarch-cache.sh"
+    assert_success
+    run cat /tmp/bar-retroarch.txt
+    # Region tag stripped, core short-name in brackets
+    assert_output --partial "Shadow of the Colossus"
+    assert_output --partial "[LRPS2]"
+    refute_output --partial "(USA)"
+    # Restore any pre-existing cache.
+    if [[ -n "${saved}" ]]; then
+        cp "${saved}" /tmp/bar-retroarch.txt
+    fi
+}
+
+@test "bar-retroarch-cache writes empty string when content_history is absent" {
+    local home_stub="${BATS_TEST_TMPDIR}/stub_home"
+    mkdir -p "${home_stub}/.local/state/retroarch"
+    # Deliberately do NOT create the history file.
+    local saved=""
+    if [[ -f /tmp/bar-retroarch.txt ]]; then
+        saved="${BATS_TEST_TMPDIR}/saved-bar.txt"
+        cp /tmp/bar-retroarch.txt "${saved}"
+    fi
+    HOME="${home_stub}" XDG_STATE_HOME="${home_stub}/.local/state" \
+        run bash "${DOTFILES_DIR}/scripts/bar-retroarch-cache.sh"
+    assert_success
+    # Cache file exists but is empty (the ticker stream treats empty as "hide").
+    [[ -f /tmp/bar-retroarch.txt ]] || fail "cache file not written"
+    local size
+    size=$(wc -c < /tmp/bar-retroarch.txt)
+    [[ "${size}" -eq 0 ]] || fail "expected empty cache, got ${size} bytes"
+    if [[ -n "${saved}" ]]; then
+        cp "${saved}" /tmp/bar-retroarch.txt
+    fi
+}
+
 @test "retroarch-mounts-audit handles missing mounts root gracefully" {
     run python3 "${DOTFILES_DIR}/scripts/retroarch-mounts-audit.py" \
         --mounts-root "${BATS_TEST_TMPDIR}/no-such-dir" \

@@ -278,6 +278,7 @@ $DOTFILES_DIR/scripts/retroarch-playlist-audit.py|$HOME/.local/bin/retroarch-pla
 $DOTFILES_DIR/scripts/retroarch-map-roms.py|$HOME/.local/bin/retroarch-map-roms
 $DOTFILES_DIR/scripts/retroarch-mounts-audit.py|$HOME/.local/bin/retroarch-mounts-audit
 $DOTFILES_DIR/scripts/retroarch-bios-link.py|$HOME/.local/bin/retroarch-bios-link
+$DOTFILES_DIR/scripts/bar-retroarch-cache.sh|$HOME/.local/bin/bar-retroarch-cache
 $DOTFILES_DIR/scripts/retroarch-install-widescreen-cores.sh|$HOME/.local/bin/retroarch-install-widescreen-cores
 $DOTFILES_DIR/scripts/retroarch-dolphin-sync-sys.sh|$HOME/.local/bin/retroarch-dolphin-sync-sys
 $DOTFILES_DIR/scripts/retroarch-next-widescreen-setup.sh|$HOME/.local/bin/retroarch-next-widescreen-setup
@@ -799,6 +800,7 @@ create_symlinks() {
         local desktop_passive_units=(
             rg-status-bar.timer
             bar-gpu.timer
+            bar-retroarch.timer
             bar-updates.timer
             bar-mx.timer
             bar-weather.timer

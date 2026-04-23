@@ -1,0 +1,16 @@
+# bar-retroarch.timer — Periodic RetroArch now-playing cache refresh
+#
+# Triggers bar-retroarch.service every 30 seconds to keep Ironbar's
+# RetroArch widget fresh without blocking on JSON parse.
+#
+# Enable: systemctl --user enable --now bar-retroarch.timer
+
+[Unit]
+Description=Refresh Ironbar RetroArch now-playing cache every 30s
+
+[Timer]
+OnBootSec=10
+OnUnitActiveSec=30
+
+[Install]
+WantedBy=timers.target

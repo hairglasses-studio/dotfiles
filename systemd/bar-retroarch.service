@@ -1,0 +1,17 @@
+# bar-retroarch.service — Refresh Ironbar RetroArch cache
+#
+# Reads the most-recent entry from RetroArch's content_history.lpl +
+# the mounts-audit report, writes a label to /tmp/bar-retroarch.txt.
+# Ironbar reads the cache file with `cat`, never blocking the GTK
+# main loop on JSON parse.
+#
+# Paired with bar-retroarch.timer (30s interval).
+
+[Unit]
+Description=Refresh Ironbar RetroArch now-playing cache
+
+[Service]
+Type=oneshot
+ExecStart=%h/hairglasses-studio/dotfiles/scripts/bar-retroarch-cache.sh
+MemoryMax=32M
+CPUQuota=5%
