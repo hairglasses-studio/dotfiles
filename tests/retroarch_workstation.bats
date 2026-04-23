@@ -602,6 +602,9 @@ JSON
     assert_output --partial "--backup-dir"
     assert_output --partial 'gdrive:Gaming & Emulation/RetroArch/saves'
     assert_output --partial 'gdrive:Gaming & Emulation/RetroArch/states'
+    # --backup-dir must point at the same remote as the destination;
+    # rclone refuses cross-remote backup paths.
+    assert_output --partial 'gdrive:Gaming & Emulation/RetroArch/archive'
     # Must NOT hardcode /home/hg/ — uses %h specifier throughout.
     refute_output --partial "/home/hg/"
 
