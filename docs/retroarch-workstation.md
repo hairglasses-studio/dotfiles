@@ -73,6 +73,44 @@ retroarch-workstation-audit                     # confirm clean
 - `$XDG_STATE_HOME/retroarch-archive/homebrew-manifest.json` — curated Archive.org manifest.
 - `$XDG_STATE_HOME/retroarch-archive/sync-summary.json` — last orchestrator run.
 - `$XDG_STATE_HOME/retroarch/bios-apply.json` — last BIOS helper run.
+- `$XDG_STATE_HOME/retroarch/playlist-audit.json` — playlist core/ROM integrity.
+- `$XDG_STATE_HOME/retroarch/mounts-audit.json` — rclone mount health.
+- `$XDG_STATE_HOME/retroarch/thumbnail-audit.json` — thumbnail fill rate per system.
+- `$XDG_STATE_HOME/retroarch/thumbnail-fill.json` — last fetch run (first 500 actions capped).
+- `/tmp/bar-retroarch.txt` — ticker cache (refreshed every 30s by `bar-retroarch.timer`).
+
+## Ticker widget
+
+`bar-retroarch.timer` runs `scripts/bar-retroarch-cache.sh` every 30 s.
+The script reads the first entry of `~/.config/retroarch/playlists/builtin/
+content_history.lpl` plus `mounts-audit.json` summary, and writes a
+composite label to `/tmp/bar-retroarch.txt`:
+
+```
+󰊗 Shadow of the Colossus [LRPS2] ⎈5/5
+```
+
+Format: `<icon> <title with (region) stripped> [<core short-name>] ⎈<active>/<total>`.
+The mount badge appends `!` when `active < total` (stale cache or
+unreachable mount). Empty output when no history + no mount info → the
+Ironbar widget hides.
+
+The Ironbar widget is defined in `ironbar/config.toml` under the
+`[[monitors."DP-3".end]]` block with `class = "bar-retroarch"`.
+
+## Save/state backup
+
+`retroarch-saves-backup.timer` fires `OnCalendar=daily` + `OnBootSec=15min`
+with `Persistent=true`. Pushes `~/.config/retroarch/{saves,states}` to
+`gdrive:Gaming & Emulation/RetroArch/{saves,states}` via `rclone sync`.
+
+Replaced or removed files get archived to
+`gdrive:Gaming & Emulation/RetroArch/archive/<iso-utc>/{saves,states}`
+via `--backup-dir`, so an accidental local `rm` doesn't erase the remote
+copy — recovery is a single `rclone copy` back into
+`~/.config/retroarch/saves`.
+
+Manual trigger: `systemctl --user start retroarch-saves-backup.service`.
 
 ## Runtime OSD prerequisite
 
