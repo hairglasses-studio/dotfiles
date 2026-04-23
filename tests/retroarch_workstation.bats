@@ -407,6 +407,45 @@ PY
     assert_output --partial "\"port\": 55355"
 }
 
+@test "retroarch-bios-link links missing BIOS from a mount source" {
+    local system="${BATS_TEST_TMPDIR}/system"
+    local mount="${BATS_TEST_TMPDIR}/bios"
+    mkdir -p "${system}" "${mount}"
+    # scph5501.bin's expected md5 is 490f666e1afb15b7362b406ed1cea246.
+    # We can't reproduce that content here, but the tool accepts a
+    # candidate with matching name + md5 OR matching name when no md5
+    # is declared. For the test we plant dc_flash.bin (md5 not
+    # declared → any content acceptable) and verify linkage.
+    printf 'stub-dreamcast-flash' > "${mount}/dc_flash.bin"
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-bios-link.py" \
+        --system-dir "${system}" \
+        --bios-mount "${mount}" \
+        --report "${BATS_TEST_TMPDIR}/report.json"
+    # Exit 0 iff no required BIOS stays missing. Without a psx mount
+    # the required scph5501.bin is still missing on a fresh stub,
+    # but the tool still links what it can — accept both 0 and 1.
+    [[ "$status" -eq 0 || "$status" -eq 1 ]]
+    assert_output --partial "dc_flash.bin"
+    # Verify the symlink landed.
+    [[ -L "${system}/dc/dc_flash.bin" ]] || fail "dc_flash.bin not symlinked"
+}
+
+@test "retroarch-bios-link --dry-run leaves the system dir untouched" {
+    local system="${BATS_TEST_TMPDIR}/system"
+    local mount="${BATS_TEST_TMPDIR}/bios"
+    mkdir -p "${system}" "${mount}"
+    printf 'stub' > "${mount}/dc_flash.bin"
+    run python3 "${DOTFILES_DIR}/scripts/retroarch-bios-link.py" \
+        --system-dir "${system}" \
+        --bios-mount "${mount}" \
+        --report "${BATS_TEST_TMPDIR}/report.json" \
+        --dry-run
+    [[ "$status" -eq 0 || "$status" -eq 1 ]]
+    assert_output --partial "WOULD_LINK"
+    assert_output --partial "dry_run=yes"
+    [[ ! -e "${system}/dc/dc_flash.bin" ]] || fail "dc_flash.bin created under dry-run"
+}
+
 @test "retroarch-mounts-audit handles missing mounts root gracefully" {
     run python3 "${DOTFILES_DIR}/scripts/retroarch-mounts-audit.py" \
         --mounts-root "${BATS_TEST_TMPDIR}/no-such-dir" \
