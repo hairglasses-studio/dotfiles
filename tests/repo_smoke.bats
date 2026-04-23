@@ -399,6 +399,20 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "DRIFT"
 }
 
+@test "retroarch-rclone systemd units stay on-spec across the set" {
+    # The 5 rclone mount units share a common shape: mount dir under
+    # %h/Games/RetroArch/mounts/, --read-only, --dir-cache-time,
+    # --vfs-cache-mode off, fusermount3 ExecStop, PartOf + WantedBy
+    # retroarch-rclone.target, %h instead of hardcoded /home/.
+    # Catches drift when a new mount gets added by copying an old
+    # unit and flipping one detail — or when someone edits one
+    # unit's caching settings and forgets the others.
+    run bash "${SCRIPTS_DIR}/validate-rclone-mount-units.sh"
+    assert_success
+    assert_output --partial "errors=0"
+    refute_output --partial "DRIFT"
+}
+
 @test "CLAUDE.md GEMINI.md copilot-instructions.md stay thin AGENTS.md mirrors" {
     # The per-repo convention is that AGENTS.md is the canonical
     # instruction file and CLAUDE.md / GEMINI.md / .github/copilot-
