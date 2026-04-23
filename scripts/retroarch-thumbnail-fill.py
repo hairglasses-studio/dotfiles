@@ -36,14 +36,15 @@ from pathlib import Path
 from typing import Any
 
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__))))
+_SCRIPT_DIR = Path(os.path.realpath(__file__)).parent
+sys.path.insert(0, str(_SCRIPT_DIR))
 
 # Import the audit module to recompute on the fly.
 # The audit script has a hyphen in its name; Python can't import that
 # directly, so we load it via importlib.
 import importlib.util
 
-_AUDIT_PATH = Path(__file__).parent / "retroarch-thumbnail-audit.py"
+_AUDIT_PATH = _SCRIPT_DIR / "retroarch-thumbnail-audit.py"
 _spec = importlib.util.spec_from_file_location("retroarch_thumbnail_audit", _AUDIT_PATH)
 _audit_module = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_audit_module)  # type: ignore[union-attr]
@@ -59,11 +60,14 @@ def _expand(value: str | None, default: Path) -> Path:
 
 
 def _build_url(system: str, category: str, label: str) -> str:
-    # GitHub raw-content URL with URL-encoded path segments. Space in
-    # 'Nintendo - Game Boy' needs to become %20.
-    encoded_system = urllib.parse.quote(system)
+    # libretro-thumbnails repo names replace spaces with underscores:
+    # "Nintendo - Nintendo Entertainment System" → "Nintendo_-_Nintendo_Entertainment_System"
+    # File paths inside the repo keep the original label verbatim, so
+    # spaces there get URL-encoded as %20 the normal way.
+    repo_name = system.replace(" ", "_")
+    encoded_repo = urllib.parse.quote(repo_name)
     encoded_label = urllib.parse.quote(label)
-    return f"{BASE_URL}/{encoded_system}/raw/master/{category}/{encoded_label}.png"
+    return f"{BASE_URL}/{encoded_repo}/raw/master/{category}/{encoded_label}.png"
 
 
 def _fetch(url: str, dest: Path, *, timeout: float) -> tuple[bool, str]:
