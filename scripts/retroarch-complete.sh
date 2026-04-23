@@ -118,11 +118,20 @@ PY
     fi
 else
     run "apply-network-cmd (conditional)" python3 "${SCRIPT_DIR}/retroarch-apply-network-cmd.py"
+    run "mounts-audit" python3 "${SCRIPT_DIR}/retroarch-mounts-audit.py"
     run "playlist-audit" python3 "${SCRIPT_DIR}/retroarch-playlist-audit.py"
 fi
 
 # ── Step 6: post-audit ──────────────────────────────────────────────
 if [[ $dry_run -eq 0 ]]; then
+    # rclone mount health — reports before the rest because a
+    # stale-cache mount can make playlist-audit miss new content
+    # and make core_missing look smaller than reality.
+    if [[ -x "${SCRIPT_DIR}/retroarch-mounts-audit.py" ]]; then
+        if ! python3 "${SCRIPT_DIR}/retroarch-mounts-audit.py" >/dev/null 2>&1; then
+            note "some rclone mounts not active — see: retroarch-mounts-audit"
+        fi
+    fi
     # Playlist integrity — cheap, hits the live RetroArch playlist
     # dir and flags entries whose core_path points at a missing .so.
     # Non-fatal; orchestrator still reports the final summary.
