@@ -1,0 +1,19 @@
+[Unit]
+Description=RetroArch rclone mount (PSX archive ROM shelf)
+After=network-online.target
+Wants=network-online.target
+PartOf=retroarch-rclone.target
+
+[Service]
+Type=simple
+Environment=RCLONE_CONFIG=%h/.config/rclone/rclone.conf
+ExecStartPre=/usr/bin/bash -lc 'target="%h/Games/RetroArch/mounts/roms/psx-archive"; mkdir -p "$target"; if mountpoint -q "$target"; then if timeout 5 ls "$target" >/dev/null 2>&1; then exit 0; fi; fusermount3 -uz "$target" 2>/dev/null || umount -l "$target" 2>/dev/null || true; sleep 1; fi; if find "$target" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null | grep -q .; then echo "Refusing to mount over non-empty $target" >&2; exit 1; fi'
+ExecStart=/usr/bin/rclone --config %h/.config/rclone/rclone.conf mount "gdrive:Gaming & Emulation/PS2 Everything/psx-roms/psx-roms" %h/Games/RetroArch/mounts/roms/psx-archive --read-only --dir-cache-time 24h --buffer-size 64M --vfs-cache-mode off
+ExecStop=/usr/bin/fusermount3 -u %h/Games/RetroArch/mounts/roms/psx-archive
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=30
+KillMode=mixed
+
+[Install]
+WantedBy=retroarch-rclone.target

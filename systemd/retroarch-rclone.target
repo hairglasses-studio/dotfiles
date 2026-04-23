@@ -1,0 +1,15 @@
+[Unit]
+Description=RetroArch rclone mounts
+Wants=retroarch-rclone-amiga-archives.service
+Wants=retroarch-rclone-ps2-archives.service
+Wants=retroarch-rclone-psx-archives.service
+Wants=retroarch-rclone-ps2-bios.service
+Wants=retroarch-rclone-psx-bios.service
+After=retroarch-rclone-amiga-archives.service
+After=retroarch-rclone-ps2-archives.service
+After=retroarch-rclone-psx-archives.service
+After=retroarch-rclone-ps2-bios.service
+After=retroarch-rclone-psx-bios.service
+
+[Install]
+WantedBy=default.target

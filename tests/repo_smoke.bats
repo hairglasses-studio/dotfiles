@@ -357,7 +357,11 @@ print(f'skills={len(declared)} drift=0')
     local missing=()
     local non_executable=()
     while IFS='|' read -r src dest; do
-        [[ "${src}" == *retroarch-* ]] || continue
+        # Only script rows under scripts/ — systemd/*.service and
+        # *.target share the retroarch- prefix but aren't meant to
+        # be +x. The generalized ok 33 gate covers them via its
+        # scripts/*.sh / scripts/*.py filter.
+        [[ "${src}" == *scripts/retroarch-* ]] || continue
         local resolved="${src/\$DOTFILES_DIR/${DOTFILES_DIR}}"
         if [[ ! -f "${resolved}" ]]; then
             missing+=("${resolved}")

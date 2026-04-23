@@ -788,6 +788,11 @@ create_symlinks() {
             dotfiles-fleet-sparkline.service
             dotfiles-cliphist.service
             dotfiles-event-bus.service
+            retroarch-rclone-amiga-archives.service
+            retroarch-rclone-ps2-archives.service
+            retroarch-rclone-psx-archives.service
+            retroarch-rclone-ps2-bios.service
+            retroarch-rclone-psx-bios.service
         )
         local desktop_passive_units=(
             rg-status-bar.timer
