@@ -49,9 +49,31 @@ print("visible=%d critical=%d" % (payload["visible"], payload["critical"]))
     assert_output "visible=2 critical=1"
 }
 
+@test "notification bridge can append and clear local history" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    local history="${XDG_STATE_HOME}/dotfiles/desktop-control/notifications/history.jsonl"
+
+    run python3 "${SCRIPTS_DIR}/notification-bridge.py" --append-entry-json '{"app":"qs","summary":"Hello","body":"World","urgency":"normal"}'
+    assert_success
+    assert_output --partial '"action":"append-entry"'
+    assert_output --partial '"ok":true'
+    [[ -s "$history" ]]
+
+    run python3 "${SCRIPTS_DIR}/notification-bridge.py" --limit 5
+    assert_success
+    assert_output --partial '"app":"qs"'
+    assert_output --partial '"text":"Hello: World"'
+
+    run python3 "${SCRIPTS_DIR}/notification-bridge.py" --clear-history
+    assert_success
+    assert_output --partial '"action":"clear-history"'
+    [[ ! -s "$history" ]]
+}
+
 @test "shell stack mode defaults to dry-run for cutover commands" {
     run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" full-pilot
     assert_success
+    assert_output --partial "[dry] write"
     assert_output --partial "[dry] systemctl --user start dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
     assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
@@ -60,7 +82,37 @@ print("visible=%d critical=%d" % (payload["visible"], payload["critical"]))
 @test "shell stack mode status has machine-readable json" {
     run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" --json status
     assert_success
-    run jq -e '.mode == "status" and (.services[] | select(.unit == "dotfiles-quickshell.service"))' <<<"${output}"
+    local status_json="$output"
+    run jq -e '.mode == "status" and (.services[] | select(.unit == "dotfiles-quickshell.service"))' <<<"${status_json}"
+    assert_success
+    run jq -e '.shell_mode and (.notification_owner | type == "boolean")' <<<"${status_json}"
+    assert_success
+}
+
+@test "shell stack apply persists full cutover environment" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
+    cat > "${BATS_TEST_TMPDIR}/systemctl" <<'MOCK'
+#!/usr/bin/env bash
+echo "systemctl $*" >> "${BATS_TEST_TMPDIR}/systemctl.log"
+case "$*" in
+  "--user list-unit-files swaync.service") exit 0 ;;
+  "--user is-active "*) echo inactive; exit 3 ;;
+esac
+exit 0
+MOCK
+    chmod +x "${BATS_TEST_TMPDIR}/systemctl"
+
+    run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" --apply full-cutover
+    assert_success
+    assert_output --partial "+ systemctl --user start dotfiles-quickshell.service"
+    assert_output --partial "+ systemctl --user stop ironbar.service"
+    assert_output --partial "+ systemctl --user stop dotfiles-keybind-ticker.service"
+    assert_output --partial "+ systemctl --user stop swaync.service"
+
+    local env_file="${XDG_STATE_HOME}/dotfiles/shell-stack/env"
+    [[ -f "$env_file" ]]
+    run grep -E '^(SHELL_STACK_MODE=full-cutover|QS_BAR_CUTOVER=1|QS_TICKER_CUTOVER=1|QUICKSHELL_NOTIFICATION_OWNER=1)$' "$env_file"
     assert_success
 }
 
@@ -69,4 +121,17 @@ print("visible=%d critical=%d" % (payload["visible"], payload["critical"]))
     assert_success
     assert_output --partial "[dry] systemctl --user start dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
+}
+
+@test "hg shell module exposes notification and full cutover modes" {
+    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell notification-cutover
+    assert_success
+    assert_output --partial "[dry] systemctl --user start dotfiles-quickshell.service"
+    assert_output --partial "[dry] systemctl --user stop swaync.service"
+
+    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell full-cutover
+    assert_success
+    assert_output --partial "[dry] systemctl --user stop ironbar.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
+    assert_output --partial "[dry] systemctl --user stop swaync.service"
 }

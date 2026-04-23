@@ -14,6 +14,7 @@ import json
 import os
 import subprocess
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -63,6 +64,20 @@ def _swaync_text(*args: str) -> str | None:
         return None
 
 
+def _swaync_call(*args: str) -> bool:
+    try:
+        subprocess.run(
+            ["swaync-client", *args],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+            check=True,
+        )
+        return True
+    except Exception:
+        return False
+
+
 def _swaync_count() -> int | None:
     text = _swaync_text("-c")
     if text is None:
@@ -101,6 +116,61 @@ def _emit(payload: dict[str, Any]) -> None:
     print(json.dumps(payload, ensure_ascii=True, separators=(",", ":")), flush=True)
 
 
+def _set_dnd(value: str) -> dict[str, Any]:
+    if value == "toggle":
+        current = _swaync_dnd()
+        target = not current if current is not None else True
+    else:
+        target = value == "true"
+    return {
+        "ok": _swaync_call("-dn", "true" if target else "false"),
+        "action": "dnd",
+        "dnd": target,
+    }
+
+
+def _close_all() -> dict[str, Any]:
+    close_ok = _swaync_call("--close-all")
+    hide_ok = _swaync_call("--hide-all")
+    return {"ok": close_ok or hide_ok, "action": "close-all"}
+
+
+def _clear_history(path: Path) -> dict[str, Any]:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("", encoding="utf-8")
+    return {"ok": True, "action": "clear-history", "log_path": str(path)}
+
+
+def _normalise_entry(raw: dict[str, Any]) -> dict[str, Any]:
+    entry = dict(raw)
+    now = int(time.time())
+    entry.setdefault("id", str(uuid.uuid4()))
+    entry.setdefault("ts", now)
+    entry.setdefault("time", now)
+    entry.setdefault("app", entry.get("appName", ""))
+    entry.setdefault("summary", "")
+    entry.setdefault("body", "")
+    entry.setdefault("urgency", "normal")
+    entry.setdefault("visible", True)
+    entry.setdefault("dismissed", False)
+    entry["text"] = _entry_text(entry)
+    return entry
+
+
+def _append_entry(path: Path, entry_json: str) -> dict[str, Any]:
+    try:
+        raw = json.loads(entry_json)
+    except json.JSONDecodeError as exc:
+        return {"ok": False, "action": "append-entry", "error": str(exc)}
+    if not isinstance(raw, dict):
+        return {"ok": False, "action": "append-entry", "error": "entry must be a JSON object"}
+    entry = _normalise_entry(raw)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(entry, ensure_ascii=True, separators=(",", ":")) + "\n")
+    return {"ok": True, "action": "append-entry", "entry": entry, "log_path": str(path)}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--history", type=Path, default=DEFAULT_HISTORY)
@@ -108,7 +178,24 @@ def main() -> int:
     parser.add_argument("--include-dismissed", action="store_true")
     parser.add_argument("--watch", action="store_true")
     parser.add_argument("--interval", type=float, default=15.0)
+    parser.add_argument("--dnd", choices=["true", "false", "toggle"], help="Set or toggle swaync DND")
+    parser.add_argument("--close-all", action="store_true", help="Close and hide all swaync notifications")
+    parser.add_argument("--clear-history", action="store_true", help="Truncate the local notification history")
+    parser.add_argument("--append-entry-json", help="Append one notification-history JSON object")
     args = parser.parse_args()
+
+    if args.dnd:
+        _emit(_set_dnd(args.dnd))
+        return 0
+    if args.close_all:
+        _emit(_close_all())
+        return 0
+    if args.clear_history:
+        _emit(_clear_history(args.history))
+        return 0
+    if args.append_entry_json:
+        _emit(_append_entry(args.history, args.append_entry_json))
+        return 0
 
     interval = max(1.0, args.interval)
     while True:

@@ -8,21 +8,22 @@ The desktop control-plane for Manjaro/Wayland uses `Hyprland` as the primary com
    - Dynamically managed via `hyprctl` for layout restoration and workspace switching.
    - Fallback exists for `Sway`.
 
-2. **Menubar**: `ironbar` with `Quickshell` pilot
+2. **Menubar**: `ironbar` with `Quickshell` pilot/cutover
    - Configured in `ironbar/config.toml` and `ironbar/style.css`.
    - Started by `systemd --user` and reinforced by the Hyprland boot path.
    - Reads cache-backed status surfaces such as `/tmp/rg-status.json` instead of calling slow fleet tooling inline.
-   - `dotfiles-quickshell.service` runs the QML pilot in parallel and is controlled through `hg shell <status|pilot|bar-cutover|ticker-cutover|full-pilot|rollback>`; `shell-stack-mode.sh --json status` exposes the same state for agents.
+   - `dotfiles-quickshell.service` runs the QML shell and is controlled through `hg shell <status|pilot|bar-cutover|ticker-cutover|notification-cutover|full-pilot|full-cutover|rollback>`; `shell-stack-mode.sh --json status` exposes the same state for agents.
+   - Stack mode is persisted under `$XDG_STATE_HOME/dotfiles/shell-stack/` and consumed by `run-quickshell.sh` as `QS_BAR_CUTOVER`, `QS_TICKER_CUTOVER`, and `QUICKSHELL_NOTIFICATION_OWNER`.
 
 3. **Notifications**: `swaync` (SwayNotificationCenter) and `mako` (fallback), with Quickshell history bridge.
    - Tightly integrated with the desktop to show alerts for long-running MCP tasks or system health checks.
    - `notification-history-listener.py` remains the D-Bus observer; `notification-bridge.py` exposes the local history log to Quickshell without claiming `org.freedesktop.Notifications`.
-   - The Quickshell pilot renders a click-to-toggle notification history panel from that bridge, so notification-center replacement can be tested before daemon ownership moves.
+   - The Quickshell shell renders notification history, DND, clear/close actions, and optional Quickshell-owned popups. `notification-cutover` stops swaync and enables Quickshell's `NotificationServer`; rollback restores swaync.
 
 4. **Ticker**: Python `keybind-ticker` with Quickshell bridge.
    - `keybind-ticker.py` remains the live owner of the bottom ticker during pilot mode.
-   - `ticker-bridge.py` exposes the existing stream catalog as NDJSON for Quickshell QML consumption.
-   - The Quickshell ticker pilot discovers the stream catalog, rotates streams, and supports manual stream advance from the stream badge.
+   - `ticker-bridge.py` exposes the existing stream catalog as NDJSON for Quickshell QML consumption and supports long-running `--watch` mode.
+   - The Quickshell ticker discovers the stream catalog, rotates streams, supports manual stream advance from the stream badge, and moves to the bottom exclusive layer in ticker/full cutover modes.
 
 5. **Launchers & Menus**: `hyprshell`, `wofi`, and `wlogout`.
    - `hyprshell` remains the primary launcher and overview surface.
@@ -40,3 +41,10 @@ The control plane is uniquely orchestrated by an MCP server (`dotfiles-mcp`), al
 Many desktop behaviors rely on Unix sockets or IPC:
 - Hyprland's IPC socket is watched to trigger automatic workspace renames and desktop state refreshes when windows move.
 - D-Bus is used for media control.
+
+## Quickshell Layout
+
+The Quickshell config is repo-native and intentionally does not vendor external shells. It uses a small module split modeled after the strongest Quickshell-heavy references:
+- `quickshell/services/` owns process-backed data, ticker bridge state, notification bridge state, and persisted stack flags.
+- `quickshell/modules/` owns Wayland layer surfaces: top bars, ticker, notification center/popups, and quick settings.
+- `quickshell/components/` owns small reusable visual primitives such as badges and panel buttons.

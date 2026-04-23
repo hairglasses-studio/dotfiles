@@ -93,6 +93,7 @@ def main() -> int:
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--interval", type=float, default=0, help="Override refresh interval in seconds")
     parser.add_argument("--once", action="store_true", help="Emit one payload and exit")
+    parser.add_argument("--watch", action="store_true", help="Continuously emit payloads at the stream refresh interval")
     parser.add_argument("--list", action="store_true", help="List available stream names as JSON and exit")
     args = parser.parse_args()
 

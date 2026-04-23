@@ -2,6 +2,16 @@
 
 Append-only ADR-lite record of architectural calls that shaped this repo. Managed by the `decision_journal` skill. Newest entries at the top.
 
+## 2026-04-23 — Promote Quickshell pilot to modular shell migration surface
+
+**Context**: External Quickshell-heavy dotfiles research showed the durable pattern is a service/module split: reusable data services, separate layer-shell modules, explicit cutover modes, and rollback. The local pilot still had all bar, ticker, and notification-history logic in one QML file.
+
+**Decision**: Refactor Quickshell into repo-native `services/`, `modules/`, and `components/`; persist shell-stack mode under `$XDG_STATE_HOME`; and add explicit `notification-cutover`/`full-cutover` modes while keeping swaync and the Python ticker as rollback owners.
+
+**Rationale**: This gives the repo the same maintainability shape as the best Quickshell references without vendoring their code. Notification D-Bus ownership remains opt-in because it is the riskiest cutover boundary.
+
+**Consequences**: `run-quickshell.sh` consumes persisted cutover flags; `ticker-bridge.py` supports watch mode; `notification-bridge.py` gains DND/clear/append actions; and tests now cover the new shell modes.
+
 ## 2026-04-23 — Stage shell migration through Quickshell pilot
 
 **Context**: The Hyprland shell stack still split responsibilities across ironbar, swaync, and the Python ticker. A notification flood showed DND and critical-urgency handling needed hardening, but a same-session D-Bus notification-owner cutover would risk breaking MCP notification tooling.
