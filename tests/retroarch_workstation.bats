@@ -561,6 +561,7 @@ JSON
     assert_success
     assert_output --partial "[plan ] workstation-audit"
     assert_output --partial "[plan ] bios-apply"
+    assert_output --partial "[plan ] bios-link"
     assert_output --partial "[plan ] install-workstation-cores"
     assert_output --partial "apply-network-cmd"
     assert_output --partial "[plan ] mounts-audit"

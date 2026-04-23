@@ -70,6 +70,21 @@ fi
 # ── Step 2: BIOS/helper dirs ────────────────────────────────────────
 run "bios-apply" python3 "${SCRIPT_DIR}/retroarch-bios-apply.py" --system all >/dev/null
 
+# ── Step 2a: auto-link BIOS from gdrive mounts ──────────────────────
+# Reads ~/Games/RetroArch/mounts/bios/** and symlinks into the RetroArch
+# system dir for every requirement that's missing locally. Depends on
+# the rclone mounts being up; a no-op when they aren't.
+if [[ -x "${SCRIPT_DIR}/retroarch-bios-link.py" ]]; then
+    if [[ $dry_run -eq 1 ]]; then
+        run "bios-link" python3 "${SCRIPT_DIR}/retroarch-bios-link.py"
+    else
+        # Silent on the live path — still_missing=1 exits nonzero
+        # even when at least one link lands; we don't want the
+        # orchestrator to abort on that.
+        python3 "${SCRIPT_DIR}/retroarch-bios-link.py" >/dev/null 2>&1 || true
+    fi
+fi
+
 # ── Step 3: pacman + AUR cores ──────────────────────────────────────
 run "install-workstation-cores" bash "${SCRIPT_DIR}/retroarch-install-workstation-cores.sh"
 
