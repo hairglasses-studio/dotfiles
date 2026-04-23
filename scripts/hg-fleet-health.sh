@@ -43,18 +43,35 @@ for d in "$STUDIO"/*/; do
     LAST_COMMIT_FMT="${HG_GREEN}${LAST_COMMIT}${HG_RESET}"
   fi
 
-  # CI status via gh
+  # CI status via gh — main branch only, stale (>14d) runs reported as dim
   CI_STATUS="-"
-  CI_JSON=$(gh run list --limit 1 --json conclusion,status 2>/dev/null || echo "[]")
+  CI_JSON=$(gh run list --limit 1 --branch main --json conclusion,status,createdAt 2>/dev/null || echo "[]")
   if [[ "$CI_JSON" != "[]" ]] && [[ "$CI_JSON" != "" ]]; then
     CONCLUSION=$(echo "$CI_JSON" | grep -oP '"conclusion"\s*:\s*"\K[^"]*' | head -1 || true)
     STATUS=$(echo "$CI_JSON" | grep -oP '"status"\s*:\s*"\K[^"]*' | head -1 || true)
+    RUN_DATE=$(echo "$CI_JSON" | grep -oP '"createdAt"\s*:\s*"\K[^"]*' | head -1 || true)
+    RUN_STALE=false
+    if [[ -n "$RUN_DATE" ]]; then
+      RUN_TS=$(date -d "$RUN_DATE" +%s 2>/dev/null || echo 0)
+      CUTOFF_TS=$(date -d "14 days ago" +%s)
+      if [[ "$RUN_TS" -lt "$CUTOFF_TS" ]]; then
+        RUN_STALE=true
+      fi
+    fi
     if [[ "$CONCLUSION" == "success" ]]; then
-      CI_STATUS="${HG_GREEN}pass${HG_RESET}"
-      PASSING=$((PASSING + 1))
+      if [[ "$RUN_STALE" == "true" ]]; then
+        CI_STATUS="${HG_DIM}stale-pass${HG_RESET}"
+      else
+        CI_STATUS="${HG_GREEN}pass${HG_RESET}"
+        PASSING=$((PASSING + 1))
+      fi
     elif [[ "$CONCLUSION" == "failure" ]]; then
-      CI_STATUS="${HG_RED}fail${HG_RESET}"
-      FAILING=$((FAILING + 1))
+      if [[ "$RUN_STALE" == "true" ]]; then
+        CI_STATUS="${HG_DIM}stale-fail${HG_RESET}"
+      else
+        CI_STATUS="${HG_RED}fail${HG_RESET}"
+        FAILING=$((FAILING + 1))
+      fi
     elif [[ "$STATUS" == "in_progress" ]] || [[ "$STATUS" == "queued" ]]; then
       CI_STATUS="${HG_YELLOW}running${HG_RESET}"
     elif [[ -n "$CONCLUSION" ]]; then
