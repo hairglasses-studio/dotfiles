@@ -11,6 +11,11 @@ JSON_MODE=false
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/shell-stack"
 MODE_FILE="$STATE_DIR/mode"
 ENV_FILE="$STATE_DIR/env"
+COMPANION_UNITS=(
+  dotfiles-window-label.service
+  dotfiles-fleet-sparkline.service
+  dotfiles-lyrics-ticker.service
+)
 
 usage() {
   cat <<'EOF'
@@ -18,14 +23,14 @@ Usage: shell-stack-mode.sh [--apply] [--json] <status|pilot|bar-cutover|ticker-c
 
 Modes:
   status          Show current shell service state.
-  pilot           Start Quickshell; keep ironbar, ticker, and swaync live.
-  bar-cutover     Start Quickshell; stop ironbar; keep ticker and swaync live.
-  ticker-cutover  Start Quickshell; stop keybind ticker; keep ironbar and swaync live.
+  pilot           Start Quickshell; keep ironbar, ticker, swaync, and companions live.
+  bar-cutover     Start Quickshell; stop ironbar; keep ticker, swaync, and companions live.
+  ticker-cutover  Start Quickshell; stop keybind ticker; keep ironbar, swaync, and companions live.
   notification-cutover
-                  Start Quickshell notification owner; stop swaync.
-  full-pilot      Start Quickshell; stop ironbar and keybind ticker; keep swaync live.
-  full-cutover    Start Quickshell as bar, ticker, and notification owner.
-  rollback        Stop Quickshell; start ironbar, keybind ticker, and swaync.
+                  Start Quickshell notification owner; stop swaync; keep companions live.
+  full-pilot      Start Quickshell; stop ironbar, keybind ticker, and companion overlays; keep swaync live.
+  full-cutover    Start Quickshell as bar, ticker, notification, and companion overlay owner.
+  rollback        Stop Quickshell; start ironbar, keybind ticker, swaync, and companion overlays.
 
 Without --apply, prints the commands it would run.
 --json is supported for status output.
@@ -96,6 +101,9 @@ mode_flag() {
     notifications)
       [[ "$mode" == "notification-cutover" || "$mode" == "full-cutover" ]]
       ;;
+    companions)
+      [[ "$mode" == "full-pilot" || "$mode" == "full-cutover" ]]
+      ;;
     *)
       return 1
       ;;
@@ -104,10 +112,11 @@ mode_flag() {
 
 persist_mode() {
   local mode="$1"
-  local bar=0 ticker=0 notifications=0
+  local bar=0 ticker=0 notifications=0 companions=0
   mode_flag "$mode" bar && bar=1
   mode_flag "$mode" ticker && ticker=1
   mode_flag "$mode" notifications && notifications=1
+  mode_flag "$mode" companions && companions=1
 
   if $APPLY; then
     mkdir -p "$STATE_DIR"
@@ -116,6 +125,7 @@ persist_mode() {
       printf 'SHELL_STACK_MODE=%q\n' "$mode"
       printf 'QS_BAR_CUTOVER=%s\n' "$bar"
       printf 'QS_TICKER_CUTOVER=%s\n' "$ticker"
+      printf 'QS_COMPANION_CUTOVER=%s\n' "$companions"
       printf 'QUICKSHELL_NOTIFICATION_OWNER=%s\n' "$notifications"
       if [[ -n "${QS_PRIMARY_MONITOR:-}" ]]; then
         printf 'QS_PRIMARY_MONITOR=%q\n' "$QS_PRIMARY_MONITOR"
@@ -154,6 +164,7 @@ print_status() {
     dotfiles-quickshell.service \
     ironbar.service \
     dotfiles-keybind-ticker.service \
+    "${COMPANION_UNITS[@]}" \
     swaync.service \
     dotfiles-notification-history.service; do
     state="$(service_state "$unit")"
@@ -165,13 +176,15 @@ print_status_json() {
   local unit state first=true
   local saved_mode
   saved_mode="$(mode_or_default)"
-  printf '{"mode":"status","shell_mode":"%s","notification_owner":%s,"services":[' \
+  printf '{"mode":"status","shell_mode":"%s","notification_owner":%s,"companion_owner":%s,"services":[' \
     "$(json_escape "$saved_mode")" \
-    "$(mode_flag "$saved_mode" notifications && printf true || printf false)"
+    "$(mode_flag "$saved_mode" notifications && printf true || printf false)" \
+    "$(mode_flag "$saved_mode" companions && printf true || printf false)"
   for unit in \
     dotfiles-quickshell.service \
     ironbar.service \
     dotfiles-keybind-ticker.service \
+    "${COMPANION_UNITS[@]}" \
     swaync.service \
     dotfiles-notification-history.service; do
     state="$(service_state "$unit")"
@@ -209,6 +222,20 @@ stop_swaync() {
   fi
 }
 
+start_companion_units() {
+  local unit
+  for unit in "${COMPANION_UNITS[@]}"; do
+    start_unit "$unit"
+  done
+}
+
+stop_companion_units() {
+  local unit
+  for unit in "${COMPANION_UNITS[@]}"; do
+    stop_unit "$unit"
+  done
+}
+
 case "$MODE" in
   status)
     if $JSON_MODE; then
@@ -222,6 +249,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_companion_units
     start_swaync
     start_unit dotfiles-notification-history.service
     ;;
@@ -230,6 +258,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_companion_units
     start_swaync
     start_unit dotfiles-notification-history.service
     ;;
@@ -238,6 +267,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
+    start_companion_units
     start_swaync
     start_unit dotfiles-notification-history.service
     ;;
@@ -247,6 +277,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_companion_units
     start_unit dotfiles-notification-history.service
     ;;
   full-pilot)
@@ -254,6 +285,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
+    stop_companion_units
     start_swaync
     start_unit dotfiles-notification-history.service
     ;;
@@ -263,6 +295,7 @@ case "$MODE" in
     restart_unit dotfiles-quickshell.service
     stop_unit ironbar.service
     stop_unit dotfiles-keybind-ticker.service
+    stop_companion_units
     start_unit dotfiles-notification-history.service
     ;;
   rollback)
@@ -270,6 +303,7 @@ case "$MODE" in
     stop_unit dotfiles-quickshell.service
     start_unit ironbar.service
     start_unit dotfiles-keybind-ticker.service
+    start_companion_units
     start_swaync
     start_unit dotfiles-notification-history.service
     ;;

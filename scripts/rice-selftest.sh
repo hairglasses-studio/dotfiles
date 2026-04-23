@@ -193,6 +193,7 @@ test_services() {
   else
     QS_BAR_CUTOVER="${QS_BAR_CUTOVER:-0}"
     QS_TICKER_CUTOVER="${QS_TICKER_CUTOVER:-0}"
+    QS_COMPANION_CUTOVER="${QS_COMPANION_CUTOVER:-0}"
     QUICKSHELL_NOTIFICATION_OWNER="${QUICKSHELL_NOTIFICATION_OWNER:-0}"
     SHELL_STACK_MODE="${SHELL_STACK_MODE:-pilot}"
   fi
@@ -253,6 +254,20 @@ test_services() {
       add_result services "$svc" pass "running"
     else
       add_result services "$svc" warn "not running"
+    fi
+  done
+
+  for svc in dotfiles-window-label dotfiles-fleet-sparkline dotfiles-lyrics-ticker; do
+    if [[ "${QS_COMPANION_CUTOVER:-0}" == "1" ]]; then
+      if systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
+        add_result services "$svc" warn "active despite Quickshell companion cutover"
+      else
+        add_result services "$svc" pass "replaced by Quickshell companion overlay"
+      fi
+    elif systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
+      add_result services "$svc" pass "active (systemd user)"
+    else
+      add_result services "$svc" warn "not active (systemd user)"
     fi
   done
 

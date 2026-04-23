@@ -95,6 +95,21 @@ else
   fi
 fi
 
+# Quickshell owns these companion overlays in full cutover modes.
+if shell_stack_companion_cutover; then
+  skipped="${skipped} companions"
+else
+  for svc in dotfiles-window-label dotfiles-fleet-sparkline dotfiles-lyrics-ticker; do
+    if systemctl --user is-active "${svc}.service" >/dev/null 2>&1; then
+      if systemctl --user restart "${svc}.service" 2>/dev/null; then
+        reloaded="${reloaded} ${svc#dotfiles-}"
+      else
+        failed="${failed} ${svc#dotfiles-}"
+      fi
+    fi
+  done
+fi
+
 # Hyprland companion services
 for component in \
   hyprshell \

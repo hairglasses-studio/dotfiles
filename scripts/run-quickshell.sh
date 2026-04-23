@@ -33,6 +33,7 @@ case "$mode" in
     printf 'SHELL_STACK_MODE=%s\n' "${SHELL_STACK_MODE:-pilot}"
     printf 'QS_BAR_CUTOVER=%s\n' "${QS_BAR_CUTOVER:-0}"
     printf 'QS_TICKER_CUTOVER=%s\n' "${QS_TICKER_CUTOVER:-0}"
+    printf 'QS_COMPANION_CUTOVER=%s\n' "${QS_COMPANION_CUTOVER:-0}"
     printf 'QUICKSHELL_NOTIFICATION_OWNER=%s\n' "${QUICKSHELL_NOTIFICATION_OWNER:-0}"
     exit 0
     ;;
@@ -79,5 +80,6 @@ export QS_MONITOR="$target_monitor"
 export SHELL_STACK_MODE="${SHELL_STACK_MODE:-pilot}"
 export QS_BAR_CUTOVER="${QS_BAR_CUTOVER:-0}"
 export QS_TICKER_CUTOVER="${QS_TICKER_CUTOVER:-0}"
+export QS_COMPANION_CUTOVER="${QS_COMPANION_CUTOVER:-0}"
 export QUICKSHELL_NOTIFICATION_OWNER="${QUICKSHELL_NOTIFICATION_OWNER:-0}"
 exec /usr/bin/env quickshell --path "$config_path"

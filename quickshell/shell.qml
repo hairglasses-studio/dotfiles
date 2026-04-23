@@ -17,6 +17,9 @@ ShellRoot {
     Services.ShellState { id: shellStateObj }
     Services.BarData { id: barDataObj }
     Services.TickerService { id: tickerServiceObj }
+    Services.WindowFocusService { id: windowFocusObj }
+    Services.FleetTelemetryService { id: fleetTelemetryObj }
+    Services.LyricsService { id: lyricsServiceObj }
     Services.NotificationService {
         id: notificationServiceObj
         ownerEnabled: shellStateObj.notificationOwner
@@ -39,6 +42,7 @@ ShellRoot {
                 notificationOwner: shellStateObj.notificationOwner,
                 barCutover: shellStateObj.barCutover,
                 tickerCutover: shellStateObj.tickerCutover,
+                companionCutover: shellStateObj.companionCutover,
                 notificationsVisible: notificationServiceObj.centerVisible,
                 quickSettingsVisible: shellStateObj.quickSettingsVisible,
                 dnd: notificationServiceObj.dnd,
@@ -69,6 +73,28 @@ ShellRoot {
         shellState: shellStateObj
         ticker: tickerServiceObj
         notifications: notificationServiceObj
+    }
+
+    Modules.WindowLabel {
+        screenModel: root.primaryScreen
+        colors: palette
+        shellState: shellStateObj
+        windowFocus: windowFocusObj
+    }
+
+    Modules.LyricsBanner {
+        screenModel: root.primaryScreen
+        colors: palette
+        shellState: shellStateObj
+        lyrics: lyricsServiceObj
+        windowFocus: windowFocusObj
+    }
+
+    Modules.FleetSparklines {
+        screenModel: root.primaryScreen
+        colors: palette
+        shellState: shellStateObj
+        telemetry: fleetTelemetryObj
     }
 
     Modules.NotificationCenter {

@@ -8,13 +8,13 @@ shell_description() {
 shell_commands() {
   cat <<'CMDS'
 status	Show current shell service state
-pilot	Start Quickshell while keeping ironbar, ticker, and swaync live
+pilot	Start Quickshell while keeping ironbar, ticker, swaync, and companions live
 bar-cutover	Start Quickshell and stop ironbar
 ticker-cutover	Start Quickshell and stop keybind ticker
 notification-cutover	Start Quickshell notification owner and stop swaync
-full-pilot	Start Quickshell and stop ironbar + keybind ticker
-full-cutover	Start Quickshell as bar + ticker + notification owner
-rollback	Stop Quickshell and restore ironbar + keybind ticker + swaync
+full-pilot	Start Quickshell and stop ironbar + keybind ticker + companion overlays
+full-cutover	Start Quickshell as bar + ticker + notification + companion owner
+rollback	Stop Quickshell and restore ironbar + keybind ticker + swaync + companions
 CMDS
 }
 

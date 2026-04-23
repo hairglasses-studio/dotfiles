@@ -152,6 +152,11 @@ if $DO_RELOAD && ! $DRY_RUN; then
     if ! shell_stack_ticker_cutover; then
         systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null || true
     fi
+    if ! shell_stack_companion_cutover; then
+        systemctl --user restart dotfiles-window-label.service 2>/dev/null || true
+        systemctl --user restart dotfiles-fleet-sparkline.service 2>/dev/null || true
+        systemctl --user restart dotfiles-lyrics-ticker.service 2>/dev/null || true
+    fi
 fi
 
 $DRY_RUN && _c_info "Dry-run complete — no files written" || _c_ok "Palette propagation complete"

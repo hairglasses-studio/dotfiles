@@ -13,6 +13,7 @@ shell_stack_load() {
   SHELL_STACK_MODE="${SHELL_STACK_MODE:-pilot}"
   QS_BAR_CUTOVER="${QS_BAR_CUTOVER:-0}"
   QS_TICKER_CUTOVER="${QS_TICKER_CUTOVER:-0}"
+  QS_COMPANION_CUTOVER="${QS_COMPANION_CUTOVER:-0}"
   QUICKSHELL_NOTIFICATION_OWNER="${QUICKSHELL_NOTIFICATION_OWNER:-0}"
 
   local env_file
@@ -33,6 +34,10 @@ shell_stack_ticker_cutover() {
 
 shell_stack_notification_cutover() {
   [[ "${QUICKSHELL_NOTIFICATION_OWNER:-0}" == "1" ]]
+}
+
+shell_stack_companion_cutover() {
+  [[ "${QS_COMPANION_CUTOVER:-0}" == "1" ]]
 }
 
 shell_stack_quickshell_wanted() {

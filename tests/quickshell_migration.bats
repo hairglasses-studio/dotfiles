@@ -23,6 +23,57 @@ print("stream=%s text_len=%d" % (payload["stream"], len(payload["text"])))
     assert_output --partial "stream=weather"
 }
 
+@test "fleet telemetry bridge emits stateful numeric samples" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+
+    run python3 "${SCRIPTS_DIR}/fleet-telemetry-bridge.py" --once
+    assert_success
+
+    run python3 -c '
+import json, sys
+payload = json.loads(sys.argv[1])
+assert payload["ok"] is True
+for key in ("cpu_pct", "mem_pct", "net_kbps", "gpu_temp_c"):
+    assert isinstance(payload[key], (int, float)), key
+for key in ("cpu_text", "mem_text", "net_text", "gpu_text"):
+    assert isinstance(payload[key], str) and payload[key], key
+print("telemetry=%s/%s/%s/%s" % (payload["cpu_text"], payload["mem_text"], payload["net_text"], payload["gpu_text"]))
+' "$output"
+    assert_success
+    assert_output --partial "telemetry=CPU"
+}
+
+@test "lyrics bridge emits MPRIS fallback without network fetch" {
+    export PLAYERCTL_BIN="${BATS_TEST_TMPDIR}/playerctl"
+    export LYRICS_BRIDGE_NO_FETCH=1
+    cat > "$PLAYERCTL_BIN" <<'MOCK'
+#!/usr/bin/env bash
+case "${3:-}" in
+  "{{status}}") printf 'Playing\n' ;;
+  "{{title}}") printf 'Test Song\n' ;;
+  "{{artist}}") printf 'Test Artist\n' ;;
+  "{{album}}") printf 'Test Album\n' ;;
+  "{{mpris:length}}") printf '180000000\n' ;;
+  "{{position}}") printf '30000000\n' ;;
+esac
+MOCK
+    chmod +x "$PLAYERCTL_BIN"
+
+    run python3 "${SCRIPTS_DIR}/lyrics-bridge.py" --once
+    assert_success
+    run python3 -c '
+import json, sys
+payload = json.loads(sys.argv[1])
+assert payload["ok"] is True
+assert payload["status"] == "Playing"
+assert payload["line"] == "Test Song -- Test Artist"
+assert payload["synced"] is False
+print(payload["line"])
+' "$output"
+    assert_success
+    assert_output "Test Song -- Test Artist"
+}
+
 @test "notification bridge summarizes local history without owning dbus" {
     export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
     local history="${XDG_STATE_HOME}/dotfiles/desktop-control/notifications/history.jsonl"
@@ -199,6 +250,9 @@ MOCK
     assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
     assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
 }
 
 @test "shell stack mode status has machine-readable json" {
@@ -207,7 +261,7 @@ MOCK
     local status_json="$output"
     run jq -e '.mode == "status" and (.services[] | select(.unit == "dotfiles-quickshell.service"))' <<<"${status_json}"
     assert_success
-    run jq -e '.shell_mode and (.notification_owner | type == "boolean")' <<<"${status_json}"
+    run jq -e '.shell_mode and (.notification_owner | type == "boolean") and (.companion_owner | type == "boolean")' <<<"${status_json}"
     assert_success
 }
 
@@ -218,6 +272,7 @@ MOCK
 SHELL_STACK_MODE=full-cutover
 QS_BAR_CUTOVER=1
 QS_TICKER_CUTOVER=1
+QS_COMPANION_CUTOVER=1
 QUICKSHELL_NOTIFICATION_OWNER=1
 ENV
 
@@ -226,6 +281,7 @@ source "$1"
 shell_stack_load
 shell_stack_bar_cutover
 shell_stack_ticker_cutover
+shell_stack_companion_cutover
 shell_stack_notification_cutover
 shell_stack_quickshell_wanted
 ' _ "${SCRIPTS_DIR}/lib/shell-stack.sh"
@@ -239,6 +295,9 @@ shell_stack_quickshell_wanted
     assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
     assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
 }
 
 @test "hyprland startup routes shell owners through shell stack boot" {
@@ -270,10 +329,13 @@ MOCK
     assert_output --partial "+ systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "+ systemctl --user stop ironbar.service"
     assert_output --partial "+ systemctl --user stop dotfiles-keybind-ticker.service"
+    assert_output --partial "+ systemctl --user stop dotfiles-window-label.service"
+    assert_output --partial "+ systemctl --user stop dotfiles-fleet-sparkline.service"
+    assert_output --partial "+ systemctl --user stop dotfiles-lyrics-ticker.service"
 
     local env_file="${XDG_STATE_HOME}/dotfiles/shell-stack/env"
     [[ -f "$env_file" ]]
-    run grep -E '^(SHELL_STACK_MODE=full-cutover|QS_BAR_CUTOVER=1|QS_TICKER_CUTOVER=1|QUICKSHELL_NOTIFICATION_OWNER=1)$' "$env_file"
+    run grep -E '^(SHELL_STACK_MODE=full-cutover|QS_BAR_CUTOVER=1|QS_TICKER_CUTOVER=1|QS_COMPANION_CUTOVER=1|QUICKSHELL_NOTIFICATION_OWNER=1)$' "$env_file"
     assert_success
 }
 
@@ -282,6 +344,7 @@ MOCK
     assert_success
     assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
 }
 
 @test "hg shell module exposes notification and full cutover modes" {
@@ -295,5 +358,8 @@ MOCK
     assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
     assert_output --partial "[dry] systemctl --user stop ironbar.service"
     assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
+    assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
     assert_output --partial "[dry] systemctl --user stop swaync.service"
 }
