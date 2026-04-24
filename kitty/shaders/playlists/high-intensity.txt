@@ -128,6 +128,7 @@ hg-meteor-shower.glsl
 hg-moebius-strip.glsl
 hg-moire-pattern.glsl
 hg-morpho-butterfly.glsl
+hg-murmuration.glsl
 hg-mushroom-cloud.glsl
 hg-nebula-swirl.glsl
 hg-neon-cocoon.glsl

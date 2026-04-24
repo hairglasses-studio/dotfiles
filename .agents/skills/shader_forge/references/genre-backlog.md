@@ -49,7 +49,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-magma-vein` — glowing molten vein in rock with cooling crust~~ ✓ shipped
 - ~~`hg-cave-pools` — luminescent limestone cave pools with stalactite drips~~ ✓ shipped
 - ~~`hg-fungal-network` — mycelium network spreading between nodes~~ ✓ shipped
-- `hg-murmuration` — starling flocking boids
+- ~~`hg-murmuration` — starling flocking boids~~ ✓ shipped
 - `hg-lightning-field` — de Maria's Lightning Field (grid of vertical rods + sky strikes)
 - `hg-arctic-pack-ice` — cracked sea-ice plates drifting
 - `hg-amber-fossil` — insect frozen in amber with warm glow
