@@ -42,7 +42,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-poincare-disk` — hyperbolic tiling in Poincaré disk model~~ ✓ shipped
 - ~~`hg-hopf-fibration` — 4D sphere fibered into great circles (projected)~~ ✓ shipped
 - ~~`hg-klein-bottle` — immersed Klein bottle surface~~ ✓ shipped
-- `hg-calabi-yau-slice` — 2D slice through a 6D Calabi-Yau manifold
+- ~~`hg-calabi-yau-slice` — 2D slice through a 6D Calabi-Yau manifold~~ ✓ shipped
 
 ## Natural phenomena
 

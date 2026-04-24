@@ -25,6 +25,7 @@ hg-black-ice.glsl
 hg-bladerunner-umbrella.glsl
 hg-bloom-storm.glsl
 hg-bokeh-lights.glsl
+hg-calabi-yau-slice.glsl
 hg-caustic-water.glsl
 hg-cellular-automata.glsl
 hg-chameleon.glsl
