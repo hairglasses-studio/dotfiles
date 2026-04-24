@@ -90,6 +90,7 @@ hg-bismuth-crystal.glsl
 hg-black-hole.glsl
 hg-black-ice.glsl
 hg-bladerunner-umbrella.glsl
+hg-blockchain-miner.glsl
 hg-bloom-storm.glsl
 hg-bokeh-lights.glsl
 hg-calabi-yau-slice.glsl
