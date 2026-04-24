@@ -64,7 +64,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-dns-resolver` — hierarchical DNS lookup visualized as tree descent~~ ✓ shipped
 - ~~`hg-blockchain-miner` — blocks being added with hash-collision flicker~~ ✓ shipped
 - ~~`hg-github-commits` — commit graph branching and merging~~ ✓ shipped
-- `hg-heatmap-grid` — rolling activity heatmap with cell spikes
+- ~~`hg-heatmap-grid` — rolling activity heatmap with cell spikes~~ ✓ shipped
 
 ## Psychedelic / abstract
 

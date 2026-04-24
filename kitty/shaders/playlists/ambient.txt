@@ -153,6 +153,7 @@ hg-god-rays.glsl
 hg-gravitational-lens.glsl
 hg-gravitational-waves.glsl
 hg-hacker-terminal.glsl
+hg-heatmap-grid.glsl
 hg-heat-shimmer.glsl
 hg-hexagon-data-flow.glsl
 hg-holo-globe.glsl
