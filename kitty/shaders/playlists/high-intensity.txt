@@ -72,6 +72,7 @@ hg-glass-shatter.glsl
 hg-glitchmatrix.glsl
 hg-glow-worms.glsl
 hg-god-rays.glsl
+hg-gravitational-lens.glsl
 hg-gravitational-waves.glsl
 hg-hacker-terminal.glsl
 hg-heat-shimmer.glsl

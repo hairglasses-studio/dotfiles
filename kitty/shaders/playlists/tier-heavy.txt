@@ -36,6 +36,7 @@ hg-deep-sea-vent.glsl
 hg-dyson-sphere.glsl
 hg-electric-eel.glsl
 hg-fluid-flow.glsl
+hg-gravitational-lens.glsl
 hg-hexagon-data-flow.glsl
 hg-holo-globe.glsl
 hg-holo-projection.glsl
