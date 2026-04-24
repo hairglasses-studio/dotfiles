@@ -12,7 +12,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-red-giant` — swollen evolved star with convection cells + solar wind~~ ✓ shipped
 - ~~`hg-ring-galaxy` — collisional ring galaxy (Cartwheel-style)~~ ✓ shipped
 - ~~`hg-gravitational-lens` — bent Einstein-ring light around dark lens~~ ✓ shipped
-- `hg-solar-prominence` — giant coronal loop rising from star surface
+- ~~`hg-solar-prominence` — giant coronal loop rising from star surface~~ ✓ shipped
 - ~~`hg-tidal-disruption` — black hole shredding a passing star into spaghetti stream~~ ✓ shipped
 - `hg-fast-radio-burst` — brief intense pulse + afterglow map
 - `hg-dark-matter-web` — cosmic-web filaments of dark matter

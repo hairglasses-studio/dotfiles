@@ -152,6 +152,7 @@ hg-slime-mould.glsl
 hg-smoke-rings.glsl
 hg-snowflake-tiling.glsl
 hg-solar-flare.glsl
+hg-solar-prominence.glsl
 hg-solar-system.glsl
 hg-sonic-boom.glsl
 hg-sound-wave.glsl

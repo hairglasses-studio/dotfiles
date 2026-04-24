@@ -60,6 +60,7 @@ hg-retrowave-sun.glsl
 hg-ring-galaxy.glsl
 hg-saturn-rings.glsl
 hg-snowflake-tiling.glsl
+hg-solar-prominence.glsl
 hg-sound-wave.glsl
 hg-tesla-coil.glsl
 hg-tesseract.glsl
