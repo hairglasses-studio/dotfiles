@@ -21,7 +21,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 ## Cyberpunk scenes
 
 - ~~`hg-megablock-vista` — layered city megablocks with neon signs fading into smog~~ ✓ shipped
-- `hg-drone-swarm` — cluster of navigation lights in formation flight
+- ~~`hg-drone-swarm` — cluster of navigation lights in formation flight~~ ✓ shipped
 - `hg-arcade-cabinet` — row of glowing arcade screens with attract-mode content
 - `hg-tracer-round` — muzzle flash + streaking tracer bullet trails
 - `hg-neon-subway` — subway tunnel with receding light bands
