@@ -177,6 +177,7 @@ hg-spirit-flame.glsl
 hg-spirograph.glsl
 hg-splash-crown.glsl
 hg-stained-glass.glsl
+hg-standing-wave.glsl
 hg-star-nest.glsl
 hg-stellar-nursery.glsl
 hg-supernova-shockwave.glsl

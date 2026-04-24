@@ -76,6 +76,7 @@ hg-saturn-rings.glsl
 hg-snowflake-tiling.glsl
 hg-solar-prominence.glsl
 hg-sound-wave.glsl
+hg-standing-wave.glsl
 hg-tesla-coil.glsl
 hg-tesseract.glsl
 hg-tidal-disruption.glsl
