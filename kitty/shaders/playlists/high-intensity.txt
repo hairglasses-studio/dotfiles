@@ -148,6 +148,7 @@ hg-reaction-diffusion.glsl
 hg-red-giant.glsl
 hg-refractive-droplet.glsl
 hg-retrowave-sun.glsl
+hg-ring-galaxy.glsl
 hg-ripple-drops.glsl
 hg-ripple-tank.glsl
 hg-sand-dunes.glsl

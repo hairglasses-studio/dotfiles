@@ -57,6 +57,7 @@ hg-plasma-globe.glsl
 hg-rain-droplets.glsl
 hg-red-giant.glsl
 hg-retrowave-sun.glsl
+hg-ring-galaxy.glsl
 hg-saturn-rings.glsl
 hg-snowflake-tiling.glsl
 hg-sound-wave.glsl
