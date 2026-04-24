@@ -64,6 +64,7 @@ hg-data-stream.glsl
 hg-deep-sea-vent.glsl
 hg-desert-oasis.glsl
 hg-dna-helix.glsl
+hg-dns-resolver.glsl
 hg-doppler-effect.glsl
 hg-double-pendulum.glsl
 hg-drone-swarm.glsl
