@@ -48,6 +48,7 @@ hg-nebula-swirl.glsl
 hg-neon-cocoon.glsl
 hg-neural-mesh.glsl
 hg-neural-storm.glsl
+hg-neutron-merger.glsl
 hg-pendulum-basin.glsl
 hg-petroglyphs.glsl
 hg-pinwheel-galaxy.glsl

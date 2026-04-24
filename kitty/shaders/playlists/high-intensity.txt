@@ -117,6 +117,7 @@ hg-neon-noir.glsl
 hg-neural-galaxy.glsl
 hg-neural-mesh.glsl
 hg-neural-storm.glsl
+hg-neutron-merger.glsl
 hg-nuclear-reactor.glsl
 hg-origami-fold.glsl
 hg-oscilloscope.glsl
