@@ -152,6 +152,7 @@ hg-neural-mesh.glsl
 hg-neural-storm.glsl
 hg-neutron-merger.glsl
 hg-nuclear-reactor.glsl
+hg-oil-film.glsl
 hg-origami-fold.glsl
 hg-ort-cloud-comet.glsl
 hg-oscilloscope.glsl

@@ -68,7 +68,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 
 ## Psychedelic / abstract
 
-- `hg-oil-film` — thin-film interference rainbow on oily surface
+- ~~`hg-oil-film` — thin-film interference rainbow on oily surface~~ ✓ shipped
 - `hg-swirling-ink` — black ink dispersing in water with curl flow
 - `hg-marble-texture` — turbulent marble veins evolving
 - `hg-tie-dye-bloom` — concentric bloomed color rings

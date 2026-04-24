@@ -113,6 +113,7 @@ hg-neon-road.glsl
 hg-neon-tunnel.glsl
 hg-neural-galaxy.glsl
 hg-nuclear-reactor.glsl
+hg-oil-film.glsl
 hg-origami-fold.glsl
 hg-oscilloscope.glsl
 hg-particle-collider.glsl
