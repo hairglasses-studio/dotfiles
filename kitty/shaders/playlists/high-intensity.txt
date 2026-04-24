@@ -165,6 +165,7 @@ hg-retrowave-sun.glsl
 hg-ring-galaxy.glsl
 hg-ripple-drops.glsl
 hg-ripple-tank.glsl
+hg-rossler-attractor.glsl
 hg-sand-dunes.glsl
 hg-saturn-rings.glsl
 hg-shatter-impact.glsl

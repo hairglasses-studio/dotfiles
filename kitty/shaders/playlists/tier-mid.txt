@@ -132,6 +132,7 @@ hg-reaction-diffusion.glsl
 hg-refractive-droplet.glsl
 hg-ripple-drops.glsl
 hg-ripple-tank.glsl
+hg-rossler-attractor.glsl
 hg-sand-dunes.glsl
 hg-shatter-impact.glsl
 hg-shimmer-dust.glsl
