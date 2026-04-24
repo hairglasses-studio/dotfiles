@@ -54,6 +54,7 @@ hg-firefly-river.glsl
 hg-fluid-flow.glsl
 hg-fungal-network.glsl
 hg-ghost-in-shell.glsl
+hg-github-commits.glsl
 hg-glacier-crevasse.glsl
 hg-gravitational-lens.glsl
 hg-hexagon-data-flow.glsl

@@ -74,6 +74,7 @@ hg-galaxy-spiral.glsl
 hg-gas-nebula.glsl
 hg-geyser.glsl
 hg-ghost-in-shell.glsl
+hg-github-commits.glsl
 hg-glacier-crevasse.glsl
 hg-glass-shatter.glsl
 hg-glitchmatrix.glsl
