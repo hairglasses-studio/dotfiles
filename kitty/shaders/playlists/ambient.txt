@@ -85,6 +85,7 @@ hg-bioluminescence.glsl
 hg-bismuth-crystal.glsl
 hg-black-hole.glsl
 hg-black-ice.glsl
+hg-bladerunner-umbrella.glsl
 hg-bloom-storm.glsl
 hg-bokeh-lights.glsl
 hg-caustic-water.glsl
