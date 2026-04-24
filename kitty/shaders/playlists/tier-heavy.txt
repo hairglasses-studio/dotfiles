@@ -41,6 +41,7 @@ hg-cyber-city.glsl
 hg-cybertruck-highway.glsl
 hg-dark-matter-web.glsl
 hg-deep-sea-vent.glsl
+hg-desert-oasis.glsl
 hg-double-pendulum.glsl
 hg-drone-swarm.glsl
 hg-dyson-sphere.glsl

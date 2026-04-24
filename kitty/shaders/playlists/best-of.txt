@@ -53,6 +53,7 @@ hg-cybertruck-highway.glsl
 hg-dark-matter-web.glsl
 hg-data-stream.glsl
 hg-deep-sea-vent.glsl
+hg-desert-oasis.glsl
 hg-dna-helix.glsl
 hg-doppler-effect.glsl
 hg-double-pendulum.glsl
