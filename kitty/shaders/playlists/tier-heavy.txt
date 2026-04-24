@@ -49,6 +49,7 @@ hg-fast-radio-burst.glsl
 hg-fluid-flow.glsl
 hg-fungal-network.glsl
 hg-ghost-in-shell.glsl
+hg-glacier-crevasse.glsl
 hg-gravitational-lens.glsl
 hg-hexagon-data-flow.glsl
 hg-holo-globe.glsl

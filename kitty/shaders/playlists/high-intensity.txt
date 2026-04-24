@@ -83,6 +83,7 @@ hg-galaxy-spiral.glsl
 hg-gas-nebula.glsl
 hg-geyser.glsl
 hg-ghost-in-shell.glsl
+hg-glacier-crevasse.glsl
 hg-glass-shatter.glsl
 hg-glitchmatrix.glsl
 hg-glow-worms.glsl
