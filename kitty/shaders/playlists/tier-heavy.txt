@@ -47,6 +47,7 @@ hg-jellyfish-cloud.glsl
 hg-lightning-network.glsl
 hg-lightning-storm.glsl
 hg-magnetar-lines.glsl
+hg-megablock-vista.glsl
 hg-nebula-swirl.glsl
 hg-neon-cocoon.glsl
 hg-neural-mesh.glsl

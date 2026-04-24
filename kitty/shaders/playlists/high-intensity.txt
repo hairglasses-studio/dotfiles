@@ -106,6 +106,7 @@ hg-mandelbrot-zoom.glsl
 hg-mandelbulb-slice.glsl
 hg-matrix-glitch.glsl
 hg-matryoshka-rings.glsl
+hg-megablock-vista.glsl
 hg-menger-tunnel.glsl
 hg-metaballs.glsl
 hg-meteor-shower.glsl
