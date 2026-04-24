@@ -132,6 +132,7 @@ hg-fluid-flow.glsl
 hg-fractal-cascade.glsl
 hg-fractal-feather.glsl
 hg-fractal-tree.glsl
+hg-fungal-network.glsl
 hg-galaxy-spiral.glsl
 hg-gas-nebula.glsl
 hg-geyser.glsl
