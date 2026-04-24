@@ -96,6 +96,7 @@ hg-lens-flare.glsl
 hg-lightning-network.glsl
 hg-lightning-storm.glsl
 hg-liquid-metal.glsl
+hg-lorenz-attractor.glsl
 hg-magma-flow.glsl
 hg-magnetar-lines.glsl
 hg-magnetic-filings.glsl

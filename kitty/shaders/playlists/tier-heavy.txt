@@ -53,6 +53,7 @@ hg-holo-ui.glsl
 hg-jellyfish-cloud.glsl
 hg-lightning-network.glsl
 hg-lightning-storm.glsl
+hg-lorenz-attractor.glsl
 hg-magnetar-lines.glsl
 hg-megablock-vista.glsl
 hg-nebula-swirl.glsl
