@@ -5,6 +5,7 @@ hg-analog-static.glsl
 hg-apollonian.glsl
 hg-arasaka-logo.glsl
 hg-arcade-cabinet.glsl
+hg-arctic-pack-ice.glsl
 hg-ascii-rain.glsl
 hg-auroracube.glsl
 hg-aurora-dome.glsl

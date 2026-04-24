@@ -31,6 +31,7 @@ gears-and-belts.glsl
 glow-rgbsplit-twitchy.glsl
 hg-arasaka-logo.glsl
 hg-arcade-cabinet.glsl
+hg-arctic-pack-ice.glsl
 hg-aurora-dome.glsl
 hg-bladerunner-umbrella.glsl
 hg-cave-pools.glsl
