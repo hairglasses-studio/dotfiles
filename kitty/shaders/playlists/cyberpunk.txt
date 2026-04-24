@@ -44,6 +44,7 @@ hg-dark-matter-web.glsl
 hg-data-stream.glsl
 hg-deep-sea-vent.glsl
 hg-dna-helix.glsl
+hg-doppler-effect.glsl
 hg-double-pendulum.glsl
 hg-drone-swarm.glsl
 hg-dyson-sphere.glsl

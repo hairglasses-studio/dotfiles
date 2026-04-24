@@ -56,6 +56,7 @@ hg-cube-array.glsl
 hg-cyber-glyph-rain.glsl
 hg-data-stream.glsl
 hg-dna-helix.glsl
+hg-doppler-effect.glsl
 hg-electric-sphere.glsl
 hg-ember-field.glsl
 hg-fireflies-meadow.glsl
