@@ -55,7 +55,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-amber-fossil` — insect frozen in amber with warm glow~~ ✓ shipped
 - ~~`hg-glacier-crevasse` — ice blue gradient inside deep crack~~ ✓ shipped
 - ~~`hg-desert-oasis` — water pool surrounded by palm silhouettes~~ ✓ shipped
-- `hg-firefly-river` — glowing insects following a winding path
+- ~~`hg-firefly-river` — glowing insects following a winding path~~ ✓ shipped
 
 ## Data / network viz
 

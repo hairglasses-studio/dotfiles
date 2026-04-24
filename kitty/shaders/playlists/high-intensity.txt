@@ -72,6 +72,7 @@ hg-electric-sphere.glsl
 hg-ember-field.glsl
 hg-fast-radio-burst.glsl
 hg-fireflies-meadow.glsl
+hg-firefly-river.glsl
 hg-fire-spiral.glsl
 hg-fire-storm.glsl
 hg-fireworks-display.glsl

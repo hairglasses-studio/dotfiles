@@ -47,6 +47,7 @@ hg-drone-swarm.glsl
 hg-dyson-sphere.glsl
 hg-electric-eel.glsl
 hg-fast-radio-burst.glsl
+hg-firefly-river.glsl
 hg-fluid-flow.glsl
 hg-fungal-network.glsl
 hg-ghost-in-shell.glsl
