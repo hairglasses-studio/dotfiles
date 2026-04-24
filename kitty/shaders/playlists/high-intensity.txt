@@ -57,6 +57,7 @@ hg-dyson-sphere.glsl
 hg-electric-eel.glsl
 hg-electric-sphere.glsl
 hg-ember-field.glsl
+hg-fast-radio-burst.glsl
 hg-fireflies-meadow.glsl
 hg-fire-spiral.glsl
 hg-fire-storm.glsl
