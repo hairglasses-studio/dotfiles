@@ -120,6 +120,7 @@ hg-nebula-swirl.glsl
 hg-neon-cocoon.glsl
 hg-neon-glyphs.glsl
 hg-neon-noir.glsl
+hg-neon-subway.glsl
 hg-neural-galaxy.glsl
 hg-neural-mesh.glsl
 hg-neural-storm.glsl

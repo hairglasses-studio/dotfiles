@@ -179,6 +179,7 @@ hg-neon-cocoon.glsl
 hg-neon-glyphs.glsl
 hg-neon-noir.glsl
 hg-neon-road.glsl
+hg-neon-subway.glsl
 hg-neon-tunnel.glsl
 hg-neural-galaxy.glsl
 hg-neural-mesh.glsl
