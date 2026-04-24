@@ -200,6 +200,7 @@ hg-voronoi-cells.glsl
 hg-vortex-storm.glsl
 hg-warp-corridor.glsl
 hg-wave-interference.glsl
+hg-wave-packet.glsl
 hg-wave-particle-duality.glsl
 hg-wave-pool.glsl
 hg-wave-tunnel.glsl
