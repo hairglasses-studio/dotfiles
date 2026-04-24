@@ -140,6 +140,7 @@ hg-nuclear-reactor.glsl
 hg-origami-fold.glsl
 hg-ort-cloud-comet.glsl
 hg-oscilloscope.glsl
+hg-packet-trace.glsl
 hg-particle-collider.glsl
 hg-particle-swarm.glsl
 hg-pendulum-basin.glsl
