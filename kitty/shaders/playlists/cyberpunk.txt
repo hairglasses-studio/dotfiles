@@ -1,6 +1,7 @@
 fielding-cursor-glitch.glsl
 fielding-electric.glsl
 hg-acid-pool.glsl
+hg-amber-fossil.glsl
 hg-analog-static.glsl
 hg-apollonian.glsl
 hg-arasaka-logo.glsl

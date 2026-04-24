@@ -29,6 +29,7 @@ fielding-electric.glsl
 galaxy.glsl
 gears-and-belts.glsl
 glow-rgbsplit-twitchy.glsl
+hg-amber-fossil.glsl
 hg-arasaka-logo.glsl
 hg-arcade-cabinet.glsl
 hg-arctic-pack-ice.glsl

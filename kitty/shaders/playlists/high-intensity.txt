@@ -15,6 +15,7 @@ galaxy.glsl
 gears-and-belts.glsl
 green-crt.glsl
 hg-acid-pool.glsl
+hg-amber-fossil.glsl
 hg-analog-static.glsl
 hg-apollonian.glsl
 hg-arasaka-logo.glsl
