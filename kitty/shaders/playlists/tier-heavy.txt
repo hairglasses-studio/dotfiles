@@ -42,6 +42,7 @@ hg-dyson-sphere.glsl
 hg-electric-eel.glsl
 hg-fast-radio-burst.glsl
 hg-fluid-flow.glsl
+hg-ghost-in-shell.glsl
 hg-gravitational-lens.glsl
 hg-hexagon-data-flow.glsl
 hg-holo-globe.glsl

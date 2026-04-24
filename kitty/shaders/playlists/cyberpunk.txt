@@ -60,6 +60,7 @@ hg-fractal-tree.glsl
 hg-galaxy-spiral.glsl
 hg-gas-nebula.glsl
 hg-geyser.glsl
+hg-ghost-in-shell.glsl
 hg-glass-shatter.glsl
 hg-glitchmatrix.glsl
 hg-glow-worms.glsl
