@@ -27,6 +27,7 @@ hg-bloom-storm.glsl
 hg-bokeh-lights.glsl
 hg-calabi-yau-slice.glsl
 hg-caustic-water.glsl
+hg-cave-pools.glsl
 hg-cellular-automata.glsl
 hg-chameleon.glsl
 hg-cherenkov.glsl

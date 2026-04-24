@@ -33,6 +33,7 @@ hg-arasaka-logo.glsl
 hg-arcade-cabinet.glsl
 hg-aurora-dome.glsl
 hg-bladerunner-umbrella.glsl
+hg-cave-pools.glsl
 hg-coral-reef.glsl
 hg-cyber-city.glsl
 hg-cybertruck-highway.glsl
