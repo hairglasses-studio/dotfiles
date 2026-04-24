@@ -19,6 +19,7 @@ hg-aurora-dome.glsl
 hg-aurora.glsl
 hg-aurora-veil.glsl
 hg-aurora-whirlpool.glsl
+hg-bgp-routes.glsl
 hg-binary-collision.glsl
 hg-bioluminescence.glsl
 hg-bismuth-crystal.glsl

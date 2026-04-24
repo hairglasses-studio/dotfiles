@@ -34,6 +34,7 @@ hg-arasaka-logo.glsl
 hg-arcade-cabinet.glsl
 hg-arctic-pack-ice.glsl
 hg-aurora-dome.glsl
+hg-bgp-routes.glsl
 hg-bladerunner-umbrella.glsl
 hg-cave-pools.glsl
 hg-coral-reef.glsl

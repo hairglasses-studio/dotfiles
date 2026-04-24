@@ -60,7 +60,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 ## Data / network viz
 
 - ~~`hg-packet-trace` — network packets hopping across routers~~ ✓ shipped
-- `hg-bgp-routes` — routes radiating from internet exchange hubs
+- ~~`hg-bgp-routes` — routes radiating from internet exchange hubs~~ ✓ shipped
 - `hg-dns-resolver` — hierarchical DNS lookup visualized as tree descent
 - `hg-blockchain-miner` — blocks being added with hash-collision flicker
 - `hg-github-commits` — commit graph branching and merging
