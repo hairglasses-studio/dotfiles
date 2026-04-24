@@ -33,7 +33,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 
 ## Physics & math
 
-- `hg-double-pendulum` — chaotic double-pendulum motion with phase-space trace
+- ~~`hg-double-pendulum` — chaotic double-pendulum motion with phase-space trace~~ ✓ shipped
 - `hg-lorenz-attractor` — 3D Lorenz butterfly projected with fading trail
 - `hg-rossler-attractor` — Rössler chaotic strange attractor
 - `hg-standing-wave` — vibrating string modes (plucked frequency)
