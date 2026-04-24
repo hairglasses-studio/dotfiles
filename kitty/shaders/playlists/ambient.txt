@@ -185,6 +185,7 @@ hg-neon-noir.glsl
 hg-neon-road.glsl
 hg-neon-subway.glsl
 hg-neon-tunnel.glsl
+hg-net-runner.glsl
 hg-neural-galaxy.glsl
 hg-neural-mesh.glsl
 hg-neural-storm.glsl

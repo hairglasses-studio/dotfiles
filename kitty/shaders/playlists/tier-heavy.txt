@@ -57,6 +57,7 @@ hg-megablock-vista.glsl
 hg-nebula-swirl.glsl
 hg-neon-cocoon.glsl
 hg-neon-subway.glsl
+hg-net-runner.glsl
 hg-neural-mesh.glsl
 hg-neural-storm.glsl
 hg-neutron-merger.glsl

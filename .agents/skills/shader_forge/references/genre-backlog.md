@@ -29,7 +29,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-bladerunner-umbrella` — figures walking under glowing umbrellas in rain~~ ✓ shipped
 - ~~`hg-ghost-in-shell` — dissolve-in body with pixel sparks~~ ✓ shipped
 - ~~`hg-arasaka-logo` — corp-logo hologram with flicker + shutdown sequence~~ ✓ shipped
-- `hg-net-runner` — first-person cyberspace dive with neon wireframes
+- ~~`hg-net-runner` — first-person cyberspace dive with neon wireframes~~ ✓ shipped
 
 ## Physics & math
 
