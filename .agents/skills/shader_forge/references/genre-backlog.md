@@ -9,7 +9,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-dyson-sphere` — megastructure harvesting a star with gridded surface~~ ✓ shipped
 - ~~`hg-neutron-merger` — two neutron stars merging with kilonova ejecta shell~~ ✓ shipped
 - ~~`hg-saturn-rings` — banded ring system viewed edge-on with shepherd moons~~ ✓ shipped
-- `hg-red-giant` — swollen evolved star with convection cells + solar wind
+- ~~`hg-red-giant` — swollen evolved star with convection cells + solar wind~~ ✓ shipped
 - `hg-ring-galaxy` — collisional ring galaxy (Cartwheel-style)
 - `hg-gravitational-lens` — bent Einstein-ring light around dark lens
 - `hg-solar-prominence` — giant coronal loop rising from star surface

@@ -144,6 +144,7 @@ hg-quasar-core.glsl
 hg-radio-waves.glsl
 hg-rain-droplets.glsl
 hg-reaction-diffusion.glsl
+hg-red-giant.glsl
 hg-refractive-droplet.glsl
 hg-retrowave-sun.glsl
 hg-ripple-drops.glsl
