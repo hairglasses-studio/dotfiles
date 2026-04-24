@@ -15,7 +15,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-solar-prominence` — giant coronal loop rising from star surface~~ ✓ shipped
 - ~~`hg-tidal-disruption` — black hole shredding a passing star into spaghetti stream~~ ✓ shipped
 - ~~`hg-fast-radio-burst` — brief intense pulse + afterglow map~~ ✓ shipped
-- `hg-dark-matter-web` — cosmic-web filaments of dark matter
+- ~~`hg-dark-matter-web` — cosmic-web filaments of dark matter~~ ✓ shipped
 - `hg-ort-cloud-comet` — comet emerging from an outer-solar-system ice cloud
 
 ## Cyberpunk scenes

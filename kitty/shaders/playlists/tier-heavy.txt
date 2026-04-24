@@ -32,6 +32,7 @@ glow-rgbsplit-twitchy.glsl
 hg-aurora-dome.glsl
 hg-coral-reef.glsl
 hg-cyber-city.glsl
+hg-dark-matter-web.glsl
 hg-deep-sea-vent.glsl
 hg-dyson-sphere.glsl
 hg-electric-eel.glsl
