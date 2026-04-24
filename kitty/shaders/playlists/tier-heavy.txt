@@ -50,6 +50,7 @@ hg-hexagon-data-flow.glsl
 hg-holo-globe.glsl
 hg-holo-projection.glsl
 hg-holo-ui.glsl
+hg-hopf-fibration.glsl
 hg-jellyfish-cloud.glsl
 hg-lightning-network.glsl
 hg-lightning-storm.glsl

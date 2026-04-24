@@ -77,6 +77,7 @@ hg-holo-globe.glsl
 hg-hologram-scan.glsl
 hg-holo-projection.glsl
 hg-holo-ui.glsl
+hg-hopf-fibration.glsl
 hg-ice-crystal.glsl
 hg-infrared-scanner.glsl
 hg-ion-engine.glsl
