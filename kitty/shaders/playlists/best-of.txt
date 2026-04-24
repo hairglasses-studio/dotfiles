@@ -99,6 +99,7 @@ hg-klein-bottle.glsl
 hg-laser-grid.glsl
 hg-lava-lamp.glsl
 hg-lens-flare.glsl
+hg-lightning-field.glsl
 hg-lightning-network.glsl
 hg-lightning-storm.glsl
 hg-liquid-metal.glsl
