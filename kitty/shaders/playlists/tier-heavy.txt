@@ -56,6 +56,7 @@ hg-klein-bottle.glsl
 hg-lightning-network.glsl
 hg-lightning-storm.glsl
 hg-lorenz-attractor.glsl
+hg-magma-vein.glsl
 hg-magnetar-lines.glsl
 hg-megablock-vista.glsl
 hg-nebula-swirl.glsl
