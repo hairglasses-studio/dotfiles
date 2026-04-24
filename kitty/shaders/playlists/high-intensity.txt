@@ -51,6 +51,7 @@ hg-crystal-shard.glsl
 hg-cube-array.glsl
 hg-cyber-city.glsl
 hg-cyber-glyph-rain.glsl
+hg-cybertruck-highway.glsl
 hg-dark-matter-web.glsl
 hg-data-stream.glsl
 hg-deep-sea-vent.glsl
