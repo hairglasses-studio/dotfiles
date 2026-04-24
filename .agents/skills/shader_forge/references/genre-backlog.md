@@ -28,7 +28,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-cybertruck-highway` — perspective highway at night with neon passing~~ ✓ shipped
 - ~~`hg-bladerunner-umbrella` — figures walking under glowing umbrellas in rain~~ ✓ shipped
 - ~~`hg-ghost-in-shell` — dissolve-in body with pixel sparks~~ ✓ shipped
-- `hg-arasaka-logo` — corp-logo hologram with flicker + shutdown sequence
+- ~~`hg-arasaka-logo` — corp-logo hologram with flicker + shutdown sequence~~ ✓ shipped
 - `hg-net-runner` — first-person cyberspace dive with neon wireframes
 
 ## Physics & math
