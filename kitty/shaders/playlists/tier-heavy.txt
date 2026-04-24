@@ -71,6 +71,7 @@ hg-sound-wave.glsl
 hg-tesla-coil.glsl
 hg-tesseract.glsl
 hg-tidal-disruption.glsl
+hg-tracer-round.glsl
 hg-volumetric-clouds.glsl
 in-game-crt-cursor.glsl
 in-game-crt.glsl

@@ -187,6 +187,7 @@ hg-tidal-disruption.glsl
 hg-time-crystal.glsl
 hg-tokamak.glsl
 hg-tornado.glsl
+hg-tracer-round.glsl
 hg-truchet-tiles.glsl
 hg-twin-suns.glsl
 hg-vector-field.glsl
