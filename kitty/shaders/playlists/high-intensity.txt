@@ -17,6 +17,7 @@ green-crt.glsl
 hg-acid-pool.glsl
 hg-analog-static.glsl
 hg-apollonian.glsl
+hg-arcade-cabinet.glsl
 hg-ascii-rain.glsl
 hg-auroracube.glsl
 hg-aurora-dome.glsl

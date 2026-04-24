@@ -29,6 +29,7 @@ fielding-electric.glsl
 galaxy.glsl
 gears-and-belts.glsl
 glow-rgbsplit-twitchy.glsl
+hg-arcade-cabinet.glsl
 hg-aurora-dome.glsl
 hg-coral-reef.glsl
 hg-cyber-city.glsl
