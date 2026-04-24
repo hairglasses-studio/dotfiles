@@ -52,6 +52,7 @@ hg-holo-projection.glsl
 hg-holo-ui.glsl
 hg-hopf-fibration.glsl
 hg-jellyfish-cloud.glsl
+hg-klein-bottle.glsl
 hg-lightning-network.glsl
 hg-lightning-storm.glsl
 hg-lorenz-attractor.glsl

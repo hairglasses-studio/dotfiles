@@ -100,6 +100,7 @@ hg-jellyfish-cloud.glsl
 hg-julia-fractal.glsl
 hg-kaleido-flower.glsl
 hg-kaleidoscope.glsl
+hg-klein-bottle.glsl
 hg-laser-grid.glsl
 hg-lava-lamp.glsl
 hg-lens-flare.glsl
