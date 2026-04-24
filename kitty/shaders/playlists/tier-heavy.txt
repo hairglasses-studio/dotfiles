@@ -68,6 +68,7 @@ hg-pendulum-basin.glsl
 hg-petroglyphs.glsl
 hg-pinwheel-galaxy.glsl
 hg-plasma-globe.glsl
+hg-poincare-disk.glsl
 hg-rain-droplets.glsl
 hg-red-giant.glsl
 hg-retrowave-sun.glsl

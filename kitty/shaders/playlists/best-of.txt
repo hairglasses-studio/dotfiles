@@ -145,6 +145,7 @@ hg-plasma-ball.glsl
 hg-plasma-globe.glsl
 hg-plasma-lattice.glsl
 hg-plasma-storm.glsl
+hg-poincare-disk.glsl
 hg-pollen-cloud.glsl
 hg-pool-ripples.glsl
 hg-psychedelic-tunnel.glsl

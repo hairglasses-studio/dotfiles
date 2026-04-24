@@ -39,7 +39,7 @@ When this list runs dry, invent. Skew toward radial/plasma/cosmic/cyberpunk/frac
 - ~~`hg-standing-wave` — vibrating string modes (plucked frequency)~~ ✓ shipped
 - ~~`hg-doppler-effect` — moving emitter shifting frequency visually~~ ✓ shipped
 - ~~`hg-wave-packet` — Gaussian wave packet dispersing/localizing~~ ✓ shipped
-- `hg-poincare-disk` — hyperbolic tiling in Poincaré disk model
+- ~~`hg-poincare-disk` — hyperbolic tiling in Poincaré disk model~~ ✓ shipped
 - `hg-hopf-fibration` — 4D sphere fibered into great circles (projected)
 - `hg-klein-bottle` — immersed Klein bottle surface
 - `hg-calabi-yau-slice` — 2D slice through a 6D Calabi-Yau manifold
