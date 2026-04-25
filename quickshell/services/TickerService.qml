@@ -371,9 +371,15 @@ Item {
 
     function applyStreamData(data) {
         const clean = compact(data, 5000);
-        text = clean.length > 0 ? clean : stream + " returned no data";
+        const next = clean.length > 0 ? clean : stream + " returned no data";
+        const changed = next !== text;
+        text = next;
         noteHealth(clean.length > 0, text);
-        sweepRequested();
+        // Only restart the marquee when the visible text actually changed.
+        // stateTimer + playlistProc cause fetchCurrent() to re-run every 5s
+        // even when nothing changed; if we sweep on every refresh the
+        // marquee resets mid-scroll (visible "scrolls 25% then jumps back").
+        if (changed) sweepRequested();
     }
 
     function chooseNextIndex(delta) {
@@ -532,11 +538,17 @@ Item {
                 } catch (_error) {
                     root.streams = ["keybinds", "system"];
                 }
+                const previousStream = root.stream;
                 const wanted = root.pinnedStream || root.stream;
                 const idx = root.streams.indexOf(wanted);
                 root.streamIndex = idx >= 0 ? idx : 0;
                 root.stream = root.pinnedStream || root.streams[root.streamIndex] || "keybinds";
-                root.fetchCurrent();
+                // Only re-fetch when the active stream actually changed or
+                // we have no text yet. stateTimer fires every 5s and would
+                // otherwise re-run the same command, restarting the sweep.
+                if (root.stream !== previousStream || !root.text || root.text.indexOf("loading ticker stream") === 0) {
+                    root.fetchCurrent();
+                }
             }
         }
     }
