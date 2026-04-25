@@ -74,12 +74,16 @@ PanelWindow {
             model: notifications.entries.slice(0, 8)
 
             delegate: Rectangle {
+                id: entryRoot
+                property var entry: modelData
+                property var entryActions: (entry && entry.actions) || []
+                property bool hasLive: entry && notifications.liveNotifications && notifications.liveNotifications.hasOwnProperty(entry.id)
                 width: notificationColumn.width
-                height: Math.max(50, bodyText.implicitHeight + 24)
+                height: Math.max(50, bodyText.implicitHeight + 24) + (entryActions.length > 0 && hasLive ? 30 : 0)
                 radius: 7
                 color: Qt.rgba(colors.bg.r, colors.bg.g, colors.bg.b, 0.82)
                 border.width: 1
-                border.color: modelData.urgency === "critical"
+                border.color: entry.urgency === "critical"
                     ? Qt.rgba(colors.danger.r, colors.danger.g, colors.danger.b, 0.55)
                     : Qt.rgba(colors.primary.r, colors.primary.g, colors.primary.b, 0.20)
 
@@ -93,8 +97,8 @@ PanelWindow {
                         top: parent.top
                         topMargin: 7
                     }
-                    text: notifications.compact((modelData.app ? modelData.app + "  " : "") + (modelData.summary || ""), 76)
-                    color: modelData.urgency === "critical" ? colors.danger : colors.secondary
+                    text: notifications.compact((entry.app ? entry.app + "  " : "") + (entry.summary || ""), 76)
+                    color: entry.urgency === "critical" ? colors.danger : colors.secondary
                     font.family: "Maple Mono NF CN"
                     font.pixelSize: 11
                     font.bold: true
@@ -111,13 +115,37 @@ PanelWindow {
                         top: titleText.bottom
                         topMargin: 4
                     }
-                    text: notifications.compact(modelData.body || modelData.text || "", 210)
+                    text: notifications.compact(entry.body || entry.text || "", 210)
                     color: colors.fg
                     font.family: "Maple Mono NF CN"
                     font.pixelSize: 10
                     wrapMode: Text.WordWrap
                     maximumLineCount: 2
                     elide: Text.ElideRight
+                }
+
+                Row {
+                    visible: entryRoot.entryActions.length > 0 && entryRoot.hasLive
+                    anchors {
+                        left: parent.left
+                        leftMargin: 10
+                        right: parent.right
+                        rightMargin: 10
+                        bottom: parent.bottom
+                        bottomMargin: 5
+                    }
+                    spacing: 5
+
+                    Repeater {
+                        model: entryRoot.entryActions
+                        delegate: Components.Badge {
+                            colors: panel.colors
+                            text: (modelData.text || modelData.id || "").toUpperCase()
+                            accent: panel.colors.tertiary
+                            fontSize: 10
+                            onClicked: notifications.invokeAction(entryRoot.entry.id, modelData.id)
+                        }
+                    }
                 }
             }
         }

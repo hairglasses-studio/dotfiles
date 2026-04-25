@@ -15,6 +15,11 @@ Item {
     property var entries: []
     property var popupEntries: []
     property bool centerVisible: false
+    // Map: entry.id (string) -> live Notification object. Only populated for
+    // notifications we own (ownerEnabled=true) so action buttons can call
+    // invoke() on the original NotificationAction. Persisted entries from
+    // history.jsonl have no live ref and render without action buttons.
+    property var liveNotifications: ({})
 
     function compact(value, max) {
         const clean = (value || "").replace(/\s+/g, " ").trim();
@@ -79,18 +84,35 @@ Item {
     }
 
     function acceptOwned(notification) {
+        const entryId = String(notification.id);
+        const actions = [];
+        const rawActions = notification.actions || [];
+        for (let i = 0; i < rawActions.length; i++) {
+            const a = rawActions[i];
+            if (!a) continue;
+            const id = a.identifier || a.id || "";
+            const text = a.text || a.label || id;
+            if (id === "default" && !text) continue;
+            actions.push({ id: id, text: text });
+        }
         const entry = {
-            id: String(notification.id),
+            id: entryId,
             app: notification.appName || "",
             summary: notification.summary || "",
             body: notification.body || "",
             urgency: urgencyName(notification.urgency),
             visible: true,
             dismissed: false,
-            ts: Math.floor(Date.now() / 1000)
+            ts: Math.floor(Date.now() / 1000),
+            actions: actions
         };
         entry.text = entry.body && entry.body !== entry.summary ? entry.summary + ": " + entry.body : (entry.summary || entry.body);
         notification.tracked = true;
+        // Hold a live ref so action buttons can invoke later. Drop on close.
+        const liveCopy = root.liveNotifications;
+        liveCopy[entryId] = notification;
+        root.liveNotifications = liveCopy;
+        notification.closed.connect(() => root.dropLive(entryId));
         appendEntry(entry);
         root.entries = [entry].concat(root.entries).slice(0, 40);
         root.notificationCount = root.entries.length;
@@ -101,6 +123,31 @@ Item {
             return;
         }
         root.popupEntries = [entry].concat(root.popupEntries).slice(0, 3);
+    }
+
+    function dropLive(entryId) {
+        if (!root.liveNotifications.hasOwnProperty(entryId)) return;
+        const liveCopy = root.liveNotifications;
+        delete liveCopy[entryId];
+        root.liveNotifications = liveCopy;
+    }
+
+    function invokeAction(entryId, actionId) {
+        const live = root.liveNotifications[entryId];
+        if (!live || !live.actions) return false;
+        for (let i = 0; i < live.actions.length; i++) {
+            const a = live.actions[i];
+            if (!a) continue;
+            const id = a.identifier || a.id || "";
+            if (id === actionId) {
+                a.invoke();
+                root.dropLive(entryId);
+                // Remove from popups (action click implies dismissal).
+                root.popupEntries = root.popupEntries.filter(e => e.id !== entryId);
+                return true;
+            }
+        }
+        return false;
     }
 
     Process {
