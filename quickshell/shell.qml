@@ -104,6 +104,11 @@ ShellRoot {
     // visible double-stacked bars (verified via screenshot). Empty model
     // = zero delegates, no surfaces. Flip QS_BAR_CUTOVER=1 via
     // `hg shell bar-cutover` to swap ironbar out and TopBar in.
+    //
+    // Two Variants blocks at cutover: one for top-anchored bars on every
+    // screen, one for bottom-anchored bars on DP-2 (which ironbar pre-
+    // cutover ran at the bottom while DP-3's bar was at the top). Both
+    // gated by barCutover so pilot mode stays invisible.
     Variants {
         model: shellStateObj.barCutover ? Quickshell.screens : []
         delegate: Component {
@@ -113,6 +118,25 @@ ShellRoot {
                 shellState: shellStateObj
                 barData: barDataObj
                 notifications: notificationServiceObj
+                anchor: "top"
+            }
+        }
+    }
+
+    Variants {
+        // DP-2 bottom anchor — picks just that screen out of the screens
+        // list when bar-cutover is active. Empty model in pilot.
+        model: shellStateObj.barCutover
+            ? Quickshell.screens.filter(s => s.name === "DP-2")
+            : []
+        delegate: Component {
+            Modules.TopBar {
+                primaryScreen: root.primaryScreen
+                colors: palette
+                shellState: shellStateObj
+                barData: barDataObj
+                notifications: notificationServiceObj
+                anchor: "bottom"
             }
         }
     }

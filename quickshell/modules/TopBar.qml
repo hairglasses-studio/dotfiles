@@ -15,6 +15,12 @@ PanelWindow {
     property var shellState
     property var barData
     property var notifications
+    // Anchor edge — "top" (default) renders the bar above the workspace,
+    // "bottom" renders below. ironbar's pre-cutover layout had a top bar
+    // on DP-3 and a bottom bar on DP-2; once `bar-cutover` lands, the
+    // shell.qml Variants block uses both anchors so the same surfaces
+    // are owned by Quickshell.
+    property string anchor: "top"
 
     // Per-monitor workspaces text. Each TopBar variant shows its own
     // monitor's slice (1-5 / 6-10 / 11-15 with split-monitor-workspaces),
@@ -22,7 +28,12 @@ PanelWindow {
     property string workspacesText: "..."
 
     screen: screenModel
-    anchors { top: true; left: true; right: true }
+    anchors {
+        top: anchor === "top"
+        bottom: anchor === "bottom"
+        left: true
+        right: true
+    }
     implicitHeight: 30
     exclusiveZone: shellState && shellState.barCutover ? 30 : 0
     color: "transparent"
