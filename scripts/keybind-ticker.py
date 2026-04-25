@@ -25,7 +25,7 @@ Usage:
   keybind-ticker.py                     # regular window
   keybind-ticker.py --layer             # layer-shell bar (for systemd)
   keybind-ticker.py --preset minimal    # start with a preset
-  keybind-ticker.py --monitor DP-2      # target a different output
+  keybind-ticker.py --monitor HDMI-A-1  # target a different output
   keybind-ticker.py --playlist focus    # load a non-default playlist
   keybind-ticker.py --state-dir ~/.local/state/keybind-ticker-dp3  # isolate state for multi-instance
 """
@@ -71,7 +71,7 @@ def _cli_value(flag, default=None):
     return default
 
 
-MONITOR_NAME = _cli_value("--monitor", "DP-2")
+MONITOR_NAME = _cli_value("--monitor", "DP-3")
 START_PRESET = _cli_value("--preset", "ambient")
 START_PLAYLIST = _cli_value("--playlist", None)  # None → resolved at runtime via state file or "main"
 STATE_DIR_OVERRIDE = _cli_value("--state-dir", None)
