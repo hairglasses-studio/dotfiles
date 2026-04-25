@@ -12,6 +12,12 @@ PanelWindow {
     property var notifications
 
     screen: screenModel
+    // Pilot-mode gate: hide entirely until QS_TICKER_CUTOVER=1. The
+    // legacy keybind-ticker.service owns the bottom-of-primary-monitor
+    // surface; rendering this panel in pilot (top with margin=32)
+    // overlapped ironbar's DP-3 top bar, producing a visible
+    // double-stack in screenshots.
+    visible: shellState.tickerCutover
     anchors { left: true; right: true; top: !shellState.tickerCutover; bottom: shellState.tickerCutover }
     margins { top: shellState.tickerCutover ? 0 : 32 }
     implicitHeight: 30

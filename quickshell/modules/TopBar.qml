@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import "../components" as Components
@@ -15,11 +16,41 @@ PanelWindow {
     property var barData
     property var notifications
 
+    // Per-monitor workspaces text. Each TopBar variant shows its own
+    // monitor's slice (1-5 / 6-10 / 11-15 with split-monitor-workspaces),
+    // not the global list barData.workspacesText would otherwise return.
+    property string workspacesText: "..."
+
     screen: screenModel
     anchors { top: true; left: true; right: true }
     implicitHeight: 30
     exclusiveZone: shellState && shellState.barCutover ? 30 : 0
     color: "transparent"
+
+    // Filter workspaces by .monitor field so each TopBar instance only
+    // shows its own monitor's set. Refreshed every 1s (workspace state
+    // changes are user-driven, not high-frequency).
+    Process {
+        id: monitorWorkspacesProc
+        command: ["bash", "-lc",
+            "active=$(hyprctl -j activeworkspace 2>/dev/null | jq -r '.id // 0'); " +
+            "hyprctl -j workspaces 2>/dev/null | jq -r --arg active \"$active\" --arg mon \"" + (screenModel ? screenModel.name : "") + "\" " +
+            "'sort_by(.id) | map(select(.monitor == $mon)) | map(if ((.id | tostring) == $active) then \"[\" + (.name | tostring) + \"]\" else (.name | tostring) end) | join(\"  \")'"
+        ]
+        stdout: SplitParser {
+            onRead: data => {
+                const clean = (data || "").replace(/\s+/g, " ").trim();
+                panel.workspacesText = clean.length > 0 ? clean : "—";
+            }
+        }
+    }
+    Timer {
+        interval: 1000
+        repeat: true
+        running: true
+        triggeredOnStart: true
+        onTriggered: if (!monitorWorkspacesProc.running) monitorWorkspacesProc.exec(monitorWorkspacesProc.command);
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -72,7 +103,7 @@ PanelWindow {
 
         Components.Badge {
             colors: panel.colors
-            text: barData.workspacesText
+            text: panel.workspacesText
             accent: colors.primary
         }
 

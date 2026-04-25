@@ -98,8 +98,14 @@ ShellRoot {
 
     property var primaryScreen: Quickshell.screens.find(s => s.name === shellStateObj.primaryMonitor) || Quickshell.screens[0]
 
+    // Pilot-mode gate: TopBar must NOT render concurrently with ironbar.
+    // Pre-cutover (barCutover === false) ironbar owns the DP-3 top + DP-2
+    // bottom bar slots; rendering Quickshell TopBar in addition produces
+    // visible double-stacked bars (verified via screenshot). Empty model
+    // = zero delegates, no surfaces. Flip QS_BAR_CUTOVER=1 via
+    // `hg shell bar-cutover` to swap ironbar out and TopBar in.
     Variants {
-        model: Quickshell.screens
+        model: shellStateObj.barCutover ? Quickshell.screens : []
         delegate: Component {
             Modules.TopBar {
                 primaryScreen: root.primaryScreen
