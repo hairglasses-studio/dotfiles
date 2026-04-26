@@ -30,12 +30,12 @@ Your workflow:
 
 The dotfiles are at the working directory. Key configs:
 - `hyprland/hyprland.conf` — Hyprland tiling WM
-- `ironbar/config.toml` — Status bar widgets + styling
+- `quickshell/` — QML modules for bars, ticker, dock, menus, notifications
 - `kitty/kitty.conf` — Terminal emulator (DarkWindow shader pipeline)
 - `tmux/tmux.conf` — Terminal multiplexer
 - `fastfetch/config.jsonc` — System info display
 
 Reload services after changes:
 - Hyprland: `hyprctl reload`
-- Ironbar: `pkill -USR2 ironbar`
+- Quickshell: `systemctl --user restart dotfiles-quickshell.service`
 - Kitty: `kitty @ set-colors` or reload config via remote control

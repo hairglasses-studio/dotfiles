@@ -122,11 +122,9 @@ install_packages() {
     if command -v yay &>/dev/null; then
         info "Installing AUR packages..."
         local -a aur_pkgs=(ttf-maple-nerd-font makima-bin)
-        is_enabled hyprshell && aur_pkgs+=(hyprshell-bin)
-        is_enabled ironbar && aur_pkgs+=(ironbar-bin)
         yay -S --needed --noconfirm "${aur_pkgs[@]}"
     else
-        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, makima-bin, hyprshell-bin, ironbar-bin)"
+        warn "yay not found — skipping AUR packages (ttf-maple-nerd-font, makima-bin)"
         warn "Install yay: https://github.com/Jguer/yay"
     fi
 }
@@ -272,12 +270,11 @@ create_symlinks() {
     is_enabled glow    && link_file "$DOTFILES/glow"     "$HOME/.config/glow"
 
     # ── Desktop (Linux) ──
-    is_enabled hyprland && [[ -d "$DOTFILES/hyprland" ]] && link_file "$DOTFILES/hyprland" "$HOME/.config/hypr"
-    is_enabled hyprshell && [[ -d "$DOTFILES/hyprshell" ]] && link_file "$DOTFILES/hyprshell" "$HOME/.config/hyprshell"
-    is_enabled ironbar  && [[ -d "$DOTFILES/ironbar" ]]  && link_file "$DOTFILES/ironbar"  "$HOME/.config/ironbar"
-    is_enabled mako     && [[ -d "$DOTFILES/mako" ]]     && link_file "$DOTFILES/mako"     "$HOME/.config/mako"
-    is_enabled wofi     && [[ -d "$DOTFILES/wofi" ]]     && link_file "$DOTFILES/wofi"     "$HOME/.config/wofi"
-    is_enabled wlogout  && [[ -d "$DOTFILES/wlogout" ]]  && link_file "$DOTFILES/wlogout"  "$HOME/.config/wlogout"
+    is_enabled hyprland   && [[ -d "$DOTFILES/hyprland" ]]   && link_file "$DOTFILES/hyprland"   "$HOME/.config/hypr"
+    is_enabled quickshell && [[ -d "$DOTFILES/quickshell" ]] && link_file "$DOTFILES/quickshell" "$HOME/.config/quickshell"
+    is_enabled mako       && [[ -d "$DOTFILES/mako" ]]       && link_file "$DOTFILES/mako"       "$HOME/.config/mako"
+    is_enabled wofi       && [[ -d "$DOTFILES/wofi" ]]       && link_file "$DOTFILES/wofi"       "$HOME/.config/wofi"
+    is_enabled wlogout    && [[ -d "$DOTFILES/wlogout" ]]    && link_file "$DOTFILES/wlogout"    "$HOME/.config/wlogout"
 
     # ── GTK ──
     if is_enabled gtk && [[ -f "$DOTFILES/gtk/settings.ini" ]]; then
@@ -331,7 +328,7 @@ setup_runtime_wrappers() {
         info "  Kitty shader scripts ready"
     fi
 
-    if is_enabled hyprland || is_enabled hyprshell || is_enabled wofi; then
+    if is_enabled hyprland || is_enabled quickshell || is_enabled wofi; then
         chmod +x "$DOTFILES/scripts/app-launcher.sh" 2>/dev/null || true
         chmod +x "$DOTFILES/scripts/app-switcher.sh" 2>/dev/null || true
         link_file "$DOTFILES/scripts/app-launcher.sh" "$HOME/.local/bin/app-launcher"
@@ -382,7 +379,7 @@ check_install() {
     check_link "$DOTFILES/glow"       "$HOME/.config/glow"
     check_link "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
     check_link "$DOTFILES/tattoy/tattoy.toml" "$HOME/.config/tattoy/tattoy.toml"
-    check_link "$DOTFILES/hyprshell" "$HOME/.config/hyprshell"
+    check_link "$DOTFILES/quickshell" "$HOME/.config/quickshell"
     check_link "$DOTFILES/scripts/kitty-shader-playlist.sh" "$HOME/.local/bin/kitty-shader-playlist"
     check_link "$DOTFILES/scripts/kitty-shell-launch.sh" "$HOME/.local/bin/kitty-shell-launch"
     check_link "$DOTFILES/scripts/kitty-dev-launch.sh" "$HOME/.local/bin/kitty-dev-launch"

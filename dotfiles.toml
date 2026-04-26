@@ -27,9 +27,7 @@ kitty_scrollback = true
 # ── Desktop (Linux — Hyprland) ─
 [desktop.linux]
 hyprland = true
-ironbar = true
-hyprshell = true
-hypr_dock = true
+quickshell = true
 hyprdynamicmonitors = true
 hyprland_autoname_workspaces = true
 mpvpaper = true

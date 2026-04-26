@@ -1,5 +1,12 @@
 # Wayland Status Bar Alternatives — GPU Capability Research
 
+> **Superseded 2026-04-26.** The Quickshell migration shipped (see
+> `docs/decisions.md` 2026-04-26 ADR). This document is preserved as
+> historical context for the original "Stay on ironbar" decision and the
+> later reversal — the body below describes the 2026-04-16 evaluation
+> state and reflects neither the ironbar→Quickshell pilot decision
+> (2026-04-23 ADR) nor the post-cutover repo state.
+
 **Date:** 2026-04-16  
 **Context:** Evaluating status bar alternatives to ironbar for a Hyprland setup with a cyberpunk aesthetic,
 139+ GLSL shaders, Hairglasses Neon palette, and theme-sync.sh pipeline. Current setup: ironbar

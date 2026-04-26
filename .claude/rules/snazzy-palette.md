@@ -4,11 +4,11 @@ paths:
   - "**/*.scss"
   - "**/*.conf"
   - "**/*.toml"
-  - "ironbar/**"
+  - "**/*.qml"
+  - "quickshell/**"
   - "wofi/**"
   - "wlogout/**"
   - "swaync/**"
-  - "hyprshell/**"
 ---
 
 # Hairglasses Palette — Token Rules
