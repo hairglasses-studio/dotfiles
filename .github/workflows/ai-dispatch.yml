@@ -39,7 +39,11 @@ jobs:
           fetch-depth: 0
       - uses: openai/codex-action@v1
         with:
-          trigger_phrase: "@codex"
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           safety-strategy: drop-sudo
           sandbox: workspace-write
+          prompt: |
+            Handle this GitHub comment request.
+
+            Comment:
+            ${{ github.event.comment.body }}
