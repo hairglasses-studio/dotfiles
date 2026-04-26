@@ -1,0 +1,5 @@
+/* Static loader. The palette is rendered by scripts/palette-propagate.sh
+ * to ~/.config/gtk-4.0/colors.css; this file just imports it.
+ * Add per-app GTK4 overrides below the @import if needed.
+ */
+@import url("colors.css");
