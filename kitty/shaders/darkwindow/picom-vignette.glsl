@@ -8,15 +8,15 @@ void windowShader(inout vec4 _wShaderOut) {
     vec4 c = x_Texture(uv);
 
     const float shadow_cutoff = 1.0;
-    const int shadow_intensity = 3;
+    const float shadow_intensity = 3.0;
 
     vec2 center = vec2(0.5);
     vec2 dist = abs(uv - center) / center;
 
     // Darken pixels near edges using polynomial falloff
     float opacity = 1.0;
-    opacity *= -pow(dist.y * shadow_cutoff, (5 / shadow_intensity) * 2) + 1.0;
-    opacity *= -pow(dist.x * shadow_cutoff, (5 / shadow_intensity) * 2) + 1.0;
+    opacity *= -pow(dist.y * shadow_cutoff, (5.0 / shadow_intensity) * 2.0) + 1.0;
+    opacity *= -pow(dist.x * shadow_cutoff, (5.0 / shadow_intensity) * 2.0) + 1.0;
 
     // Apply vignette: darken edges, keep minimum brightness for readability
     float brightness = c.r + c.g + c.b;

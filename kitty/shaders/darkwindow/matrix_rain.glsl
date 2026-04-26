@@ -17,3 +17,10 @@ void mainImage(out vec4 o,vec2 u) {
         p=vec3(9,int(x_Time*(9.+8.*sin(i-=j).x)),0)+i;
    o-=o,o.g=R/s.z;p*=j;o*=R>.5&&j.x<.6&&j.y<.8?1.:0.;
 }
+
+// DarkWindow entrypoint adapter — invokes the Shadertoy mainImage with pixel coords
+void windowShader(inout vec4 _wShaderOut) {
+    vec4 result;
+    mainImage(result, x_PixelPos);
+    _wShaderOut = result;
+}

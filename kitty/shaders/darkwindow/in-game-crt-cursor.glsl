@@ -118,7 +118,7 @@ float sdTrail(vec2 p, vec2 currPos, vec2 currSize, vec2 prevPos, vec2 prevSize, 
 }
 
 vec4 colorOverride(vec4 baseColor, vec4 overrideColor) {
-    if (sqrt(pow(distance(baseColor.rgb, vec3(dot(baseColor.rgb, vec3(1.0)) / 3.0)), 2) / 3.0) < GLOW_COLOR_OVERRIDE_THRESHOLD)
+    if (sqrt(pow(distance(baseColor.rgb, vec3(dot(baseColor.rgb, vec3(1.0)) / 3.0)), 2.0) / 3.0) < GLOW_COLOR_OVERRIDE_THRESHOLD)
         return overrideColor;
     else
         return baseColor;
@@ -135,10 +135,10 @@ void windowShader(inout vec4 _wShaderOut) {
     vec2 prevCenter = prevPos + prevSize * vec2(0.5, -0.5);
 
     float dCenter = distance(currCenter, prevCenter);
-    float dSeg = dot(uv - prevCenter, currCenter - prevCenter) * pow(dCenter + EPS, -2);
+    float dSeg = dot(uv - prevCenter, currCenter - prevCenter) * pow(dCenter + EPS, -2.0);
     bool nearbyPrev = dCenter < TRAIL_MIN_DISTANCE;
 
-    float tShape = 1.0 - pow(1.0 - clamp((x_Time - x_Time) / TIME_DURATION_FACTOR, 0.0, 1.0), 3);
+    float tShape = 1.0 - pow(1.0 - clamp((x_Time - x_Time) / TIME_DURATION_FACTOR, 0.0, 1.0), 3.0);
     float tVisible = exp(-(x_Time - x_Time) / TIME_DURATION_FACTOR * 50.0);
     
     float dTrail = sdTrail(uv, currPos, currSize, prevPos, prevSize, tShape);
@@ -146,7 +146,7 @@ void windowShader(inout vec4 _wShaderOut) {
 
     vec4 currColor = colorOverride(vec4(1.0), vec4(GLOW_COLOR_OVERRIDE_CURRENT, 1.0));
     vec4 prevColor = colorOverride(vec4(1.0), vec4(GLOW_COLOR_OVERRIDE_PREVIOUS, 1.0));
-    vec4 glowColor = mix(_wShaderOut, mix(prevColor, currColor, dTip) + GLOW_COLOR_OFFSET_BRIGHTNESS, pow(dTip, 3));
+    vec4 glowColor = mix(_wShaderOut, mix(prevColor, currColor, dTip) + GLOW_COLOR_OFFSET_BRIGHTNESS, pow(dTip, 3.0));
     glowColor = mix(glowColor, _wShaderOut, pow(smoothstep(0.0, 0.3, dTrail), 0.1));
 
     vec4 trailColor = mix(vec4(1.0), glowColor, pow(smoothstep(0.0, 0.01, dTrail), 0.2));

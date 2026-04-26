@@ -114,7 +114,7 @@ void windowShader(inout vec4 _wShaderOut)
 
     vec4 newColor = vec4(_wShaderOut);
 
-    float progress = blend(clamp((x_Time - x_Time) / DURATION, 0.0, 1));
+    float progress = blend(clamp((x_Time - x_Time) / DURATION, 0.0, 1.0));
     float easedProgress = ease(progress);
 
     //Distance between cursors determine the total length of the parallelogram;
@@ -140,6 +140,6 @@ void windowShader(inout vec4 _wShaderOut)
         newColor = mix(newColor, TRAIL_COLOR_ACCENT, 1.0 - smoothstep(sdfTrail, -0.01, 0.001));
         newColor = mix(newColor, TRAIL_COLOR, antialising(sdfTrail));
         newColor = mix(_wShaderOut, newColor, 1.0 - alphaModifier);
-        _wShaderOut = mix(newColor, _wShaderOut, step(sdfCursor, 0));
+        _wShaderOut = mix(newColor, _wShaderOut, step(sdfCursor, 0.0));
     }
 }

@@ -32,9 +32,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     float stream = fract(t + cellHash * 3.0);
     stream = smoothstep(0.0, 0.3, stream) * smoothstep(1.0, 0.6, stream);
 
-    // Only some cells are active
-    float active = step(0.65, cellHash);
-    stream *= active;
+    // Only some cells are activeCell
+    float activeCell = step(0.65, cellHash);
+    stream *= activeCell;
 
     // Hex border glow
     float d = length(gv);
@@ -49,7 +49,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     col += green * border * 0.03;
 
     // Occasional bright flash cell
-    float flash = step(0.92, sin(t * 2.0) * 0.5 + 0.5) * active;
+    float flash = step(0.92, sin(t * 2.0) * 0.5 + 0.5) * activeCell;
     col += green * flash * 0.08;
 
     fragColor = vec4(col, 1.0);

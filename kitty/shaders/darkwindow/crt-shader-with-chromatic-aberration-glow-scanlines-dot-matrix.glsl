@@ -25,7 +25,7 @@ const float SCANLINE_INTENSITY = 1.0;    // Overall intensity of scanlines (defa
 const float SCANLINE_DENSITY = 0.25;     // Density/thickness of scanlines (default: 0.25)
 
 // Dot Matrix Settings
-const float MASK_INTENSITY = 0;          // Strength of the dot pattern (default: 0.3)
+const float MASK_INTENSITY = 0.0;        // Strength of the dot pattern (default: 0.3)
 const float MASK_SIZE = 1.0;             // Size of the dots (default: 1.0)
 
 //-----------------------------------------------------------------------------
