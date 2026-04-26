@@ -92,13 +92,11 @@ sleep 2
 AFTER="$(_dump_monitor)"
 printf 'after:  %s\n' "$AFTER"
 
-# Restart layer-shell overlays on this monitor so they re-read geometry
-for svc in dotfiles-keybind-ticker.service dotfiles-window-label.service dotfiles-fleet-sparkline.service; do
-  if systemctl --user is-active --quiet "$svc" 2>/dev/null; then
-    systemctl --user restart "$svc"
-    printf 'restarted %s\n' "$svc"
-  fi
-done
+# Restart Quickshell so layer-shell surfaces re-read monitor geometry.
+if systemctl --user is-active --quiet dotfiles-quickshell.service 2>/dev/null; then
+  systemctl --user restart dotfiles-quickshell.service
+  printf 'restarted dotfiles-quickshell.service\n'
+fi
 
 # Sanity: final check
 FINAL="$(_dump_monitor)"

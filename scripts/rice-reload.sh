@@ -14,7 +14,6 @@ source "$SCRIPT_DIR/lib/shell-stack.sh"
 shell_stack_load
 reloaded=""
 failed=""
-skipped=""
 
 if [[ -x "$SCRIPT_DIR/theme-sync.sh" ]]; then
   if "$SCRIPT_DIR/theme-sync.sh" --quiet 2>/dev/null; then
@@ -29,21 +28,6 @@ if compositor_reload 2>/dev/null; then
   reloaded="${reloaded} hyprland"
 else
   failed="${failed} hyprland"
-fi
-
-# Ironbar menubar
-if shell_stack_bar_cutover; then
-  skipped="${skipped} ironbar"
-else
-  if command -v ironbar >/dev/null 2>&1; then
-    if config_reload_service ironbar --quiet 2>/dev/null; then
-      reloaded="${reloaded} ironbar"
-    else
-      failed="${failed} ironbar"
-    fi
-  else
-    failed="${failed} ironbar"
-  fi
 fi
 
 # Kitty (SIGUSR1)
@@ -62,52 +46,20 @@ if command -v gsettings &>/dev/null; then
   fi
 fi
 
-# Swaync notifications
-if shell_stack_notification_cutover; then
-  skipped="${skipped} swaync"
-else
-  if swaync-client -rs 2>/dev/null; then
-    reloaded="${reloaded} swaync"
-  else
-    failed="${failed} swaync"
-  fi
-fi
-
-# Quickshell pilot/cutover bar
+# Quickshell — restart so it re-reads palette tokens, QML, and bar-data
+# caches. Quickshell owns notifications too, so a restart covers both.
+# When the user is in the rollback escape hatch (quickshell stopped),
+# fall back to swaync-client refresh if available.
 if shell_stack_quickshell_wanted || systemctl --user is-active dotfiles-quickshell.service >/dev/null 2>&1; then
   if systemctl --user restart dotfiles-quickshell.service 2>/dev/null; then
     reloaded="${reloaded} quickshell"
   else
     failed="${failed} quickshell"
   fi
-fi
-
-# Keybind ticker — restart to pick up palette changes
-if shell_stack_ticker_cutover; then
-  skipped="${skipped} ticker"
 else
-  if systemctl --user is-active dotfiles-keybind-ticker.service >/dev/null 2>&1; then
-    if systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null; then
-      reloaded="${reloaded} ticker"
-    else
-      failed="${failed} ticker"
-    fi
+  if command -v swaync-client >/dev/null 2>&1 && swaync-client -rs 2>/dev/null; then
+    reloaded="${reloaded} swaync"
   fi
-fi
-
-# Quickshell owns these companion overlays in full cutover modes.
-if shell_stack_companion_cutover; then
-  skipped="${skipped} companions"
-else
-  for svc in dotfiles-window-label dotfiles-fleet-sparkline dotfiles-lyrics-ticker; do
-    if systemctl --user is-active "${svc}.service" >/dev/null 2>&1; then
-      if systemctl --user restart "${svc}.service" 2>/dev/null; then
-        reloaded="${reloaded} ${svc#dotfiles-}"
-      else
-        failed="${failed} ${svc#dotfiles-}"
-      fi
-    fi
-  done
 fi
 
 # Hyprland companion services
@@ -122,31 +74,10 @@ do
   fi
 done
 
-if shell_stack_menu_cutover; then
-  skipped="${skipped} hyprshell"
-else
-  if config_reload_service hyprshell --quiet 2>/dev/null; then
-    reloaded="${reloaded} hyprshell"
-  else
-    failed="${failed} hyprshell"
-  fi
-fi
-
-if shell_stack_dock_cutover; then
-  skipped="${skipped} hypr-dock"
-else
-  if config_reload_service hypr-dock --quiet 2>/dev/null; then
-    reloaded="${reloaded} hypr-dock"
-  else
-    failed="${failed} hypr-dock"
-  fi
-fi
-
-# Claude Code — clear stale state, reset ironvars
+# Claude Code — clear stale state
 _claude_state="${XDG_STATE_HOME:-$HOME/.local/state}/claude"
 if [[ -d "$_claude_state" ]]; then
   rm -f "$_claude_state"/git-* "$_claude_state/burn-rate" 2>/dev/null
-  command -v ironbar &>/dev/null && ironbar var set claude_state "" 2>/dev/null && ironbar var set claude_cost "" 2>/dev/null
   reloaded="${reloaded} claude"
 fi
 
@@ -159,22 +90,11 @@ fi
 # Report
 reloaded="${reloaded# }"
 failed="${failed# }"
-skipped="${skipped# }"
 
 if [[ -n "$failed" ]]; then
-  if [[ -n "$skipped" ]]; then
-    hg_warn "Reloaded: ${reloaded}  |  Failed: ${failed}  |  Skipped: ${skipped}"
-    hg_notify_low "Rice Reload" "OK: ${reloaded}\nFail: ${failed}\nSkip: ${skipped}"
-  else
-    hg_warn "Reloaded: ${reloaded}  |  Failed: ${failed}"
-    hg_notify_low "Rice Reload" "OK: ${reloaded}\nFail: ${failed}"
-  fi
+  hg_warn "Reloaded: ${reloaded}  |  Failed: ${failed}"
+  hg_notify_low "Rice Reload" "OK: ${reloaded}\nFail: ${failed}"
 else
-  if [[ -n "$skipped" ]]; then
-    hg_ok "Reloaded: ${reloaded}  |  Skipped: ${skipped}"
-    hg_notify_low "Rice Reload" "${reloaded}\nSkip: ${skipped}"
-  else
-    hg_ok "Reloaded: ${reloaded}"
-    hg_notify_low "Rice Reload" "${reloaded}"
-  fi
+  hg_ok "Reloaded: ${reloaded}"
+  hg_notify_low "Rice Reload" "${reloaded}"
 fi

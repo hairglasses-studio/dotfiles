@@ -114,7 +114,7 @@
 | `Super+Shift+G` | Theme next |
 | `Super+Alt+G` | Shader toggle |
 | `Super+Shift+P` | Theme prev |
-| `Super+Ctrl+R` | Safe rice reload (hyprland+quickshell/ironbar+hyprshell+dock+kitty+gtk+shaders) |
+| `Super+Ctrl+R` | Safe rice reload (hyprland+quickshell+kitty+gtk+shaders) |
 | `Super+Ctrl+G` | Reload kitty |
 | `Super+Alt+F` | Font next |
 | `Super+Shift+Alt+F` | Font prev |

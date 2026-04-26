@@ -191,31 +191,9 @@ test_services() {
   if declare -F shell_stack_load >/dev/null 2>&1; then
     shell_stack_load
   else
-    QS_BAR_CUTOVER="${QS_BAR_CUTOVER:-0}"
-    QS_TICKER_CUTOVER="${QS_TICKER_CUTOVER:-0}"
-    QS_MENU_CUTOVER="${QS_MENU_CUTOVER:-0}"
-    QS_DOCK_CUTOVER="${QS_DOCK_CUTOVER:-0}"
-    QS_COMPANION_CUTOVER="${QS_COMPANION_CUTOVER:-0}"
-    QUICKSHELL_NOTIFICATION_OWNER="${QUICKSHELL_NOTIFICATION_OWNER:-0}"
-    SHELL_STACK_MODE="${SHELL_STACK_MODE:-pilot}"
+    SHELL_STACK_MODE="${SHELL_STACK_MODE:-full-cutover}"
   fi
-  for svc in ironbar quickshell swaync swww-daemon pypr swayosd-server dotfiles-keybind-ticker; do
-    if [[ "$svc" == "ironbar" && "${QS_BAR_CUTOVER:-0}" == "1" ]]; then
-      if pgrep -x ironbar &>/dev/null; then
-        add_result services "ironbar" warn "running despite Quickshell bar cutover"
-      else
-        add_result services "ironbar" pass "replaced by Quickshell bar"
-      fi
-      continue
-    fi
-    if [[ "$svc" == "swaync" && "${QUICKSHELL_NOTIFICATION_OWNER:-0}" == "1" ]]; then
-      if pgrep -x swaync &>/dev/null; then
-        add_result services "swaync" warn "running despite Quickshell notification cutover"
-      else
-        add_result services "swaync" pass "replaced by Quickshell notifications"
-      fi
-      continue
-    fi
+  for svc in quickshell swww-daemon pypr swayosd-server; do
     if [[ "$svc" == "pypr" ]]; then
       if command -v pypr >/dev/null 2>&1 && pypr version >/dev/null 2>&1; then
         add_result services "pypr" pass "daemon responding"
@@ -224,30 +202,14 @@ test_services() {
       fi
       continue
     fi
-    if [[ "$svc" == "dotfiles-keybind-ticker" ]]; then
-      if [[ "${QS_TICKER_CUTOVER:-0}" == "1" ]]; then
-        if systemctl --user is-active --quiet dotfiles-keybind-ticker.service 2>/dev/null; then
-          add_result services "dotfiles-keybind-ticker" warn "active despite Quickshell ticker cutover"
-        else
-          add_result services "dotfiles-keybind-ticker" pass "replaced by Quickshell ticker"
-        fi
-        continue
-      fi
-      if systemctl --user is-active --quiet dotfiles-keybind-ticker.service 2>/dev/null; then
-        add_result services "dotfiles-keybind-ticker" pass "active (systemd user)"
-      else
-        add_result services "dotfiles-keybind-ticker" warn "not active (systemd user)"
-      fi
-      continue
-    fi
     if [[ "$svc" == "quickshell" ]]; then
       if systemctl --user is-active --quiet dotfiles-quickshell.service 2>/dev/null; then
-        add_result services "quickshell" pass "active (${SHELL_STACK_MODE:-pilot})"
+        add_result services "quickshell" pass "active (${SHELL_STACK_MODE:-full-cutover})"
       else
-        if [[ "${SHELL_STACK_MODE:-pilot}" == "rollback" ]]; then
+        if [[ "${SHELL_STACK_MODE:-full-cutover}" == "rollback" ]]; then
           add_result services "quickshell" pass "inactive by rollback mode"
         else
-          add_result services "quickshell" warn "not active (${SHELL_STACK_MODE:-pilot})"
+          add_result services "quickshell" warn "not active (${SHELL_STACK_MODE:-full-cutover})"
         fi
       fi
       continue
@@ -259,68 +221,22 @@ test_services() {
     fi
   done
 
-  for svc in dotfiles-ticker-lockwatch dotfiles-ticker-recordwatch; do
-    if [[ "${QS_TICKER_CUTOVER:-0}" == "1" ]]; then
-      if systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
-        add_result services "$svc" warn "active despite Quickshell ticker watcher cutover"
-      else
-        add_result services "$svc" pass "replaced by Quickshell ticker watcher"
-      fi
-    elif systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
-      add_result services "$svc" pass "active (systemd user)"
+  # swaync only matters in rollback mode (where Quickshell is stopped and
+  # swaync is the freedesktop.org Notifications fallback). In full-cutover
+  # Quickshell owns the bus and swaync should be inactive — flag if it's
+  # not.
+  if [[ "${SHELL_STACK_MODE:-full-cutover}" == "rollback" ]]; then
+    if pgrep -x swaync &>/dev/null; then
+      add_result services "swaync" pass "running (rollback mode)"
     else
-      add_result services "$svc" warn "not active (systemd user)"
+      add_result services "swaync" warn "not running (rollback mode)"
     fi
-  done
-
-  if [[ "${QS_MENU_CUTOVER:-0}" == "1" ]]; then
-    if systemctl --user is-active --quiet dotfiles-hyprshell.service 2>/dev/null; then
-      add_result services "dotfiles-hyprshell" warn "active despite Quickshell menu cutover"
-    else
-      add_result services "dotfiles-hyprshell" pass "replaced by Quickshell menus"
-    fi
-  elif systemctl --user is-active --quiet dotfiles-hyprshell.service 2>/dev/null; then
-    add_result services "dotfiles-hyprshell" pass "active (systemd user)"
   else
-    add_result services "dotfiles-hyprshell" warn "not active (systemd user)"
-  fi
-
-  if [[ "${QS_DOCK_CUTOVER:-0}" == "1" ]]; then
-    if systemctl --user is-active --quiet dotfiles-hypr-dock.service 2>/dev/null; then
-      add_result services "dotfiles-hypr-dock" warn "active despite Quickshell dock cutover"
+    if pgrep -x swaync &>/dev/null; then
+      add_result services "swaync" warn "running despite Quickshell ownership"
     else
-      add_result services "dotfiles-hypr-dock" pass "replaced by Quickshell dock"
+      add_result services "swaync" pass "replaced by Quickshell notifications"
     fi
-  elif systemctl --user is-active --quiet dotfiles-hypr-dock.service 2>/dev/null; then
-    add_result services "dotfiles-hypr-dock" pass "active (systemd user)"
-  else
-    add_result services "dotfiles-hypr-dock" warn "not active (systemd user)"
-  fi
-
-  for svc in dotfiles-window-label dotfiles-fleet-sparkline dotfiles-lyrics-ticker; do
-    if [[ "${QS_COMPANION_CUTOVER:-0}" == "1" ]]; then
-      if systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
-        add_result services "$svc" warn "active despite Quickshell companion cutover"
-      else
-        add_result services "$svc" pass "replaced by Quickshell companion overlay"
-      fi
-    elif systemctl --user is-active --quiet "${svc}.service" 2>/dev/null; then
-      add_result services "$svc" pass "active (systemd user)"
-    else
-      add_result services "$svc" warn "not active (systemd user)"
-    fi
-  done
-
-  if [[ "${QUICKSHELL_NOTIFICATION_OWNER:-0}" == "1" ]]; then
-    if systemctl --user is-active --quiet dotfiles-notification-history.service 2>/dev/null; then
-      add_result services "dotfiles-notification-history" warn "active despite Quickshell notification-history cutover"
-    else
-      add_result services "dotfiles-notification-history" pass "replaced by Quickshell notification history"
-    fi
-  elif systemctl --user is-active --quiet dotfiles-notification-history.service 2>/dev/null; then
-    add_result services "dotfiles-notification-history" pass "active (systemd user)"
-  else
-    add_result services "dotfiles-notification-history" warn "not active (systemd user)"
   fi
 
   # Compositor check (Hyprland is the session, not a pgrep-able service name)
@@ -383,8 +299,7 @@ test_palette() {
   echo "── Theme Surface ──" >&2
 
   local scan_paths=(
-    "$SCRIPT_DIR/../ironbar"
-    "$SCRIPT_DIR/../hyprshell"
+    "$SCRIPT_DIR/../quickshell"
     "$SCRIPT_DIR/../swaync"
     "$SCRIPT_DIR/../wofi"
     "$SCRIPT_DIR/../wlogout"
