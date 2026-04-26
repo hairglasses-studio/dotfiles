@@ -582,6 +582,25 @@ normalize_codex_cwd() {
   ) || hg_die "Failed to canonicalize Codex MCP cwd: $cwd"
 }
 
+command_is_relative_path() {
+  local command="$1"
+  [[ "$command" != /* && ( "$command" == ./* || "$command" == ../* || "$command" == */* ) ]]
+}
+
+normalize_mcp_cwd_for_command() {
+  local base_dir="$1"
+  local command="$2"
+  local cwd="$3"
+
+  cwd="$(normalize_codex_cwd "$base_dir" "$cwd")"
+  if [[ -z "$cwd" ]] && command_is_relative_path "$command"; then
+    [[ -n "$base_dir" ]] || hg_die "Relative MCP command '$command' requires a repo root"
+    cwd="$(normalize_codex_cwd "" "$base_dir")"
+  fi
+
+  printf '%s\n' "$cwd"
+}
+
 profile_exports_global_codex() {
   local profile_json="$1"
   jq -e '(.global_codex // false) == true' <<<"$profile_json" >/dev/null
@@ -777,7 +796,7 @@ append_gemini_entry() {
   fi
   gemini_name_seen["$generated_name"]=1
 
-  normalized_cwd="$(normalize_codex_cwd "$base_dir" "$(jq -r '.cwd // ""' <<<"$value_json")")"
+  normalized_cwd="$(normalize_mcp_cwd_for_command "$base_dir" "$(jq -r '.command // ""' <<<"$value_json")" "$(jq -r '.cwd // ""' <<<"$value_json")")"
   normalized_env_json="$(normalize_codex_env_json "$(jq -c '.env // {}' <<<"$value_json")")"
 
   jq -cn \
@@ -994,7 +1013,10 @@ sync_managed_workspace_tools() {
   local foundational_name foundation_server foundation_server_resolved
   for foundational_name in systemd tmux process; do
     foundation_server="$(jq -c --arg name "$foundational_name" '.mcpServers[$name]' "$ROOT_MCP_PATH")"
-    [[ "$foundation_server" != "null" ]] || hg_die "Shared root .mcp.json missing foundational server: $foundational_name"
+    if [[ "$foundation_server" == "null" ]]; then
+      hg_warn "Skipping shared root MCP server absent from $ROOT_MCP_PATH: $foundational_name"
+      continue
+    fi
 
     foundation_server_resolved="$(
       jq -cn \
@@ -1018,7 +1040,7 @@ sync_managed_workspace_tools() {
       "shared root .mcp.json:$foundational_name" \
       "$(jq -r '.command' <<<"$foundation_server_resolved")" \
       "$(jq -c '.args // []' <<<"$foundation_server_resolved")" \
-      "$(normalize_codex_cwd "$WORKSPACE_ROOT" "$(jq -r '.cwd // ""' <<<"$foundation_server_resolved")")" \
+      "$(normalize_mcp_cwd_for_command "$WORKSPACE_ROOT" "$(jq -r '.command' <<<"$foundation_server_resolved")" "$(jq -r '.cwd // ""' <<<"$foundation_server_resolved")")" \
       "$(normalize_codex_env_json "$(jq -c '.env // {}' <<<"$foundation_server_resolved")")" \
       '[]'
     claude_foundational_count=$((claude_foundational_count + 1))
@@ -1091,7 +1113,7 @@ sync_managed_workspace_tools() {
         jq -cn \
           --arg command "$(jq -r '.command' <<<"$resolved_server")" \
           --argjson args "$(jq -c '.args // []' <<<"$resolved_server")" \
-          --arg cwd "$(normalize_codex_cwd "$repo_path" "$(jq -r '.cwd // ""' <<<"$resolved_server")")" \
+          --arg cwd "$(normalize_mcp_cwd_for_command "$repo_path" "$(jq -r '.command' <<<"$resolved_server")" "$(jq -r '.cwd // ""' <<<"$resolved_server")")" \
           --argjson env "$(normalize_codex_env_json "$(jq -c '.env // {}' <<<"$resolved_server")")" \
           '{
             command: $command,
@@ -1116,7 +1138,7 @@ sync_managed_workspace_tools() {
           "$repo_name/.codex/mcp-profile-policy.json:$profile_name ($mode <- $source_name)" \
           "$(jq -r '.command' <<<"$resolved")" \
           "$(jq -c '.args' <<<"$resolved")" \
-          "$(normalize_codex_cwd "$repo_path" "$(jq -r '.cwd' <<<"$resolved")")" \
+          "$(normalize_mcp_cwd_for_command "$repo_path" "$(jq -r '.command' <<<"$resolved")" "$(jq -r '.cwd' <<<"$resolved")")" \
           "$(normalize_codex_env_json "$(jq -c '.env' <<<"$resolved")")" \
           "$(jq -c '.enabled_tools' <<<"$resolved")"
 
@@ -1282,7 +1304,7 @@ sync_gemini_home_context() {
     printf -- '- Canonical inventory: `%s`\n' "$MANIFEST_PATH"
     printf -- '- Use repo-local `GEMINI.md`, `AGENTS.md`, and `CLAUDE.md` first for repo-specific instructions.\n'
     printf -- '- Shared research repo: `%s/docs`\n' "$WORKSPACE_ROOT"
-    printf -- '- Shared root `.mcp.json` remains intentionally small: `systemd`, `tmux`, `process`.\n'
+    printf -- '- Shared root `.mcp.json` is optional; absent legacy `systemd`, `tmux`, and `process` entries are skipped in favor of curated repo profiles.\n'
     printf -- '- Workspace-managed repo skills are exported globally with a `<repo>-...` prefix so they do not collide with repo-local canonical names.\n'
     printf '\n'
 
