@@ -203,6 +203,6 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 
 ### Tier 2 — Medium Priority Skills
 
-- [ ] [P2][M] Phase-gated pipeline — hard enforcement of plan -> human review -> implement -> verify phases in dev-loop; agents cannot skip steps. Ref: avifenesh/agentsys
+- [x] [P2][M] Phase-gated pipeline — `scripts/claude-phase-gate.sh` now enforces gated `/dev-loop` sessions with a hook-backed state machine: UserPromptSubmit starts the plan phase, PreToolUse blocks writes/mutating Bash until `approve dev-loop plan`, PostToolUse records successful verification commands, and Stop/ship commands are blocked when writes happened after the last verify. Ref: avifenesh/agentsys
 - [x] [P2][S] Hidden assumption surfacer — `.agents/skills/common_ground/SKILL.md` deployed. Surfaces Claude's implicit priors about a repo (language, build system, test framework, CI, etc.), verifies each in parallel via fast file checks, reports confirmed/rebutted/unknown deltas, and prompts the user for redirect before code changes start. Read-only, 2-3 minute budget. Ref: jeffallan/claude-skills
 - [x] [P2][S] Decision journal skill — `.agents/skills/decision_journal/SKILL.md` deployed. Appends ADR-lite entries (context, decision, rationale, alternatives, consequences) to `docs/decisions.md`, dedup by title + date, supports `--export` for stakeholder markdown tables. Ref: pcatattacks/solopreneur-plugin + Michael Nygard ADR template.
