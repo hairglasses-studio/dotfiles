@@ -1,7 +1,7 @@
 # dotfiles
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Shaders](https://img.shields.io/badge/GLSL_Shaders-139-purple)](kitty/shaders/)
+[![Shaders](https://img.shields.io/badge/GLSL_Shaders-371-purple)](kitty/shaders/)
 [![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 [![CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml)
@@ -23,7 +23,7 @@ A QML ticker (`quickshell/modules/TickerBar.qml`) scrolls 39 live streams across
 
 ### Technical Highlights
 
-- **GPU Shaders**: 139 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation. The companion `kitty-playlist-validate` resolves every playlist entry against the bundled catalog with fuzzy-match suggestions so typos fail CI instead of silently skipping themes
+- **GPU Shaders**: 371 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation. The companion `kitty-playlist-validate` resolves every playlist entry against the bundled catalog with fuzzy-match suggestions so typos fail CI instead of silently skipping themes
 - **Theme System**: Hairglasses Neon token pipeline for `quickshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`. `palette-playlist list|next|random|set <name>` rotates the active palette across 9 curated envs (hairglasses-neon, amber, deep-purple, forest, ice, matrix, rose-pine, sunset, synthwave) — every palette fills the same 23 `THEME_*` tokens so templates render identically regardless of active palette
 - **MCP Servers**: 2 Go modules under `mcp/` (dotfiles-mcp with ~430 tools + 25 resources, mapitall); desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
@@ -121,7 +121,7 @@ dotfiles/
 ├── quickshell/     → ~/.config/quickshell (QML bar/ticker/dock/menus/notifications)
 ├── hyprdynamicmonitors/ → ~/.config/hyprdynamicmonitors (dynamic monitor profiles)
 ├── hyprland-autoname-workspaces/ → ~/.config/hyprland-autoname-workspaces
-├── kitty/          → ~/.config/kitty (terminal + 139 shaders)
+├── kitty/          → ~/.config/kitty (terminal + 371 shaders)
 ├── swaync/         → ~/.config/swaync (notifications fallback only — Quickshell owns the bus)
 ├── wofi/           → ~/.config/wofi (fallback launcher)
 ├── wlogout/        → ~/.config/wlogout (power menu)
