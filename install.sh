@@ -817,13 +817,7 @@ create_symlinks() {
             dotfiles-quickshell.service
             dotfiles-hyprdynamicmonitors.service
             dotfiles-hyprland-autoname-workspaces.service
-            dotfiles-notification-history.service
-            dotfiles-ticker-lockwatch.service
-            dotfiles-ticker-recordwatch.service
-            dotfiles-lyrics-ticker.service
             dotfiles-hypr-monitor-watch.service
-            dotfiles-window-label.service
-            dotfiles-fleet-sparkline.service
             dotfiles-cliphist.service
             dotfiles-event-bus.service
             retroarch-rclone-amiga-archives.service
