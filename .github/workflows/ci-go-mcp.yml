@@ -87,10 +87,12 @@ jobs:
         if: always()
         run: |
           if [ -f coverage.out ]; then
-            echo "### Coverage Report" >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
-            go tool cover -func=coverage.out | tail -20 >> "$GITHUB_STEP_SUMMARY"
-            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo "### Coverage Report"
+              echo '```'
+              go tool cover -func=coverage.out | tail -20
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload coverage artifact
