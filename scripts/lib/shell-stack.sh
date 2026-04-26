@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shell-stack.sh - read staged Quickshell migration state.
+# shell-stack.sh - read shell-stack mode state.
 
 shell_stack_state_dir() {
   printf '%s\n' "${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/shell-stack"
@@ -10,13 +10,7 @@ shell_stack_env_file() {
 }
 
 shell_stack_load() {
-  SHELL_STACK_MODE="${SHELL_STACK_MODE:-pilot}"
-  QS_BAR_CUTOVER="${QS_BAR_CUTOVER:-0}"
-  QS_TICKER_CUTOVER="${QS_TICKER_CUTOVER:-0}"
-  QS_MENU_CUTOVER="${QS_MENU_CUTOVER:-0}"
-  QS_DOCK_CUTOVER="${QS_DOCK_CUTOVER:-0}"
-  QS_COMPANION_CUTOVER="${QS_COMPANION_CUTOVER:-0}"
-  QUICKSHELL_NOTIFICATION_OWNER="${QUICKSHELL_NOTIFICATION_OWNER:-0}"
+  SHELL_STACK_MODE="${SHELL_STACK_MODE:-full-cutover}"
 
   local env_file
   env_file="$(shell_stack_env_file)"
@@ -26,30 +20,6 @@ shell_stack_load() {
   fi
 }
 
-shell_stack_bar_cutover() {
-  [[ "${QS_BAR_CUTOVER:-0}" == "1" ]]
-}
-
-shell_stack_ticker_cutover() {
-  [[ "${QS_TICKER_CUTOVER:-0}" == "1" ]]
-}
-
-shell_stack_menu_cutover() {
-  [[ "${QS_MENU_CUTOVER:-0}" == "1" ]]
-}
-
-shell_stack_dock_cutover() {
-  [[ "${QS_DOCK_CUTOVER:-0}" == "1" ]]
-}
-
-shell_stack_notification_cutover() {
-  [[ "${QUICKSHELL_NOTIFICATION_OWNER:-0}" == "1" ]]
-}
-
-shell_stack_companion_cutover() {
-  [[ "${QS_COMPANION_CUTOVER:-0}" == "1" ]]
-}
-
 shell_stack_quickshell_wanted() {
-  [[ "${SHELL_STACK_MODE:-pilot}" != "rollback" ]]
+  [[ "${SHELL_STACK_MODE:-full-cutover}" != "rollback" ]]
 }

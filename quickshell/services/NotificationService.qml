@@ -109,8 +109,20 @@ Item {
         entry.text = entry.body && entry.body !== entry.summary ? entry.summary + ": " + entry.body : (entry.summary || entry.body);
         notification.tracked = true;
         // Hold a live ref so action buttons can invoke later. Drop on close.
+        // Cap at 60 entries — only entries inside the visible history (40)
+        // ever show buttons, and we keep a small extra margin for in-flight
+        // popups. An app spamming notifications without close() events
+        // would otherwise leak refs indefinitely; evict oldest when we hit
+        // the cap.
         const liveCopy = root.liveNotifications;
         liveCopy[entryId] = notification;
+        const liveIds = Object.keys(liveCopy);
+        if (liveIds.length > 60) {
+            const overflow = liveIds.length - 60;
+            for (let i = 0; i < overflow; i++) {
+                delete liveCopy[liveIds[i]];
+            }
+        }
         root.liveNotifications = liveCopy;
         notification.closed.connect(() => root.dropLive(entryId));
         appendEntry(entry);

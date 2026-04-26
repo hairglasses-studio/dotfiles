@@ -186,28 +186,41 @@ MOCK
     refute_output --partial "swaync-client"
 }
 
-@test "notification daemon launcher falls back to swaync by default" {
-    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+@test "notification daemon launcher falls back to swaync when Quickshell does not claim the bus" {
+    # Environment: mock systemctl as a no-op and mock busctl to never list
+    # the Notifications name. The launcher should hit the wait timeout
+    # then exec swaync.
+    export NOTIFICATION_OWNER_WAIT_ATTEMPTS=1
+    export NOTIFICATION_OWNER_WAIT_SLEEP=0
+    export SYSTEMCTL_BIN="${BATS_TEST_TMPDIR}/systemctl"
+    export BUSCTL_BIN="${BATS_TEST_TMPDIR}/busctl"
+    export GDBUS_BIN="${BATS_TEST_TMPDIR}/missing-gdbus"
     export SWAYNC_BIN="${BATS_TEST_TMPDIR}/swaync"
+    cat > "$SYSTEMCTL_BIN" <<'MOCK'
+#!/usr/bin/env bash
+exit 0
+MOCK
+    cat > "$BUSCTL_BIN" <<'MOCK'
+#!/usr/bin/env bash
+# Empty bus list — no notification daemon present
+exit 0
+MOCK
     cat > "$SWAYNC_BIN" <<'MOCK'
 #!/usr/bin/env bash
 printf 'swaync fallback\n'
 MOCK
-    chmod +x "$SWAYNC_BIN"
+    chmod +x "$SYSTEMCTL_BIN" "$BUSCTL_BIN" "$SWAYNC_BIN"
 
     run bash "${SCRIPTS_DIR}/notification-daemon-launch.sh"
     assert_success
     assert_output "swaync fallback"
 }
 
-@test "notification daemon launcher starts quickshell owner when cutover is persisted" {
-    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+@test "notification daemon launcher prefers Quickshell when it claims the bus" {
     export SYSTEMCTL_BIN="${BATS_TEST_TMPDIR}/systemctl"
     export BUSCTL_BIN="${BATS_TEST_TMPDIR}/busctl"
     export GDBUS_BIN="${BATS_TEST_TMPDIR}/missing-gdbus"
     export SWAYNC_BIN="${BATS_TEST_TMPDIR}/swaync"
-    mkdir -p "${XDG_STATE_HOME}/dotfiles/shell-stack"
-    printf 'QUICKSHELL_NOTIFICATION_OWNER=1\n' > "${XDG_STATE_HOME}/dotfiles/shell-stack/env"
     cat > "$SYSTEMCTL_BIN" <<'MOCK'
 #!/usr/bin/env bash
 printf 'systemctl %s\n' "$*" >> "${BATS_TEST_TMPDIR}/notification-launch.log"
@@ -243,74 +256,103 @@ MOCK
     assert_failure
 }
 
-@test "shell stack mode defaults to dry-run for cutover commands" {
-    run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" full-pilot
-    assert_success
-    assert_output --partial "[dry] write"
-    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
-    assert_output --partial "[dry] systemctl --user stop ironbar.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
+@test "shell stack mode rejects retired modes" {
+    run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" pilot
+    [[ "$status" -eq 2 ]]
+    assert_output --partial "Unknown argument: pilot"
 }
 
-@test "shell stack mode supports companion-only cutover" {
-    run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" companion-cutover
-    assert_success
-    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
-    assert_output --partial "[dry] systemctl --user start ironbar.service"
-    assert_output --partial "[dry] systemctl --user start dotfiles-keybind-ticker.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
-    refute_output --partial "[dry] systemctl --user stop ironbar.service"
-    refute_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
-}
-
-@test "shell stack mode status has machine-readable json" {
+@test "shell stack mode status emits machine-readable json" {
     run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" --json status
     assert_success
     local status_json="$output"
-    run jq -e '.mode == "status" and (.services[] | select(.unit == "dotfiles-quickshell.service"))' <<<"${status_json}"
+    run jq -e '.mode == "status" and (.services | length > 0)' <<<"${status_json}"
     assert_success
-    run jq -e '.shell_mode and (.notification_owner | type == "boolean") and (.companion_owner | type == "boolean")' <<<"${status_json}"
+    run jq -e '.services[] | select(.unit == "dotfiles-quickshell.service")' <<<"${status_json}"
+    assert_success
+    run jq -e '.shell_mode | type == "string"' <<<"${status_json}"
     assert_success
 }
 
-@test "shell stack helpers read persisted cutover env" {
+@test "shell stack helpers default to full-cutover and respect persisted mode" {
     export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
-    mkdir -p "${XDG_STATE_HOME}/dotfiles/shell-stack"
-    cat > "${XDG_STATE_HOME}/dotfiles/shell-stack/env" <<'ENV'
-SHELL_STACK_MODE=full-cutover
-QS_BAR_CUTOVER=1
-QS_TICKER_CUTOVER=1
-QS_COMPANION_CUTOVER=1
-QUICKSHELL_NOTIFICATION_OWNER=1
-ENV
 
+    # Empty state — defaults to full-cutover and signals quickshell wanted.
     run bash -lc '
 source "$1"
 shell_stack_load
-shell_stack_bar_cutover
-shell_stack_ticker_cutover
-shell_stack_companion_cutover
-shell_stack_notification_cutover
 shell_stack_quickshell_wanted
+[[ "${SHELL_STACK_MODE}" == "full-cutover" ]]
+' _ "${SCRIPTS_DIR}/lib/shell-stack.sh"
+    assert_success
+
+    # Persisted rollback — still loads, but quickshell is not wanted.
+    mkdir -p "${XDG_STATE_HOME}/dotfiles/shell-stack"
+    printf 'SHELL_STACK_MODE=rollback\n' > "${XDG_STATE_HOME}/dotfiles/shell-stack/env"
+    run bash -lc '
+source "$1"
+shell_stack_load
+[[ "${SHELL_STACK_MODE}" == "rollback" ]] && ! shell_stack_quickshell_wanted
 ' _ "${SCRIPTS_DIR}/lib/shell-stack.sh"
     assert_success
 }
 
-@test "shell stack boot applies selected mode in dry-run" {
-    run bash "${SCRIPTS_DIR}/shell-stack-boot.sh" --dry-run --mode full-cutover
+@test "shell stack mode applies full-cutover and persists env" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
+    cat > "${BATS_TEST_TMPDIR}/systemctl" <<'MOCK'
+#!/usr/bin/env bash
+echo "systemctl $*" >> "${BATS_TEST_TMPDIR}/systemctl.log"
+case "$*" in
+  "--user is-active "*) echo inactive; exit 3 ;;
+esac
+exit 0
+MOCK
+    chmod +x "${BATS_TEST_TMPDIR}/systemctl"
+
+    run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" full-cutover
     assert_success
-    assert_output --partial "[dry] systemctl --user stop swaync.service"
-    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
-    assert_output --partial "[dry] systemctl --user stop ironbar.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
+    assert_output --partial "+ systemctl --user restart dotfiles-quickshell.service"
+
+    local env_file="${XDG_STATE_HOME}/dotfiles/shell-stack/env"
+    [[ -f "$env_file" ]]
+    run cat "$env_file"
+    assert_success
+    assert_output --partial "SHELL_STACK_MODE=full-cutover"
+    refute_output --partial "QS_BAR_CUTOVER"
+    refute_output --partial "QS_TICKER_CUTOVER"
+    refute_output --partial "QS_MENU_CUTOVER"
+    refute_output --partial "QS_DOCK_CUTOVER"
+    refute_output --partial "QS_COMPANION_CUTOVER"
+    refute_output --partial "QUICKSHELL_NOTIFICATION_OWNER"
+}
+
+@test "shell stack mode rollback stops quickshell" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
+    cat > "${BATS_TEST_TMPDIR}/systemctl" <<'MOCK'
+#!/usr/bin/env bash
+exit 0
+MOCK
+    chmod +x "${BATS_TEST_TMPDIR}/systemctl"
+
+    run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" rollback
+    assert_success
+    assert_output --partial "+ systemctl --user stop dotfiles-quickshell.service"
+}
+
+@test "shell stack boot defaults to full-cutover when no mode is persisted" {
+    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
+    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
+    cat > "${BATS_TEST_TMPDIR}/systemctl" <<'MOCK'
+#!/usr/bin/env bash
+exit 0
+MOCK
+    chmod +x "${BATS_TEST_TMPDIR}/systemctl"
+
+    run bash "${SCRIPTS_DIR}/shell-stack-boot.sh"
+    assert_success
+    assert_output --partial "+ systemctl --user restart dotfiles-quickshell.service"
 }
 
 @test "hyprland startup routes shell owners through shell stack boot" {
@@ -322,66 +364,11 @@ shell_stack_quickshell_wanted
     assert_failure
 }
 
-@test "shell stack apply persists full cutover environment" {
-    export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
-    export PATH="${BATS_TEST_TMPDIR}:${PATH}"
-    cat > "${BATS_TEST_TMPDIR}/systemctl" <<'MOCK'
-#!/usr/bin/env bash
-echo "systemctl $*" >> "${BATS_TEST_TMPDIR}/systemctl.log"
-case "$*" in
-  "--user list-unit-files swaync.service") exit 0 ;;
-  "--user is-active "*) echo inactive; exit 3 ;;
-esac
-exit 0
-MOCK
-    chmod +x "${BATS_TEST_TMPDIR}/systemctl"
-
-    run bash "${SCRIPTS_DIR}/shell-stack-mode.sh" --apply full-cutover
+@test "hg shell module routes to the simplified mode set" {
+    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell status
     assert_success
-    assert_output --partial "+ systemctl --user stop swaync.service"
-    assert_output --partial "+ systemctl --user restart dotfiles-quickshell.service"
-    assert_output --partial "+ systemctl --user stop ironbar.service"
-    assert_output --partial "+ systemctl --user stop dotfiles-keybind-ticker.service"
-    assert_output --partial "+ systemctl --user stop dotfiles-window-label.service"
-    assert_output --partial "+ systemctl --user stop dotfiles-fleet-sparkline.service"
-    assert_output --partial "+ systemctl --user stop dotfiles-lyrics-ticker.service"
+    assert_output --partial "shell-stack-mode"
 
-    local env_file="${XDG_STATE_HOME}/dotfiles/shell-stack/env"
-    [[ -f "$env_file" ]]
-    run grep -E '^(SHELL_STACK_MODE=full-cutover|QS_BAR_CUTOVER=1|QS_TICKER_CUTOVER=1|QS_COMPANION_CUTOVER=1|QUICKSHELL_NOTIFICATION_OWNER=1)$' "$env_file"
-    assert_success
-}
-
-@test "hg shell module routes to shell stack dry-run controls" {
-    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell full-pilot
-    assert_success
-    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
-    assert_output --partial "[dry] systemctl --user stop ironbar.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
-}
-
-@test "hg shell module exposes notification and full cutover modes" {
-    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell notification-cutover
-    assert_success
-    assert_output --partial "[dry] systemctl --user stop swaync.service"
-    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
-
-    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell full-cutover
-    assert_success
-    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
-    assert_output --partial "[dry] systemctl --user stop ironbar.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-keybind-ticker.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-fleet-sparkline.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-lyrics-ticker.service"
-    assert_output --partial "[dry] systemctl --user stop swaync.service"
-}
-
-@test "hg shell module exposes companion cutover mode" {
-    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell companion-cutover
-    assert_success
-    assert_output --partial "[dry] systemctl --user restart dotfiles-quickshell.service"
-    assert_output --partial "[dry] systemctl --user stop dotfiles-window-label.service"
-    assert_output --partial "[dry] systemctl --user start ironbar.service"
-    assert_output --partial "[dry] systemctl --user start dotfiles-keybind-ticker.service"
+    run env DOTFILES_DIR="${DOTFILES_DIR}" HG_STUDIO_ROOT= bash "${SCRIPTS_DIR}/hg" shell pilot
+    [[ "$status" -ne 0 ]]
 }

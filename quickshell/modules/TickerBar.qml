@@ -38,26 +38,39 @@ PanelWindow {
         opacity: ticker.preset === "minimal" ? 0.88 : 0.95
     }
 
+    // Scanline overlay. Cyberpunk preset gets the animated wave, every other
+    // preset gets a static stripe pattern (no per-frame repaint cost). The
+    // animated path renders to an FBO so rasterization happens on the GPU,
+    // and the timer runs at ~5Hz instead of ~7Hz — the wave amplitude is
+    // 1.4px so the human eye doesn't notice the difference, but it cuts the
+    // continuous CPU cost by ~30%.
     Canvas {
         anchors.fill: parent
         visible: ticker.preset !== "clean"
         opacity: ticker.urgent ? 0.54 : 0.28
+        renderTarget: Canvas.FramebufferObject
+        renderStrategy: Canvas.Threaded
+        property bool animated: ticker.preset === "cyberpunk" || ticker.urgent
+        onAnimatedChanged: requestPaint()
         onPaint: {
             const ctx = getContext("2d");
             ctx.clearRect(0, 0, width, height);
             ctx.strokeStyle = ticker.urgent ? colors.danger : colors.primary;
             ctx.globalAlpha = 0.32;
+            const animate = animated;
+            const t = animate ? Date.now() / 260 : 0;
             for (let y = 2; y < height; y += 4) {
+                const dy = animate ? Math.sin(t + y) * 1.4 : 0;
                 ctx.beginPath();
-                ctx.moveTo(0, y + Math.sin(Date.now() / 260 + y) * 1.4);
+                ctx.moveTo(0, y + dy);
                 ctx.lineTo(width, y);
                 ctx.stroke();
             }
         }
 
         Timer {
-            interval: 140
-            running: panel.visible
+            interval: 200
+            running: panel.visible && parent.animated
             repeat: true
             onTriggered: parent.requestPaint()
         }

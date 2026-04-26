@@ -11,8 +11,11 @@ Item {
     property string stateDir: Quickshell.env("XDG_STATE_HOME")
         ? Quickshell.env("XDG_STATE_HOME") + "/keybind-ticker"
         : Quickshell.env("HOME") + "/.local/state/keybind-ticker"
-    property bool watcherCutover: String(Quickshell.env("QS_TICKER_CUTOVER") || "0") === "1"
-    property bool companionCutover: String(Quickshell.env("QS_COMPANION_CUTOVER") || "0") === "1"
+    // Always-on post-2026-04-26 (legacy ticker watcher / companion services
+    // retired). Kept as readonly props so existing branches don't churn —
+    // PR 4 inlines and deletes them.
+    readonly property bool watcherCutover: true
+    readonly property bool companionCutover: true
     property var allStreams: [
         "keybinds", "system", "fleet", "weather", "github", "notifications",
         "music", "updates", "mx-battery", "disk", "load", "cpu", "gpu",

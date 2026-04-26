@@ -2,6 +2,16 @@
 
 Append-only ADR-lite record of architectural calls that shaped this repo. Managed by the `decision_journal` skill. Newest entries at the top.
 
+## 2026-04-26 — Decommission staged-cutover modes (post-pilot)
+
+**Context**: The 2026-04-23 staged-migration ADRs introduced 7 intermediate cutover modes (`pilot`, `bar-cutover`, `ticker-cutover`, `menu-cutover`, `dock-cutover`, `companion-cutover`, `notification-cutover`) plus `full-pilot`/`full-cutover`/`rollback`/`status` to migrate the workstation from ironbar/hyprshell/hypr-dock/keybind-ticker to Quickshell incrementally. The migration finished on 2026-04-25 (live workstation on `full-cutover` since); the staging surface itself is now overhead.
+
+**Decision**: Reduce `hg shell` to `status|full-cutover|rollback`. Drop the QS_*_CUTOVER environment contract — Quickshell renders all surfaces unconditionally, no env-var configuration needed. Persist `SHELL_STACK_MODE` only for the rollback escape hatch. Inline the QML cutover gates as `true` constants for now; PR 4 of the decommission deletes the property scaffolding.
+
+**Rationale**: The intermediate modes were valuable for the soak window between owners flipping. Once the migration shipped, every additional staging branch is a maintenance tax with no operational benefit — fresh installs do not need a half-flipped ironbar+Quickshell coexistence path. Keeping `rollback` honors the original ADR's reversibility commitment until the legacy repo content (PR 4) is also gone.
+
+**Consequences**: `shell-stack-mode.sh` shrinks from 402 → ~150 lines; `mod-shell.sh` synopsis shrinks from 11 modes to 3; `run-quickshell.sh` and `notification-daemon-launch.sh` no longer source the env file; `tests/quickshell_migration.bats` rewrites the migration assertions as a Quickshell-only smoke surface. The 2026-04-23 ADRs above remain accurate history for the migration period; this ADR closes that chapter.
+
 ## 2026-04-23 — Promote Quickshell pilot to modular shell migration surface
 
 **Context**: External Quickshell-heavy dotfiles research showed the durable pattern is a service/module split: reusable data services, separate layer-shell modules, explicit cutover modes, and rollback. The local pilot still had all bar, ticker, and notification-history logic in one QML file.
