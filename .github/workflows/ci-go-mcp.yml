@@ -45,6 +45,9 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: mcp/go.work
+          cache-dependency-path: |
+            mcp/go.work
+            mcp/*/go.sum
       - uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
         env:
           GOWORK: ${{ matrix.gowork }}
@@ -72,6 +75,9 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: mcp/go.work
+          cache-dependency-path: |
+            mcp/go.work
+            mcp/*/go.sum
       - name: Configure module workspace mode
         run: echo "GOWORK=${{ matrix.gowork }}" >> "$GITHUB_ENV"
 
@@ -102,7 +108,7 @@ jobs:
           retention-days: 30
 
       - name: Upload to Codecov
-        uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
         if: always()
         with:
           files: mcp/${{ matrix.module }}/coverage.out
@@ -131,6 +137,9 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: mcp/go.work
+          cache-dependency-path: |
+            mcp/go.work
+            mcp/*/go.sum
       - name: Configure module workspace mode
         run: echo "GOWORK=${{ matrix.gowork }}" >> "$GITHUB_ENV"
 
@@ -174,6 +183,9 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: mcp/go.work
+          cache-dependency-path: |
+            mcp/go.work
+            mcp/*/go.sum
 
       - name: Build server binaries
         run: |

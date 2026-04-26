@@ -42,6 +42,9 @@ jobs:
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: mcp/go.work
+          cache-dependency-path: |
+            mcp/go.work
+            mcp/*/go.sum
       - name: Configure module workspace mode
         run: echo "GOWORK=${{ matrix.gowork }}" >> "$GITHUB_ENV"
 
