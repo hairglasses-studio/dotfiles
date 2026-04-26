@@ -22,9 +22,22 @@ fi
 start="$(date +'%Y-%m-%dT%H:%M')"
 end="$(date -d '+24 hours' +'%Y-%m-%dT%H:%M')"
 
+# Capture gcalcli output in a subshell with stdin closed so a missing
+# OAuth token (which would otherwise prompt for client_id/client_secret)
+# fails fast instead of hanging the timer. The capture also keeps a
+# non-zero gcalcli exit from tripping `set -o pipefail` when piped into
+# tail/awk below; on failure we degrade to a one-line status cache so
+# the bar shows what's wrong instead of a stale entry.
+if ! agenda="$(timeout 15 gcalcli agenda --military --tsv --details=end --nocolor \
+    "$start" "$end" </dev/null 2>/dev/null)"; then
+  printf 'gcalcli not authenticated\n' > "$TMPFILE"
+  mv "$TMPFILE" "$CACHE_FILE"
+  exit 0
+fi
+
 # TSV output: start_date\tstart_time\tend_date\tend_time\t...\ttitle\tlocation
 # Fields beyond title vary; safer to parse the last text column.
-gcalcli agenda --military --tsv --details=end --nocolor "$start" "$end" 2>/dev/null \
+printf '%s\n' "$agenda" \
   | tail -n +2 \
   | awk -F '\t' 'NF >= 5 {
       time = $2
