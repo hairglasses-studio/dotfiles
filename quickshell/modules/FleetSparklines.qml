@@ -17,7 +17,7 @@ PanelWindow {
     implicitHeight: 88
     exclusiveZone: 0
     color: "transparent"
-    visible: shellState && shellState.companionCutover
+    visible: true
 
     Connections {
         target: telemetry

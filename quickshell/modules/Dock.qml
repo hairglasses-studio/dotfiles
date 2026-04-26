@@ -11,10 +11,10 @@ PanelWindow {
     property var dock
     property int hoveredIndex: -1
 
-    visible: shellState && shellState.dockCutover && dock && !dock.hidden
+    visible: dock && !dock.hidden
     screen: screenModel
     anchors { left: true; right: true; bottom: true }
-    margins { bottom: shellState && shellState.tickerCutover ? 38 : 8 }
+    margins { bottom: 38 }
     implicitHeight: 62
     exclusiveZone: 0
     color: "transparent"
