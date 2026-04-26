@@ -62,5 +62,8 @@ jobs:
       - name: Run installer reliability tests
         run: bats tests/install_check_worktree.bats tests/repo_smoke.bats
 
+      - name: Run theme pipeline tests
+        run: bats tests/theme_sync.bats
+
       - name: Run launcher and shell policy tests
         run: bats tests/tmux_session.bats tests/shell_env.bats tests/app_launcher.bats

@@ -46,6 +46,14 @@ export THEME_WARNING THEME_DANGER THEME_BLUE
 export THEME_RADIUS_SM THEME_RADIUS_MD THEME_RADIUS_LG
 export THEME_CURSOR_THEME THEME_CURSOR_SIZE THEME_ICON_THEME
 
+ENVSUBST_THEME_VARS='${THEME_NAME} ${THEME_MODE} ${THEME_UI_FONT} ${THEME_CODE_FONT} ${THEME_ICON_FONT}
+${THEME_BG} ${THEME_SURFACE} ${THEME_SURFACE_ALT} ${THEME_PANEL} ${THEME_PANEL_STRONG}
+${THEME_BORDER} ${THEME_BORDER_STRONG} ${THEME_FG} ${THEME_MUTED}
+${THEME_PRIMARY} ${THEME_SECONDARY} ${THEME_TERTIARY}
+${THEME_WARNING} ${THEME_DANGER} ${THEME_BLUE}
+${THEME_RADIUS_SM} ${THEME_RADIUS_MD} ${THEME_RADIUS_LG}
+${THEME_CURSOR_THEME} ${THEME_CURSOR_SIZE} ${THEME_ICON_THEME}'
+
 _c_info() { printf '\033[38;2;41;240;255m[palette]\033[0m %s\n' "$1"; }
 _c_ok()   { printf '\033[38;2;61;255;181m[palette]\033[0m %s\n' "$1"; }
 _c_warn() { printf '\033[38;2;255;228;94m[palette]\033[0m %s\n' "$1" >&2; }
@@ -90,12 +98,7 @@ _render() {
         return 0
     fi
     mkdir -p "$(dirname "$target")"
-    envsubst \
-        '$THEME_BG $THEME_SURFACE $THEME_SURFACE_ALT $THEME_PANEL $THEME_PANEL_STRONG
-         $THEME_BORDER $THEME_BORDER_STRONG $THEME_FG $THEME_MUTED
-         $THEME_PRIMARY $THEME_SECONDARY $THEME_TERTIARY
-         $THEME_WARNING $THEME_DANGER $THEME_BLUE' \
-        < "$template" > "$target"
+    envsubst "$ENVSUBST_THEME_VARS" < "$template" > "$target"
     printf '  [write] %-66s → %s\n' "${template##*/}" "$target"
 }
 
