@@ -11,7 +11,7 @@
 # Usage:
 #   shader-tier.sh generate      # write tier playlists
 #   shader-tier.sh report        # print per-shader tier + score without writing
-#   shader-tier.sh verify        # confirm all 139 shaders landed in exactly one tier
+#   shader-tier.sh verify        # confirm all shaders landed in exactly one tier
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ SHADER_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SHADERS_DIR="$SHADER_ROOT/darkwindow"
 PLAYLISTS_DIR="$SHADER_ROOT/playlists"
 
-# Thresholds — tuned empirically from the current 139-shader catalog.
+# Thresholds — tuned empirically from the shader catalog.
 # Natural tercile boundaries from size distribution: p33=2193, p66=4610 bytes.
 # Use slightly rounded values to tolerate small catalog changes.
 CHEAP_MAX=2200

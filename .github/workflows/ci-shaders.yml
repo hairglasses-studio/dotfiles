@@ -7,6 +7,8 @@ on:
       - 'kitty/shaders/**'
       - 'wallpaper-shaders/**'
       - 'scripts/lib/shader-transpile-darkwindow.sh'
+      - 'scripts/validate-darkwindow-shaders.sh'
+      - 'scripts/check-shader-consistency.sh'
       - 'hyprland/darkwindow-shaders.conf'
       - '.github/workflows/ci-shaders.yml'
   pull_request:
@@ -15,6 +17,8 @@ on:
       - 'kitty/shaders/**'
       - 'wallpaper-shaders/**'
       - 'scripts/lib/shader-transpile-darkwindow.sh'
+      - 'scripts/validate-darkwindow-shaders.sh'
+      - 'scripts/check-shader-consistency.sh'
       - 'hyprland/darkwindow-shaders.conf'
       - '.github/workflows/ci-shaders.yml'
 
@@ -40,21 +44,7 @@ jobs:
           glslangValidator --version
 
       - name: Validate DarkWindow shaders
-        run: |
-          FAIL=0
-          COUNT=0
-          for f in kitty/shaders/darkwindow/*.glsl; do
-            COUNT=$((COUNT + 1))
-            if glslangValidator -S frag "$f" > /dev/null 2>&1; then
-              echo "PASS: $(basename "$f")"
-            else
-              echo "::error file=$f::FAIL: $(basename "$f")"
-              glslangValidator -S frag "$f" 2>&1 | head -5
-              FAIL=$((FAIL + 1))
-            fi
-          done
-          echo "--- $COUNT DarkWindow shaders, $FAIL failures ---"
-          exit "$FAIL"
+        run: scripts/validate-darkwindow-shaders.sh --baseline 120
 
       - name: Validate wallpaper shaders (Shadertoy preamble)
         run: |
@@ -104,7 +94,6 @@ jobs:
   consistency:
     name: Playlist Consistency
     runs-on: [self-hosted, archglasses, optimized]
-    if: hashFiles('scripts/check-shader-consistency.sh') != ''
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Check shader/playlist consistency
