@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
-# Tests for the keybind module: hypr-keybinds.sh, keybind-ticker.py, and
-# hyprland.conf keybind conventions.
+# Tests for the keybind module: hypr-keybinds.sh and hyprland.conf keybind
+# conventions. The legacy keybind-ticker.py was retired with the
+# Quickshell cutover.
 #
 # Tests: script existence, shebang, config format, duplicate descriptions,
 #        section header pattern, section_icon coverage.
@@ -10,7 +11,6 @@ load 'test_helper'
 
 HYPR_CONF="${DOTFILES_DIR}/hyprland/hyprland.conf"
 KEYBINDS_SCRIPT="${SCRIPTS_DIR}/hypr-keybinds.sh"
-TICKER_SCRIPT="${SCRIPTS_DIR}/keybind-ticker.py"
 
 setup() {
     export BATS_TEST_TMPDIR="$(mktemp -d)"
@@ -70,27 +70,7 @@ MOCK
 }
 
 # ---------------------------------------------------------------------------
-# 2. keybind-ticker.py: exists, correct shebang
-# ---------------------------------------------------------------------------
-
-@test "keybinds: keybind-ticker.py exists" {
-    [[ -f "${TICKER_SCRIPT}" ]]
-}
-
-@test "keybinds: keybind-ticker.py has python3 shebang" {
-    run head -1 "${TICKER_SCRIPT}"
-    assert_success
-    assert_output "#!/usr/bin/env python3"
-}
-
-@test "keybinds: keybind-ticker.py shebang is on line 1 (no BOM or blank prefix)" {
-    local first_char
-    first_char="$(head -c1 "${TICKER_SCRIPT}")"
-    [[ "${first_char}" == "#" ]]
-}
-
-# ---------------------------------------------------------------------------
-# 3. hyprland.conf: main keybinds use bindd format (not bare bind =)
+# 2. hyprland.conf: main keybinds use bindd format (not bare bind =)
 # ---------------------------------------------------------------------------
 
 @test "keybinds: hyprland.conf has no bare 'bind =' lines in keybind sections" {
