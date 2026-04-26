@@ -65,15 +65,15 @@ apply_runtime_theme_preferences() {
 
     if command -v gsettings >/dev/null 2>&1; then
         gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3-dark" >/dev/null 2>&1 || true
-        gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark" >/dev/null 2>&1 || true
-        gsettings set org.gnome.desktop.interface cursor-theme "Bibata-Modern-Classic" >/dev/null 2>&1 || true
+        gsettings set org.gnome.desktop.interface icon-theme "${THEME_ICON_THEME}" >/dev/null 2>&1 || true
+        gsettings set org.gnome.desktop.interface cursor-theme "${THEME_CURSOR_THEME}" >/dev/null 2>&1 || true
         gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" >/dev/null 2>&1 || true
     fi
 
     if command -v xfconf-query >/dev/null 2>&1; then
         xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s "adw-gtk3-dark" >/dev/null 2>&1 || true
-        xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "Papirus-Dark" >/dev/null 2>&1 || true
-        xfconf-query -c xsettings -p /Gtk/CursorThemeName -n -t string -s "Bibata-Modern-Classic" >/dev/null 2>&1 || true
+        xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "${THEME_ICON_THEME}" >/dev/null 2>&1 || true
+        xfconf-query -c xsettings -p /Gtk/CursorThemeName -n -t string -s "${THEME_CURSOR_THEME}" >/dev/null 2>&1 || true
     fi
 
     if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" \
