@@ -3,7 +3,8 @@
 load 'test_helper'
 
 setup() {
-    export BATS_TEST_TMPDIR="$(mktemp -d)"
+    BATS_TEST_TMPDIR="$(mktemp -d)"
+    export BATS_TEST_TMPDIR
     export TEST_BIN="${BATS_TEST_TMPDIR}/bin"
     export HOME="${BATS_TEST_TMPDIR}/home"
     export PATH="${TEST_BIN}:${PATH}"
@@ -58,30 +59,30 @@ _run_hg_module() {
         ' bash "$@"
 }
 
-@test "hg config lane classifies hyprshell reload and restart lanes" {
-    run _run_hg_module config lane hyprshell
+@test "hg config lane classifies service reload and restart lanes" {
+    run _run_hg_module config lane autoname
     assert_success
-    assert_line --index 0 "hyprshell	reload	safe_reload"
-    assert_line --index 1 "hyprshell	restart	explicit_restart"
+    assert_line --index 0 "autoname	reload	service_reload"
+    assert_line --index 1 "autoname	restart	explicit_restart"
 }
 
 @test "hg config restart blocks explicit restart when tmux persistence health fails" {
-    run _run_hg_module config restart hyprshell
+    run _run_hg_module config restart autoname
     assert_failure
-    assert_output --partial "Blocked explicit restart for hyprshell"
+    assert_output --partial "Blocked explicit restart for autoname"
 
     run test -f "${SYSTEMCTL_LOG}"
     assert_failure
 }
 
 @test "hg config restart --force bypasses failed tmux persistence health" {
-    run _run_hg_module config restart --force hyprshell
+    run _run_hg_module config restart --force autoname
     assert_success
-    assert_output --partial "Restarted hyprshell"
+    assert_output --partial "Restarted autoname"
 
     run cat "${SYSTEMCTL_LOG}"
     assert_success
-    assert_output --partial "--user restart dotfiles-hyprshell.service"
+    assert_output --partial "--user restart dotfiles-hyprland-autoname-workspaces.service"
 }
 
 @test "hg config check reports the shell-first kitty policy" {
@@ -92,7 +93,6 @@ _run_hg_module() {
     assert_output --partial "kitty-shell-launch"
     assert_output --partial "startup_session none"
     assert_output --partial "hypr surfaces"
-    assert_output --partial "aux launchers"
     assert_output --partial "managed wrappers"
     assert_output --partial "opt-in only"
 }
@@ -110,8 +110,8 @@ _run_hg_module() {
 
     run cat "${SYSTEMCTL_LOG}"
     assert_success
-    assert_output --partial "--user restart dotfiles-hyprshell.service"
-    assert_output --partial "--user restart dotfiles-hypr-dock.service"
     assert_output --partial "--user restart dotfiles-hyprdynamicmonitors.service"
     assert_output --partial "--user restart dotfiles-hyprland-autoname-workspaces.service"
+    refute_output --partial "dotfiles-hyprshell.service"
+    refute_output --partial "dotfiles-hypr-dock.service"
 }
