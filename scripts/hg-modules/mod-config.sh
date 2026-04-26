@@ -12,7 +12,7 @@ config_description() {
 
 config_commands() {
   cat <<'CMDS'
-reload	Reload a component (hyprshell uses watched-file hot reload)
+reload	Reload a component (hyprland|swaync|quickshell|tmux + hyprdynamicmonitors|autoname)
 restart	Explicitly restart a service-backed component (guarded; use --force to override failed continuity preflight)
 lane	Show whether a component uses safe_reload, service_reload, or explicit_restart
 backup	Backup a config file before modification
@@ -21,12 +21,15 @@ list	Show managed components and paths
 CMDS
 }
 
+_CONFIG_RELOAD_COMPONENTS="hyprland|hypr|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname|swaync|quickshell|tmux"
+_CONFIG_RESTART_COMPONENTS="hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname|quickshell"
+
 _config_cmd_reload() {
   local component="${1:-}"
-  [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|ironbar|quickshell|tmux)"
+  [[ -n "$component" ]] || hg_die "Usage: hg config reload <component> ($_CONFIG_RELOAD_COMPONENTS)"
   case "$component" in
-    hyprland|hypr|hyprshell|hypr-dock|hyprdock|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname|swaync|ironbar|quickshell|tmux) ;;
-    *) hg_die "Unknown component: $component (hyprland|hyprshell|hypr-dock|hyprdynamicmonitors|autoname|swaync|ironbar|quickshell|tmux)" ;;
+    hyprland|hypr|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname|swaync|quickshell|tmux) ;;
+    *) hg_die "Unknown component: $component ($_CONFIG_RELOAD_COMPONENTS)" ;;
   esac
   config_reload_service "$component"
   hg_ok "Reloaded $component"
@@ -40,17 +43,17 @@ _config_cmd_restart() {
       --force) force=true ;;
       -*) hg_die "Unknown option for restart: $1" ;;
       *)
-        [[ -z "$component" ]] || hg_die "Usage: hg config restart [--force] <component> (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)"
+        [[ -z "$component" ]] || hg_die "Usage: hg config restart [--force] <component> ($_CONFIG_RESTART_COMPONENTS)"
         component="$1"
         ;;
     esac
     shift
   done
 
-  [[ -n "$component" ]] || hg_die "Usage: hg config restart [--force] <component> (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)"
+  [[ -n "$component" ]] || hg_die "Usage: hg config restart [--force] <component> ($_CONFIG_RESTART_COMPONENTS)"
   case "$component" in
-    hyprshell|hypr-dock|hyprdock|hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname) ;;
-    *) hg_die "Unknown restartable component: $component (hyprshell|hypr-dock|hyprdynamicmonitors|autoname)" ;;
+    hyprdynamicmonitors|monitors|hyprland-autoname-workspaces|autoname|quickshell) ;;
+    *) hg_die "Unknown restartable component: $component ($_CONFIG_RESTART_COMPONENTS)" ;;
   esac
 
   if ! $force && ! tmux_persistence_is_operational; then
@@ -103,11 +106,8 @@ _config_cmd_check() {
   local -a _checks=(
     "$HOME/.config/kitty:$HG_DOTFILES/kitty:kitty"
     "$HOME/.config/hypr:$HG_DOTFILES/hyprland:hyprland"
-    "$HOME/.config/hyprshell:$HG_DOTFILES/hyprshell:hyprshell"
-    "$HOME/.config/hypr-dock:$HG_DOTFILES/hypr-dock:hypr-dock"
     "$HOME/.config/hyprdynamicmonitors:$HG_DOTFILES/hyprdynamicmonitors:hyprdynamicmonitors"
     "$HOME/.config/hyprland-autoname-workspaces:$HG_DOTFILES/hyprland-autoname-workspaces:autoname"
-    "$HOME/.config/ironbar:$HG_DOTFILES/ironbar:ironbar"
     "$HOME/.config/quickshell:$HG_DOTFILES/quickshell:quickshell"
     "$HOME/.config/swaync:$HG_DOTFILES/swaync:swaync"
   )
@@ -134,7 +134,7 @@ _config_cmd_check() {
   done
 
   printf "\n %sTERMINAL POLICY%s\n" "$HG_BOLD" "$HG_RESET"
-  if grep -Fq 'default_terminal = "$HOME/.local/bin/kitty-shell-launch"' "$HG_DOTFILES/hyprshell/config.toml"; then
+  if grep -Fq '$term = $HOME/.local/bin/kitty-shell-launch' "$HG_DOTFILES/hyprland/hyprland.conf"; then
     printf "  %s%-18s%s %skitty-shell-launch%s\n" "$HG_CYAN" "default terminal" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
     printf "  %s%-18s%s %sdrifted%s\n" "$HG_CYAN" "default terminal" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
@@ -152,13 +152,6 @@ _config_cmd_check() {
     printf "  %s%-18s%s %smanaged wrappers%s\n" "$HG_CYAN" "hypr surfaces" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
     printf "  %s%-18s%s %slauncher drift%s\n" "$HG_CYAN" "hypr surfaces" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
-  fi
-
-  if grep -Fq 'kitty-visual-launch' "$HG_DOTFILES/ironbar/config.toml" \
-    && grep -Fq 'kitty-visual-launch' "$HG_DOTFILES/makima/Microsoft Xbox Series S|X Controller.toml"; then
-    printf "  %s%-18s%s %smanaged wrappers%s\n" "$HG_CYAN" "aux launchers" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
-  else
-    printf "  %s%-18s%s %slauncher drift%s\n" "$HG_CYAN" "aux launchers" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
   fi
 
   if grep -Eq 'dotfiles-kitty-save-session\.(service|timer)' "$HG_DOTFILES/install.sh" "$HG_DOTFILES/manjaro/install.sh"; then
@@ -186,11 +179,8 @@ _config_cmd_list() {
   local -a _components=(
     "kitty:$HG_DOTFILES/kitty:SIGUSR1 reload"
     "hyprland:$HG_DOTFILES/hyprland:hyprctl reload"
-    "hyprshell:$HG_DOTFILES/hyprshell:touch config.toml + styles.css"
-    "hypr-dock:$HG_DOTFILES/hypr-dock:systemctl --user restart dotfiles-hypr-dock.service"
     "hyprdynamic:$HG_DOTFILES/hyprdynamicmonitors:systemctl --user restart dotfiles-hyprdynamicmonitors.service"
     "autoname:$HG_DOTFILES/hyprland-autoname-workspaces:systemctl --user restart dotfiles-hyprland-autoname-workspaces.service"
-    "ironbar:$HG_DOTFILES/ironbar:ironbar reload"
     "quickshell:$HG_DOTFILES/quickshell:systemctl --user restart dotfiles-quickshell.service"
     "swaync:$HG_DOTFILES/swaync:swaync-client --reload-config"
     "tmux:$HG_DOTFILES/tmux:tmux source-file"

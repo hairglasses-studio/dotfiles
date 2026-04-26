@@ -26,7 +26,6 @@ from pathlib import Path
 configs = [
     "hyprland/hyprland.conf",
     "pypr/config.toml",
-    "ironbar/config.toml",
 ]
 
 # Match $HOME/hairglasses-studio/dotfiles/<path> up to the next shell

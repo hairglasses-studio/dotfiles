@@ -32,16 +32,17 @@ teardown() {
 }
 
 @test "repo config pins the shell-first kitty launch policy" {
-    run bash -lc "grep -F 'default_terminal = \"\$HOME/.local/bin/kitty-shell-launch\"' '${DOTFILES_DIR}/hyprshell/config.toml' && grep -Eq '^startup_session[[:space:]]+none$' '${DOTFILES_DIR}/kitty/kitty.conf'"
+    # hyprland's $term anchor points at kitty-shell-launch (the wrapper
+    # that drops users into a managed shell session); kitty.conf disables
+    # session restore so the wrapper is the only entry path.
+    run bash -lc "grep -F '\$term = \$HOME/.local/bin/kitty-shell-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -Eq '^startup_session[[:space:]]+none$' '${DOTFILES_DIR}/kitty/kitty.conf'"
     assert_success
 }
 
 @test "launcher consumers stay pinned to the managed kitty wrappers" {
-    # hyprland/pyprland.toml was removed as a stale duplicate of pypr/config.toml
-    # in the April 2026 cleanup; the makima Xbox controller TOML was dropped with
-    # the gamepad-remapper retirement. The live pinned consumers are just the
-    # three below.
-    run bash -lc "grep -F '\$HOME/.local/bin/kitty-dev-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/pypr/config.toml' && grep -F 'kitty-visual-launch' '${DOTFILES_DIR}/ironbar/config.toml'"
+    # Post-Quickshell-cutover the pinned consumers are hyprland.conf and
+    # pypr/config.toml. ironbar/hyprshell are retired.
+    run bash -lc "grep -F '\$HOME/.local/bin/kitty-dev-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch' '${DOTFILES_DIR}/hyprland/hyprland.conf' && grep -F '\$HOME/.local/bin/kitty-visual-launch --class=scratchpad' '${DOTFILES_DIR}/pypr/config.toml'"
     assert_success
 }
 
