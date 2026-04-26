@@ -44,14 +44,14 @@ concurrency:
 jobs:
   bats:
     name: Shell Tests
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install BATS
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats bats-support bats-assert
+          sudo apt-get install -y bats bats-support bats-assert zsh
 
       - name: Run library tests
         run: bats tests/lib_*.bats

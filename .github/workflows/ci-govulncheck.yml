@@ -23,16 +23,27 @@ concurrency:
 
 jobs:
   govulncheck:
-    name: Go Vulnerability Check
-    runs-on: [self-hosted, archglasses, optimized]
+    name: Go Vulnerability Check (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - module: dotfiles-mcp
+            gowork: ""
+          - module: mapitall
+            gowork: ""
+          - module: mapping
+            gowork: off
     defaults:
       run:
-        working-directory: mcp
+        working-directory: mcp/${{ matrix.module }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version-file: mcp/go.work
+      - name: Configure module workspace mode
+        run: echo "GOWORK=${{ matrix.gowork }}" >> "$GITHUB_ENV"
 
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest

@@ -32,14 +32,15 @@ concurrency:
 jobs:
   validate:
     name: GLSL Compilation
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Ensure glslangValidator
         run: |
           if ! command -v glslangValidator &>/dev/null; then
-            sudo pacman -Sy --noconfirm glslang
+            sudo apt-get update
+            sudo apt-get install -y glslang-tools
           fi
           glslangValidator --version
 
@@ -77,7 +78,7 @@ jobs:
 
   count-check:
     name: Shader Count Badge
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Verify README badge matches filesystem
@@ -93,7 +94,7 @@ jobs:
 
   consistency:
     name: Playlist Consistency
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Check shader/playlist consistency
@@ -101,7 +102,7 @@ jobs:
 
   tier-check:
     name: Tier Playlist Coverage
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Verify tier playlists cover the full catalog

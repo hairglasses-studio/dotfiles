@@ -2374,28 +2374,28 @@
   },
   {
     "name": "notify_count",
-    "description": "Get the current notification count from SwayNotificationCenter.",
+    "description": "Get the current notification count from notification-control or swaync fallback.",
     "category": "",
     "is_write": false,
     "deferred": true
   },
   {
     "name": "notify_dismiss",
-    "description": "DESTRUCTIVE: Dismiss notifications in SwayNotificationCenter. Scope: all (dismiss everything) or latest (dismiss most recent only).",
+    "description": "DESTRUCTIVE: Dismiss notifications through Quickshell/swaync wrappers. Scope: all or latest.",
     "category": "",
     "is_write": true,
     "deferred": true
   },
   {
     "name": "notify_dnd",
-    "description": "Manage Do Not Disturb mode in SwayNotificationCenter. Actions: get (query current state), toggle, on, off.",
+    "description": "Manage Do Not Disturb mode through Quickshell/swaync wrappers. Actions: get, toggle, on, off.",
     "category": "",
     "is_write": true,
     "deferred": true
   },
   {
     "name": "notify_history",
-    "description": "Get SwayNotificationCenter status snapshot: notification count, DND state, panel visibility, inhibitor state. (swaync does not expose individual notification history via CLI.)",
+    "description": "Get notification status: count, DND state, local tracked history, and active wrapper backend.",
     "category": "",
     "is_write": false,
     "deferred": true
@@ -2416,7 +2416,7 @@
   },
   {
     "name": "notify_panel",
-    "description": "DESTRUCTIVE: Control the SwayNotificationCenter panel visibility. Actions: toggle, open, close.",
+    "description": "DESTRUCTIVE: Control the notification panel visibility through Quickshell/swaync wrappers. Actions: toggle, open, close.",
     "category": "",
     "is_write": true,
     "deferred": true

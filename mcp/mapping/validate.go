@@ -13,7 +13,8 @@ type ValidationIssue struct {
 func ValidateProfile(p *MappingProfile) []ValidationIssue {
 	var issues []ValidationIssue
 
-	if p.IsUnifiedFormat() {
+	switch {
+	case p.IsUnifiedFormat():
 		if p.Profile.SchemaVersion < 1 {
 			issues = append(issues, ValidationIssue{
 				Severity: "error",
@@ -56,13 +57,13 @@ func ValidateProfile(p *MappingProfile) []ValidationIssue {
 				}
 			}
 		}
-	} else if p.IsLegacyFormat() {
+	case p.IsLegacyFormat():
 		issues = append(issues, ValidationIssue{
 			Severity: "info",
 			Field:    "format",
 			Message:  "Legacy makima format detected. Consider migrating with mapping_migrate_legacy.",
 		})
-	} else {
+	default:
 		issues = append(issues, ValidationIssue{
 			Severity: "warning",
 			Field:    "format",

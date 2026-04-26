@@ -34,7 +34,7 @@ concurrency:
 jobs:
   shellcheck:
     name: ShellCheck
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Run ShellCheck
@@ -43,42 +43,24 @@ jobs:
           scandir: scripts
           additional_files: >-
             install.sh
-          ignore_paths: scripts/ccg.sh
+          ignore_paths: >-
+            scripts/ccg.sh
+            scripts/hypr-monitor-watch.sh
           severity: error
 
   configs:
     name: Config Syntax
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - name: Validate JSON files
-        run: |
-          for f in clipse/*.json; do
-            if [ -f "$f" ]; then
-              python3 -m json.tool "$f" > /dev/null || { echo "FAIL: $f"; exit 1; }
-              echo "OK: $f"
-            fi
-          done
-      - name: Validate TOML files
-        run: |
-          pip install toml
-          python3 -c "
-          import toml, sys, glob
-          files = glob.glob('**/*.toml', recursive=True)
-          errors = 0
-          for f in files:
-              try:
-                  toml.load(f)
-                  print(f'OK: {f}')
-              except Exception as e:
-                  print(f'FAIL: {f}: {e}')
-                  errors += 1
-          sys.exit(errors)
-          "
+      - name: Install config validator dependencies
+        run: python3 -m pip install --user PyYAML
+      - name: Validate tracked config files
+        run: bash scripts/validate-config-syntax.sh
 
   dockerfiles:
     name: Dockerfile Lint
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Lint Dockerfiles
@@ -90,7 +72,7 @@ jobs:
 
   symlinks:
     name: Symlink Targets
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - name: Validate install.sh syntax

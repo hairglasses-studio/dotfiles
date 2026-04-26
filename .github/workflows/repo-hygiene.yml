@@ -9,7 +9,7 @@ on:
 
 jobs:
   hygiene:
-    runs-on: [self-hosted, archglasses, optimized]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
