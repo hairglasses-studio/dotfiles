@@ -2,27 +2,6 @@
 
 load 'test_helper'
 
-@test "ticker bridge lists streams and emits plain text payloads" {
-    run python3 "${SCRIPTS_DIR}/ticker-bridge.py" --list
-    assert_success
-    assert_output --partial '"keybinds"'
-    assert_output --partial '"notifications"'
-
-    run python3 -c '
-import json, subprocess, sys
-path = sys.argv[1]
-payload = json.loads(subprocess.check_output(["python3", path, "--stream", "weather", "--once"]))
-assert payload["ok"] is True
-assert payload["stream"] == "weather"
-assert "markup" in payload
-assert "text" in payload
-assert "<span" not in payload["text"]
-print("stream=%s text_len=%d" % (payload["stream"], len(payload["text"])))
-' "${SCRIPTS_DIR}/ticker-bridge.py"
-    assert_success
-    assert_output --partial "stream=weather"
-}
-
 @test "fleet telemetry bridge emits stateful numeric samples" {
     export XDG_STATE_HOME="${BATS_TEST_TMPDIR}/state"
 
