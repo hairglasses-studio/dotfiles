@@ -1,12 +1,15 @@
 // Cyberpunk vignette — subtle edge darkening with cyan shadow tint
 // For use with hyprshade as a compositor-level screen shader
 
+#version 300 es
 precision highp float;
-varying vec2 v_texcoord;
+
+in vec2 v_texcoord;
 uniform sampler2D tex;
+out vec4 fragColor;
 
 void main() {
-    vec4 color = texture2D(tex, v_texcoord);
+    vec4 color = texture(tex, v_texcoord);
 
     // Vignette — darken edges
     float dist = distance(v_texcoord, vec2(0.5));
@@ -18,5 +21,5 @@ void main() {
     vec3 cyanTint = vec3(0.0, 0.03, 0.05);
     color.rgb += cyanTint * (1.0 - luminance) * (1.0 - vignette);
 
-    gl_FragColor = color;
+    fragColor = color;
 }

@@ -316,15 +316,44 @@ cmd_prev()   { _cycle prev;   }
 cmd_random() { _cycle random; }
 
 cmd_shader_next() {
-  [[ -f "$_shader_playlist" ]] || hg_die "Shader playlist not found"
-  command -v hyprctl >/dev/null 2>&1 || hg_die "hyprctl not available"
-  local shader
-  shader="$(awk 'NF && $1 !~ /^#/ { sub(/\.glsl$/, ""); print }' "$_shader_playlist" | shuf -n 1)"
-  [[ -n "$shader" ]] || hg_die "No shaders in playlist"
-  hyprctl dispatch darkwindow:shadeactive "$shader" >/dev/null 2>&1 || true
-  printf '%s' "$shader" > "$_current_shader"
-  hg_notify_low "Shader" "$shader"
-  hg_ok "$shader"
+  # If Hypr-DarkWindow is loaded, dispatch a per-window shader by name from
+  # the configured playlist. Otherwise fall back to cycling hyprshade's
+  # compositor-level screen shaders so Mod+G still produces a visible change
+  # when the plugin is absent.
+  if command -v hyprctl >/dev/null 2>&1 \
+     && hyprctl plugin list 2>/dev/null | grep -qi "Plugin Hypr-DarkWindow"; then
+    [[ -f "$_shader_playlist" ]] || hg_die "Shader playlist not found"
+    local shader
+    shader="$(awk 'NF && $1 !~ /^#/ { sub(/\.glsl$/, ""); print }' "$_shader_playlist" | shuf -n 1)"
+    [[ -n "$shader" ]] || hg_die "No shaders in playlist"
+    hyprctl dispatch darkwindow:shadeactive "$shader" >/dev/null 2>&1 || true
+    printf '%s' "$shader" > "$_current_shader"
+    hg_notify_low "Shader" "$shader"
+    hg_ok "$shader"
+    return
+  fi
+
+  command -v hyprshade >/dev/null 2>&1 \
+    || hg_die "neither Hypr-DarkWindow nor hyprshade is available"
+  local current next
+  current="$(hyprshade current 2>/dev/null | awk 'NF { gsub(/^[* \t]+|[ \t]+$/, ""); print; exit }')"
+  mapfile -t shaders < <(
+    hyprshade ls 2>/dev/null \
+      | awk 'NF { gsub(/^[* \t]+|[ \t]+$/, ""); print }' \
+      | sort -u
+  )
+  [[ ${#shaders[@]} -gt 0 ]] || hg_die "no hyprshade shaders available"
+  next="${shaders[0]}"
+  for i in "${!shaders[@]}"; do
+    if [[ "${shaders[$i]}" == "$current" ]]; then
+      next="${shaders[$(( (i + 1) % ${#shaders[@]} ))]}"
+      break
+    fi
+  done
+  hyprshade on "$next" >/dev/null
+  printf '%s' "$next" > "$_current_shader"
+  hg_notify_low "Screen shader" "$next"
+  hg_ok "$next"
 }
 
 cmd_shader_toggle() {
