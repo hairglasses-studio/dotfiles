@@ -54,8 +54,11 @@ allowlist=(
     en16-session-focus
 
     # Desktop UI entrypoints with off-repo bindings (mouse gestures,
-    # prototype bars, CLI screenshot wrapper).
+    # prototype bars, CLI screenshot wrapper). quickshell-menu-data is
+    # consumed via QS IPC by quickshell/modules/MenuOverlay.qml, not via
+    # shell, so the orphan auditor's grep doesn't see the reference.
     hyprshell-trigger
+    quickshell-menu-data
     quickshell-try
     screenshot-crop
 )
