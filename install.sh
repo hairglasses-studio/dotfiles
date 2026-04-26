@@ -658,9 +658,48 @@ install_retrovisor() {
     fi
 }
 
-# ── Tattoy shader symlink ──
-setup_tattoy_shaders() {
-    log_info "Tattoy shaders skipped (kitty uses DarkWindow pipeline)"
+# ── Shader pipelines ──
+# All four shader trees install via parent-dir symlinks created in
+# print_*_link_specs above:
+#   kitty/shaders/    -> ~/.config/kitty/shaders/    (via kitty)
+#   hyprland/shaders/ -> ~/.config/hypr/shaders/     (via hyprland)
+#   cava/shaders/     -> ~/.config/cava/shaders/     (via cava)
+# wallpaper-shaders/ is consumed directly from DOTFILES_DIR by
+# scripts/shader-wallpaper.sh and the dotfiles-mcp shader module — no
+# symlink is needed. This function verifies all four trees are reachable
+# after create_symlinks ran and reports counts so a fresh install
+# surfaces any broken wiring at install time instead of at first use.
+setup_shaders() {
+    if [[ "$OS" != "Linux" ]]; then
+        return 0
+    fi
+
+    log_info "Verifying shader pipelines..."
+    local missing=0
+    _check_shader_dir() {
+        local label="$1" path="$2" pattern="$3"
+        if [[ ! -d "$path" ]]; then
+            log_warn "  $label: missing dir $path"
+            missing=$((missing + 1))
+            return 1
+        fi
+        local count
+        count=$(find "$path" -maxdepth 1 -type f -name "$pattern" 2>/dev/null | wc -l)
+        log_info "  $label: $count shaders at $path"
+        return 0
+    }
+
+    _check_shader_dir "kitty/darkwindow" "$HOME/.config/kitty/shaders/darkwindow" '*.glsl'
+    _check_shader_dir "hyprland"         "$HOME/.config/hypr/shaders"             '*'
+    _check_shader_dir "cava"             "$HOME/.config/cava/shaders"             '*'
+    _check_shader_dir "wallpaper"        "$DOTFILES_DIR/wallpaper-shaders"        '*.frag'
+
+    if [[ $missing -gt 0 ]]; then
+        log_warn "Shader pipeline check: $missing dir(s) missing — verify the parent symlinks landed"
+    else
+        log_success "All shader pipelines reachable"
+    fi
+    unset -f _check_shader_dir
 }
 
 deploy_linux_etc_configs() {
@@ -1097,7 +1136,7 @@ main() {
     create_symlinks
     sync_visual_theme
     bootstrap_hyprland_plugins
-    setup_tattoy_shaders
+    setup_shaders
 
     # Build bat cache (custom themes)
     if command -v bat &>/dev/null; then
