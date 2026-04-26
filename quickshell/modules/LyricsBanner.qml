@@ -17,7 +17,7 @@ PanelWindow {
     implicitHeight: 28
     exclusiveZone: 0
     color: "transparent"
-    visible: shellState && shellState.companionCutover && lyrics && lyrics.playing && lyrics.hasText && !(windowFocus && windowFocus.labelVisible)
+    visible: lyrics && lyrics.playing && lyrics.hasText && !(windowFocus && windowFocus.labelVisible)
 
     Rectangle {
         anchors.centerIn: parent

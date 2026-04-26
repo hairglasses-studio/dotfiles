@@ -16,7 +16,7 @@ PanelWindow {
     implicitHeight: 28
     exclusiveZone: 0
     color: "transparent"
-    visible: shellState && shellState.companionCutover && windowFocus && windowFocus.active && windowFocus.labelVisible
+    visible: windowFocus && windowFocus.active && windowFocus.labelVisible
 
     Rectangle {
         anchors.centerIn: parent

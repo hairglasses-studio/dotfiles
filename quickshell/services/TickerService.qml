@@ -11,11 +11,6 @@ Item {
     property string stateDir: Quickshell.env("XDG_STATE_HOME")
         ? Quickshell.env("XDG_STATE_HOME") + "/keybind-ticker"
         : Quickshell.env("HOME") + "/.local/state/keybind-ticker"
-    // Always-on post-2026-04-26 (legacy ticker watcher / companion services
-    // retired). Kept as readonly props so existing branches don't churn —
-    // PR 4 inlines and deletes them.
-    readonly property bool watcherCutover: true
-    readonly property bool companionCutover: true
     property var allStreams: [
         "keybinds", "system", "fleet", "weather", "github", "notifications",
         "music", "updates", "mx-battery", "disk", "load", "cpu", "gpu",
@@ -229,22 +224,12 @@ Item {
         Quickshell.execDetached(["bash", "-lc", "rm -f " + shQuote(path)]);
     }
 
-    function setStandaloneCompanions(enabled) {
-        if (companionCutover) return;
-        const verb = enabled ? "start" : "stop";
-        Quickshell.execDetached(["bash", "-lc",
-            "systemctl --user " + verb + " " +
-            "dotfiles-window-label.service dotfiles-fleet-sparkline.service dotfiles-lyrics-ticker.service >/dev/null 2>&1 || true"
-        ]);
-    }
-
     function enterLockMode(restoreHint) {
         if (lockActive) return;
         const pre = playlist && playlist !== "lock" ? playlist : (restoreHint || "main");
         preLockPlaylist = pre;
         writeState("pre-lock-playlist", pre);
         setPlaylist("lock");
-        setStandaloneCompanions(false);
         lockActive = true;
     }
 
@@ -254,7 +239,6 @@ Item {
         preLockPlaylist = "";
         writeState("pre-lock-playlist", "");
         setPlaylist(restore);
-        if (!recordingActive) setStandaloneCompanions(true);
         lockActive = false;
     }
 
@@ -268,7 +252,6 @@ Item {
             preRecordingPlaylist = pre;
             writeState("pre-recording-playlist", pre);
             setPlaylist("recording");
-            setStandaloneCompanions(false);
             showBanner("Recording started - ticker playlist active", "#ff5c8a");
         }
         writeRecordingCache(info);
@@ -282,14 +265,11 @@ Item {
         writeState("pre-recording-playlist", "");
         writeRecordingCache("");
         setPlaylist(restore);
-        setStandaloneCompanions(true);
         showBanner("Recording stopped - restored " + restore, "#3dffb5");
         recordingActive = false;
     }
 
     function handleWatchSnapshot(isLocked, recordingInfo, preLockHint, preRecordingHint) {
-        if (!watcherCutover) return;
-
         if (isLocked) {
             if (!lockActive) enterLockMode(preLockHint);
             if (recordingInfo.length > 0) {
@@ -309,7 +289,7 @@ Item {
     }
 
     function pollWatchers() {
-        if (!watcherCutover || watchProc.running) return;
+        if (watchProc.running) return;
         watchProc.exec(["bash", "-lc",
             "d=" + shQuote(stateDir) + "; " +
             "locked=0; pgrep -x hyprlock >/dev/null 2>&1 && locked=1; " +
@@ -506,7 +486,6 @@ Item {
             preset: preset,
             urgent: urgent,
             banner: bannerText,
-            watcher_cutover: watcherCutover,
             locked: lockActive,
             recording: recordingActive,
             text: text,
@@ -601,7 +580,7 @@ Item {
     Timer {
         id: watcherTimer
         interval: 2000
-        running: root.watcherCutover
+        running: true
         repeat: true
         onTriggered: root.pollWatchers()
     }

@@ -14,7 +14,7 @@ PanelWindow {
     visible: ticker.contextVisible
     screen: screenModel
     anchors { left: true; bottom: true }
-    margins { left: 10; bottom: shellState.tickerCutover ? 38 : 8 }
+    margins { left: 10; bottom: 38 }
     implicitWidth: 620
     implicitHeight: 324
     color: "transparent"

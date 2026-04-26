@@ -25,7 +25,7 @@ ShellRoot {
     Services.LyricsService { id: lyricsServiceObj }
     Services.NotificationService {
         id: notificationServiceObj
-        ownerEnabled: shellStateObj.notificationOwner
+        ownerEnabled: true
     }
 
     IpcHandler {
@@ -42,12 +42,6 @@ ShellRoot {
         function status(): string {
             return JSON.stringify({
                 mode: shellStateObj.mode,
-                notificationOwner: shellStateObj.notificationOwner,
-                barCutover: shellStateObj.barCutover,
-                tickerCutover: shellStateObj.tickerCutover,
-                menuCutover: shellStateObj.menuCutover,
-                dockCutover: shellStateObj.dockCutover,
-                companionCutover: shellStateObj.companionCutover,
                 notificationsVisible: notificationServiceObj.centerVisible,
                 quickSettingsVisible: shellStateObj.quickSettingsVisible,
                 dnd: notificationServiceObj.dnd,
@@ -98,19 +92,11 @@ ShellRoot {
 
     property var primaryScreen: Quickshell.screens.find(s => s.name === shellStateObj.primaryMonitor) || Quickshell.screens[0]
 
-    // Pilot-mode gate: TopBar must NOT render concurrently with ironbar.
-    // Pre-cutover (barCutover === false) ironbar owns the DP-3 top + DP-2
-    // bottom bar slots; rendering Quickshell TopBar in addition produces
-    // visible double-stacked bars (verified via screenshot). Empty model
-    // = zero delegates, no surfaces. Flip QS_BAR_CUTOVER=1 via
-    // `hg shell bar-cutover` to swap ironbar out and TopBar in.
-    //
-    // Two Variants blocks at cutover: one for top-anchored bars on every
-    // screen, one for bottom-anchored bars on DP-2 (which ironbar pre-
-    // cutover ran at the bottom while DP-3's bar was at the top). Both
-    // gated by barCutover so pilot mode stays invisible.
+    // Top bar on every connected screen. DP-2 (right portrait) also gets
+    // a bottom-anchored bar so the workspace strip mirrors the layout
+    // ironbar/hyprshell ran before the Quickshell migration.
     Variants {
-        model: shellStateObj.barCutover ? Quickshell.screens : []
+        model: Quickshell.screens
         delegate: Component {
             Modules.TopBar {
                 primaryScreen: root.primaryScreen
@@ -124,11 +110,7 @@ ShellRoot {
     }
 
     Variants {
-        // DP-2 bottom anchor — picks just that screen out of the screens
-        // list when bar-cutover is active. Empty model in pilot.
-        model: shellStateObj.barCutover
-            ? Quickshell.screens.filter(s => s.name === "DP-2")
-            : []
+        model: Quickshell.screens.filter(s => s.name === "DP-2")
         delegate: Component {
             Modules.TopBar {
                 primaryScreen: root.primaryScreen

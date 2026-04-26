@@ -35,7 +35,7 @@ PanelWindow {
         right: true
     }
     implicitHeight: 30
-    exclusiveZone: shellState && shellState.barCutover ? 30 : 0
+    exclusiveZone: 30
     color: "transparent"
 
     // Filter workspaces by .monitor field so each TopBar instance only
