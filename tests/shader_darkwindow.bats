@@ -4,7 +4,8 @@
 load 'test_helper'
 
 setup() {
-    export BATS_TEST_TMPDIR="$(mktemp -d)"
+    BATS_TEST_TMPDIR="$(mktemp -d)"
+    export BATS_TEST_TMPDIR
     export TRANSPILER="${DOTFILES_DIR}/scripts/lib/shader-transpile-darkwindow.sh"
     export VALIDATOR="${DOTFILES_DIR}/scripts/validate-darkwindow-shaders.sh"
     export CONSISTENCY="${DOTFILES_DIR}/scripts/check-shader-consistency.sh"
@@ -22,6 +23,17 @@ transpile_and_validate() {
     local out="${BATS_TEST_TMPDIR}/out/${name}.glsl"
     bash "$TRANSPILER" "$src" "$out"
     bash "$VALIDATOR" "${BATS_TEST_TMPDIR}/out" --baseline 1 --out "${BATS_TEST_TMPDIR}/val"
+}
+
+build_consistency_fixture() {
+    local root="$1"
+    mkdir -p \
+        "${root}/scripts" \
+        "${root}/kitty/shaders/playlists" \
+        "${root}/kitty/shaders/darkwindow" \
+        "${root}/hyprland"
+    cp "$CONSISTENCY" "${root}/scripts/check-shader-consistency.sh"
+    chmod +x "${root}/scripts/check-shader-consistency.sh"
 }
 
 @test "transpiler produces valid output for a minimal shader" {
@@ -103,4 +115,22 @@ SHADER
     run bash "$CONSISTENCY"
     assert_success
     assert_output --partial "ok: all consistent"
+}
+
+@test "consistency checker fails equal-count playlist and registry swaps" {
+    local fixture="${BATS_TEST_TMPDIR}/fixture"
+    build_consistency_fixture "$fixture"
+
+    printf '%s\n' alpha.glsl beta.glsl > "${fixture}/kitty/shaders/playlists/ambient.txt"
+    printf '%s\n' 'shader[alpha]' 'shader[gamma]' > "${fixture}/hyprland/darkwindow-shaders.conf"
+    touch \
+        "${fixture}/kitty/shaders/darkwindow/alpha.glsl" \
+        "${fixture}/kitty/shaders/darkwindow/beta.glsl" \
+        "${fixture}/kitty/shaders/darkwindow/gamma.glsl"
+
+    run bash "${fixture}/scripts/check-shader-consistency.sh"
+    assert_failure
+    assert_output --partial "MISSING in registry: beta"
+    assert_output --partial "EXTRA in registry: gamma"
+    assert_output --partial "error: 2 consistency issue(s) found"
 }
