@@ -257,7 +257,6 @@ $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/menu-control.sh|$HOME/.local/bin/menu-control
 $DOTFILES_DIR/scripts/ticker-control.sh|$HOME/.local/bin/ticker-control
-$DOTFILES_DIR/scripts/ticker-bridge.py|$HOME/.local/bin/ticker-bridge
 $DOTFILES_DIR/scripts/notification-bridge.py|$HOME/.local/bin/notification-bridge
 $DOTFILES_DIR/scripts/shell-stack-mode.sh|$HOME/.local/bin/shell-stack-mode
 $DOTFILES_DIR/scripts/dev-console.sh|$HOME/.local/bin/dev-console
