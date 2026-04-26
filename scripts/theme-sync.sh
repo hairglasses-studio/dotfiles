@@ -10,6 +10,7 @@
 # Usage:
 #   theme-sync.sh                # render palette + apply runtime preferences
 #   theme-sync.sh --quiet        # silent operation
+#   theme-sync.sh --no-reload    # render + apply runtime preferences without post-hooks
 #   theme-sync.sh --no-wallpaper # skip optional wallpaper-derived accent extraction
 #   theme-sync.sh --wallpaper    # force wallpaper extraction via matugen
 
@@ -20,21 +21,23 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/hg-core.sh"
 
 QUIET=false
+NO_RELOAD=false
 USE_WALLPAPER=""   # unset: default mode; true/false: explicit
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --quiet)         QUIET=true ;;
+        --no-reload)     NO_RELOAD=true ;;
         --no-wallpaper)  USE_WALLPAPER=false ;;
         --wallpaper)     USE_WALLPAPER=true ;;
         *)
-            hg_die "Usage: theme-sync.sh [--quiet] [--wallpaper|--no-wallpaper]" ;;
+            hg_die "Usage: theme-sync.sh [--quiet] [--no-reload] [--wallpaper|--no-wallpaper]" ;;
     esac
     shift
 done
 
 # ── Step 1: render palette via palette-propagate.sh ───────────────
 propagate_args=()
-$QUIET && propagate_args+=(--no-reload)
+$NO_RELOAD && propagate_args+=(--no-reload)
 [[ "$USE_WALLPAPER" == true ]] && propagate_args+=(--wallpaper)
 
 if [[ -x "$SCRIPT_DIR/palette-propagate.sh" ]]; then
@@ -55,25 +58,30 @@ source "$PALETTE_FILE"
 
 # ── Step 3: runtime theme preferences (gsettings, Qt, Plasma) ─────
 apply_runtime_theme_preferences() {
-    local desktop_marker should_apply_plasma=false
+    local cursor_size cursor_theme desktop_marker icon_theme should_apply_plasma=false
 
     export QT_QPA_PLATFORMTHEME="${QT_QPA_PLATFORMTHEME:-qt6ct}"
     export QT_QUICK_CONTROLS_MATERIAL_THEME="${QT_QUICK_CONTROLS_MATERIAL_THEME:-Dark}"
     export QT_QUICK_CONTROLS_UNIVERSAL_THEME="${QT_QUICK_CONTROLS_UNIVERSAL_THEME:-Dark}"
     unset QT_STYLE_OVERRIDE || true
     desktop_marker="$(printf '%s:%s' "${XDG_CURRENT_DESKTOP:-}" "${DESKTOP_SESSION:-}" | tr '[:upper:]' '[:lower:]')"
+    icon_theme="${THEME_ICON_THEME:-Papirus-Dark}"
+    cursor_theme="${THEME_CURSOR_THEME:-Bibata-Modern-Classic}"
+    cursor_size="${THEME_CURSOR_SIZE:-24}"
 
     if command -v gsettings >/dev/null 2>&1; then
         gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3-dark" >/dev/null 2>&1 || true
-        gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark" >/dev/null 2>&1 || true
-        gsettings set org.gnome.desktop.interface cursor-theme "Bibata-Modern-Classic" >/dev/null 2>&1 || true
+        gsettings set org.gnome.desktop.interface icon-theme "${icon_theme}" >/dev/null 2>&1 || true
+        gsettings set org.gnome.desktop.interface cursor-theme "${cursor_theme}" >/dev/null 2>&1 || true
+        gsettings set org.gnome.desktop.interface cursor-size "${cursor_size}" >/dev/null 2>&1 || true
         gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" >/dev/null 2>&1 || true
     fi
 
     if command -v xfconf-query >/dev/null 2>&1; then
         xfconf-query -c xsettings -p /Net/ThemeName -n -t string -s "adw-gtk3-dark" >/dev/null 2>&1 || true
-        xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "Papirus-Dark" >/dev/null 2>&1 || true
-        xfconf-query -c xsettings -p /Gtk/CursorThemeName -n -t string -s "Bibata-Modern-Classic" >/dev/null 2>&1 || true
+        xfconf-query -c xsettings -p /Net/IconThemeName -n -t string -s "${icon_theme}" >/dev/null 2>&1 || true
+        xfconf-query -c xsettings -p /Gtk/CursorThemeName -n -t string -s "${cursor_theme}" >/dev/null 2>&1 || true
+        xfconf-query -c xsettings -p /Gtk/CursorThemeSize -n -t int -s "${cursor_size}" >/dev/null 2>&1 || true
     fi
 
     if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" \

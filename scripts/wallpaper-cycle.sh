@@ -32,7 +32,7 @@ _set_wallpaper() {
   echo "$img" > "$STATE_FILE"
 
   if [[ -x "$(dirname "$0")/theme-sync.sh" ]]; then
-    "$(dirname "$0")/theme-sync.sh" --quiet || true
+    "$(dirname "$0")/theme-sync.sh" --quiet --wallpaper || true
   fi
 
   if command -v tte &>/dev/null && [[ -t 1 ]]; then

@@ -61,14 +61,8 @@ _rice_status() {
   fi
 
   # Bar
-  if pgrep -x ironbar &>/dev/null; then
-    if pgrep -x quickshell &>/dev/null; then
-      printf " %s%-14s%s %sironbar + quickshell pilot%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
-    else
-      printf " %s%-14s%s %sironbar%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
-    fi
-  elif pgrep -x quickshell &>/dev/null; then
-    printf " %s%-14s%s %squickshell pilot%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_YELLOW" "$HG_RESET"
+  if pgrep -x quickshell &>/dev/null; then
+    printf " %s%-14s%s %squickshell%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_GREEN" "$HG_RESET"
   else
     printf " %s%-14s%s %snone%s\n" "$HG_DIM" "bar" "$HG_RESET" "$HG_RED" "$HG_RESET"
   fi
@@ -83,10 +77,7 @@ _rice_services() {
 
   local -a services=(
     "Hyprland:Hyprland"
-    "ironbar:ironbar"
     "quickshell:quickshell"
-    "hyprshell:hyprshell"
-    "hypr-dock:hypr-dock"
     "hyprdynamicmonitors:hyprdynamicmonitors"
     "autoname:hyprland-autoname-workspaces"
     "swaync:swaync"
@@ -110,9 +101,7 @@ _rice_palette() {
 
   local scan_dirs=(
     "$HG_DOTFILES/hyprland"
-    "$HG_DOTFILES/ironbar"
     "$HG_DOTFILES/quickshell"
-    "$HG_DOTFILES/hyprshell"
     "$HG_DOTFILES/swaync"
     "$HG_DOTFILES/wofi"
     "$HG_DOTFILES/wlogout"
@@ -199,20 +188,6 @@ _rice_restart_ui() {
   fi
 
   local components=(hyprdynamicmonitors autoname)
-  local menu_cutover=false dock_cutover=false
-  if declare -F shell_stack_menu_cutover >/dev/null 2>&1 && shell_stack_menu_cutover; then
-    menu_cutover=true
-  fi
-  if declare -F shell_stack_dock_cutover >/dev/null 2>&1 && shell_stack_dock_cutover; then
-    dock_cutover=true
-  fi
-
-  if ! $menu_cutover; then
-    components+=(hyprshell)
-  fi
-  if ! $dock_cutover; then
-    components+=(hypr-dock)
-  fi
 
   hg_info "Restarting UI companion services in parallel..."
   config_restart_parallel "${components[@]}"

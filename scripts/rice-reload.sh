@@ -16,7 +16,7 @@ reloaded=""
 failed=""
 
 if [[ -x "$SCRIPT_DIR/theme-sync.sh" ]]; then
-  if "$SCRIPT_DIR/theme-sync.sh" --quiet 2>/dev/null; then
+  if "$SCRIPT_DIR/theme-sync.sh" --quiet --no-reload 2>/dev/null; then
     reloaded="${reloaded} theme"
   else
     failed="${failed} theme"
