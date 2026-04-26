@@ -121,6 +121,14 @@ done
 # repo tree so both direct `--path` runs and installed ~/.config symlinks see it.
 _handle qt-colors.qml.template "$DOTFILES_DIR/quickshell/styles/Colors.qml" ""
 
+# Toolkit theming — libadwaita @define-color overrides for GTK3/4 apps and
+# qt5ct/qt6ct color scheme INI for Qt apps. The static gtk.css files in
+# ~/.config/gtk-{3,4}.0/ @import the colors.css rendered here.
+_handle gtk-libadwaita-overrides.css "$HOME/.config/gtk-4.0/colors.css" ''
+_handle gtk-libadwaita-overrides.css "$HOME/.config/gtk-3.0/colors.css" ''
+_handle qt-colorscheme.conf          "$HOME/.config/qt5ct/colors/hairglasses.conf" ''
+_handle qt-colorscheme.conf          "$HOME/.config/qt6ct/colors/hairglasses.conf" ''
+
 # Terminals + visual apps
 _handle kitty-colors.conf    "$HOME/.config/kitty/cyberpunk-neon.conf"                   'pkill -SIGUSR1 kitty || true'
 _handle hyprland-colors.conf "$HOME/.config/hypr/colors.conf"                             ''

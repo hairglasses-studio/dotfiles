@@ -243,7 +243,9 @@ $DOTFILES_DIR/topgrade/topgrade.toml|$HOME/.config/topgrade.toml
 $DOTFILES_DIR/wlogout/layout|$HOME/.config/wlogout/layout
 $DOTFILES_DIR/wlogout/style.css|$HOME/.config/wlogout/style.css
 $DOTFILES_DIR/gtk/settings.ini|$HOME/.config/gtk-3.0/settings.ini
+$DOTFILES_DIR/gtk/gtk.css|$HOME/.config/gtk-3.0/gtk.css
 $DOTFILES_DIR/gtk-4.0/settings.ini|$HOME/.config/gtk-4.0/settings.ini
+$DOTFILES_DIR/gtk-4.0/gtk.css|$HOME/.config/gtk-4.0/gtk.css
 $DOTFILES_DIR/xdg-desktop-portal/portals.conf|$HOME/.config/xdg-desktop-portal/portals.conf
 $DOTFILES_DIR/tattoy/tattoy.toml|${XDG_CONFIG_HOME:-$HOME/.config}/tattoy/tattoy.toml
 $DOTFILES_DIR/scripts/kitty-shader-playlist.sh|$HOME/.local/bin/kitty-shader-playlist
