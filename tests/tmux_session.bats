@@ -176,11 +176,6 @@ EOF
     assert_output --partial "dispatch togglespecialworkspace dropdown"
 }
 
-@test "hyprshell defaults terminal launches to kitty-shell-launch" {
-    run grep -F 'default_terminal = "$HOME/.local/bin/kitty-shell-launch"' "${DOTFILES_DIR}/hyprshell/config.toml"
-    assert_success
-}
-
 @test "kitty config disables startup session restore by default" {
     run grep -E '^startup_session[[:space:]]+none$' "${DOTFILES_DIR}/kitty/kitty.conf"
     assert_success

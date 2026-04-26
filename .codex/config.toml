@@ -10,6 +10,7 @@ sandbox_mode = "workspace-write"
 # Discovery-first dotfiles MCP profile for fleet and rice inspection.
 [mcp_servers.dotfiles_review]
 command = "./scripts/run-dotfiles-mcp.sh"
+cwd = "."
 enabled_tools = [
   "dotfiles_tool_search",
   "dotfiles_tool_schema",
@@ -24,6 +25,7 @@ enabled_tools = [
 # Broader dotfiles MCP profile for repo operations and desktop reload workflows.
 [mcp_servers.dotfiles_workspace]
 command = "./scripts/run-dotfiles-mcp.sh"
+cwd = "."
 enabled_tools = [
   "dotfiles_tool_search",
   "dotfiles_tool_schema",
@@ -43,6 +45,7 @@ enabled_tools = [
 # Desktop-first dotfiles MCP profile for Hyprland, OCR, input control, and the kitty terminal visual pipeline.
 [mcp_servers.dotfiles_desktop]
 command = "./scripts/run-dotfiles-mcp.sh"
+cwd = "."
 enabled_tools = [
   "dotfiles_tool_search",
   "dotfiles_tool_schema",

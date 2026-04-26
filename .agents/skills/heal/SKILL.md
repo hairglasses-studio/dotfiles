@@ -16,9 +16,6 @@ allowed-tools:
   - mcp__dotfiles__keybinds_refresh_ticker
   - mcp__dotfiles__systemd_restart
   - mcp__dotfiles__systemd_restart_verify
-  # systemd_reset_failed isn't a remediation registry target — kept as a
-  # human-approved escape hatch when the model wants to clear a failed
-  # unit before another restart attempt.
   - mcp__dotfiles__systemd_reset_failed
   - mcp__dotfiles__dotfiles_reload_service
   - mcp__dotfiles__dotfiles_mcpkit_version_sync
@@ -31,6 +28,10 @@ allowed-tools:
 # /heal
 
 Triage pending remediations from the event bus and apply the approved ones.
+
+`systemd_reset_failed` is not a remediation registry target; it is kept as a
+human-approved escape hatch when a failed unit needs clearing before another
+restart attempt.
 
 ## The flow
 

@@ -49,6 +49,8 @@ id_ed25519*
 **/.beatport-state.json
 
 # AI tool configs (local-only)
+AGENTS.override.md
+CLAUDE.local.md
 .codex/
 .gemini/*
 !.gemini/settings.json

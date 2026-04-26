@@ -15,7 +15,7 @@ and legacy-format conversion used across all mapping tools.
 
 ### Prerequisites
 
-- **Go 1.26.1** or later
+- **Go 1.26.2** or later
 - **git**
 
 ### Clone and Build

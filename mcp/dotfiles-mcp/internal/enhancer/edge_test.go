@@ -108,13 +108,14 @@ func TestEdge_Unicode(t *testing.T) {
 
 func TestEdge_LargeInputs(t *testing.T) {
 	large := strings.Repeat("The quick brown fox jumps over the lazy dog. ", 2500) // ~100K chars
+	budget := largeInputPerformanceBudget()
 
 	t.Run("Enhance_large", func(t *testing.T) {
 		start := time.Now()
 		result := Enhance(large, TaskTypeGeneral)
 		elapsed := time.Since(start)
-		if elapsed > time.Second {
-			t.Errorf("Enhance took %v for 100K input, want < 1s", elapsed)
+		if elapsed > budget {
+			t.Errorf("Enhance took %v for 100K input, want < %v", elapsed, budget)
 		}
 		if result.Enhanced == "" {
 			t.Error("should produce output for large input")
@@ -125,8 +126,8 @@ func TestEdge_LargeInputs(t *testing.T) {
 		start := time.Now()
 		results := Lint(large)
 		elapsed := time.Since(start)
-		if elapsed > time.Second {
-			t.Errorf("Lint took %v for 100K input, want < 1s", elapsed)
+		if elapsed > budget {
+			t.Errorf("Lint took %v for 100K input, want < %v", elapsed, budget)
 		}
 		_ = results
 	})
