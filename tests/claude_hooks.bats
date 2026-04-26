@@ -5,6 +5,7 @@
 #   - scripts/claude-verify-track.sh     (PreToolUse instrumentation)
 #   - scripts/claude-session-ledger.sh   (Stop write + SessionStart read)
 #   - scripts/claude-marathon-sync.sh    (PostToolUse roadmap sync)
+#   - scripts/claude-phase-gate.sh       (dev-loop phase enforcement)
 #
 # Each hook reads JSON from stdin and writes JSON to stdout. Tests feed
 # synthetic tool-call envelopes and assert the output shape.
@@ -21,6 +22,7 @@ setup() {
     export VERIFY_TRACK="$DOTFILES_DIR/scripts/claude-verify-track.sh"
     export LEDGER="$DOTFILES_DIR/scripts/claude-session-ledger.sh"
     export MARATHON_SYNC="$DOTFILES_DIR/scripts/claude-marathon-sync.sh"
+    export PHASE_GATE="$DOTFILES_DIR/scripts/claude-phase-gate.sh"
 }
 
 teardown() {
@@ -269,4 +271,87 @@ EOF
     [ "$status" -eq 0 ]
     [[ "$output" == *"ticker:Phase 3"* ]]
     grep -qF "\`ticker\`: Phase 3" ROADMAP.md
+}
+
+# --- claude-phase-gate.sh ---
+
+@test "phase-gate: non dev-loop prompt stays silent" {
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"check status\",\"session_id\":\"p0\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "phase-gate: dev-loop start blocks writes until approval" {
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"/dev-loop\",\"session_id\":\"p1\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"phase gate active"* ]]
+
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"},\"session_id\":\"p1\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"\"decision\":\"block\""* ]]
+    [[ "$output" == *"plan is approved"* ]]
+}
+
+@test "phase-gate: approval unlocks writes but ship waits for verify" {
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"/dev-loop\",\"session_id\":\"p2\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"approve dev-loop plan\",\"session_id\":\"p2\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"approved"* ]]
+
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"},\"session_id\":\"p2\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git commit -m test\"},\"session_id\":\"p2\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"\"decision\":\"block\""* ]]
+    [[ "$output" == *"verification"* ]]
+}
+
+@test "phase-gate: ship command waits for verify even before writes" {
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"/dev-loop\",\"session_id\":\"p2b\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"approve dev-loop plan\",\"session_id\":\"p2b\"}' | $PHASE_GATE"
+
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"gh pr create --fill\"},\"session_id\":\"p2b\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"\"decision\":\"block\""* ]]
+    [[ "$output" == *"verification"* ]]
+}
+
+@test "phase-gate: successful verify unlocks ship command" {
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"/dev-loop\",\"session_id\":\"p3\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"approve dev-loop plan\",\"session_id\":\"p3\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"},\"session_id\":\"p3\"}' | $PHASE_GATE"
+
+    run bash -c "echo '{\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"make test\"},\"tool_response\":{\"success\":true},\"session_id\":\"p3\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"verification recorded"* ]]
+
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git commit -m test\"},\"session_id\":\"p3\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "phase-gate: writes after verify require another verify" {
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"/dev-loop\",\"session_id\":\"p4\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"approve dev-loop plan\",\"session_id\":\"p4\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"},\"session_id\":\"p4\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"make test\"},\"tool_response\":{\"success\":true},\"session_id\":\"p4\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"},\"session_id\":\"p4\"}' | $PHASE_GATE"
+
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"gh pr create --fill\"},\"session_id\":\"p4\"}' | $PHASE_GATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"\"decision\":\"block\""* ]]
+}
+
+@test "phase-gate: stop blocks implementation with unverified writes" {
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"/dev-loop\",\"session_id\":\"p5\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"approve dev-loop plan\",\"session_id\":\"p5\"}' | $PHASE_GATE"
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/foo.go\"},\"session_id\":\"p5\"}' | $PHASE_GATE"
+
+    run bash -c "echo '{\"hook_event_name\":\"Stop\",\"session_id\":\"p5\"}' | $PHASE_GATE"
+    [ "$status" -eq 2 ]
+    [[ "$output" == *"\"decision\":\"block\""* ]]
 }

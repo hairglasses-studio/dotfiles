@@ -1,5 +1,28 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$repo/scripts/claude-phase-gate.sh\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$repo/scripts/claude-phase-gate.sh\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "(^Bash$|(^|__)marathon_advance$)",
@@ -7,6 +30,27 @@
           {
             "type": "command",
             "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$repo/scripts/claude-marathon-sync.sh\"",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$repo/scripts/claude-phase-gate.sh\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$repo/scripts/claude-phase-gate.sh\"",
             "timeout": 5000
           }
         ]
