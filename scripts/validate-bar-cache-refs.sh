@@ -7,7 +7,7 @@ set -euo pipefail
 # Bar/ticker cache files follow a three-layer convention:
 #   - writer: scripts/bar-<name>-cache.sh (optionally scheduled by
 #     systemd/bar-<name>.{service,timer})
-#   - consumer: ironbar/config.toml (widget label) OR
+#   - consumer: quickshell/services/BarData.qml (TopBar badge) OR
 #     ticker/streams.toml cache entry OR
 #     scripts/lib/ticker_streams/<name>.py plugin
 #

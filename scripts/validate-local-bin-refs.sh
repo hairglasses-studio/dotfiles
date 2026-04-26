@@ -6,9 +6,9 @@ set -euo pipefail
 # destination install.sh --print-link-specs declares.
 #
 # Catches the case where install.sh removes (or renames) a symlink but
-# a hyprland/pypr/ironbar config still invokes the old name — the
-# keybind/widget silently no-ops (or launches a literal "command not
-# found" shell error on hyprctl dispatch).
+# a hyprland/pypr config still invokes the old name — the keybind silently
+# no-ops (or launches a literal "command not found" shell error on
+# hyprctl dispatch).
 #
 # Exit 0 on clean, 1 if any reference points outside the install.sh
 # destination set.
@@ -25,7 +25,6 @@ from pathlib import Path
 configs = [
     "hyprland/hyprland.conf",
     "pypr/config.toml",
-    "ironbar/config.toml",
 ]
 ref_pat = re.compile(r"\$HOME/\.local/bin/([a-zA-Z0-9._-]+)")
 
