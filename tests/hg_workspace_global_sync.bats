@@ -93,6 +93,67 @@ EOF
     chmod +x "${TEST_STUDIO_ROOT}/codexkit/scripts/skill-surface-sync.sh"
 }
 
+@test "hg-workspace-global-sync skips retired shared root MCP entries and anchors relative Codex commands" {
+    write_manifest
+    make_fake_antigravity_sync
+
+    mkdir -p "${TEST_REPO_PATH}/.codex"
+
+    cat > "${TEST_STUDIO_ROOT}/.mcp.json" <<'EOF'
+{
+  "mcpServers": {}
+}
+EOF
+
+    cat > "${TEST_REPO_PATH}/.mcp.json" <<'EOF'
+{
+  "mcpServers": {
+    "demo": {
+      "command": "./scripts/run-demo-mcp.sh"
+    }
+  }
+}
+EOF
+
+    cat > "${TEST_REPO_PATH}/.codex/mcp-profile-policy.json" <<'EOF'
+{
+  "version": 1,
+  "profiles": [
+    {
+      "name": "demo_desktop",
+      "from": "demo",
+      "mode": "desktop",
+      "global_name": "demo",
+      "global_codex": true,
+      "enabled_tools": ["demo_status"]
+    }
+  ]
+}
+EOF
+
+    run env \
+        HOME="${TEST_HOME}" \
+        HG_STUDIO_ROOT="${TEST_STUDIO_ROOT}" \
+        HG_WORKSPACE_HOME="${TEST_HOME}" \
+        HG_WORKSPACE_OWNER="tester" \
+        HG_ANTIGRAVITY_SYNC_SCRIPT="${TEST_ANTIGRAVITY_SYNC}" \
+        bash "${SCRIPTS_DIR}/hg-workspace-global-sync.sh" --root "${TEST_STUDIO_ROOT}" --tools-only
+    assert_success
+    assert_output --partial "Skipping shared root MCP server absent"
+
+    run grep -F "[mcp_servers.studio_demo]" "${TEST_HOME}/.codex/config.toml"
+    assert_success
+
+    run grep -F 'command = "./scripts/run-demo-mcp.sh"' "${TEST_HOME}/.codex/config.toml"
+    assert_success
+
+    run grep -F "cwd = \"${TEST_REPO_PATH}\"" "${TEST_HOME}/.codex/config.toml"
+    assert_success
+
+    run grep -F "[mcp_servers.studio_systemd]" "${TEST_HOME}/.codex/config.toml"
+    assert_failure
+}
+
 @test "hg-workspace-global-sync refreshes home context before antigravity metadata check" {
     write_manifest
     make_fake_antigravity_sync
