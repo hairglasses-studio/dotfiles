@@ -1,54 +1,49 @@
 #!/usr/bin/env bash
-# shell-stack-mode.sh — staged shell migration service switcher.
+# shell-stack-mode.sh — Quickshell-only stack switcher.
 #
-# Defaults to dry-run. Pass --apply to change systemd/state.
+# After the 2026-04 staged migration, the legacy ironbar/keybind-ticker/
+# hyprshell/hypr-dock stack is retired. Only two end-states remain:
+#
+#   full-cutover  — Quickshell owns every surface (the default).
+#   rollback      — Stop Quickshell. The legacy stack is not auto-restarted
+#                   here; if a user genuinely needs to roll back to it they
+#                   should re-enable the units manually (`systemctl --user
+#                   enable --now ironbar.service` etc.) and revert the
+#                   relevant install.sh commit. Kept as an escape hatch
+#                   while the legacy repo content is still in tree.
+#
+# `--apply` is accepted as a no-op for backwards compatibility with
+# pre-2026-04-26 callers; everything is apply-by-default now.
 
 set -euo pipefail
 
-APPLY=false
 MODE="status"
 JSON_MODE=false
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/shell-stack"
 MODE_FILE="$STATE_DIR/mode"
 ENV_FILE="$STATE_DIR/env"
-COMPANION_UNITS=(
-  dotfiles-window-label.service
-  dotfiles-fleet-sparkline.service
-  dotfiles-lyrics-ticker.service
-)
-TICKER_WATCHER_UNITS=(
-  dotfiles-ticker-lockwatch.service
-  dotfiles-ticker-recordwatch.service
-)
 
 usage() {
   cat <<'EOF'
-Usage: shell-stack-mode.sh [--apply] [--json] <status|pilot|bar-cutover|ticker-cutover|menu-cutover|dock-cutover|companion-cutover|notification-cutover|full-pilot|full-cutover|rollback>
+Usage: shell-stack-mode.sh [--apply] [--json] <status|full-cutover|rollback>
 
 Modes:
-  status          Show current shell service state.
-  pilot           Start Quickshell; keep ironbar, ticker, hyprshell, swaync, and companions live.
-  bar-cutover     Start Quickshell; stop ironbar; keep ticker, hyprshell, swaync, and companions live.
-  ticker-cutover  Start Quickshell; stop keybind ticker and ticker watcher services; keep ironbar, hyprshell, swaync, and companions live.
-  menu-cutover    Start Quickshell menus; stop hyprshell launcher/switcher.
-  dock-cutover    Start Quickshell dock; stop hypr-dock.
-  companion-cutover
-                  Start Quickshell companion overlays; keep ironbar, ticker, hyprshell, and swaync live.
-  notification-cutover
-                  Start Quickshell notification owner/history; stop swaync and the dbus-monitor history listener; keep companions live.
-  full-pilot      Start Quickshell; stop ironbar, keybind ticker, hyprshell, dock, and companion overlays; keep swaync live.
-  full-cutover    Start Quickshell as bar, ticker, menu, dock, notification/history, and companion overlay owner.
-  rollback        Stop Quickshell; start ironbar, keybind ticker, hyprshell, dock, swaync, and companion overlays.
+  status        Show current shell service state.
+  full-cutover  Start Quickshell as the sole owner of bar, ticker, menus,
+                dock, notifications, and companion overlays. The default
+                end-state on a fresh install.
+  rollback     Stop Quickshell. Re-enable legacy units manually if needed
+                (see comment at top of script). Kept while the legacy repo
+                content is still in tree.
 
-Without --apply, prints the commands it would run.
---json is supported for status output.
+--json applies to status output. --apply is accepted as a no-op (apply is
+the default).
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --apply)
-      APPLY=true
       shift
       ;;
     --json)
@@ -59,7 +54,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    status|pilot|bar-cutover|ticker-cutover|menu-cutover|dock-cutover|companion-cutover|notification-cutover|full-pilot|full-cutover|rollback)
+    status|full-cutover|rollback)
       MODE="$1"
       shift
       ;;
@@ -72,17 +67,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 run_cmd() {
-  if $APPLY; then
-    printf '+ %s\n' "$*"
-    "$@"
-  else
-    printf '[dry] %q' "$1"
-    shift
-    for arg in "$@"; do
-      printf ' %q' "$arg"
-    done
-    printf '\n'
-  fi
+  printf '+ %s\n' "$*"
+  "$@"
 }
 
 mode_or_default() {
@@ -94,64 +80,19 @@ mode_or_default() {
       return
     }
   fi
-  printf 'pilot\n'
-}
-
-mode_flag() {
-  local mode="$1" flag="$2"
-  case "$flag" in
-    bar)
-      [[ "$mode" == "bar-cutover" || "$mode" == "full-pilot" || "$mode" == "full-cutover" ]]
-      ;;
-    ticker)
-      [[ "$mode" == "ticker-cutover" || "$mode" == "full-pilot" || "$mode" == "full-cutover" ]]
-      ;;
-    menus)
-      [[ "$mode" == "menu-cutover" || "$mode" == "full-pilot" || "$mode" == "full-cutover" ]]
-      ;;
-    dock)
-      [[ "$mode" == "dock-cutover" || "$mode" == "full-pilot" || "$mode" == "full-cutover" ]]
-      ;;
-    notifications)
-      [[ "$mode" == "notification-cutover" || "$mode" == "full-cutover" ]]
-      ;;
-    companions)
-      [[ "$mode" == "companion-cutover" || "$mode" == "full-pilot" || "$mode" == "full-cutover" ]]
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+  printf 'full-cutover\n'
 }
 
 persist_mode() {
   local mode="$1"
-  local bar=0 ticker=0 menus=0 dock=0 notifications=0 companions=0
-  mode_flag "$mode" bar && bar=1
-  mode_flag "$mode" ticker && ticker=1
-  mode_flag "$mode" menus && menus=1
-  mode_flag "$mode" dock && dock=1
-  mode_flag "$mode" notifications && notifications=1
-  mode_flag "$mode" companions && companions=1
-
-  if $APPLY; then
-    mkdir -p "$STATE_DIR"
-    printf '%s\n' "$mode" > "$MODE_FILE"
-    {
-      printf 'SHELL_STACK_MODE=%q\n' "$mode"
-      printf 'QS_BAR_CUTOVER=%s\n' "$bar"
-      printf 'QS_TICKER_CUTOVER=%s\n' "$ticker"
-      printf 'QS_MENU_CUTOVER=%s\n' "$menus"
-      printf 'QS_DOCK_CUTOVER=%s\n' "$dock"
-      printf 'QS_COMPANION_CUTOVER=%s\n' "$companions"
-      printf 'QUICKSHELL_NOTIFICATION_OWNER=%s\n' "$notifications"
-      if [[ -n "${QS_PRIMARY_MONITOR:-}" ]]; then
-        printf 'QS_PRIMARY_MONITOR=%q\n' "$QS_PRIMARY_MONITOR"
-      fi
-    } > "$ENV_FILE"
-  else
-    printf '[dry] write %q and %q for mode %q\n' "$MODE_FILE" "$ENV_FILE" "$mode"
-  fi
+  mkdir -p "$STATE_DIR"
+  printf '%s\n' "$mode" > "$MODE_FILE"
+  {
+    printf 'SHELL_STACK_MODE=%q\n' "$mode"
+    if [[ -n "${QS_PRIMARY_MONITOR:-}" ]]; then
+      printf 'QS_PRIMARY_MONITOR=%q\n' "$QS_PRIMARY_MONITOR"
+    fi
+  } > "$ENV_FILE"
 }
 
 service_state() {
@@ -175,17 +116,13 @@ json_escape() {
   printf '%s' "$value"
 }
 
+# Status output still surfaces the legacy units so a user can see whether
+# any of them are unexpectedly running. The list shrinks as PRs 2/3 prune
+# the unit files themselves; for now it tracks what install.sh ships.
 service_units() {
   printf '%s\n' \
     dotfiles-quickshell.service \
-    ironbar.service \
-    dotfiles-keybind-ticker.service \
-    "${TICKER_WATCHER_UNITS[@]}" \
-    dotfiles-hyprshell.service \
-    dotfiles-hypr-dock.service \
-    "${COMPANION_UNITS[@]}" \
-    swaync.service \
-    dotfiles-notification-history.service
+    swaync.service
 }
 
 print_status() {
@@ -201,12 +138,8 @@ print_status_json() {
   local unit state first=true
   local saved_mode
   saved_mode="$(mode_or_default)"
-  printf '{"mode":"status","shell_mode":"%s","notification_owner":%s,"menu_owner":%s,"dock_owner":%s,"companion_owner":%s,"services":[' \
-    "$(json_escape "$saved_mode")" \
-    "$(mode_flag "$saved_mode" notifications && printf true || printf false)" \
-    "$(mode_flag "$saved_mode" menus && printf true || printf false)" \
-    "$(mode_flag "$saved_mode" dock && printf true || printf false)" \
-    "$(mode_flag "$saved_mode" companions && printf true || printf false)"
+  printf '{"mode":"status","shell_mode":"%s","services":[' \
+    "$(json_escape "$saved_mode")"
   while IFS= read -r unit; do
     state="$(service_state "$unit")"
     if $first; then
@@ -223,54 +156,6 @@ start_unit() { run_cmd systemctl --user start "$1"; }
 restart_unit() { run_cmd systemctl --user restart "$1"; }
 stop_unit() { run_cmd systemctl --user stop "$1"; }
 
-start_swaync() {
-  if systemctl --user list-unit-files swaync.service >/dev/null 2>&1; then
-    start_unit swaync.service
-  else
-    run_cmd bash -lc 'pgrep -x swaync >/dev/null || nohup swaync >/tmp/swaync.log 2>&1 &'
-  fi
-}
-
-stop_swaync() {
-  if ! $APPLY; then
-    stop_unit swaync.service
-    return
-  fi
-  if systemctl --user list-unit-files swaync.service >/dev/null 2>&1; then
-    stop_unit swaync.service
-  else
-    run_cmd pkill -x swaync
-  fi
-}
-
-start_companion_units() {
-  local unit
-  for unit in "${COMPANION_UNITS[@]}"; do
-    start_unit "$unit"
-  done
-}
-
-stop_companion_units() {
-  local unit
-  for unit in "${COMPANION_UNITS[@]}"; do
-    stop_unit "$unit"
-  done
-}
-
-start_ticker_watchers() {
-  local unit
-  for unit in "${TICKER_WATCHER_UNITS[@]}"; do
-    start_unit "$unit"
-  done
-}
-
-stop_ticker_watchers() {
-  local unit
-  for unit in "${TICKER_WATCHER_UNITS[@]}"; do
-    stop_unit "$unit"
-  done
-}
-
 case "$MODE" in
   status)
     if $JSON_MODE; then
@@ -279,124 +164,12 @@ case "$MODE" in
       print_status
     fi
     ;;
-  pilot)
-    persist_mode "$MODE"
-    restart_unit dotfiles-quickshell.service
-    start_unit ironbar.service
-    start_unit dotfiles-keybind-ticker.service
-    start_ticker_watchers
-    start_unit dotfiles-hyprshell.service
-    start_unit dotfiles-hypr-dock.service
-    start_companion_units
-    start_swaync
-    start_unit dotfiles-notification-history.service
-    ;;
-  bar-cutover)
-    persist_mode "$MODE"
-    restart_unit dotfiles-quickshell.service
-    stop_unit ironbar.service
-    start_unit dotfiles-keybind-ticker.service
-    start_ticker_watchers
-    start_unit dotfiles-hyprshell.service
-    start_unit dotfiles-hypr-dock.service
-    start_companion_units
-    start_swaync
-    start_unit dotfiles-notification-history.service
-    ;;
-  ticker-cutover)
-    persist_mode "$MODE"
-    restart_unit dotfiles-quickshell.service
-    start_unit ironbar.service
-    stop_unit dotfiles-keybind-ticker.service
-    stop_ticker_watchers
-    start_unit dotfiles-hyprshell.service
-    start_unit dotfiles-hypr-dock.service
-    start_companion_units
-    start_swaync
-    start_unit dotfiles-notification-history.service
-    ;;
-  menu-cutover)
-    persist_mode "$MODE"
-    restart_unit dotfiles-quickshell.service
-    start_unit ironbar.service
-    start_unit dotfiles-keybind-ticker.service
-    start_ticker_watchers
-    stop_unit dotfiles-hyprshell.service
-    start_unit dotfiles-hypr-dock.service
-    start_companion_units
-    start_swaync
-    start_unit dotfiles-notification-history.service
-    ;;
-  dock-cutover)
-    persist_mode "$MODE"
-    restart_unit dotfiles-quickshell.service
-    start_unit ironbar.service
-    start_unit dotfiles-keybind-ticker.service
-    start_ticker_watchers
-    start_unit dotfiles-hyprshell.service
-    stop_unit dotfiles-hypr-dock.service
-    start_companion_units
-    start_swaync
-    start_unit dotfiles-notification-history.service
-    ;;
-  companion-cutover)
-    persist_mode "$MODE"
-    restart_unit dotfiles-quickshell.service
-    start_unit ironbar.service
-    start_unit dotfiles-keybind-ticker.service
-    start_ticker_watchers
-    start_unit dotfiles-hyprshell.service
-    start_unit dotfiles-hypr-dock.service
-    stop_companion_units
-    start_swaync
-    start_unit dotfiles-notification-history.service
-    ;;
-  notification-cutover)
-    persist_mode "$MODE"
-    stop_swaync
-    restart_unit dotfiles-quickshell.service
-    start_unit ironbar.service
-    start_unit dotfiles-keybind-ticker.service
-    start_ticker_watchers
-    start_unit dotfiles-hyprshell.service
-    start_unit dotfiles-hypr-dock.service
-    start_companion_units
-    stop_unit dotfiles-notification-history.service
-    ;;
-  full-pilot)
-    persist_mode "$MODE"
-    restart_unit dotfiles-quickshell.service
-    stop_unit ironbar.service
-    stop_unit dotfiles-keybind-ticker.service
-    stop_ticker_watchers
-    stop_unit dotfiles-hyprshell.service
-    stop_unit dotfiles-hypr-dock.service
-    stop_companion_units
-    start_swaync
-    start_unit dotfiles-notification-history.service
-    ;;
   full-cutover)
     persist_mode "$MODE"
-    stop_swaync
     restart_unit dotfiles-quickshell.service
-    stop_unit ironbar.service
-    stop_unit dotfiles-keybind-ticker.service
-    stop_ticker_watchers
-    stop_unit dotfiles-hyprshell.service
-    stop_unit dotfiles-hypr-dock.service
-    stop_companion_units
-    stop_unit dotfiles-notification-history.service
     ;;
   rollback)
     persist_mode "$MODE"
     stop_unit dotfiles-quickshell.service
-    start_unit ironbar.service
-    start_unit dotfiles-keybind-ticker.service
-    start_ticker_watchers
-    start_unit dotfiles-hyprshell.service
-    start_unit dotfiles-hypr-dock.service
-    start_companion_units
-    start_swaync
-    start_unit dotfiles-notification-history.service
     ;;
 esac
