@@ -21,6 +21,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Read|Write|Edit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$repo/scripts/claude-skill-activate.sh\"",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "PostToolUse": [

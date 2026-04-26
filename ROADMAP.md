@@ -192,7 +192,7 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 
 ### Tier 3 — Low Priority / Exploratory
 
-- [ ] [P3][M] Skill auto-activation hook — PreToolUse detects project context (Go files, MCP config, shader GLSL) and injects relevant skill automatically without manual slash command. Ref: diet103 showcase, obra/superpowers
+- [x] [P3][M] Skill auto-activation hook — `scripts/claude-skill-activate.sh` now runs from project PreToolUse, detects Go/MCP/shader contexts from file paths and Bash commands, and injects one-shot session guidance for `go-conventions`/`mcpkit-go`, `.agents/skills/hg_mcp/SKILL.md`, and `.agents/skills/shader_forge/SKILL.md` without manual slash commands. Ref: diet103 showcase, obra/superpowers
 
 ## Gap Research: New Skills (2026-04-16)
 

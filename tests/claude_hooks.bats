@@ -6,6 +6,7 @@
 #   - scripts/claude-session-ledger.sh   (Stop write + SessionStart read)
 #   - scripts/claude-marathon-sync.sh    (PostToolUse roadmap sync)
 #   - scripts/claude-phase-gate.sh       (dev-loop phase enforcement)
+#   - scripts/claude-skill-activate.sh   (contextual skill injection)
 #
 # Each hook reads JSON from stdin and writes JSON to stdout. Tests feed
 # synthetic tool-call envelopes and assert the output shape.
@@ -23,6 +24,7 @@ setup() {
     export LEDGER="$DOTFILES_DIR/scripts/claude-session-ledger.sh"
     export MARATHON_SYNC="$DOTFILES_DIR/scripts/claude-marathon-sync.sh"
     export PHASE_GATE="$DOTFILES_DIR/scripts/claude-phase-gate.sh"
+    export SKILL_ACTIVATE="$DOTFILES_DIR/scripts/claude-skill-activate.sh"
 }
 
 teardown() {
@@ -354,4 +356,47 @@ EOF
     run bash -c "echo '{\"hook_event_name\":\"Stop\",\"session_id\":\"p5\"}' | $PHASE_GATE"
     [ "$status" -eq 2 ]
     [[ "$output" == *"\"decision\":\"block\""* ]]
+}
+
+# --- claude-skill-activate.sh ---
+
+@test "skill-activate: unrelated read stays silent" {
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"/tmp/README.md\"},\"session_id\":\"s0\"}' | $SKILL_ACTIVATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "skill-activate: Go file injects go guidance once per session" {
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"/tmp/module.go\"},\"session_id\":\"s1\"}' | $SKILL_ACTIVATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Skill auto-activation"* ]]
+    [[ "$output" == *"go-conventions"* ]]
+    [[ "$output" == *"mcpkit-go"* ]]
+
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"/tmp/other.go\"},\"session_id\":\"s1\"}' | $SKILL_ACTIVATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "skill-activate: MCP config injects MCP guidance" {
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"/repo/.mcp.json\"},\"session_id\":\"s2\"}' | $SKILL_ACTIVATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Skill auto-activation"* ]]
+    [[ "$output" == *"hg_mcp"* ]]
+    [[ "$output" == *"contract snapshots"* ]]
+}
+
+@test "skill-activate: shader path injects shader guidance" {
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/repo/kitty/shaders/darkwindow/hg-demo.glsl\"},\"session_id\":\"s3\"}' | $SKILL_ACTIVATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Skill auto-activation"* ]]
+    [[ "$output" == *"shader_forge"* ]]
+    [[ "$output" == *"check-shader-consistency"* ]]
+}
+
+@test "skill-activate: Bash shader command is detected" {
+    run bash -c "echo '{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"glslangValidator -S frag kitty/shaders/darkwindow/hg-demo.glsl\"},\"session_id\":\"s4\"}' | $SKILL_ACTIVATE"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Skill auto-activation"* ]]
+    [[ "$output" == *"Shader context"* ]]
 }
