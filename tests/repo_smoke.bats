@@ -20,7 +20,7 @@ teardown() {
     run bash "${DOTFILES_DIR}/install.sh" --print-link-specs
     assert_success
     assert_output --partial "${DOTFILES_DIR}/kitty|${HOME}/.config/kitty"
-    assert_output --partial "${DOTFILES_DIR}/ironbar|${HOME}/.config/ironbar"
+    assert_output --partial "${DOTFILES_DIR}/quickshell|${HOME}/.config/quickshell"
     assert_output --partial "${DOTFILES_DIR}/scripts/kitty-shell-launch.sh|${HOME}/.local/bin/kitty-shell-launch"
     assert_output --partial "${DOTFILES_DIR}/scripts/app-launcher.sh|${HOME}/.local/bin/app-launcher"
     assert_output --partial "${DOTFILES_DIR}/scripts/app-switcher.sh|${HOME}/.local/bin/app-switcher"

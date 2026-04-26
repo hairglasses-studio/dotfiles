@@ -222,10 +222,6 @@ print_linux_link_specs() {
 $DOTFILES_DIR/swaync/config.json|$HOME/.config/swaync/config.json
 $DOTFILES_DIR/swaync/style.css|$HOME/.config/swaync/style.css
 $DOTFILES_DIR/quickshell|$HOME/.config/quickshell
-$DOTFILES_DIR/ironbar|$HOME/.config/ironbar
-$DOTFILES_DIR/hyprshell/config.toml|$HOME/.config/hyprshell/config.toml
-$DOTFILES_DIR/hyprshell/styles.css|$HOME/.config/hyprshell/styles.css
-$DOTFILES_DIR/hypr-dock|$HOME/.config/hypr-dock
 $DOTFILES_DIR/hyprdynamicmonitors|$HOME/.config/hyprdynamicmonitors
 $DOTFILES_DIR/hyprland-autoname-workspaces|$HOME/.config/hyprland-autoname-workspaces
 $DOTFILES_DIR/wofi/config|$HOME/.config/wofi/config
@@ -259,7 +255,6 @@ $DOTFILES_DIR/scripts/app-launcher.sh|$HOME/.local/bin/app-launcher
 $DOTFILES_DIR/scripts/app-switcher.sh|$HOME/.local/bin/app-switcher
 $DOTFILES_DIR/scripts/menu-control.sh|$HOME/.local/bin/menu-control
 $DOTFILES_DIR/scripts/ticker-control.sh|$HOME/.local/bin/ticker-control
-$DOTFILES_DIR/scripts/keybind-ticker.py|$HOME/.local/bin/keybind-ticker
 $DOTFILES_DIR/scripts/ticker-bridge.py|$HOME/.local/bin/ticker-bridge
 $DOTFILES_DIR/scripts/notification-bridge.py|$HOME/.local/bin/notification-bridge
 $DOTFILES_DIR/scripts/shell-stack-mode.sh|$HOME/.local/bin/shell-stack-mode
@@ -326,7 +321,6 @@ print_link_specs() {
 
 print_linux_writable_config_dirs() {
     cat <<EOF
-$HOME/.config/hyprshell|hyprshell writable config dir
 EOF
 }
 
@@ -430,7 +424,6 @@ same_repo_managed_target() {
 linux_dir_allows_real_path() {
     local path="$1"
     case "$path" in
-        "$HOME/.config/hypr-dock"|\
         "$HOME/.config/hyprdynamicmonitors"|\
         "$HOME/.config/hyprland-autoname-workspaces")
             return 0
@@ -779,7 +772,6 @@ create_symlinks() {
     log_info "Creating symlinks..."
     if [[ "$OS" == "Linux" ]]; then
         mkdir -p "$HOME/.config/systemd/user"
-        normalize_writable_config_dir "$HOME/.config/hyprshell"
     fi
 
     local src dst
@@ -822,15 +814,10 @@ create_symlinks() {
         mkdir -p "$HOME/.local/state/kitty/sessions"
 
         local desktop_service_units=(
-            ironbar.service
             dotfiles-quickshell.service
-            dotfiles-hyprshell.service
-            dotfiles-hypr-dock.service
             dotfiles-hyprdynamicmonitors.service
             dotfiles-hyprland-autoname-workspaces.service
             dotfiles-notification-history.service
-            dotfiles-keybind-ticker.service
-            dotfiles-keybind-ticker@DP-3_focus.service
             dotfiles-ticker-lockwatch.service
             dotfiles-ticker-recordwatch.service
             dotfiles-lyrics-ticker.service
