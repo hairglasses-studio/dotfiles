@@ -1,4 +1,18 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "(^Bash$|(^|__)marathon_advance$)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$repo/scripts/claude-marathon-sync.sh\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  },
   "mcpServers": {
     "docker": {
       "args": [

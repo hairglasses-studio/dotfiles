@@ -4,6 +4,7 @@
 #   - scripts/claude-verify-gate.sh      (Stop advisory)
 #   - scripts/claude-verify-track.sh     (PreToolUse instrumentation)
 #   - scripts/claude-session-ledger.sh   (Stop write + SessionStart read)
+#   - scripts/claude-marathon-sync.sh    (PostToolUse roadmap sync)
 #
 # Each hook reads JSON from stdin and writes JSON to stdout. Tests feed
 # synthetic tool-call envelopes and assert the output shape.
@@ -19,6 +20,7 @@ setup() {
     export VERIFY_GATE="$DOTFILES_DIR/scripts/claude-verify-gate.sh"
     export VERIFY_TRACK="$DOTFILES_DIR/scripts/claude-verify-track.sh"
     export LEDGER="$DOTFILES_DIR/scripts/claude-session-ledger.sh"
+    export MARATHON_SYNC="$DOTFILES_DIR/scripts/claude-marathon-sync.sh"
 }
 
 teardown() {
@@ -166,4 +168,105 @@ teardown() {
 @test "session-ledger: invalid mode → exit 1" {
     run bash -c "echo '{\"session_id\":\"l4\"}' | $LEDGER invalid"
     [ "$status" -eq 1 ]
+}
+
+# --- claude-marathon-sync.sh ---
+
+@test "marathon-sync: ignores unrelated tools" {
+    run bash -c "echo '{\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"README.md\"}}' | $MARATHON_SYNC"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "marathon-sync: marathon_advance appends ROADMAP entry and records docs event" {
+    cd "$BATS_TEST_TMPDIR"
+    mkdir -p repo fakebin
+    cd repo
+    git init -q 2>/dev/null
+    git config user.email "test@test.test" 2>/dev/null
+    git config user.name "test" 2>/dev/null
+    cat > ROADMAP.md <<'EOF'
+# Roadmap
+
+## Planned
+
+- [ ] Hook wiring
+EOF
+    git add ROADMAP.md && git commit -qm "init" 2>/dev/null
+
+    cat > "$BATS_TEST_TMPDIR/fakebin/sqlite3" <<'EOF'
+#!/usr/bin/env bash
+printf 'db=%s\n' "$1" >> "$SQLITE_CAPTURE"
+shift
+printf '%s\n' "$@" >> "$SQLITE_CAPTURE"
+cat >> "$SQLITE_CAPTURE"
+exit 0
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/fakebin/sqlite3"
+    touch "$BATS_TEST_TMPDIR/docs.sqlite"
+
+    payload="$(jq -nc --arg cwd "$PWD" '{
+      hook_event_name: "PostToolUse",
+      tool_name: "mcp__docs-mcp__marathon_advance",
+      tool_use_id: "tool-1",
+      cwd: $cwd,
+      tool_input: {
+        id: "demo-marathon",
+        summary: "wired roadmap hook",
+        tests_passed: true
+      },
+      tool_response: {
+        completed_sprint: {
+          index: 2,
+          name: "Roadmap hook",
+          state: "completed"
+        },
+        marathon_done: false,
+        message: "Sprint 2 complete. Next: Sprint 3"
+      }
+    }')"
+
+    run env PATH="$BATS_TEST_TMPDIR/fakebin:$PATH" \
+      DOCS_MCP_DB="$BATS_TEST_TMPDIR/docs.sqlite" \
+      SQLITE_CAPTURE="$BATS_TEST_TMPDIR/sqlite.log" \
+      bash -c 'printf "%s" "$1" | "$2"' _ "$payload" "$MARATHON_SYNC"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"systemMessage"* ]]
+    grep -qF "\`demo-marathon\`: Sprint 2" ROADMAP.md
+    grep -qF 'Roadmap hook - wired roadmap hook' ROADMAP.md
+    grep -qF 'roadmap_events' "$BATS_TEST_TMPDIR/sqlite.log"
+    grep -qF 'marathon_advance' "$BATS_TEST_TMPDIR/sqlite.log"
+}
+
+@test "marathon-sync: Bash Phase commit fallback still appends ROADMAP entry" {
+    cd "$BATS_TEST_TMPDIR"
+    mkdir -p phaserepo && cd phaserepo
+    git init -q 2>/dev/null
+    git config user.email "test@test.test" 2>/dev/null
+    git config user.name "test" 2>/dev/null
+    cat > ROADMAP.md <<'EOF'
+# Roadmap
+
+## Completed Marathon Phases
+
+## Planned
+EOF
+    git add ROADMAP.md && git commit -qm "init" 2>/dev/null
+    touch phase.txt
+    git add phase.txt && git commit -qm "feat(ticker): Phase 3 add hook sync" 2>/dev/null
+
+    payload="$(jq -nc --arg cwd "$PWD" '{
+      hook_event_name: "PostToolUse",
+      tool_name: "Bash",
+      tool_use_id: "tool-2",
+      cwd: $cwd,
+      tool_input: {command: "git commit -m \"feat(ticker): Phase 3 add hook sync\""},
+      tool_response: {success: true}
+    }')"
+
+    run bash -c 'printf "%s" "$1" | "$2"' _ "$payload" "$MARATHON_SYNC"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"ticker:Phase 3"* ]]
+    grep -qF "\`ticker\`: Phase 3" ROADMAP.md
 }
