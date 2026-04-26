@@ -41,17 +41,17 @@ done < <(playlist_names)
 
 # Check playlist entries have matching registry entries
 echo "Checking playlist → registry..."
-comm -23 <(playlist_names) <(registry_names) | while IFS= read -r name; do
+while IFS= read -r name; do
   echo "  MISSING in registry: $name (in playlist but not in darkwindow-shaders.conf)"
   errors=$((errors + 1))
-done
+done < <(comm -23 <(playlist_names) <(registry_names))
 
 # Check registry entries have matching playlist entries
 echo "Checking registry → playlist..."
-comm -13 <(playlist_names) <(registry_names) | while IFS= read -r name; do
+while IFS= read -r name; do
   echo "  EXTRA in registry: $name (in darkwindow-shaders.conf but not in playlist)"
   errors=$((errors + 1))
-done
+done < <(comm -13 <(playlist_names) <(registry_names))
 
 # Summary
 playlist_count=$(playlist_names | wc -l)
