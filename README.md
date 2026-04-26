@@ -15,26 +15,26 @@ Full-stack development environment for Manjaro Linux.
 
 Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
 
-![Desktop — Hyprland + Ironbar menubar + tiled terminals (Hairglasses Neon)](.github/assets/desktop.png)
+![Desktop — Hyprland + Quickshell menubar + tiled terminals (Hairglasses Neon)](.github/assets/desktop.png)
 
-The bottom `keybind-ticker` scrolls 39 live streams across a pixel-smooth 30 Hz cyberpunk-effect stack — water caustic, phosphor trail, neon-gradient text, synthwave sweep:
+A QML ticker (`quickshell/modules/TickerBar.qml`) scrolls 39 live streams across the bottom of the primary monitor with a cyberpunk-effect stack — animated scanlines, ghost glitch, GPU-accelerated FBO render. Streams rotate through playlists in `ticker/content-playlists/*.txt`.
 
 ![Ticker demo — scrolling across 39 live streams (10s loop)](docs/assets/ticker-demo.gif)
 
 ### Technical Highlights
 
 - **GPU Shaders**: 139 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation. The companion `kitty-playlist-validate` resolves every playlist entry against the bundled catalog with fuzzy-match suggestions so typos fail CI instead of silently skipping themes
-- **Theme System**: Hairglasses Neon token pipeline for `ironbar`, `quickshell`, `hyprshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`. `palette-playlist list|next|random|set <name>` rotates the active palette across 9 curated envs (hairglasses-neon, amber, deep-purple, forest, ice, matrix, rose-pine, sunset, synthwave) — every palette fills the same 23 `THEME_*` tokens so templates render identically regardless of active palette
+- **Theme System**: Hairglasses Neon token pipeline for `quickshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`. `palette-playlist list|next|random|set <name>` rotates the active palette across 9 curated envs (hairglasses-neon, amber, deep-purple, forest, ice, matrix, rose-pine, sunset, synthwave) — every palette fills the same 23 `THEME_*` tokens so templates render identically regardless of active palette
 - **MCP Servers**: 2 Go modules under `mcp/` (dotfiles-mcp with ~430 tools + 25 resources, mapitall); desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
-- **Shell Framework**: Shared libraries for CLI utilities, notifications, config management, and staged `Quickshell` migration controls via `hg shell`; the QML pilot now covers the bar, dock, rotating ticker streams, modal menus, and notification-history panel
-- **Terminal Launch Policy**: Hyprshell defaults to `kitty-shell-launch` for plain shell windows, fresh instances, and no startup-session restore; `kitty-visual-launch` enforces unique top-level Kitty windows for raw launch surfaces; `kitty-dev-launch` remains the explicit tmux-backed dev-session entrypoint
+- **Shell Framework**: Shared libraries for CLI utilities, notifications, config management, and Quickshell controls via `hg shell`; QML modules own the bar, dock, rotating ticker streams, modal menus, and notification daemon (the freedesktop.org Notifications interface — swaync stays installed as a rollback fallback only)
+- **Terminal Launch Policy**: Hyprland's `$term` anchor points at `kitty-shell-launch` for plain shell windows, fresh instances, and no startup-session restore; `kitty-visual-launch` enforces unique top-level Kitty windows for raw launch surfaces; `kitty-dev-launch` remains the explicit tmux-backed dev-session entrypoint
 
 The managed workstation alias `studio_desktop` now projects the desktop-focused `dotfiles-mcp` profile into Codex, Claude, and Gemini through the existing home-sync path.
 
-Hyprland + ironbar + Quickshell pilot + hyprshell + hypr-dock + swaync + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
+Hyprland + Quickshell + swaync + kitty + Starship + Oh My Zsh + Neovim + tmux + btop + yazi + cava + lazygit.
 
 ## Install
 
@@ -88,10 +88,7 @@ hyprpm-bootstrap
 | Config | Description |
 |--------|-------------|
 | `hyprland/` | Tiling WM — 113 keybinds, custom animations, plugin-based layout, wallpaper mode orchestration |
-| `ironbar/` | Primary top menubar with fleet cache widgets, workspaces, media, and system status |
-| `quickshell/` | Staged QML shell for bar, dock, ticker, modal menus, and notification-history migration |
-| `hyprshell/` | Rollback launcher/overview service; Quickshell owns `Super+D` / `Alt+Tab` in menu cutover |
-| `hypr-dock/` | Rollback bottom dock; Quickshell owns the dock in dock/full cutover |
+| `quickshell/` | QML shell — bar (every screen), bottom bar (DP-2), ticker, dock, modal menus, notification daemon, companion overlays (window label, fleet sparkline, lyrics banner) |
 | `hyprdynamicmonitors/` | Dynamic monitor profiles that generate Hyprland includes into state storage |
 | `hyprland-autoname-workspaces/` | Workspace naming and icon rules for cleaner shell surfaces |
 | `swaync/` | Notification center + control surface themed from the shared token pipeline |
@@ -121,13 +118,11 @@ hyprpm-bootstrap
 ```
 dotfiles/
 ├── hyprland/       → ~/.config/hypr (WM + pyprland + Hyprland companion config)
-├── hyprshell/      → ~/.config/hyprshell (launcher + overview)
-├── hypr-dock/      → ~/.config/hypr-dock (dock + theme)
+├── quickshell/     → ~/.config/quickshell (QML bar/ticker/dock/menus/notifications)
 ├── hyprdynamicmonitors/ → ~/.config/hyprdynamicmonitors (dynamic monitor profiles)
 ├── hyprland-autoname-workspaces/ → ~/.config/hyprland-autoname-workspaces
-├── ironbar/        → ~/.config/ironbar (GTK4 menubar)
 ├── kitty/          → ~/.config/kitty (terminal + 139 shaders)
-├── swaync/         → ~/.config/swaync (notifications)
+├── swaync/         → ~/.config/swaync (notifications fallback only — Quickshell owns the bus)
 ├── wofi/           → ~/.config/wofi (fallback launcher)
 ├── wlogout/        → ~/.config/wlogout (power menu)
 ├── nvim/           → ~/.config/nvim (editor)
@@ -227,7 +222,7 @@ Claude Code skills that orchestrate the MCP tools into higher-level workflows:
 
 **tmux plugins not loading:** Inside tmux, press `C-a` then `shift-I` to trigger TPM install.
 
-**New terminals still attach to tmux or reopen an old session:** Check that `hyprshell/config.toml` still points `default_terminal` at `kitty-shell-launch`, `kitty/kitty.conf` still sets `startup_session none`, and any local save-session timer remains an explicit opt-in. Reserve `kitty-dev-launch` for the persistent tmux session on purpose.
+**New terminals still attach to tmux or reopen an old session:** Check that `hyprland/hyprland.conf` still points its `$term` anchor at `kitty-shell-launch`, `kitty/kitty.conf` still sets `startup_session none`, and any local save-session timer remains an explicit opt-in. Reserve `kitty-dev-launch` for the persistent tmux session on purpose.
 
 **Hyprland plugins not working:** Re-run the repo-managed bootstrap:
 ```bash

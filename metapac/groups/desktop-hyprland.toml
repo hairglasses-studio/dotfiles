@@ -1,4 +1,4 @@
-# Desktop environment: Hyprland + ironbar + quickshell pilot + hyprshell + hypr-dock + swaync
+# Desktop environment: Hyprland + quickshell + swaync
 [arch]
 packages = [
     # Hyprland core
@@ -17,9 +17,7 @@ packages = [
     { name = "xdg-terminal-exec" },
 
     # Bar & widgets
-    { name = "ironbar-bin" },
     { name = "quickshell" },
-    { name = "hypr-dock" },
 
     # Notifications
     { name = "dbus" },
@@ -27,7 +25,6 @@ packages = [
     { name = "poweralertd" },
 
     # Launcher & session
-    { name = "hyprshell-bin" },
     { name = "wofi" },
     { name = "wofi-emoji" },
     { name = "wlogout" },
