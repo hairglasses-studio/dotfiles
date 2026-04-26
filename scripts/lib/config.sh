@@ -9,13 +9,13 @@ config_action_lane() {
   local verb="${1:-}" component="${2:-}"
 
   case "${verb}:${component}" in
-    reload:hyprland|reload:hypr|reload:hyprshell|reload:swaync|reload:ironbar|reload:quickshell|reload:tmux)
+    reload:hyprland|reload:hypr|reload:swaync|reload:quickshell|reload:tmux)
       printf 'safe_reload\n'
       ;;
-    reload:hypr-dock|reload:hyprdock|reload:hyprdynamicmonitors|reload:monitors|reload:hyprland-autoname-workspaces|reload:autoname)
+    reload:hyprdynamicmonitors|reload:monitors|reload:hyprland-autoname-workspaces|reload:autoname)
       printf 'service_reload\n'
       ;;
-    restart:hyprshell|restart:hypr-dock|restart:hyprdock|restart:hyprdynamicmonitors|restart:monitors|restart:hyprland-autoname-workspaces|restart:autoname)
+    restart:hyprdynamicmonitors|restart:monitors|restart:hyprland-autoname-workspaces|restart:autoname)
       printf 'explicit_restart\n'
       ;;
     *)
@@ -53,23 +53,6 @@ config_backup() {
   cp -a "$file" "$backup_dir/$(basename "$file").$(date +%H%M%S)" 2>/dev/null
 }
 
-# Trigger Hyprshell's built-in watched-file reload without restarting the process.
-config_reload_hyprshell() {
-  local config_path="${HYPRSHELL_CONFIG_PATH:-$HOME/.config/hyprshell/config.toml}"
-  local style_path="${HYPRSHELL_STYLE_PATH:-$HOME/.config/hyprshell/styles.css}"
-  local touched=0 path
-
-  pgrep -x hyprshell >/dev/null 2>&1 || return 1
-
-  for path in "$config_path" "$style_path"; do
-    [[ -e "$path" ]] || continue
-    touch "$path"
-    touched=1
-  done
-
-  (( touched > 0 ))
-}
-
 # Reload the service associated with a config directory
 # Usage: config_reload_service <component_name> [--quiet]
 # Returns: 0 on success, non-zero on failure
@@ -80,27 +63,15 @@ config_reload_service() {
   [[ "${1:-}" == "--quiet" ]] && quiet=true
   case "$component" in
     hyprland|hypr) compositor_reload;      rc=$? ;;
-    hyprshell)     config_reload_hyprshell; rc=$? ;;
-    hypr-dock|hyprdock) systemctl --user restart dotfiles-hypr-dock.service; rc=$? ;;
     hyprdynamicmonitors|monitors)
       hypr_ensure_runtime_state
       systemctl --user restart dotfiles-hyprdynamicmonitors.service
       rc=$?
       ;;
     hyprland-autoname-workspaces|autoname) systemctl --user restart dotfiles-hyprland-autoname-workspaces.service; rc=$? ;;
-    ironbar)
-      if command -v ironbar >/dev/null 2>&1 && ironbar ping >/dev/null 2>&1; then
-        ironbar reload 2>/dev/null || systemctl --user restart ironbar.service
-        rc=$?
-      else
-        systemctl --user restart ironbar.service
-        rc=$?
-      fi
-      ;;
     quickshell)    systemctl --user restart dotfiles-quickshell.service; rc=$? ;;
-    swaync)        swaync-client --reload-config; rc=$? ;;
+    swaync)        swaync-client --reload-config 2>/dev/null; rc=$? ;;
     tmux)          tmux source-file ~/.tmux.conf 2>/dev/null; rc=$? ;;
-    # tattoy auto-reload via file watching
   esac
   if ! $quiet; then
     if (( rc == 0 )); then
@@ -120,14 +91,13 @@ config_restart_service() {
   local quiet=false rc=0
   [[ "${1:-}" == "--quiet" ]] && quiet=true
   case "$component" in
-    hyprshell)     systemctl --user restart dotfiles-hyprshell.service; rc=$? ;;
-    hypr-dock|hyprdock) systemctl --user restart dotfiles-hypr-dock.service; rc=$? ;;
     hyprdynamicmonitors|monitors)
       hypr_ensure_runtime_state
       systemctl --user restart dotfiles-hyprdynamicmonitors.service
       rc=$?
       ;;
     hyprland-autoname-workspaces|autoname) systemctl --user restart dotfiles-hyprland-autoname-workspaces.service; rc=$? ;;
+    quickshell)    systemctl --user restart dotfiles-quickshell.service; rc=$? ;;
     *)
       rc=1
       ;;

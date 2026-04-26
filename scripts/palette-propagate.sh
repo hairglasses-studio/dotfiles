@@ -113,7 +113,7 @@ _handle() {
 }
 
 # GTK CSS consumers — share the same template
-for dir in ironbar swaync wofi wlogout hyprshell; do
+for dir in swaync wofi wlogout; do
     _handle gtk-colors.css "$HOME/.config/$dir/theme.generated.css" ""
 done
 
@@ -133,34 +133,16 @@ _handle zsh-fzf-colors.sh    "$HOME/.config/fzf/hg-colors.sh"                   
 # Audio settings are stable; change in the template if you need to adjust them.
 _handle cava-colors.conf     "$HOME/.config/cava/config"                                  'pkill -USR2 cava 2>/dev/null || true'
 
-# ── GTK CSS reload hooks (after all five targets are written) ─────
+# ── Reload hooks (after all targets are written) ─────────────────
+# Quickshell owns every desktop surface (bar, ticker, dock, menus,
+# notifications, companion overlays). One restart picks up the new
+# palette across the whole stack. swaync gets a config refresh only
+# when the user is intentionally on rollback (Quickshell stopped).
 if $DO_RELOAD && ! $DRY_RUN; then
-    # ironbar hot-reload: restart is cheap (<100ms), a gsettings roundtrip alone
-    # doesn't pick up CSS file changes reliably.
-    if ! shell_stack_bar_cutover; then
-        systemctl --user restart ironbar.service 2>/dev/null || true
-    fi
-    if ! shell_stack_notification_cutover; then
-        swaync-client -rs 2>/dev/null || true
-    fi
     if shell_stack_quickshell_wanted || systemctl --user is-active dotfiles-quickshell.service >/dev/null 2>&1; then
         systemctl --user restart dotfiles-quickshell.service 2>/dev/null || true
-    fi
-    # hyprshell CSS reload: kick the rollback service unless Quickshell owns menus.
-    if ! shell_stack_menu_cutover; then
-        systemctl --user restart dotfiles-hyprshell.service 2>/dev/null || true
-    fi
-    if ! shell_stack_dock_cutover; then
-        systemctl --user restart dotfiles-hypr-dock.service 2>/dev/null || true
-    fi
-    # Keybind ticker restart to pick up new palette (ticker reads colors at init).
-    if ! shell_stack_ticker_cutover; then
-        systemctl --user restart dotfiles-keybind-ticker.service 2>/dev/null || true
-    fi
-    if ! shell_stack_companion_cutover; then
-        systemctl --user restart dotfiles-window-label.service 2>/dev/null || true
-        systemctl --user restart dotfiles-fleet-sparkline.service 2>/dev/null || true
-        systemctl --user restart dotfiles-lyrics-ticker.service 2>/dev/null || true
+    else
+        swaync-client -rs 2>/dev/null || true
     fi
 fi
 
