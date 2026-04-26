@@ -1,12 +1,14 @@
+BASH_SCRIPTS := $(shell awk 'FNR == 1 && $$0 ~ /bash/ { print FILENAME }' install.sh scripts/*.sh scripts/lib/*.sh)
+
 .PHONY: test test-lib test-scripts test-verbose sync clean unmanaged packages lint check-shaders validate-shaders
 
 test: test-lib test-scripts
 
 lint:
 	@echo "=== Shell Syntax Checks ==="
-	bash -n scripts/*.sh scripts/lib/*.sh
+	bash -n $(BASH_SCRIPTS)
 	@echo "=== Shellcheck ==="
-	shellcheck scripts/*.sh scripts/lib/*.sh || true
+	shellcheck $(BASH_SCRIPTS) || true
 	@echo "=== JSON Validation ==="
 	find . -maxdepth 2 -name "*.json" -not -path "*/node_modules/*" -exec jq . {} + >/dev/null
 	@echo "=== Shader Consistency ==="
