@@ -151,18 +151,15 @@ dotfiles/
 
 ## MCP Servers
 
-All MCP tools are consolidated under `mcp/` (7 Go modules via `go.work`; hg-mcp embeds an internal JS web UI but there are no standalone JS MCP servers). As of 2026-04-23, `dotfiles-mcp` alone exposes ~430 live tools + 25 resources + deferred tools; per-server totals vary and are authoritative via the runtime tool registry.
+All workstation MCP tools in this repo are consolidated into `dotfiles-mcp`. As of 2026-04-23, `dotfiles-mcp` exposes ~430 live tools + 25 resources + deferred tools; runtime totals are authoritative via its tool registry. The `mcp/` tree also carries `mapitall` and `mapping` because they share the mirror/parity workflow, but they are not separate MCP server surfaces.
 
-| Server | Tools | Description |
-|--------|-------|-------------|
-| `dotfiles-mcp` | ~430 | Desktop config management, Hyprland control, GitHub Stars taxonomy, Kitty visual pipeline, input devices, observability chassis |
-| `hg-mcp` | 200+ | SDLC ops, fleet management, repo analysis, prompt pipeline |
-| `systemd-mcp` | 10 | Systemd unit management |
-| `tmux-mcp` | 11 | Tmux session management |
-| `process-mcp` | 8 | Process debugging and port investigation |
-| `mapitall` | 30+ | Controller/MIDI mapping engine and managed profile catalog |
+| Component | Role | Description |
+|-----------|------|-------------|
+| `dotfiles-mcp` | MCP server | Desktop config management, Hyprland control, GitHub Stars taxonomy, Kitty visual pipeline, input devices, observability chassis |
+| `mapitall` | Go daemon | Controller/MIDI mapping engine and managed profile catalog |
+| `mapping` | Go package | Shared mapping schema, rule engine, profile parsing, and legacy conversion |
 
-All servers are built on [mcpkit](https://github.com/hairglasses-studio/mcpkit) and use stdio transport.
+Retired standalone MCP repos (`systemd-mcp`, `tmux-mcp`, and `process-mcp`) now live as modules inside `dotfiles-mcp`.
 Mirrored MCP modules and the parity contract are tracked in [docs/MCP-MIRROR-PARITY.md](docs/MCP-MIRROR-PARITY.md).
 
 ### Install MCP Server Only
