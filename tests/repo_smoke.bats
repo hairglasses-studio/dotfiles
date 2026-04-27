@@ -513,7 +513,7 @@ print('readme_mcp_rows=ok')
 @test "active shader docs and source avoid retired shader server names" {
     # shader-mcp and CRTty were absorbed/retired during the consolidation.
     # Keep active shader docs and module headers aligned with dotfiles-mcp.
-    run bash -c "! rg -n 'mcp/shader-mcp|shader-mcp|CRTty' '${DOTFILES_DIR}/docs/SHADER-PIPELINE.md' '${DOTFILES_DIR}/mcp/dotfiles-mcp/mod_shader.go'"
+    run bash -c "! rg -n 'mcp/shader-mcp|shader-mcp|CRTty' '${DOTFILES_DIR}/docs/SHADER-PIPELINE.md' '${DOTFILES_DIR}/mcp/dotfiles-mcp/mod_shader.go' '${DOTFILES_DIR}/mcp/dotfiles-mcp/REVIEW.md'"
     assert_success
 }
 
