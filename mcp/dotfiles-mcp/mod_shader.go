@@ -1,4 +1,4 @@
-// mod_shader.go — Terminal shader pipeline tools (kitty via CRTty + Kitty themes)
+// mod_shader.go — Terminal shader pipeline tools for Kitty DarkWindow themes.
 package main
 
 import (
@@ -845,7 +845,7 @@ func (m *ShaderModule) Tools() []registry.ToolDefinition {
 		// ── shader_set ────────────────────────────────
 		handler.TypedHandler[ShaderSetInput, ShaderSetOutput](
 			"shader_set",
-			"Apply a CRTty shader to kitty via kitty-shader-playlist.sh.",
+			"Apply a Kitty DarkWindow shader via kitty-shader-playlist.sh.",
 			func(_ context.Context, input ShaderSetInput) (ShaderSetOutput, error) {
 				p, err := findShader(input.Name)
 				if err != nil {

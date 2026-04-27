@@ -3368,7 +3368,7 @@
   },
   {
     "name": "shader_set",
-    "description": "Apply a CRTty shader to kitty via kitty-shader-playlist.sh.",
+    "description": "Apply a Kitty DarkWindow shader via kitty-shader-playlist.sh.",
     "category": "",
     "is_write": true,
     "deferred": true
