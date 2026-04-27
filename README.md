@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Shaders](https://img.shields.io/badge/GLSL_Shaders-371-purple)](kitty/shaders/)
-[![MCP Tools](https://img.shields.io/badge/MCP_Tools-1,400+-blue)](mcp/)
+[![MCP Tools](https://img.shields.io/badge/MCP_Tools-434-blue)](mcp/)
 [![WM](https://img.shields.io/badge/WM-Hyprland-cyan)](https://hyprland.org/)
 [![CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci.yml)
 [![Go CI](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-go-mcp.yml/badge.svg)](https://github.com/hairglasses-studio/dotfiles/actions/workflows/ci-go-mcp.yml)
@@ -11,9 +11,9 @@
 
 Full-stack development environment for Manjaro Linux.
 
-> **Engineering context:** The MCP integration (1,400+ tools across 7 Go servers) uses the same [mcpkit](https://github.com/hairglasses-studio/mcpkit) patterns as production server deployments — deferred tool loading, middleware chains, and composed operations.
+> **Engineering context:** The repo-local `dotfiles-mcp` server exposes 434 tools and uses the same [mcpkit](https://github.com/hairglasses-studio/mcpkit) patterns as production server deployments — deferred tool loading, middleware chains, and composed operations.
 
-Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual rotation, declarative package management, and **1,400+ MCP tools** for desktop automation, fleet management, and AI agent infrastructure.
+Combines a wallpaper-aware `Hairglasses Neon` shell theme, Kitty-native visual rotation, declarative package management, and **434 dotfiles-mcp tools** for desktop automation, fleet management, and AI agent infrastructure.
 
 ![Desktop — Hyprland + Quickshell menubar + tiled terminals (Hairglasses Neon)](.github/assets/desktop.png)
 
@@ -25,7 +25,7 @@ A QML ticker (`quickshell/modules/TickerBar.qml`) scrolls 39 live streams across
 
 - **GPU Shaders**: 371 DarkWindow GLSL shaders paired with Kitty theme playlists for per-spawn visual rotation. The companion `kitty-playlist-validate` resolves every playlist entry against the bundled catalog with fuzzy-match suggestions so typos fail CI instead of silently skipping themes
 - **Theme System**: Hairglasses Neon token pipeline for `quickshell`, `swaync`, `wofi`, and `wlogout`, with optional wallpaper-derived accent overlays via `theme-sync`. `palette-playlist list|next|random|set <name>` rotates the active palette across 9 curated envs (hairglasses-neon, amber, deep-purple, forest, ice, matrix, rose-pine, sunset, synthwave) — every palette fills the same 23 `THEME_*` tokens so templates render identically regardless of active palette
-- **MCP Servers**: 2 Go modules under `mcp/` (dotfiles-mcp with ~430 tools + 25 resources, mapitall); desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
+- **MCP Servers**: repo-local `dotfiles-mcp` with 434 tools + 25 resources + 13 prompts, plus the `mapitall` daemon and shared `mapping` package under `mcp/`; desktop control, Bluetooth/MIDI, Kitty visual pipeline, GitHub org lifecycle, fleet auditing ([dotfiles-mcp](https://github.com/hairglasses-studio/dotfiles-mcp))
 - **GitHub Stars Workflow**: taxonomy audit, GitHub list management, and Codex MCP install helpers via `scripts/hg-github-stars.sh`
 - **Desktop Automation**: 19 Hyprland IPC tools, atomic config writes, compositor abstraction layer
 - **Package Management**: Declarative metapac with 12 groups (paru backend)
@@ -151,7 +151,7 @@ dotfiles/
 
 ## MCP Servers
 
-All workstation MCP tools in this repo are consolidated into `dotfiles-mcp`. As of 2026-04-23, `dotfiles-mcp` exposes ~430 live tools + 25 resources + deferred tools; runtime totals are authoritative via its tool registry. The `mcp/` tree also carries `mapitall` and `mapping` because they share the mirror/parity workflow, but they are not separate MCP server surfaces.
+All workstation MCP tools in this repo are consolidated into `dotfiles-mcp`. As of 2026-04-23, `dotfiles-mcp` exposes 434 live tools + 25 resources + 13 prompts; runtime totals are authoritative via its tool registry. The `mcp/` tree also carries `mapitall` and `mapping` because they share the mirror/parity workflow, but they are not separate MCP server surfaces.
 
 | Component | Role | Description |
 |-----------|------|-------------|
