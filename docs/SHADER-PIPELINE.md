@@ -24,4 +24,4 @@ The shader pipeline in `hairglasses-studio` provides live, animated GLSL backgro
 ## Performance Budgets
 
 - Shaders are benchmarked to prevent excessive GPU usage. High-cost shaders are excluded from "battery" or "focus" playlists.
-- The `mcp/shader-mcp` tools provide endpoints (`shader_build`, `shader_test`) to validate shader compilation before applying them.
+- The `dotfiles-mcp` ShaderModule provides endpoints such as `shader_build` and `shader_test` to validate shader compilation before applying them.
