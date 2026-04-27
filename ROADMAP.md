@@ -190,6 +190,7 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 - [x] [P2][S] Verify-before-complete gate — `scripts/claude-verify-gate.sh` (Stop hook) + `scripts/claude-verify-track.sh` (PreToolUse tracker). Emits a systemMessage at stop time if the session wrote source without running tests. Tracks 6 test-runner patterns (go/cargo/pytest/npm/yarn/make). Idempotent — reminds once per session. Ref: obra/superpowers
 - [x] [P2][M] PostToolUse hook wiring — `scripts/claude-marathon-sync.sh` now fires from project PostToolUse on `marathon_advance` MCP calls and legacy Bash Phase commits, appends idempotent `## Completed Marathon Phases` entries to ROADMAP.md, and records `marathon_advance` events in docs-mcp `roadmap_events` when the docs SQLite DB is present. Ref: autonomy gap analysis
 - [x] [P2][S] PostToolUse reload shim repair — restored missing `scripts/lib/agent-post-tool-reload.sh` target for legacy `scripts/lib/claude-post-tool-reload.sh`; Go formatting and desktop reload actions now run through a tested best-effort shared hook instead of failing with a missing file.
+- [x] [P2][S] PostToolUse reload hook wiring — project `.claude/settings.json` now invokes `scripts/lib/claude-post-tool-reload.sh` for Write/Edit/NotebookEdit events, with a repo-smoke guard so the restored live-reload bridge cannot silently drift out of settings again.
 
 ### Tier 3 — Low Priority / Exploratory
 

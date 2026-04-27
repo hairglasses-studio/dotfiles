@@ -35,7 +35,7 @@
 - 3 skills: `/rice-check`, `/screenshot-review`, `/shader-browse`
 - 2 agents: `rice-developer` (opus, autonomous iteration), `config-validator` (haiku, syntax check)
 - 3 rules: `hyprland.md` (0.54 syntax), `shaders.md` (self-contained GLSL), `snazzy-palette.md` (color enforcement)
-- PostToolUse hook (auto-reload Hyprland/mako/waybar on config writes)
+- PostToolUse hook (best-effort Go formatting and live reload for Hyprland/swaync/eww/sway/bat config writes)
 - Notification hook (alert on task completion)
 
 **Keyboards:**
