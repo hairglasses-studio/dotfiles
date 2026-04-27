@@ -485,6 +485,30 @@ print(f'skills={len(declared)} drift=0')
     refute_output --partial "DRIFT"
 }
 
+@test "README MCP table does not advertise retired standalone servers" {
+    # The April 2026 consolidation folded systemd/tmux/process surfaces into
+    # dotfiles-mcp. The public README should not drift back to presenting
+    # those retired repos as active server rows.
+    run python3 -c "
+from pathlib import Path
+text = Path('${DOTFILES_DIR}/README.md').read_text()
+section = text.split('## MCP Servers', 1)[1].split('### Install MCP Server Only', 1)[0]
+retired = ('systemd-mcp', 'tmux-mcp', 'process-mcp')
+row_for = lambda name: '| ' + chr(96) + name + chr(96) + ' |'
+bad = [name for name in retired if row_for(name) in section]
+if bad:
+    print('retired_active_rows=' + ','.join(bad))
+    raise SystemExit(1)
+for name in ('dotfiles-mcp', 'mapitall', 'mapping'):
+    if row_for(name) not in section:
+        print('missing_component=' + name)
+        raise SystemExit(1)
+print('readme_mcp_rows=ok')
+"
+    assert_success
+    assert_output --partial "readme_mcp_rows=ok"
+}
+
 @test "hyprland pypr toggle binds resolve to declared scratchpads" {
     # `pypr toggle <name>` in hyprland binds depends on a
     # [scratchpads.<name>] block in pypr/config.toml, or on a pypr
