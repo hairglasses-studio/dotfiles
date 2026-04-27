@@ -489,7 +489,8 @@ print(f'skills={len(declared)} drift=0')
 @test "README MCP table does not advertise retired standalone servers" {
     # The April 2026 consolidation folded systemd/tmux/process surfaces into
     # dotfiles-mcp. The public README should not drift back to presenting
-    # those retired repos as active server rows.
+    # those retired repos as active server rows, and dotfiles-mcp docs should
+    # not route readers back to retired standalone repo URLs.
     run python3 -c "
 from pathlib import Path
 text = Path('${DOTFILES_DIR}/README.md').read_text()
@@ -504,6 +505,12 @@ for name in ('dotfiles-mcp', 'mapitall', 'mapping'):
     if row_for(name) not in section:
         print('missing_component=' + name)
         raise SystemExit(1)
+module_readme = Path('${DOTFILES_DIR}/mcp/dotfiles-mcp/README.md').read_text()
+retired_urls = ['https://github.com/hairglasses-studio/' + name for name in retired]
+bad_urls = [url for url in retired_urls if url in module_readme]
+if bad_urls:
+    print('retired_module_readme_urls=' + ','.join(bad_urls))
+    raise SystemExit(1)
 print('readme_mcp_rows=ok')
 "
     assert_success

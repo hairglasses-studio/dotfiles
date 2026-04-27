@@ -193,9 +193,9 @@ Runtime tools vary by category. Missing tools are detected gracefully -- unused 
 ## See Also
 
 - [mcpkit](https://github.com/hairglasses-studio/mcpkit) -- production-grade Go MCP server toolkit
-- [systemd-mcp](https://github.com/hairglasses-studio/systemd-mcp) -- systemd service management
-- [tmux-mcp](https://github.com/hairglasses-studio/tmux-mcp) -- tmux multiplexer management
-- [process-mcp](https://github.com/hairglasses-studio/process-mcp) -- process debugging with composed investigation
+- [Systemd module](./mod_systemd.go) -- systemd service and timer management
+- [Tmux module](./mod_tmux.go) -- tmux multiplexer management
+- [Process module](./mod_process.go) -- process debugging with composed investigation
 
 ## License
 
