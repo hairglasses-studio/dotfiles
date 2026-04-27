@@ -35,6 +35,16 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "repo=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$repo/scripts/lib/claude-post-tool-reload.sh\"",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
         "matcher": "(^Bash$|(^|__)marathon_advance$)",
         "hooks": [
           {

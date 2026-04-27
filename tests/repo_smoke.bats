@@ -206,6 +206,28 @@ teardown() {
     assert_output --partial "errors=0"
 }
 
+@test "project Claude settings wire the write-event reload bridge" {
+    # The legacy shim has a tested target, but config writes only reload
+    # live desktop surfaces if the project settings invoke it for write
+    # tools. Keep the registration from drifting away from the hook.
+    run python3 -c "
+import json, sys
+settings = json.load(open('${DOTFILES_DIR}/.claude/settings.json'))
+post = settings.get('hooks', {}).get('PostToolUse', [])
+for block in post:
+    matcher = block.get('matcher', '')
+    tools = set(matcher.split('|'))
+    commands = [hook.get('command', '') for hook in block.get('hooks', [])]
+    if {'Write', 'Edit', 'NotebookEdit'} <= tools and any('scripts/lib/claude-post-tool-reload.sh' in cmd for cmd in commands):
+        print('reload_hook=registered')
+        sys.exit(0)
+print('reload_hook=missing')
+sys.exit(1)
+"
+    assert_success
+    assert_output --partial "reload_hook=registered"
+}
+
 @test "scripts Python sources all py_compile cleanly" {
     # Cheap repo-wide syntax gate for Python scripts (~0.1s on 63 files).
     # Catches SyntaxError / IndentationError / unterminated f-strings before
