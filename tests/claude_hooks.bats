@@ -7,6 +7,7 @@
 #   - scripts/claude-marathon-sync.sh    (PostToolUse roadmap sync)
 #   - scripts/claude-phase-gate.sh       (dev-loop phase enforcement)
 #   - scripts/claude-skill-activate.sh   (contextual skill injection)
+#   - scripts/lib/agent-post-tool-reload.sh (PostToolUse reload bridge)
 #
 # Each hook reads JSON from stdin and writes JSON to stdout. Tests feed
 # synthetic tool-call envelopes and assert the output shape.
@@ -25,6 +26,8 @@ setup() {
     export MARATHON_SYNC="$DOTFILES_DIR/scripts/claude-marathon-sync.sh"
     export PHASE_GATE="$DOTFILES_DIR/scripts/claude-phase-gate.sh"
     export SKILL_ACTIVATE="$DOTFILES_DIR/scripts/claude-skill-activate.sh"
+    export POST_RELOAD="$DOTFILES_DIR/scripts/lib/agent-post-tool-reload.sh"
+    export POST_RELOAD_SHIM="$DOTFILES_DIR/scripts/lib/claude-post-tool-reload.sh"
 }
 
 teardown() {
@@ -399,4 +402,62 @@ EOF
     [ "$status" -eq 0 ]
     [[ "$output" == *"Skill auto-activation"* ]]
     [[ "$output" == *"Shader context"* ]]
+}
+
+# --- agent-post-tool-reload.sh ---
+
+@test "post-tool-reload: ignores non-write tools" {
+    run bash -c "echo '{\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"/tmp/hypr/test.conf\"}}' | $POST_RELOAD"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+}
+
+@test "post-tool-reload: formats Go files with available formatters" {
+    mkdir -p "$BATS_TEST_TMPDIR/fakebin"
+    cat > "$BATS_TEST_TMPDIR/fakebin/goimports" <<'EOF'
+#!/usr/bin/env bash
+printf 'goimports %s\n' "$*" >> "$POST_RELOAD_CAPTURE"
+EOF
+    cat > "$BATS_TEST_TMPDIR/fakebin/gofumpt" <<'EOF'
+#!/usr/bin/env bash
+printf 'gofumpt %s\n' "$*" >> "$POST_RELOAD_CAPTURE"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/fakebin/goimports" "$BATS_TEST_TMPDIR/fakebin/gofumpt"
+
+    run env PATH="$BATS_TEST_TMPDIR/fakebin:$PATH" POST_RELOAD_CAPTURE="$BATS_TEST_TMPDIR/reload.log" \
+      bash -c "echo '{\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/mod.go\"}}' | $POST_RELOAD"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+    grep -qF 'goimports -w /tmp/mod.go' "$BATS_TEST_TMPDIR/reload.log"
+    grep -qF 'gofumpt -w /tmp/mod.go' "$BATS_TEST_TMPDIR/reload.log"
+}
+
+@test "post-tool-reload: reloads Hyprland config writes" {
+    mkdir -p "$BATS_TEST_TMPDIR/fakebin"
+    cat > "$BATS_TEST_TMPDIR/fakebin/hyprctl" <<'EOF'
+#!/usr/bin/env bash
+printf 'hyprctl %s\n' "$*" >> "$POST_RELOAD_CAPTURE"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/fakebin/hyprctl"
+
+    run env PATH="$BATS_TEST_TMPDIR/fakebin:$PATH" POST_RELOAD_CAPTURE="$BATS_TEST_TMPDIR/reload.log" \
+      bash -c "echo '{\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/tmp/dotfiles/hypr/hyprland.conf\"}}' | $POST_RELOAD"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+    grep -qF 'hyprctl reload' "$BATS_TEST_TMPDIR/reload.log"
+}
+
+@test "post-tool-reload: legacy Claude shim delegates to canonical hook" {
+    mkdir -p "$BATS_TEST_TMPDIR/fakebin"
+    cat > "$BATS_TEST_TMPDIR/fakebin/swaync-client" <<'EOF'
+#!/usr/bin/env bash
+printf 'swaync-client %s\n' "$*" >> "$POST_RELOAD_CAPTURE"
+EOF
+    chmod +x "$BATS_TEST_TMPDIR/fakebin/swaync-client"
+
+    run env PATH="$BATS_TEST_TMPDIR/fakebin:$PATH" POST_RELOAD_CAPTURE="$BATS_TEST_TMPDIR/reload.log" \
+      bash -c "echo '{\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/tmp/dotfiles/swaync/config.json\"}}' | $POST_RELOAD_SHIM"
+    [ "$status" -eq 0 ]
+    [[ "$output" == '{"decision":"allow"}' ]]
+    grep -qF 'swaync-client --reload-config' "$BATS_TEST_TMPDIR/reload.log"
 }
