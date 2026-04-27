@@ -186,13 +186,14 @@ teardown() {
     assert_output --partial "errors=0"
 }
 
-@test "README/ROADMAP tool counts stay within 15% of the live snapshot" {
+@test "public tool and contract count claims track the live snapshot" {
     # Human-readable \"~N tools\" figures in README.md, ROADMAP.md,
-    # and mcp/dotfiles-mcp/CLAUDE.md are easy to leave stale when
-    # tools land or retire. Tolerance band of ±15% keeps rough claims
-    # honest without demanding exact-number churn on every tool add.
+    # and MCP docs are easy to leave stale when tools land or retire.
+    # Rough claims get ±15%; the dotfiles-mcp README's exact snapshot
+    # block must match the committed contract overview.
     run bash "${SCRIPTS_DIR}/validate-tool-count-claims.sh"
     assert_success
+    assert_output --partial "exact_snapshot_counts=ok"
     assert_output --partial "errors=0"
 }
 
