@@ -189,6 +189,7 @@ Identified from GitHub research across 25+ Claude Code repos (60K+ combined star
 - [x] [P2][S] TDD enforcement hook — `scripts/claude-tdd-reminder.sh` is a PreToolUse advisory hook: on Go source writes, injects a systemMessage reminder unless a test file was written in-session or committed in the last hour. Generated-code and test-file writes stay silent. Opt-in via settings.json. Ref: nizos/tdd-guard, obra/superpowers
 - [x] [P2][S] Verify-before-complete gate — `scripts/claude-verify-gate.sh` (Stop hook) + `scripts/claude-verify-track.sh` (PreToolUse tracker). Emits a systemMessage at stop time if the session wrote source without running tests. Tracks 6 test-runner patterns (go/cargo/pytest/npm/yarn/make). Idempotent — reminds once per session. Ref: obra/superpowers
 - [x] [P2][M] PostToolUse hook wiring — `scripts/claude-marathon-sync.sh` now fires from project PostToolUse on `marathon_advance` MCP calls and legacy Bash Phase commits, appends idempotent `## Completed Marathon Phases` entries to ROADMAP.md, and records `marathon_advance` events in docs-mcp `roadmap_events` when the docs SQLite DB is present. Ref: autonomy gap analysis
+- [x] [P2][S] PostToolUse reload shim repair — restored missing `scripts/lib/agent-post-tool-reload.sh` target for legacy `scripts/lib/claude-post-tool-reload.sh`; Go formatting and desktop reload actions now run through a tested best-effort shared hook instead of failing with a missing file.
 
 ### Tier 3 — Low Priority / Exploratory
 
